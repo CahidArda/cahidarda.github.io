@@ -9,4 +9,4 @@ redirect_from:
 
 {% include base_path %}
 
-CV available [here](http://academicpages.github.io/files/cv.pdf)
+CV available [here](http://cahidarda.github.io/files/CV.pdf)
