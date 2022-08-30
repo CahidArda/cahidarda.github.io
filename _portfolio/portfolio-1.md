@@ -1,10 +1,12 @@
 ---
 title: "TabTransformer Keras Implementation"
-excerpt: "Implementation of the TabTransformer Model in Keras <br/><img src='/images/500x300.png'>"
+excerpt: "Implementation of the TabTransformer Model in Keras"
 collection: portfolio
 ---
 
-In my internship at Arute Solutions, I had worked on engineering features for a time series dataset in the first stage of the intership. In the second stage, I began working on deep learning. I had already taken a few courses from the [Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning?utm_source=deeplearningai&utm_medium=institutions&utm_campaign=WebsiteCoursesDLSTopButton) offered by [DeepLearning.AI](https://www.deeplearning.ai/), but I had not used deep learning on time series data.
+Date of writing: 30.8.2022
+
+In my internship at Arute Solutions (2021 July-August), I worked on engineering features for a time series dataset in the first stage of the intership. In the second stage, I began working on deep learning. I had already taken a few courses from the [Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning?utm_source=deeplearningai&utm_medium=institutions&utm_campaign=WebsiteCoursesDLSTopButton) offered by [DeepLearning.AI](https://www.deeplearning.ai/), but I had not used deep learning on time series data.
 
 To get familiar with deep learning methods for time series data and also writing my own Keras model, I began by writing a RNN model with Keras. I used this experience when working on the next task, which was to implement and use a TabTransformer model in Keras.
 
@@ -240,4 +242,8 @@ class TabTransformer(keras.Model):
         return self.output_layer(mlp_input)
 ```
 
-I tested the TabTransformer model and compared the results with tree based methods such as LGBM and XGBoost and found comperable results. One issue with the TabTransformer model was that it took too long to train.
+## Conclusion
+
+I tested the TabTransformer model and compared the results with tree based methods such as LGBM and XGBoost and found comperable results. One issue with the TabTransformer model was that it took too long to train. But instead of training a model from scratch like in tree based methods, it is possible to re-train a trained TabTransformer model.
+
+The model I wrote was used in the company and integrated to a collection of models used in the company.
