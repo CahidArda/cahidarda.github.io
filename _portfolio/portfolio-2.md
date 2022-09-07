@@ -54,7 +54,7 @@ In the next stage, I created a dataset with the labels generated with MTRG segme
 
 We trained a [CE-Net model](https://arxiv.org/abs/1903.02740) with this dataset. The model was successful at generating a binary mask segmenting the background from the fibers. I then used watersheding to find individual fibers:
 
-<br/><img src='/images/portfolio/ce-net-output.png'>
+<br/><img src='/images/portfolio/ce-net-output.PNG'>
 
 Combination of a CE-Net model trained with the labels from MTRG and the watersheding model proved to be succesful at segmenting fibers in the images. We were able to use this method to create bigger datasets for training better models and achieve our main goal of classifying these fibers.
 
