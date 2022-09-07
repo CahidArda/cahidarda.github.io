@@ -14,7 +14,7 @@ The project I worked on aimed to automate this process. The cross-section image 
 
 ## Issues with the Task
 
-The data was raw, meaning that there were labels associated with the data. We had to generate our own labels if we wanted to train machine learning models.
+The data was raw, meaning that there were no labels associated with the data. We had to generate our own labels if we wanted to train machine learning models.
 
 Another issue was that we didn't have much data on the real task we wanted to solve: finding percentages of each fiber type when the thread has a mixture of different fibers. We only had (unlabelled) data of the pure threads where there was only one type of fiber.
 
