@@ -8,7 +8,7 @@ While I was at [Artifeye](https://www.artifeye.com/), I worked on an image segme
 
 ## Introduction
 
-The project I worked on aimed to automate this process. The cross-section image would be fed to the algorithm by the operator and the algoritm would output the contents of the fiber. An example thread cross-section can be seen below. Each whiteish blob is an individual fiber. Our task is to segment these individual fibers and find area & type of each fiber. This task was not easy because the images are usually low contrast, blobs are adjacent to each other and different types of fibers look alike in the photoes.
+The project I worked on aimed to automate this process. The cross-section image would be fed to the algorithm by the operator and the algoritm would output the contents of the fiber. An example thread cross-section can be seen below. Each whiteish blob is an individual fiber. Our task is to segment these individual fibers and find area & type of each fiber. This task was not easy because the images are usually low contrast, blobs are adjacent to each other and different types of fibers look alike in the photos.
 
 <br/><img src='/images/portfolio/kesit-sample.BMP'>
 
