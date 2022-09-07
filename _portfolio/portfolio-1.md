@@ -1,6 +1,6 @@
 ---
 title: "TabTransformer Keras Implementation"
-excerpt: "Implementation of the TabTransformer Model in Keras"
+excerpt: "Implementation of the TabTransformer Model in Keras."
 collection: portfolio
 ---
 
