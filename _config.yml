@@ -82,12 +82,12 @@ analytics:
 author:
   name             : "Cahid Arda Öz"
   avatar           : "profile.png"
-  bio              : "Senior Student at Bogazici University. Machine Learning Intern at Invent Analytics"
+  bio              : "Senior Student at Bogazici University. Junior Software Engineer at Invent Analytics"
   location         : "Istanbul, Turkey"
   employer         : Invent Analytics
   pubmed           : 
   googlescholar    : 
-  email            : cahid.oz@boun.edu.tr
+  email            : cahidardaooz@gmail.com
   researchgate     :  # example: "https://www.researchgate.net/profile/yourprofile"
   uri              :
   bitbucket        :
@@ -103,7 +103,7 @@ author:
   impactstory      : #"https://profiles.impactstory.org/u/xxxx-xxxx-xxxx-xxxx"
   lastfm           :
   linkedin         : cahid-arda/
-  orcid            : #"http://orcid.org/yourorcidurl"
+  orcid            : https://orcid.org/0009-0001-6049-3869
   pinterest        :
   soundcloud       :
   stackoverflow    : # http://stackoverflow.com/users/123456/username
@@ -114,7 +114,7 @@ author:
   weibo            :
   xing             :
   youtube          :
-  wikipedia        :
+  wikipedia        : VonArda
 
 
 # Reading Files
