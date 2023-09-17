@@ -196,9 +196,7 @@ Output of my implementation is as follows:
 
 The middle element of our solution is **4.5**, which denoted the average time it will take our ant to move from the middle of the box to any border. Making our solution, 4.5.
 
-<details>
-<summary>Complete Code</summary>
-
+Complete code:
 ```python
 import numpy as np
 from typing import Iterator
@@ -267,7 +265,6 @@ print(A)
 print(b)
 print(np.linalg.solve(A, b))
 ```
-</details>
 
 
 ### Test
