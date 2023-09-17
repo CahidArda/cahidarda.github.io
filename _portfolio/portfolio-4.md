@@ -62,7 +62,7 @@ $$
 
 $$
 
-Only thing left to do, is to figure out how to calculate all these variables. Here, we will **reduce our problem to a linear algebra problem**. We can write the equation above for every variable on our grid. Then, we can collect the constants on the right side and variables on the left side of the equation. Denote the left side of the equation with matrix $\underset{3\times 3}{\mathrm{A}}$ and right side with matrix $\underset{1\times 3}{\mathrm{b}}$. $\mathrm{A}$ matrix looks like this:
+Only thing left to do, is to figure out how to calculate all these variables. Here, we will **reduce our problem to a linear algebra problem**. We can write the equation above for every variable on our grid. Then, we can collect the constants on the right side and variables on the left side of the equation. Denote the left side of the equation with matrix $\underset{9\times 9}{\mathrm{A}}$ and right side with matrix $\underset{1\times 9}{\mathrm{b}}$. $\mathrm{A}$ matrix looks like this:
 
 $$
 
