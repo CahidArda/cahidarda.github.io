@@ -6,9 +6,11 @@ collection: portfolio
 
 Date of writing: 30.8.2022
 
-In my internship at Arute Solutions (2021 July-August), I worked on engineering features for a time series dataset in the first stage of the intership. In the second stage, I began working on deep learning. I had already taken a few courses from the [Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning?utm_source=deeplearningai&utm_medium=institutions&utm_campaign=WebsiteCoursesDLSTopButton) offered by [DeepLearning.AI](https://www.deeplearning.ai/), but I had not used deep learning on time series data.
+During my internship at Arute Solutions in July and August 2021, I undertook a two-stage project focusing on enhancing features for a time series dataset. Initially, I concentrated on engineering features in the first stage. Transitioning into the second stage, my focus shifted towards the realm of deep learning. Despite having completed courses from the [Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning?utm_source=deeplearningai&utm_medium=institutions&utm_campaign=WebsiteCoursesDLSTopButton) by [DeepLearning.AI](https://www.deeplearning.ai/), I had yet to apply deep learning techniques to time series data.
 
-To get familiar with deep learning methods for time series data and also writing my own Keras model, I began by writing a RNN model with Keras. I used this experience when working on the next task, which was to implement and use a TabTransformer model in Keras.
+In my pursuit of acclimating to deep learning methodologies for time series data and developing my own Keras model, I commenced by constructing an RNN model using Keras. The insights gained from this experience proved invaluable when tackling the subsequent task, which involved implementing and utilizing a TabTransformer model in Keras.
+
+Within this document, I aim to showcase the RNN module I crafted and delve into the intricacies of the TabTransformer. A source of personal pride is my work on the TabTransformer, now [my most appreciated repository on GitHub](https://github.com/CahidArda/tab-transformer-keras). Furthermore, this repository has been featured in the code examples of the ["Modern Deep Learning for Tabular Data"](https://link.springer.com/book/10.1007/978-1-4842-8692-0) textbook authored by Andre Ye and Zian Wang, as evidenced by its inclusion in [their corresponding code repository](https://github.com/Apress/modern-deep-learning-tabular-data/blob/main/dl4td-chapter-6-code.ipynb).
 
 ## RNN Implementation
 
@@ -246,4 +248,5 @@ class TabTransformer(keras.Model):
 
 I tested the TabTransformer model and compared the results with tree based methods such as LGBM and XGBoost and found comperable results. One issue with the TabTransformer model was that it took too long to train. But instead of training a model from scratch like in tree based methods, it is possible to re-train a trained TabTransformer model.
 
-The model I wrote was used in the company and integrated to a collection of models used in the company.
+The model I wrote was used in the company and integrated to a collection of models used in the company. It was also used as code examples of the textbook ["Modern Deep Learning for Tabular Data
+" textbook](https://link.springer.com/book/10.1007/978-1-4842-8692-0)

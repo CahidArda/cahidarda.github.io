@@ -4,11 +4,13 @@ excerpt: "Observing the evolution of strategies in prisonner's dilemma using rei
 collection: portfolio
 ---
 
-In this project I tried to recreate the results reached in an article named [A strategy of win-stay, lose-shift that outperforms tit-for-tat in the Prisoner's Dilemma game](https://www.nature.com/articles/364056a0). Code related to the project can be found in the [related GitHub repository](https://github.com/CahidArda/prisonner-s-dilemma-strategy-evolution/tree/master) 
+In this project, my aim was to replicate the results presented in an article titled  [A strategy of win-stay, lose-shift that outperforms tit-for-tat in the Prisoner's Dilemma game](https://www.nature.com/articles/364056a0). The project's code is available in the [corresponding GitHub repository](https://github.com/CahidArda/prisonner-s-dilemma-strategy-evolution/tree/master).
 
-In the article, the simulation is explained with the followirng sentences:
+The article elucidates the simulation with the following statements:
 
 > Two players are engaged in the Prisonner's Dilemma and have to choose between cooperation (C) and defection (D). According to their decisions, they are awarded with points. In any given round, the two players receive R points if both cooperate and only P points if they both defect; but a defector exploiting a cooperator gets T points, while the cooperator receives S (with T>R>P>S and 2R>T+S). Thus in a single round it is always best to defect, but cooperation may be rewarded in an iterated (or spatial) Prisoner's Dilemma.
+
+Throughout the course of this project, I gained insights into how parallelism can enhance algorithm performance and delved into the intricacies of multithreading in Java. Additionally, I expanded my knowledge in the domains of reinforcement learning and game theory.
 
 ## Project Directory
 

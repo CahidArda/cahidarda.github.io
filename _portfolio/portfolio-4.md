@@ -360,11 +360,3 @@ sim_count     mean      max
 ```
 
 Looking at the results of my test, I conclude that my solution and implementation are correct.
-
-## Question 2
-
-Not done yet
-
-## Question 3
-
-Not done yet
