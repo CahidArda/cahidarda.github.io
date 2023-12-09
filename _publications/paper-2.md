@@ -1,0 +1,8 @@
+---
+title: "A Comprehensive Analysis of Static Word Embeddings for Turkish"
+collection: publications
+permalink: /publication/paper-2
+excerpt: 'Word embeddings are word representations that are used in natural language processing (NLP) applications. There are basically two types of word embedding models which are non-contextual (static) models and contextual models. While the former one generates a single embedding for a word independent of the context, the latter one generates a different embedding for a word in different contexts. There are plenty of works that compare contextual and non-contextual embedding models within their respective groups in different languages. However, the number of studies that compare the models in these two groups with each other is very few and there is no such study in Turkish. This process necessitates converting contextual embeddings into static embeddings. In this paper, we compare and evaluate the performance of several contextual and non-contextual models in both intrinsic and extrinsic evaluation settings for Turkish. We make a fine-grained comparison by analyzing the syntactic and semantic capabilities of the models separately. The results of the analyses provide insights about the suitability of different embedding models in different types of NLP tasks. We also build a Turkish word embedding repository comprising the embedding models used in this work, which may serve as a valuable resource for researchers and practitioners in the field of Turkish NLP. We make the word embeddings, scripts, and evaluation datasets publicly available.'
+venue: Currently Under Review for 'Expert Systems with Applications'
+paperurl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4615519'
+---
