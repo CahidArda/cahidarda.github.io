@@ -82,9 +82,9 @@ analytics:
 author:
   name             : "Cahid Arda Öz"
   avatar           : "profile.png"
-  bio              : "Senior Student at Bogazici University. Junior Software Engineer at Invent Analytics"
+  bio              : "Bogazici University Graduate. Software Engineer at Upstash"
   location         : "Istanbul, Turkey"
-  employer         : Invent Analytics
+  employer         : Upstash
   pubmed           : 
   googlescholar    : 
   email            : cahidardaooz@gmail.com
@@ -109,7 +109,7 @@ author:
   stackoverflow    : # http://stackoverflow.com/users/123456/username
   steam            :
   tumblr           :
-  twitter          : #"replacethistwitterhandle"
+  twitter          : cahidarda
   vine             :
   weibo            :
   xing             :
