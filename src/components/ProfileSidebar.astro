@@ -162,27 +162,37 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
   })();
 
   // Table-of-contents scroll-spy: highlight the heading currently near the top.
+  // Deferred until the document is parsed - this script runs inside the sidebar,
+  // which precedes <main>, so the heading targets don't exist in the DOM yet.
   (() => {
-    const links = Array.from(document.querySelectorAll('[data-toc]'));
-    if (!links.length) return;
-    const targets = links
-      .map((l) => document.getElementById(l.getAttribute('data-toc')))
-      .filter(Boolean);
-    let active = null;
-    const setActive = (id) => {
-      if (id === active) return;
-      active = id;
-      links.forEach((l) => l.classList.toggle('toc-active', l.getAttribute('data-toc') === id));
+    const init = () => {
+      const links = Array.from(document.querySelectorAll('[data-toc]'));
+      if (!links.length) return;
+      const targets = links
+        .map((l) => document.getElementById(l.getAttribute('data-toc')))
+        .filter(Boolean);
+      let active = null;
+      const setActive = (id) => {
+        if (id === active) return;
+        active = id;
+        links.forEach((l) => l.classList.toggle('toc-active', l.getAttribute('data-toc') === id));
+      };
+      const seen = new Set();
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)));
+          const top = targets.filter((t) => seen.has(t));
+          if (top.length) setActive(top[0].id);
+        },
+        { rootMargin: '0px 0px -75% 0px', threshold: 0 },
+      );
+      targets.forEach((t) => obs.observe(t));
     };
-    const seen = new Set();
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)));
-        const top = targets.filter((t) => seen.has(t));
-        if (top.length) setActive(top[0].id);
-      },
-      { rootMargin: '0px 0px -75% 0px', threshold: 0 },
-    );
-    targets.forEach((t) => obs.observe(t));
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   })();
 </script>
