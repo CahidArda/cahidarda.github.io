@@ -1,0 +1,231 @@
+@import 'tailwindcss';
+
+/* Self-hosted variable fonts (Fontsource) */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Enable class-based dark mode: `dark:` applies under .dark */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Editorial / brutalist palette - original, Hermes-inspired but not copied.
+  Warm paper ground, near-black warm ink, hairline rules, one rust accent.
+  Semantic vars live on :root/.dark and are exposed to Tailwind via @theme.
+*/
+:root {
+  --paper: #f4f1e9;
+  --paper-raised: #faf8f2;
+  --ink: #1a1813;
+  --ink-soft: #44413a;
+  --muted: #777264;
+  --line: #d8d3c5;
+  --line-strong: #b9b3a2;
+  --accent: #b14a2a;
+  --accent-soft: #c97a5e;
+}
+
+.dark {
+  --paper: #131210;
+  --paper-raised: #1b1a16;
+  --ink: #f1eee4;
+  --ink-soft: #cbc7ba;
+  --muted: #908b7d;
+  --line: #322f29;
+  --line-strong: #4a463d;
+  --accent: #d4794f;
+  --accent-soft: #b14a2a;
+}
+
+@theme {
+  --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
+
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Tailwind v4 Preflight no longer forces a pointer on interactive elements. */
+  button:not(:disabled),
+  [role='switch'],
+  [role='button'],
+  summary,
+  a[href] {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Active nav item - accent color + a leading arrow, toggled server- or client-side. */
+.nav-link.is-active {
+  color: var(--color-accent);
+}
+.nav-link.is-active::before {
+  content: '';
+  flex: none;
+  width: 1.35em;
+  height: 1.35em;
+  margin-right: 0.4rem;
+  background-color: currentColor;
+  -webkit-mask: url('/arrow-right.svg') center / contain no-repeat;
+  mask: url('/arrow-right.svg') center / contain no-repeat;
+}
+
+/* Active table-of-contents link (scroll-spy). */
+.toc-link.toc-active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Theme toggle: show moon in light mode, sun in dark mode — driven by the .dark
+   class set before paint, so the icon never flips after hydration. */
+.theme-moon {
+  display: block;
+}
+.theme-sun {
+  display: none;
+}
+.dark .theme-moon {
+  display: none;
+}
+.dark .theme-sun {
+  display: block;
+}
+
+/* Letter-spaced uppercase label - the recurring editorial motif. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/*
+  Prose - typographic styles for rendered markdown. Defined globally (not scoped)
+  so they reach the HTML injected by <Content /> through the <slot />.
+*/
+.prose {
+  color: var(--color-ink-soft);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+.prose > * + * {
+  margin-top: 1.15em;
+}
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: var(--color-ink);
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+.prose h2 {
+  font-size: 1.6rem;
+}
+.prose h3 {
+  font-size: 1.3rem;
+}
+.prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.prose strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+.prose ul {
+  list-style: square;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li::marker {
+  color: var(--color-muted);
+}
+.prose blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 1em;
+  color: var(--color-muted);
+  font-style: italic;
+}
+.prose img {
+  border: 1px solid var(--color-line);
+}
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background-color: var(--color-paper-raised);
+  border: 1px solid var(--color-line);
+  padding: 0.1em 0.35em;
+}
+.prose pre {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background-color: var(--color-paper-raised);
+  border: 1px solid var(--color-line);
+  padding: 1em 1.15em;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1em;
+}
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+}
+.prose h2 + *,
+.prose h3 + * {
+  margin-top: 0.5em;
+}

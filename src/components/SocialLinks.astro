@@ -1,0 +1,29 @@
+---
+import { socials } from '../data/socials';
+import SocialIcon from './SocialIcon.astro';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<ul class={`flex flex-wrap items-center gap-1 ${className}`}>
+  {
+    socials.map((social) => (
+      <li>
+        <a
+          href={social.href}
+          aria-label={social.label}
+          title={social.label}
+          rel={social.href.startsWith('http') ? 'me noopener' : undefined}
+          target={social.href.startsWith('http') ? '_blank' : undefined}
+          class="flex h-9 w-9 items-center justify-center border border-line text-ink-soft transition-colors hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent"
+        >
+          <SocialIcon name={social.icon} />
+        </a>
+      </li>
+    ))
+  }
+</ul>

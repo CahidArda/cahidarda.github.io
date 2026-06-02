@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleRowCompact from '../components/ArticleRowCompact.astro';
+import { profile } from '../data/profile';
+import { getEntries } from '../lib/entries';
+
+const RECENT_COUNT = 6;
+
+const entries = await getEntries();
+const recent = entries.slice(0, RECENT_COUNT);
+---
+
+<BaseLayout>
+  <section>
+    <p class="max-w-2xl leading-relaxed text-ink-soft">{profile.intro}</p>
+  </section>
+
+  <section class="mt-12">
+    <div class="flex items-baseline justify-between">
+      <h2 class="label">Recent</h2>
+      <a href="/articles" class="label hover:text-accent">Full index →</a>
+    </div>
+
+    <div class="mt-4">
+      {recent.map((entry) => <ArticleRowCompact entry={entry} />)}
+      {
+        recent.length === 0 && (
+          <p class="border-t border-line py-6 text-sm text-muted">No articles yet.</p>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

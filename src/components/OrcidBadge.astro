@@ -1,0 +1,14 @@
+---
+import { profile } from '../data/profile';
+import SocialIcon from './SocialIcon.astro';
+---
+
+<a
+  href={profile.orcid}
+  target="_blank"
+  rel="me noopener"
+  class="label inline-flex items-center gap-1.5 border border-line-strong px-2 py-0.5 leading-none text-ink-soft transition-colors hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent"
+>
+  <SocialIcon name="orcid" class="h-3.5 w-3.5" />
+  ORCID
+</a>

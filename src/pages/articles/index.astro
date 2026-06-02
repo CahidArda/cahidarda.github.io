@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { tags, tagKeys } from '../../data/tags';
+import { getEntries } from '../../lib/entries';
+
+const entries = await getEntries();
+
+const ALL = '__all__';
+const chips = [
+  { key: ALL, label: 'All', count: entries.length },
+  ...tagKeys
+    .map((key) => ({
+      key: key as string,
+      label: tags[key].label,
+      count: entries.filter((e) => e.tags.includes(key)).length,
+    }))
+    .filter((t) => t.count > 0),
+];
+---
+
+<BaseLayout title="Index" description="Writing, papers, projects, and monthly reading roundups.">
+  <header>
+    <h1 class="font-display text-4xl text-ink md:text-5xl">Index</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">
+      Everything in one place - writing, publications, projects, and the monthly roundup. Filter by
+      tag.
+    </p>
+  </header>
+
+  <div id="tag-filter" role="group" aria-label="Filter by tag" class="mt-8 flex flex-wrap gap-2">
+    {
+      chips.map((chip) => (
+        <button
+          type="button"
+          data-chip={chip.key}
+          aria-pressed="false"
+          class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
+        >
+          {chip.label}
+          <span class="opacity-70">{chip.count}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  <!-- Active chip is set before paint (from ?tag=), so it never flashes "All" first. -->
+  <script is:inline>
+    (() => {
+      const ALL = '__all__';
+      const root = document.getElementById('tag-filter');
+      if (!root) return;
+      const chips = Array.from(root.querySelectorAll('[data-chip]'));
+      const keys = chips.map((c) => c.getAttribute('data-chip'));
+
+      const current = () => {
+        const p = new URLSearchParams(window.location.search).get('tag');
+        return p && keys.includes(p) ? p : ALL;
+      };
+      const paint = (key) =>
+        chips.forEach((c) =>
+          c.setAttribute('aria-pressed', String(c.getAttribute('data-chip') === key)),
+        );
+      const filter = (key) => {
+        let shown = 0;
+        document.querySelectorAll('[data-article]').forEach((el) => {
+          const t = (el.getAttribute('data-tags') || '').split(' ').filter(Boolean);
+          const match = key === ALL || t.includes(key);
+          el.hidden = !match;
+          if (match) shown++;
+        });
+        const empty = document.getElementById('article-empty');
+        if (empty) empty.hidden = shown !== 0;
+      };
+
+      // Highlight immediately (chips are already parsed); filter rows when the DOM is ready.
+      paint(current());
+
+      const init = () => {
+        chips.forEach((chip) =>
+          chip.addEventListener('click', () => {
+            const key = chip.getAttribute('data-chip');
+            const url = new URL(window.location.href);
+            if (key === ALL) url.searchParams.delete('tag');
+            else url.searchParams.set('tag', key);
+            window.history.replaceState({}, '', url);
+            paint(key);
+            filter(key);
+            window.dispatchEvent(
+              new CustomEvent('tagfilterchange', { detail: { tag: key === ALL ? null : key } }),
+            );
+          }),
+        );
+        filter(current());
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+    })();
+  </script>
+
+  <div class="mt-4">
+    {
+      entries.map((entry) => (
+        <div data-article data-tags={entry.tags.join(' ')}>
+          <ArticleCard entry={entry} showDescription />
+        </div>
+      ))
+    }
+    <p id="article-empty" hidden class="border-t border-line py-6 text-sm text-muted">
+      No articles match that tag.
+    </p>
+    {
+      entries.length === 0 && (
+        <p class="border-t border-line py-6 text-sm text-muted">No articles yet.</p>
+      )
+    }
+  </div>
+</BaseLayout>

@@ -1,0 +1,66 @@
+---
+import TagBadge from './TagBadge.astro';
+import MetaIcon from './MetaIcon.astro';
+import { tagHref } from '../data/tags';
+import type { ListEntry } from '../lib/entries';
+import { formatDate, isoDate } from '../lib/format';
+
+interface Props {
+  entry: ListEntry;
+  /** Show a one/two-line description (used on the index). */
+  showDescription?: boolean;
+}
+
+const { entry, showDescription = false } = Astro.props;
+const { title, description, date, tags, href, external, source, stars } = entry;
+---
+
+<article
+  class="group relative flex flex-col gap-3 border-t border-line py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8"
+>
+  <!-- Left: title + description -->
+  <div class="min-w-0 sm:flex-1">
+    <h3 class="font-display text-lg leading-snug text-ink">
+      <a
+        href={href}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener' : undefined}
+        class="after:absolute after:inset-0 hover:text-accent focus-visible:text-accent"
+      >
+        {title}
+      </a>
+    </h3>
+    {
+      showDescription && description && (
+        <p class="mt-1.5 line-clamp-2 max-w-xl text-sm text-ink-soft">{description}</p>
+      )
+    }
+  </div>
+
+  <!-- Right: metadata group (stars, link, date) + tag -->
+  <div class="flex shrink-0 flex-col gap-2 sm:items-end sm:text-right">
+    <div class="label flex flex-wrap items-center gap-x-3 gap-y-1 sm:justify-end">
+      {
+        typeof stars === 'number' && stars > 0 && (
+          <span class="inline-flex items-center gap-1">
+            <MetaIcon name="star" />
+            {stars}
+          </span>
+        )
+      }
+      {
+        external && source && (
+          <span class="inline-flex items-center gap-1 text-accent">
+            <MetaIcon name="link" />
+            {source}
+          </span>
+        )
+      }
+      <time datetime={isoDate(date)}>{formatDate(date)}</time>
+    </div>
+
+    <div class="relative z-10 flex flex-wrap gap-2 sm:justify-end">
+      {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} />)}
+    </div>
+  </div>
+</article>

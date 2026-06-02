@@ -1,0 +1,50 @@
+---
+import { formatMonthYear } from '../lib/format';
+
+interface Props {
+  title: string;
+  authors?: string[];
+  venue?: string;
+  date: Date;
+  doi?: string;
+  pdf?: string;
+}
+
+const { title, authors, venue, date, doi, pdf } = Astro.props;
+const doiUrl = doi ? (doi.startsWith('http') ? doi : `https://doi.org/${doi}`) : undefined;
+---
+
+<aside class="border border-line bg-paper-raised p-5 text-sm">
+  <p class="label mb-3">Citation</p>
+  <p class="leading-relaxed text-ink-soft">
+    {authors && authors.length > 0 && <span>{authors.join(', ')}. </span>}
+    <span class="text-ink">“{title}.”</span>
+    {venue && <span class="italic"> {venue}</span>}
+    <span> ({formatMonthYear(date)}).</span>
+  </p>
+
+  {
+    (doiUrl || pdf) && (
+      <div class="mt-4 flex flex-wrap gap-2">
+        {pdf && (
+          <a
+            href={pdf}
+            class="label inline-flex items-center gap-1.5 border border-line-strong px-2.5 py-1 text-ink-soft transition-colors hover:border-accent hover:text-accent"
+          >
+            PDF
+          </a>
+        )}
+        {doiUrl && (
+          <a
+            href={doiUrl}
+            target="_blank"
+            rel="noopener"
+            class="label inline-flex items-center gap-1.5 border border-line-strong px-2.5 py-1 text-ink-soft transition-colors hover:border-accent hover:text-accent"
+          >
+            DOI
+          </a>
+        )}
+      </div>
+    )
+  }
+</aside>

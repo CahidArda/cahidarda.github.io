@@ -1,0 +1,86 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+import 'katex/dist/katex.min.css';
+import { Image } from 'astro:assets';
+import BaseLayout from './BaseLayout.astro';
+import Prose from '../components/Prose.astro';
+import TagBadge from '../components/TagBadge.astro';
+import CitationBlock from '../components/CitationBlock.astro';
+import OrcidBadge from '../components/OrcidBadge.astro';
+import { tagHref } from '../data/tags';
+import { formatDate, isoDate } from '../lib/format';
+
+interface Props {
+  entry: CollectionEntry<'articles'>;
+  headings?: MarkdownHeading[];
+}
+
+const { entry, headings = [] } = Astro.props;
+const { title, description, date, updated, tags, heroImage, venue, authors, doi, pdf } =
+  entry.data;
+
+const isPublication = tags.includes('publication');
+// Per-article OG image generated at build time (see src/pages/og/[slug].png.ts).
+const ogImage = `/og/${entry.id}.png`;
+// Highlight this content type in the sidebar (publication/blog/accessions).
+const activeNav = tags[0];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogImage={ogImage}
+  activeNav={activeNav}
+  headings={headings.filter((h) => h.depth === 2 || h.depth === 3)}
+>
+  <article>
+    <header class="border-b border-line pb-8">
+      <div class="flex flex-wrap items-center gap-3">
+        <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
+        {updated && <span class="label">· Updated {formatDate(updated)}</span>}
+      </div>
+
+      <h1 class="mt-4 font-display text-4xl leading-tight text-ink md:text-5xl">{title}</h1>
+      <p class="mt-4 max-w-2xl text-lg text-ink-soft">{description}</p>
+
+      <div class="mt-5 flex flex-wrap items-center gap-2">
+        {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} />)}
+        {isPublication && <OrcidBadge />}
+      </div>
+    </header>
+
+    {
+      heroImage && (
+        <div class="mt-8 border border-line">
+          <Image src={heroImage} alt="" width={1280} height={720} class="w-full object-cover" />
+        </div>
+      )
+    }
+
+    {
+      isPublication && (venue || authors || doi || pdf) && (
+        <div class="mt-8">
+          <CitationBlock
+            title={title}
+            authors={authors}
+            venue={venue}
+            date={date}
+            doi={doi}
+            pdf={pdf}
+          />
+        </div>
+      )
+    }
+
+    <Prose class="mt-8">
+      <slot />
+    </Prose>
+
+    <footer class="mt-12 border-t border-line pt-6">
+      <a href="/articles" class="label inline-flex items-center gap-2 hover:text-accent">
+        ← Index
+      </a>
+    </footer>
+  </article>
+</BaseLayout>

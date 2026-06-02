@@ -1,0 +1,144 @@
+---
+import '../styles/global.css';
+import ProfileSidebar from '../components/ProfileSidebar.astro';
+import CommandPalette, { type PaletteItem } from '../components/CommandPalette.tsx';
+import { profile } from '../data/profile';
+import { tags, tagKeys, tagHref } from '../data/tags';
+import { getEntries } from '../lib/entries';
+// Preload the primary (latin) font files so navigations don't flash the fallback (FOUT).
+import frauncesFont from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import monoFont from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Absolute or root-relative OG image URL. Defaults to the branded /og.png. */
+  ogImage?: string;
+  /** Render <meta name="robots" content="noindex"> (e.g. 404). */
+  noindex?: boolean;
+  /** Force a sidebar nav item active (e.g. 'publication' on a paper's page). */
+  activeNav?: string;
+  /** Article headings - rendered as an in-sidebar table of contents. */
+  headings?: { depth: number; slug: string; text: string }[];
+}
+
+const {
+  title,
+  description = profile.intro,
+  ogImage = '/og.png',
+  noindex = false,
+  activeNav,
+  headings = [],
+} = Astro.props;
+
+const pageTitle = title ? `${title} - ${profile.name}` : `${profile.name} - Software Engineer`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(ogImage, Astro.site).href;
+const twitterHandle = '@cahidarda';
+
+// Build the command-palette index once, at build time (no runtime fetch).
+// Tags jump to filters; every entry (articles, external posts, repos) is included,
+// with its tag shown as the right-side badge.
+const paletteItems: PaletteItem[] = [
+  ...tagKeys.map((key) => ({
+    title: tags[key].label,
+    subtitle: tags[key].blurb,
+    href: tagHref(key),
+    external: false,
+    badge: 'Tag',
+  })),
+  ...(await getEntries()).map((entry) => ({
+    title: entry.title,
+    subtitle: entry.source || entry.description || '',
+    href: entry.href,
+    external: entry.external,
+    badge: tags[entry.tags[0]].label,
+  })),
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- Preload primary fonts to avoid a flash of fallback text on navigation -->
+    <link rel="preload" href={frauncesFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={monoFont} as="font" type="font/woff2" crossorigin />
+
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${profile.name} - ${profile.tagline}`} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={twitterHandle} />
+    <meta name="twitter:creator" content={twitterHandle} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${profile.name} - Articles`}
+      href="/rss.xml"
+    />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Set theme before paint to avoid a flash -->
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'dark' || (!stored && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch {}
+      })();
+    </script>
+  </head>
+
+  <body>
+    <a
+      href="#main"
+      class="label sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:border focus:border-accent focus:bg-paper focus:px-3 focus:py-2"
+    >
+      Skip to content
+    </a>
+
+    <div class="mx-auto grid max-w-6xl gap-y-8 px-5 py-8 md:grid-cols-[18rem_1fr] md:gap-x-12 md:px-8 md:py-14 lg:px-12">
+      <header class="md:sticky md:top-14 md:h-fit">
+        <ProfileSidebar activeNav={activeNav} headings={headings} />
+      </header>
+
+      <main id="main" class="min-w-0">
+        <slot />
+      </main>
+    </div>
+
+    <CommandPalette items={paletteItems} client:idle />
+  </body>
+</html>

@@ -1,0 +1,175 @@
+---
+title: Your New Personal Website Is a Few Prompts Away
+description: A personal site collects everything you do in one place. And you can build one without knowing a thing about the framework it runs on, just focusing on the aesthetics, like Bob Ross.
+date: 2026-06-02
+tags: ['blog']
+---
+
+import TweetEmbed from '../../components/TweetEmbed.astro';
+
+I rewrote my personal website, and I want to share how it came together.
+
+This site used to run on [Jekyll](https://jekyllrb.com/), on a theme called
+[AcademicPages](https://github.com/academicpages/academicpages.github.io) (itself a
+fork of [Minimal Mistakes](https://mmistakes.github.io/minimal-mistakes/)). It worked.
+But it felt dated, and it was organized the way academic templates tend to be: a
+section for publications, a section for a portfolio, a section for posts, each its own
+little island. I had three reasons to start over:
+
+- **A site that looks like nice.** I wanted something deliberate, not a default theme.
+- **One home for my writing.** I wanted to pull in the posts I have written on the
+  [Upstash blog](https://upstash.com/blog/author/arda) instead of leaving them scattered.
+- **A public reading log.** I already keep a running list of the things I read and want
+  to remember, the same habit [Scott Alexander](https://www.astralcodexten.com/) turns
+  into his monthly [links posts](https://www.astralcodexten.com/p/links-for-april-2026).
+  The only new part is sharing mine publicly, for whoever wants to check them out. The
+  first is up: [The Current, May 2026](/articles/the-current-may-2026/).
+
+## The look
+
+The visual direction came from the [Hermes Agent](https://hermes-agent.nousresearch.com/)
+site: editorial and brutalist. I took it as inspiration rather than a template, and derived an
+original palette: warm paper, near-black ink, and a single rust accent.
+
+## Why Astro
+
+I moved off Jekyll to [Astro](https://astro.build/) for a few concrete reasons:
+
+- [Content collections](https://docs.astro.build/en/guides/content-collections/) with
+  typed frontmatter, so the content is validated at build time.
+- Static output by default, which is exactly what [GitHub
+  Pages](https://docs.astro.build/en/guides/deploy/github/) wants.
+- An [RSS feed](https://docs.astro.build/en/recipes/rss/) in about ten lines.
+- [Islands architecture](https://docs.astro.build/en/concepts/islands/): JavaScript
+  ships only where there is genuine interactivity, and nowhere else.
+
+## One collection, and tags do the work
+
+The decision I am happiest with is the content model. Instead of separate sections,
+everything is a single `articles` collection, and tags handle the categorization. There
+are four:
+
+- `blog` for longer-form writing,
+- `publication` for papers, which means academic work is just an article with a tag
+  (no separate "papers" page to maintain; the publication filter becomes that page for
+  free),
+- `accessions` for the monthly reading roundup,
+- `repository` for my open-source projects.
+
+```ts
+const articles = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/articles' }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      date: z.coerce.date(),
+      tags: z.array(z.enum(['blog', 'publication', 'accessions'])).default(['blog']),
+      // ...external-post and publication-only fields
+    }),
+});
+```
+
+Each tag carries a hover tooltip explaining what it means, so the taxonomy explains
+itself. Every page also shows the same persistent frame: my name and social links
+beside the content, as a sidebar on desktop that folds into a header on mobile.
+
+## Restraint with components
+
+It would have been easy to reach for a component library like
+[shadcn/ui](https://ui.shadcn.com/). I deliberately did not. Two reasons. Its default
+"modern SaaS" look actively fights the editorial aesthetic I was after, and pulling a
+React runtime into a site that is 95% static content is weight I did not need.
+
+So the rule was: plain Astro components plus [Tailwind](https://tailwindcss.com/) for
+everything structural, and [React](https://docs.astro.build/en/guides/integrations-guide/react/)
+islands only where there is real interactivity. That came out to four islands: a command
+palette, the tag filter, copy-to-clipboard, and the theme toggle. One thing to know if
+you try this yourself: Astro islands do not share React context across separate mounts,
+so any compound interactive piece has to live inside a single island.
+
+## The fun parts
+
+Those four islands do a lot with very little JavaScript:
+
+- **A command palette.** Press ⌘K (or Ctrl-K) anywhere to fuzzy-jump to any article, tag,
+  or repository. The whole index is baked in at build time, so there is no search request,
+  just instant filtering.
+- **In-place tag filtering.** The index narrows by tag without a page load, and the sidebar
+  selection stays in sync with it.
+- **A scroll-spy table of contents.** On longer pieces the sidebar lists the sections and
+  highlights the one you are reading.
+- **Light and dark.** A theme toggle that sets itself before first paint, so there is no flash.
+
+Pages that do not use these ship none of the JavaScript behind them.
+
+## Two integrations, not rehosting
+
+Two kinds of content come from outside the repo. My Upstash posts are represented as
+lightweight external entries: they show up in the listings and link out, rather than
+being copied in. And my recent GitHub repos are fetched at build time and rendered
+statically. I left out the activity feed on purpose. It looks stale between static
+deploys, whereas a list of repositories looks intentional.
+
+## The link preview
+
+When you paste a link into Slack, X, or iMessage, the little card that appears, with an
+image, a title, and a description, is built from Open Graph tags in the page's `<head>`:
+`og:image`, `og:title`, and friends. It is the first impression of everything you share,
+and the old site had none. You can preview what any URL will produce with
+[opengraph.xyz](https://www.opengraph.xyz/) or [metatags.io](https://metatags.io/).
+
+I wanted that preview to be good. The catch with a single shared image is that every link
+looks identical, so a specific article gets a generic card. So each article now makes its
+own. At build time the site renders a branded image with the post's title baked in,
+word-wrapped (and shrunk for longer titles) so it can never overflow. Share
+[The Current](/articles/the-current-may-2026/) and the card shows its real title, not a
+placeholder.
+
+## An idea I parked
+
+The original plan included [acceptmarkdown.com](https://acceptmarkdown.com/) compliance:
+serving raw Markdown to AI agents through `Accept`-header content negotiation. I dropped
+it, for now. It needs runtime header inspection, which a static GitHub Pages host cannot
+do; it would have meant moving to an edge platform. A nice future addition, not a v1
+requirement.
+
+## How it was actually built
+
+I wrote a detailed build spec first, then handed it to a coding agent and implemented it
+in stages. The trick that made this work was building against mock content for the blog
+posts and publications before touching anything real, so every code path (citations, the
+roundup format, the external link-out cards) could be exercised and verified. The real
+content was migrated from the old site as the very last step.
+
+Here is the honest part: I did not know a single thing about Astro when I started, and I
+still could not write much of it from memory. It did not matter. With a clear spec and an
+agent doing the typing, the stack you do not know stops being a barrier. The same thing
+let me build [SkySim.rs](https://github.com/CahidArda/SkySim.rs), a visually basic but
+somewhat realistic flight simulator, in Rust, a language I also do not really know. The
+interesting work shifts from "can I write this?" to "do I know exactly what I want?".
+
+<TweetEmbed
+  url="https://x.com/cahidarda/status/2035277681499984039"
+  fallback="SkySim.rs - a visually basic but somewhat realistic flight simulator I built in Rust."
+/>
+
+## What's next
+
+A few things I want to figure out:
+
+- **Automating the monthly roundup.** Right now [The Current](/articles/the-current-may-2026/)
+  is hand-assembled from links I save in Notion. I would like the saving and the
+  publishing to be the same action, so a new month's post mostly writes itself.
+- **Analytics.** I have none. I want a privacy-respecting way to see which posts people
+  actually read, without bolting on a tracking script that betrays the whole
+  minimal-JavaScript premise.
+- **Content negotiation.** The [acceptmarkdown.com](https://acceptmarkdown.com/) idea,
+  serving raw Markdown to agents through the `Accept` header, still appeals. The open
+  question is the cheapest path: a small edge function in front of the static site, or
+  moving the host somewhere that can inspect request headers.
+
+## It's all open
+
+The whole thing is [on GitHub](https://github.com/CahidArda/cahidarda.github.io). If you
+are thinking about a similar rebuild, steal whatever is useful.

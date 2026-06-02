@@ -1,0 +1,188 @@
+---
+import { profile } from '../data/profile';
+import { tags, tagHref } from '../data/tags';
+import SocialLinks from './SocialLinks.astro';
+import ThemeToggle from './ThemeToggle.tsx';
+
+const navItems = [
+  { key: 'home', label: 'Home', href: '/', blurb: undefined as string | undefined },
+  { key: 'index', label: 'Index', href: '/articles', blurb: undefined as string | undefined },
+  { key: 'blog', label: tags.blog.label, href: tagHref('blog'), blurb: tags.blog.blurb },
+  {
+    key: 'publication',
+    label: tags.publication.label,
+    href: tagHref('publication'),
+    blurb: tags.publication.blurb,
+  },
+  {
+    key: 'accessions',
+    label: tags.accessions.label,
+    href: tagHref('accessions'),
+    blurb: tags.accessions.blurb,
+  },
+  {
+    key: 'repository',
+    label: tags.repository.label,
+    href: tagHref('repository'),
+    blurb: tags.repository.blurb,
+  },
+];
+
+interface Props {
+  /** When set (e.g. on an article page), forces this nav key active. */
+  activeNav?: string;
+  /** Article headings - rendered as a table of contents with scroll-spy. */
+  headings?: { depth: number; slug: string; text: string }[];
+}
+const { activeNav, headings = [] } = Astro.props;
+
+const path = Astro.url.pathname;
+// An explicit activeNav wins (article pages). Otherwise: tag items resolve on the
+// client (from ?tag=); home/index are path-based.
+const serverActive = (key: string) => {
+  if (activeNav) return key === activeNav;
+  if (key === 'home') return path === '/';
+  if (key === 'index') return path === '/articles';
+  return false;
+};
+
+// Split the tagline so the employer name renders as a link.
+const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.name);
+---
+
+<div class="flex flex-col gap-6">
+  <div class="min-w-0">
+    <a href="/" class="block">
+      <h1 class="font-display text-2xl leading-tight text-ink md:text-3xl">{profile.name}</h1>
+    </a>
+    <p class="mt-1 text-sm text-ink-soft">
+      {taglineBefore}<a
+        href={profile.employer.href}
+        target="_blank"
+        rel="noopener"
+        class="underline decoration-line underline-offset-2 hover:text-accent hover:decoration-accent"
+        >{profile.employer.name}</a
+      >{taglineAfter}
+    </p>
+    <p class="label mt-2">{profile.location}</p>
+  </div>
+
+  <nav aria-label="Primary" class="border-t border-line pt-4">
+    <ul class="flex flex-row flex-wrap gap-x-5 gap-y-2 md:flex-col md:gap-2">
+      {
+        navItems.map((item) => {
+          const blurb = item.blurb;
+          return (
+            <li class="group/nav relative inline-flex">
+              <a
+                href={item.href}
+                data-nav={item.key}
+                aria-current={serverActive(item.key) ? 'page' : undefined}
+                aria-describedby={blurb ? `navtip-${item.key}` : undefined}
+                class:list={[
+                  'nav-link label inline-flex items-center transition-colors hover:text-accent focus-visible:text-accent',
+                  serverActive(item.key) && 'is-active',
+                ]}
+              >
+                {item.label}
+              </a>
+              {blurb && (
+                <span
+                  id={`navtip-${item.key}`}
+                  role="tooltip"
+                  class="pointer-events-none absolute top-full left-0 z-30 mt-2 w-56 border border-line bg-paper-raised px-3 py-2 text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-opacity duration-150 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100"
+                >
+                  {blurb}
+                </span>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </nav>
+
+  {
+    headings.length > 0 && (
+      <nav aria-label="On this page" class="hidden border-t border-line pt-4 md:block">
+        <p class="label mb-3">On this page</p>
+        <ul class="flex flex-col gap-1.5">
+          {headings.map((h) => (
+            <li>
+              <a
+                href={`#${h.slug}`}
+                data-toc={h.slug}
+                class:list={[
+                  'toc-link block border-l-2 border-transparent text-sm leading-snug text-muted transition-colors hover:text-accent',
+                  h.depth === 3 ? 'pl-6' : 'pl-3',
+                ]}
+              >
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  <div class="flex flex-wrap items-center gap-1 border-t border-line pt-4">
+    <SocialLinks />
+    <ThemeToggle client:load />
+  </div>
+
+  <p class="hidden items-center gap-2 md:flex">
+    <span class="label">Press</span>
+    <kbd
+      class="inline-flex items-center border border-line px-1.5 py-0.5 font-mono text-xs text-ink-soft"
+      >⌘ + K</kbd
+    >
+  </p>
+</div>
+
+<script is:inline>
+  // On the index page, keep the sidebar nav in sync with the active tag - both on
+  // load (from ?tag=) and live, when the in-page TagFilter dispatches a change.
+  (() => {
+    const VALID = ['blog', 'publication', 'accessions', 'repository'];
+
+    function applyNav(tag) {
+      if (window.location.pathname !== '/articles') return;
+      const selected = tag && VALID.includes(tag) ? tag : 'index';
+      document.querySelectorAll('[data-nav]').forEach((el) => {
+        const active = el.getAttribute('data-nav') === selected;
+        el.classList.toggle('is-active', active);
+        if (active) el.setAttribute('aria-current', 'page');
+        else el.removeAttribute('aria-current');
+      });
+    }
+
+    applyNav(new URLSearchParams(window.location.search).get('tag'));
+    window.addEventListener('tagfilterchange', (e) => applyNav(e.detail && e.detail.tag));
+  })();
+
+  // Table-of-contents scroll-spy: highlight the heading currently near the top.
+  (() => {
+    const links = Array.from(document.querySelectorAll('[data-toc]'));
+    if (!links.length) return;
+    const targets = links
+      .map((l) => document.getElementById(l.getAttribute('data-toc')))
+      .filter(Boolean);
+    let active = null;
+    const setActive = (id) => {
+      if (id === active) return;
+      active = id;
+      links.forEach((l) => l.classList.toggle('toc-active', l.getAttribute('data-toc') === id));
+    };
+    const seen = new Set();
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)));
+        const top = targets.filter((t) => seen.has(t));
+        if (top.length) setActive(top[0].id);
+      },
+      { rootMargin: '0px 0px -75% 0px', threshold: 0 },
+    );
+    targets.forEach((t) => obs.observe(t));
+  })();
+</script>

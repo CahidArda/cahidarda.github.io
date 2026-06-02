@@ -1,0 +1,19 @@
+---
+/**
+ * Embeds a tweet/X post using the official widgets.js. The blockquote is the
+ * fallback that renders before (or if) the script hydrates it into the full card.
+ */
+interface Props {
+  url: string;
+  /** Fallback text shown before the embed loads. */
+  fallback?: string;
+}
+
+const { url, fallback } = Astro.props;
+---
+
+<blockquote class="twitter-tweet" data-dnt="true" data-conversation="none">
+  {fallback && <p>{fallback}</p>}
+  <a href={url}>{url}</a>
+</blockquote>
+<script is:inline async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>

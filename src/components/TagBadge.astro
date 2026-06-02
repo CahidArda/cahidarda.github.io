@@ -1,0 +1,30 @@
+---
+import { tags, type TagKey } from '../data/tags';
+
+interface Props {
+  tag: TagKey;
+  /** When true the badge is a link to the tag page. */
+  href?: string;
+}
+
+const { tag, href } = Astro.props;
+const meta = tags[tag];
+const Tag = href ? 'a' : 'span';
+---
+
+<span class="tag-badge group/tag relative inline-flex">
+  <Tag
+    href={href}
+    class="label inline-flex items-center border border-line-strong px-2 py-0.5 leading-none text-ink-soft transition-colors hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent"
+    aria-describedby={`tip-${tag}`}
+  >
+    {meta.label}
+  </Tag>
+  <span
+    id={`tip-${tag}`}
+    role="tooltip"
+    class="pointer-events-none absolute top-full left-0 z-20 mt-2 w-56 translate-y-1 border border-line bg-paper-raised px-3 py-2 text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-all duration-150 group-hover/tag:translate-y-0 group-hover/tag:opacity-100 group-focus-within/tag:translate-y-0 group-focus-within/tag:opacity-100"
+  >
+    {meta.blurb}
+  </span>
+</span>
