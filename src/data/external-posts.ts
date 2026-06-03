@@ -17,22 +17,33 @@ export interface ExternalPost {
 
 export const externalPosts: ExternalPost[] = [
   {
+    title: 'Redis vs Valkey: Features, Performance & Pricing in 2026',
+    description:
+      'How the 2024 fork split the two projects, plus a hosting, architecture, and pricing comparison of serverless Upstash Redis against managed ElastiCache for Valkey - and when to pick which.',
+    date: '2026-06-03',
+    url: 'https://upstash.com/blog/upstash-redis-vs-valkey',
+    source: 'Upstash',
+  },
+  {
     title: 'Fast, Cost-Effective MCPs with Redis',
-    description: 'How to back a Model Context Protocol server with Redis for low-latency, cheap tool calls.',
+    description:
+      'How to back a Model Context Protocol server with Redis for low-latency, cheap tool calls.',
     date: '2025-10-05',
     url: 'https://upstash.com/blog/mcp-with-redis',
     source: 'Upstash',
   },
   {
     title: 'Storing Time Series Data in Redis',
-    description: 'Patterns for modeling, writing, and querying time-series data on Redis without a dedicated TSDB.',
+    description:
+      'Patterns for modeling, writing, and querying time-series data on Redis without a dedicated TSDB.',
     date: '2025-09-03',
     url: 'https://upstash.com/blog/redis-timeseries',
     source: 'Upstash',
   },
   {
     title: 'Caching Drizzle Queries with Upstash Redis',
-    description: 'Add a Redis cache layer to Drizzle ORM queries for faster reads in serverless apps.',
+    description:
+      'Add a Redis cache layer to Drizzle ORM queries for faster reads in serverless apps.',
     date: '2025-07-10',
     url: 'https://upstash.com/blog/drizzle-integration',
     source: 'Upstash',
