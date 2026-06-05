@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { ImageMetadata } from 'astro';
 import type { TagKey } from '../data/tags';
-import { externalPosts } from '../data/external-posts';
+import { getExternalPosts } from './upstash-feed';
 import { getProjects } from './github';
 
 /**
@@ -36,8 +36,9 @@ export async function getEntries(): Promise<ListEntry[]> {
     heroImage: entry.data.heroImage,
   }));
 
-  // External posts (Upstash, etc.) - link-out cards, maintained in one data file.
-  const externalEntries: ListEntry[] = externalPosts.map((post) => ({
+  // External posts (Upstash) - link-out cards, sourced from my Upstash author feed
+  // at build time (with a committed fallback list if the feed is unreachable).
+  const externalEntries: ListEntry[] = (await getExternalPosts()).map((post) => ({
     title: post.title,
     description: post.description,
     date: new Date(post.date),
