@@ -1,9 +1,13 @@
 import type { TagKey } from './tags';
 
 /**
- * Posts published on external sites (e.g. the Upstash blog). These show up in the
- * content list as link-out cards - no local page. To add one, append a single entry
- * below; no new file needed. (`tags` defaults to ['blog'].)
+ * Posts published on external sites (the Upstash blog). These show up in the content
+ * list as link-out cards - no local page.
+ *
+ * The live list is fetched at build time from my Upstash author feed (see
+ * `lib/upstash-feed.ts`), so new Upstash posts appear automatically. This array is the
+ * offline fallback used only when that feed is unreachable; keep it roughly in sync.
+ * (`tags` defaults to ['blog'].)
  */
 export interface ExternalPost {
   title: string;
