@@ -16,6 +16,8 @@ const EXTRA_REPOS = [
   'upstash/workflow-js',
   'upstash/degree-guru',
   'upstash/box',
+  'upstash/workflow-agents-js',
+  'upstash/agent-analytics',
 ];
 
 // Lenient: many repos lack a description, homepage, or language.
