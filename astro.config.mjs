@@ -18,6 +18,11 @@ export default defineConfig({
   },
   integrations: [react(), mdx(), sitemap()],
 
+  // @astrojs/sitemap emits /sitemap-index.xml; redirect the conventional URL to it.
+  redirects: {
+    '/sitemap.xml': '/sitemap-index.xml',
+  },
+
   vite: {
     plugins: [tailwindcss()],
   },
