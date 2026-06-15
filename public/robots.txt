@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cahidarda.github.io/sitemap-index.xml
+Sitemap: https://cahidarda.github.io/sitemap.xml
