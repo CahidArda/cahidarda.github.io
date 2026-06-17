@@ -2,6 +2,10 @@
 /**
  * Embeds a tweet/X post using the official widgets.js. The blockquote is the
  * fallback that renders before (or if) the script hydrates it into the full card.
+ *
+ * The widget's light/dark theme is synced to the site theme (the `.dark` class on
+ * <html>). Twitter only reads `data-theme` when it converts the blockquote into an
+ * iframe, so on a runtime theme toggle we rebuild the blockquote and reload it.
  */
 interface Props {
   url: string;
@@ -12,8 +16,78 @@ interface Props {
 const { url, fallback } = Astro.props;
 ---
 
-<blockquote class="twitter-tweet" data-dnt="true" data-conversation="none">
-  {fallback && <p>{fallback}</p>}
-  <a href={url}>{url}</a>
-</blockquote>
-<script is:inline async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<div class="tweet-embed" data-tweet-url={url} data-tweet-fallback={fallback ?? ''}>
+  <blockquote class="twitter-tweet" data-dnt="true" data-conversation="none" data-width="400">
+    {fallback && <p>{fallback}</p>}
+    <a href={url}>{url}</a>
+  </blockquote>
+</div>
+
+<style>
+  /* Center the embed (and its pre-hydration fallback) in the content column. */
+  .tweet-embed {
+    display: flex;
+    justify-content: center;
+  }
+  .tweet-embed :global(.twitter-tweet) {
+    margin-inline: auto;
+  }
+</style>
+
+<script>
+  const isDark = () => document.documentElement.classList.contains('dark');
+
+  // (Re)build each embed's blockquote with the current theme, then ask widgets.js
+  // to convert them. Replacing the node discards any iframe from a previous theme.
+  function applyTheme() {
+    document.querySelectorAll<HTMLElement>('.tweet-embed').forEach((container) => {
+      const url = container.dataset.tweetUrl ?? '';
+      const fallback = container.dataset.tweetFallback ?? '';
+
+      const blockquote = document.createElement('blockquote');
+      blockquote.className = 'twitter-tweet';
+      blockquote.setAttribute('data-dnt', 'true');
+      blockquote.setAttribute('data-conversation', 'none');
+      blockquote.setAttribute('data-width', '400');
+      blockquote.setAttribute('data-theme', isDark() ? 'dark' : 'light');
+
+      if (fallback) {
+        const p = document.createElement('p');
+        p.textContent = fallback;
+        blockquote.appendChild(p);
+      }
+      const a = document.createElement('a');
+      a.href = url;
+      a.textContent = url;
+      blockquote.appendChild(a);
+
+      container.replaceChildren(blockquote);
+    });
+
+    (window as any).twttr?.widgets?.load?.();
+  }
+
+  function loadWidgets() {
+    if (document.getElementById('twitter-wjs')) return;
+    const s = document.createElement('script');
+    s.id = 'twitter-wjs';
+    s.async = true;
+    s.src = 'https://platform.twitter.com/widgets.js';
+    document.head.appendChild(s);
+  }
+
+  applyTheme();
+  loadWidgets();
+
+  // Re-render when the site theme is toggled at runtime.
+  let last = isDark();
+  new MutationObserver(() => {
+    if (isDark() !== last) {
+      last = isDark();
+      applyTheme();
+    }
+  }).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+</script>
