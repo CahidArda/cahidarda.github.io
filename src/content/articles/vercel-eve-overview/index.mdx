@@ -1,16 +1,16 @@
 ---
-title: "A Tour of Vercel Eve: building, scheduling and shipping an agent"
-description: "Notes from building a real agent on Vercel Eve: initializing a project, the file layout, the dev TUI, tools and skills, scheduling, channels, deployment, and how it builds on Vercel's stack."
-date: 2026-06-17
+title: "Vercel Eve: A Primer"
+description: "Notes from building a quick demo agent on Vercel Eve: initializing a project, the file layout, the dev TUI, tools and skills, scheduling, channels, deployment, and how it builds on Vercel's stack."
+date: 2026-06-18
 tags: ['blog']
 ---
 
 import TweetEmbed from '../../../components/TweetEmbed.astro';
 
-# A tour of Vercel Eve
-
-I built [Ask HackerNews](https://github.com/upstash/eve-example), an agent that
-searches HackerNews, on [Vercel Eve](https://vercel.com/eve).
+RAG is the hello world of agents, so naturally that's what I ended up building in
+order to play around with [Eve](https://vercel.com/eve):
+[Ask HackerNews](https://github.com/upstash/eve-example) searches HackerNews and
+answers from what it finds.
 
 ![Ask Hackernews](./ask-hackernews.png)
 
@@ -147,6 +147,12 @@ Every Eve app exposes an HTTP channel, and you can add platform
 [channels](https://eve.dev/docs/channels/overview): Slack, Discord, Telegram, and a
 web chat. The same agent is reachable from each one.
 
+The snippet below is close to the channel config Eve scaffolds by default.
+`localDev()` opens the routes on localhost and `vercelOidc()` admits your Vercel
+deployments; the scaffold's third entry, `placeholderAuth()`, blocks every other
+request in production. In our app we changed only that last one to `none()`, so the
+deployed agent is publicly accessible.
+
 ```ts
 // agent/channels/eve.ts
 import { eveChannel } from "eve/channels/eve";
@@ -157,15 +163,14 @@ export default eveChannel({ auth: [localDev(), vercelOidc(), none()] });
 
 ## Deploying the Agent to Vercel
 
-Update the Vercel CLI first; I hit deploy errors that came down to an old version.
-Then deploy with:
+Deploying is just like deploying any other Vercel project. Just run:
 
 ```bash
 vercel
 ```
 
 If you initialize Eve as a pure agent (without a Next.js app) and open it, the page
-shows you how to connect to the agent using Eve.
+shows you how to connect to the agent with the TUI:
 
 ![The deployed agent page with connection instructions](./deployed-agent.png)
 
@@ -173,43 +178,77 @@ You may want to check the
 [auth and route protection](https://eve.dev/docs/guides/auth-and-route-protection)
 page if you are going to deploy agents to production.
 
+## Observability
+
+Once the agent is deployed, you get a dashboard for its runs.
+
+![The Eve observability dashboard](./observability.png)
+
+For debugging a single run it does the job: you can open a run and follow what the
+agent did. What I missed was the wider view. As far as I could tell there is no way
+to see trends across runs, such as how often a given tool fails over time. It is
+good for one run at a time, less so for spotting patterns. Hopefully that side
+fills in.
+
 ## The Agent Stack
 
 I didn't have to piece this together myself. Vercel frames it directly: they call
-their agent building blocks "the Agent Stack," and Eve wires them up with a single
-command.
+their agent building blocks "the Agent Stack":
 
 <TweetEmbed
   url="https://x.com/vercel/status/2067176489641275824"
-  fallback="Vercel on the Agent Stack: the building blocks Eve implements with one command."
+  fallback="Vercel on the Agent Stack: the building blocks Eve implements as an open-source project in a single directory."
 />
 
-Here is how each block shows up in an Eve project:
+The post groups the building blocks by the job they do. Here is how each one shows
+up in an Eve project:
+
+**Connect to models**
 
 - AI SDK: the model loop, tool calling, and the
-  [terminal UI](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/terminal-ui), following
-  the [AgentHarness](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/harness-agent) in
-  [AI SDK v7](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk).
-  Many of its
-  [settings](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/harness-agent#settings) are
-  Eve options too, such as [skills](https://eve.dev/docs/skills),
+  [terminal UI](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/terminal-ui). Eve builds
+  on the [AgentHarness](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/harness-agent)
+  added in [AI SDK v7](https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk),
+  so many of its
+  [settings](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/harness-agent#settings)
+  carry over as Eve options, including [skills](https://eve.dev/docs/skills),
   [instructions](https://eve.dev/docs/instructions), and
   [hooks](https://eve.dev/docs/guides/hooks).
 - AI Gateway: model access and routing. The default model goes through the
   [gateway](https://vercel.com/docs/ai-gateway).
+
+**Execute complex workflows**
+
 - Workflow SDK: durable, resumable sessions on
   [Vercel Workflows](https://vercel.com/workflows).
-- Sandbox: agent code runs in a [Vercel Sandbox](https://vercel.com/docs/sandbox),
-  which is also where `codeMode` executes.
-- Chat SDK: the web chat channel comes from [Chat SDK](https://chat-sdk.dev/).
-- Vercel Connect: [connections](https://eve.dev/docs/connections) to external
-  systems, over MCP or OpenAPI.
+- Vercel Sandbox: agent code runs in a
+  [Sandbox](https://vercel.com/docs/sandbox), which is also where `codeMode`
+  executes.
+
+**Connect to data and tools**
+
+- [Vercel Connect](https://vercel.com/docs/connect): the credential side of
+  [connecting to external systems](#empowering-the-agent-tools-skills-and-connections).
+  Rather than keeping long-lived API keys in env vars, you register a connector and
+  request short-lived, scoped tokens at runtime, so the agent can act on a service
+  like Slack or GitHub without ever handling the secret itself.
+- Chat SDK: the platform [channels](#communicating-with-the-agent-channels) —
+  Slack, Discord, Telegram, and web chat — run on
+  [Chat SDK](https://chat-sdk.dev/), a unified SDK for shipping a bot to every chat
+  platform from one codebase.
 
 ## Conclusion
 
-Setup was quick and I ran into few problems. It was good to see this much of
-Vercel's recent work come together behind a filesystem-first project you can read
-top to bottom.
+I came away liking Eve a lot. Setup was quick and I ran into few problems.
 
-The full app is on GitHub:
-[`upstash/eve-example`](https://github.com/upstash/eve-example).
+What stood out was where my time went: into what the agent should do, not the
+infrastructure around it. Connecting to services, running untrusted code somewhere
+safe, putting the agent on a schedule are usually the parts you dread, and here they
+were already solved.
+
+One detail I appreciated: Eve ships its docs inside `node_modules`. The framework
+only came out today, but a coding agent working in the project can read those docs
+locally and start writing tools right away, without me pointing it at a website.
+
+The DX felt considered. You deploy, open the page, and it shows you how to connect
+to the agent right there. The rest was just as easy to set up.).
