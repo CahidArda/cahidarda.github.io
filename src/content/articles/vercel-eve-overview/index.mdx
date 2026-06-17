@@ -23,8 +23,8 @@ Vercel just released Eve, their framework for building agents:
 
 The pitch is "like Next.js for web apps, but for agents": Markdown for instructions
 and skills, TypeScript for tools, durable by default. This post is about the
-framework rather than the [Ask HackerNews](https://github.com/upstash/eve-example) app.
-About what it is like to build, schedule, and ship an agent with it.
+framework rather than the [Ask HackerNews](https://github.com/upstash/eve-example)
+app: what it is like to build, schedule, and ship an agent with it.
 
 ## Initializing a project
 
@@ -161,7 +161,7 @@ import { localDev, vercelOidc, none } from "eve/channels/auth";
 export default eveChannel({ auth: [localDev(), vercelOidc(), none()] });
 ```
 
-## Deploying the Agent to Vercel
+## Deploying the agent to Vercel
 
 Deploying is just like deploying any other Vercel project. Just run:
 
@@ -173,6 +173,9 @@ If you initialize Eve as a pure agent (without a Next.js app) and open it, the p
 shows you how to connect to the agent with the TUI:
 
 ![The deployed agent page with connection instructions](./deployed-agent.png)
+
+A small but nice touch: the moment it is live, the page itself tells you how to reach
+the agent, with nothing to dig for. The rest of the setup was just as low-friction.
 
 You may want to check the
 [auth and route protection](https://eve.dev/docs/guides/auth-and-route-protection)
@@ -232,10 +235,9 @@ up in an Eve project:
   Rather than keeping long-lived API keys in env vars, you register a connector and
   request short-lived, scoped tokens at runtime, so the agent can act on a service
   like Slack or GitHub without ever handling the secret itself.
-- Chat SDK: the platform [channels](#communicating-with-the-agent-channels) —
-  Slack, Discord, Telegram, and web chat — run on
-  [Chat SDK](https://chat-sdk.dev/), a unified SDK for shipping a bot to every chat
-  platform from one codebase.
+- Chat SDK: the platform [channels](#communicating-with-the-agent-channels) (Slack,
+  Discord, Telegram, and web chat) run on [Chat SDK](https://chat-sdk.dev/), a
+  unified SDK for shipping a bot to every chat platform from one codebase.
 
 ## Conclusion
 
@@ -250,5 +252,6 @@ One detail I appreciated: Eve ships its docs inside `node_modules`. The framewor
 only came out today, but a coding agent working in the project can read those docs
 locally and start writing tools right away, without me pointing it at a website.
 
-The DX felt considered. You deploy, open the page, and it shows you how to connect
-to the agent right there. The rest was just as easy to set up.).
+I have only tried a small slice of Eve so far, but it was enough to want to keep
+going. The full agent is on GitHub if you want to poke around:
+[`upstash/eve-example`](https://github.com/upstash/eve-example).
