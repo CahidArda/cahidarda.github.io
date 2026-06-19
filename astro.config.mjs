@@ -27,6 +27,9 @@ export default defineConfig({
     // @astrojs/sitemap emits /sitemap-index.xml; redirect the conventional URL to it.
     '/sitemap.xml': '/sitemap-index.xml',
     // Article renamed from "primer" to "guide"; keep the old link working.
+    // (The trailing-slash variant is handled by a static stub in
+    // public/articles/vercel-eve-primer/index.html — `trailingSlash: 'never'`
+    // makes Astro strip trailing slashes from redirect sources.)
     '/articles/vercel-eve-primer': '/articles/vercel-eve-guide',
   },
 
