@@ -37,6 +37,19 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(ogImage, Astro.site).href;
 const twitterHandle = '@cahidarda';
 
+// Google reads the site name from the homepage. WebSite structured data is the
+// strongest signal; without it, `github.io` subdomains often get mislabeled as
+// "GitHub" in search results. Only emit it on the root so the name is read once.
+// `build: { format: 'file' }` makes the root render at `/index.html`; dev serves
+// it at `/`. Accept both so the schema lands on the homepage in either context.
+const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html';
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: profile.name,
+  url: new URL('/', Astro.site).href,
+};
+
 // Build the command-palette index once, at build time (no runtime fetch).
 // Tags jump to filters; every entry (articles, external posts, repos) is included,
 // with its tag shown as the right-side badge.
@@ -89,6 +102,8 @@ const paletteItems: PaletteItem[] = [
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
+    {isHomepage && <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />}
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={profile.name} />
@@ -123,8 +138,7 @@ const paletteItems: PaletteItem[] = [
         try {
           const stored = localStorage.getItem('theme');
           const prefersDark =
-            window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches;
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           if (stored === 'dark' || (!stored && prefersDark)) {
             document.documentElement.classList.add('dark');
           }
@@ -141,7 +155,9 @@ const paletteItems: PaletteItem[] = [
       Skip to content
     </a>
 
-    <div class="mx-auto grid max-w-6xl gap-y-8 px-5 py-8 md:grid-cols-[18rem_1fr] md:gap-x-12 md:px-8 md:py-14 lg:px-12">
+    <div
+      class="mx-auto grid max-w-6xl gap-y-8 px-5 py-8 md:grid-cols-[18rem_1fr] md:gap-x-12 md:px-8 md:py-14 lg:px-12"
+    >
       <header class="md:sticky md:top-14 md:h-fit">
         <ProfileSidebar activeNav={activeNav} headings={headings} />
       </header>
