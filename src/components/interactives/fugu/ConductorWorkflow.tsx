@@ -136,7 +136,7 @@ export default function ConductorWorkflow() {
         <Sep />
         <Cell label="[subtasks] [workers] [access]" mono />
         <Sep />
-        <Cell label="executed as the topology ↓" muted />
+        <Cell label="executed as the topology ↓" />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
@@ -294,13 +294,11 @@ function Cell({
   label,
   sub,
   accent,
-  muted,
   mono,
 }: {
   label: string;
   sub?: string;
   accent?: boolean;
-  muted?: boolean;
   mono?: boolean;
 }) {
   return (
@@ -314,7 +312,7 @@ function Cell({
       <span
         className={`font-mono text-[0.68rem] font-semibold ${mono ? 'tracking-tight' : ''}`}
         style={{
-          color: accent ? 'var(--color-accent)' : muted ? 'var(--color-muted)' : 'var(--color-ink)',
+          color: accent ? 'var(--color-accent)' : 'var(--color-ink)',
         }}
       >
         {label}
