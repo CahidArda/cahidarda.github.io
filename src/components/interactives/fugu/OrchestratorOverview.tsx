@@ -26,16 +26,16 @@ const PHASES = 5;
 const CAPTION: Record<Mode, string[]> = {
   fugu: [
     'You send one request to a single endpoint.',
-    'Fugu reads the query and routes it — no answer is written, just a choice.',
-    'The single best-suited frontier worker is dispatched.',
-    'That worker solves the task with frontier-level skill.',
-    'One answer comes back. You never managed a team.',
+    'Fugu reads the query and picks the best worker — no answer written, just a choice.',
+    'The chosen frontier worker gets the task and solves it.',
+    'Its result is handed back to Fugu.',
+    'One answer comes back to you. You never managed a team.',
   ],
   ultra: [
     'You send one request to a single endpoint.',
-    'Fugu-Ultra designs a workflow across several workers.',
-    'It dispatches a team, each with a tailored subtask.',
-    'Their outputs are combined and verified.',
+    'Fugu-Ultra reads the query and designs a workflow across several workers.',
+    'It dispatches the team; each tackles its own subtask.',
+    'Their outputs come back to be combined and verified.',
     'One synthesized answer comes back — a multi-agent system, as one model.',
   ],
 };
@@ -63,7 +63,7 @@ export default function OrchestratorOverview() {
   const fuguState: NState = phase === 1 || phase === 3 ? 'active' : reached(1) ? 'wait' : 'off';
   const workerState = (id: string): NState => {
     if (!selected.includes(id)) return 'off';
-    if (phase === 2 || phase === 3) return 'active';
+    if (phase === 2) return 'active'; // filled only while the token is AT the worker
     return reached(2) ? 'wait' : 'off';
   };
 
@@ -80,8 +80,18 @@ export default function OrchestratorOverview() {
             : NODE.you;
   const token = useGlide({ x: tokenNode.cx, y: tokenNode.cy }, reduced);
 
-  const queryLineOn = phase === 1 || phase === 4;
-  const workerLineOn = (id: string) => selected.includes(id) && (phase === 2 || phase === 3);
+  // Edges carry an arrow at their `to` end. On the return trip (phase 3: worker→Fugu,
+  // phase 4: Fugu→You) we swap endpoints so the arrow flips to point back.
+  const queryEdge =
+    phase === 4
+      ? { a: leftOf(NODE.fugu), b: rightOf(NODE.you), on: true }
+      : { a: rightOf(NODE.you), b: leftOf(NODE.fugu), on: phase === 1 };
+  const workerEdge = (id: string) => {
+    const node = NODE[id as keyof typeof NODE];
+    const sel = selected.includes(id);
+    if (sel && phase === 3) return { a: leftOf(node), b: rightOf(NODE.fugu), on: true, dim: false };
+    return { a: rightOf(NODE.fugu), b: leftOf(node), on: sel && phase === 2, dim: !sel };
+  };
 
   return (
     <Widget title="How Fugu works" kicker="one interface · many minds">
@@ -124,17 +134,12 @@ export default function OrchestratorOverview() {
           </marker>
         </defs>
 
-        {/* connectors (anchored to box edges) */}
-        <Edge from={rightOf(NODE.you)} to={leftOf(NODE.fugu)} on={queryLineOn} />
-        {AGENTS.map((ag) => (
-          <Edge
-            key={ag.id}
-            from={rightOf(NODE.fugu)}
-            to={leftOf(NODE[ag.id as keyof typeof NODE])}
-            on={workerLineOn(ag.id)}
-            dim={!selected.includes(ag.id)}
-          />
-        ))}
+        {/* connectors (anchored to box edges, arrow points along the active direction) */}
+        <Edge from={queryEdge.a} to={queryEdge.b} on={queryEdge.on} />
+        {AGENTS.map((ag) => {
+          const e = workerEdge(ag.id);
+          return <Edge key={ag.id} from={e.a} to={e.b} on={e.on} dim={e.dim} />;
+        })}
 
         {/* travelling token — drawn before the nodes so it passes BEHIND the boxes */}
         {!reduced && (
