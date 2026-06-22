@@ -122,11 +122,22 @@ export default function ConductorWorkflow() {
   return (
     <Widget title="Fugu-Ultra — the Conductor’s workflow" kicker="three lists become a topology">
       <p className="mb-3 text-sm text-ink-soft">
-        Fugu-Ultra emits a whole workflow as natural language: a list of <em>subtasks</em>, the{' '}
-        <em>worker</em> for each, and an <em>access list</em> naming which earlier outputs that
-        worker may read. Those access lists <strong>are</strong> the topology — arrows show who
-        reads whom.
+        Unlike Fugu’s tiny routing head, the Conductor is a{' '}
+        <strong>full language model (~7B)</strong> that actually writes. It reads the query and
+        emits a whole workflow as natural language: a list of <em>subtasks</em>, the <em>worker</em>{' '}
+        for each, and an <em>access list</em> naming which earlier outputs that worker may read.
       </p>
+
+      {/* Internal mechanism: the Conductor LM writes the plan, which is then executed. */}
+      <div className="mb-4 flex flex-col items-stretch gap-2 border border-line bg-paper p-2.5 sm:flex-row sm:items-center">
+        <Cell label="Query" />
+        <Sep />
+        <Cell label="Conductor LM" sub="≈7B · RL-trained · writes the plan" accent />
+        <Sep />
+        <Cell label="[subtasks] [workers] [access]" mono />
+        <Sep />
+        <Cell label="executed as the topology ↓" muted />
+      </div>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
         {TOPOS.map((t) => (
@@ -276,5 +287,48 @@ export default function ConductorWorkflow() {
 
       <p className="mt-3 text-sm text-ink-soft">{topo.blurb}</p>
     </Widget>
+  );
+}
+
+function Cell({
+  label,
+  sub,
+  accent,
+  muted,
+  mono,
+}: {
+  label: string;
+  sub?: string;
+  accent?: boolean;
+  muted?: boolean;
+  mono?: boolean;
+}) {
+  return (
+    <div
+      className="flex flex-1 flex-col justify-center border px-2 py-1.5 text-center"
+      style={{
+        borderColor: accent ? 'var(--color-accent)' : 'var(--color-line)',
+        background: 'var(--color-paper-raised)',
+      }}
+    >
+      <span
+        className={`font-mono text-[0.68rem] font-semibold ${mono ? 'tracking-tight' : ''}`}
+        style={{
+          color: accent ? 'var(--color-accent)' : muted ? 'var(--color-muted)' : 'var(--color-ink)',
+        }}
+      >
+        {label}
+      </span>
+      {sub && <span className="mt-0.5 font-mono text-[0.55rem] text-muted">{sub}</span>}
+    </div>
+  );
+}
+
+function Sep() {
+  return (
+    <div className="flex items-center justify-center text-muted" aria-hidden>
+      <span className="hidden sm:block">→</span>
+      <span className="block sm:hidden">↓</span>
+    </div>
   );
 }

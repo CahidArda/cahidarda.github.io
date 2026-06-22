@@ -22,10 +22,17 @@ answer your query, but to decide _which other models_ should, and how they shoul
 > while internally the system can route, delegate, and coordinate across multiple specialized agents."
 > — [Sakana Fugu Technical Report](https://sakana.ai/fugu)
 
-Fugu treats orchestration as "a new complementary scaling axis beyond ever larger and expensive
-language models." This post is a tour of how that works, built around the two ICLR 2026 papers the
-system is grounded in: [**TRINITY**](https://arxiv.org/abs/2512.04695), an _evolved_ coordinator, and
-the [**Conductor**](https://arxiv.org/abs/2512.04388), an _RL-trained_ one. The diagrams below are
+Two things set Fugu apart. First, it is **not a model trained from scratch** and owns no frontier
+weights of its own. It is a small orchestrator that learns to combine the _existing_ models you already
+know — GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, and a bench of open-source LLMs — into one collective.
+Sakana calls this orchestration "a new complementary scaling axis beyond ever larger and expensive
+language models." Second, it is a **hosted service, not a download**: you reach it through an
+OpenAI-compatible API and you cannot run it locally. The routing is proprietary, and Fugu never even
+tells you which underlying model answered.
+
+This post is a tour of how it works, built around the two ICLR 2026 papers the system is grounded in:
+[**TRINITY**](https://arxiv.org/abs/2512.04695), an _evolved_ coordinator, and
+[**the Conductor**](https://arxiv.org/abs/2512.04388), an _RL-trained_ one. The diagrams below are
 interactive — play them.
 
 ## One model, many minds
@@ -61,22 +68,23 @@ domain and watch the mix move (the percentages are illustrative of the routing t
 
 ## Fugu: routing in a single forward pass
 
-Fugu builds on **TRINITY**. The orchestrator is a small (~0.6B) language model, but it never writes the
-answer. A tiny head — about **ten thousand parameters** — reads one hidden state and emits a logit per
-worker. The policy is just a softmax over those logits:
+The fast variant, **Fugu**, builds on **TRINITY**. It is two small pieces: a ~0.6B language model
+(the "backbone") and a tiny head of about **ten thousand parameters** bolted onto it. The backbone reads
+your query into an internal vector; the head turns that vector into one score per worker. The choice is
+just a softmax over those scores:
 
 $$
 \pi_\theta(a \mid s) \;\propto\; \exp\!\big(f_\theta(h(s))_a\big)
 $$
 
-> "Our method only relies on the head's logit outputs, and the coordinator's generated text is
-> discarded because the job of prompting is delegated to the LLMs in the pool... this allows the
-> coordinator to take hidden states corresponding to an earlier token instead of the penultimate to
-> make a quick decision." — [TRINITY](https://arxiv.org/abs/2512.04695)
-
-This _decision-only_ design is the whole reason Fugu is fast. TRINITY also assigns each chosen worker
-one of three roles — **Thinker**, **Worker**, **Verifier** — and loops over several turns; production
-Fugu drops the roles to shrink the decision space further. Toggle between the two below:
+The clever part: the backbone never actually _writes_ anything. A normal model commits to a token, then
+the next, autoregressively — slow. But Fugu doesn't need a sentence, only a choice, so it reads the
+backbone's internal state and routes immediately, skipping generation entirely. As TRINITY puts it, "the
+coordinator's generated text is discarded because the job of prompting is delegated to the LLMs in the
+pool." That decision-only design is the whole reason Fugu is fast. TRINITY can also hand the chosen
+worker one of three roles — **Thinker**, **Worker**, **Verifier** — and loop over several turns;
+production Fugu drops the roles and just picks a worker, which is simpler and quicker. Toggle between the
+two below:
 
 <div class="fx-figure">
   <TrinityDiagram client:visible />
@@ -85,24 +93,47 @@ Fugu drops the roles to shrink the decision space further. Toggle between the tw
 ## Training without gradients
 
 How do you train a head whose decision only pays off after several expensive LLM calls? In two stages.
-First, supervised fine-tuning on single-step tasks, where every worker is scored and the targets are a
-_soft_ distribution over who did best — not a single hard label:
+
+**Stage 1 — supervised fine-tuning.** Where do the labels come from? Not from humans. Sakana starts with a
+big pool of _verifiable_ single-step tasks — coding, math, reasoning — each with a known correct answer.
+To label a task, they simply **run every worker on it** several times and check who actually solves it.
+Those measured success rates ($\bar r_{i,j}$ = worker $j$'s average score on task $i$) become a _soft_
+target: the head is trained to match the distribution of who-does-well, rather than memorizing one "best"
+label. The loss is just the KL divergence between that target and the head's softmax:
 
 $$
 p_i(j) = \frac{\exp(\bar r_{i,j}/\tau)}{\sum_{j'} \exp(\bar r_{i,j'}/\tau)}, \qquad \mathcal{L}_{\text{SFT}}(\theta) = \frac{1}{|\mathcal{D}|}\sum_i \mathbb{D}_{\mathrm{KL}}\!\big(p_i(\cdot)\,\|\,\pi_\theta(\cdot \mid q_i)\big)
 $$
 
-Then, the orchestrator is refined on full end-to-end tasks with a derivative-free evolution strategy,
-directly maximizing the terminal reward $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$ by
-sampling perturbed parameter vectors $\theta^{(k)} = \theta_t + \sigma_t D_t z^{(k)}$ and recombining
-the fittest. TRINITY found this beats reinforcement learning in its regime:
+**Stage 2 — evolution.** Single-step accuracy isn't the real goal, though; what matters is whether a
+_whole_ multi-turn session succeeds. So the second stage trains on end-to-end tasks taken from real coding
+assistants (Claude Code, Codex, OpenCode), and the reward is a single bit — did the task ultimately get
+completed?
+
+$$
+R(\tau) \in \{0, 1\}, \qquad J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\!\big[R(\tau)\big]
+$$
+
+They measure it the obvious way: run the orchestrator on a task a few times and average the outcomes. The
+question is how to _improve_ the ~10K head parameters from that signal. The textbook answer is
+reinforcement learning — policy-gradient methods like REINFORCE that estimate a gradient for each
+parameter from the reward. Here that fails: each of the thousands of weakly-coupled parameters barely
+moves a noisy, all-or-nothing reward, so the per-parameter gradient is drowned in noise.
 
 > "We observe weak coupling among parameters — each has only a tiny influence on the scalar reward,
 > making traditional methods like REINFORCE's per-parameter gradients low-SNR and therefore
-> ineffective... a derivative-free Covariance Matrix Adaptation Evolution Strategy is effective in this
-> particular regime: high dimensionality, weak parameter correlations, and high per-step cost."
+> ineffective." — [TRINITY](https://arxiv.org/abs/2512.04695)
 
-Watch the population converge on the reward optimum:
+So Fugu skips gradients altogether and uses an **evolution strategy** (sep-CMA-ES). It treats the
+orchestrator as a black box: perturb the entire parameter vector many different ways, run each variant on
+real tasks, then keep and blend the ones that scored highest into the next "parent" —
+
+$$
+\theta^{(k)} = \theta_t + \sigma_t D_t\, z^{(k)}, \qquad z^{(k)} \sim \mathcal{N}(0, I)
+$$
+
+— and repeat. No gradient required, just _run it and rank it_. That is exactly what the animation shows: a
+cloud of perturbed orchestrators, scored by reward, recombining toward the best.
 
 <div class="fx-figure">
   <EvolutionStrategy client:visible />
@@ -110,20 +141,23 @@ Watch the population converge on the reward optimum:
 
 ## Fugu-Ultra: conducting an orchestra
 
-For the hardest problems, a single pick is not enough. **Fugu-Ultra** builds on the **Conductor**, which
-emits an _entire agentic workflow as natural language_ — and is trained end-to-end with reinforcement
-learning (GRPO):
+For the hardest problems, a single pick is not enough. **Fugu-Ultra** is built differently from Fugu.
+Where Fugu is a tiny routing head that emits a single number, Fugu-Ultra's orchestrator — the
+**Conductor** — is a _full_ language model (~7B in the paper) that genuinely **writes**. It reads your
+query and generates a whole plan as text: who does what, and who gets to read whom.
 
 > "The Conductor outputs full agentic workflows as natural language that divide an input task, allocate
 > arbitrary subtasks, and define targeted communication strategies to best make use of the agents'
 > complementary capabilities." — [the Conductor](https://arxiv.org/abs/2512.04388)
 
-Concretely, the Conductor produces three aligned lists: the **subtasks**, the **worker** for each, and an
+Concretely, that plan is three aligned lists: the **subtasks**, the **worker** for each, and an
 **access list** stating which earlier outputs each worker is allowed to see. Those access lists _are_ the
 communication topology — letting the same model emit a chain, a best-of-N vote, a debate tree, or even
-a recursive call to itself. The reward is brutally simple: $0$ if the lists don't parse, $0.5$ for a
-well-formed-but-wrong workflow, $1$ for a correct one, with the GRPO advantage normalized within each
-group, $A_i = \big(r_i - \mathrm{mean}(r)\big)/\mathrm{std}(r)$. Switch topologies and step through one:
+a recursive call to itself. It's trained end-to-end with reinforcement learning (GRPO), and the reward is
+brutally simple: $0$ if the lists don't parse, $0.5$ for a well-formed-but-wrong workflow, $1$ for a
+correct one, with the GRPO advantage normalized within each group,
+$A_i = \big(r_i - \mathrm{mean}(r)\big)/\mathrm{std}(r)$. The diagram below shows the Conductor writing
+the plan, then the topology it produced — switch topologies and step through one:
 
 <div class="fx-figure">
   <ConductorWorkflow client:visible />

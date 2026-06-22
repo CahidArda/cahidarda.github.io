@@ -70,7 +70,7 @@ export default function TrinityDiagram() {
 
         <Chevron />
 
-        <Stage on={step >= 1} label="2 · SLM backbone">
+        <Stage on={step >= 1} label="2 · Small LM (≈0.6B)">
           <div className="flex flex-col gap-0.5" aria-hidden>
             {[0, 1, 2, 3].map((i) => (
               <div
@@ -84,13 +84,14 @@ export default function TrinityDiagram() {
             ))}
           </div>
           <span className="mt-1.5 block font-mono text-[0.6rem] text-muted">
-            ≈0.6B params · read one hidden state <span className="whitespace-nowrap">h ∈ ℝᵈ</span>
+            reads the query and turns it into an internal vector — its{' '}
+            <span className="whitespace-nowrap">“hidden state” h</span>
           </span>
         </Stage>
 
         <Chevron />
 
-        <Stage on={step >= 2} label="3 · Trained head" accent={step >= 2}>
+        <Stage on={step >= 2} label="3 · Trained head">
           <span
             className="font-mono text-[0.74rem] font-semibold"
             style={{ color: 'var(--color-accent)' }}
@@ -98,7 +99,8 @@ export default function TrinityDiagram() {
             ≈10K params
           </span>
           <span className="mt-1 block font-mono text-[0.62rem] text-muted">
-            the <em>only</em> part trained — scores every worker{isTrinity ? ' and every role' : ''}
+            the <em>only</em> part trained — turns the hidden state into a score for every worker
+            {isTrinity ? ' and every role' : ''}
           </span>
         </Stage>
 
@@ -142,13 +144,12 @@ export default function TrinityDiagram() {
       </div>
 
       <p className="mt-3 text-xs text-ink-soft">
-        The orchestrator never writes the answer — its own text output is thrown away. It only emits
-        a choice, so a decision can be read off an <em>early</em> token instead of a full
-        generation. That is what keeps Fugu’s latency “comparable to a direct call to a frontier
-        model,” and{' '}
+        The orchestrator never writes the answer — its own text output is thrown away. Because it
+        only needs to emit a choice, it can decide almost instantly instead of generating a full
+        response, which keeps Fugu’s latency “comparable to a direct call to a frontier model.”{' '}
         {isTrinity
-          ? 'it lets TRINITY assign the picked worker a role and loop over several turns:'
-          : 'Fugu keeps it minimal: one worker, no roles, dispatched immediately.'}
+          ? 'TRINITY goes one step further: it gives the picked worker a role and loops over several turns.'
+          : 'Fugu keeps it minimal — one worker, no roles, dispatched at once.'}
       </p>
 
       {/* TRINITY multi-turn role loop */}

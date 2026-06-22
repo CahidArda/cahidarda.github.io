@@ -2,20 +2,25 @@ import { useEffect, useState } from 'react';
 import { AGENTS, Widget, useGlide, useReducedMotion } from './shared';
 
 type Mode = 'fugu' | 'ultra';
+type NState = 'off' | 'wait' | 'active'; // grayed · in the chain (border only) · active (filled)
 
 // One SVG coordinate system (viewBox units) shared by every node and connector, so
-// nothing can drift out of alignment. Each node is an axis-aligned box; lines anchor to
-// box edges, never centres.
+// nothing can drift out of alignment. Lines anchor to box edges, never centres.
 const VB = { w: 400, h: 240 };
 const NODE = {
-  you: { cx: 48, cy: 120, w: 76, h: 44 },
-  fugu: { cx: 178, cy: 120, w: 104, h: 54 },
-  gpt: { cx: 344, cy: 52, w: 100, h: 44 },
-  claude: { cx: 344, cy: 120, w: 100, h: 44 },
-  gemini: { cx: 344, cy: 188, w: 100, h: 44 },
+  you: { cx: 46, cy: 120, w: 76, h: 44 },
+  fugu: { cx: 176, cy: 120, w: 108, h: 54 },
+  gpt: { cx: 340, cy: 52, w: 112, h: 46 },
+  claude: { cx: 340, cy: 120, w: 112, h: 46 },
+  gemini: { cx: 340, cy: 188, w: 112, h: 46 },
 } as const;
-const right = (n: { cx: number; w: number; cy: number }) => ({ x: n.cx + n.w / 2, y: n.cy });
-const left = (n: { cx: number; w: number; cy: number }) => ({ x: n.cx - n.w / 2, y: n.cy });
+const WORKER_TITLE: Record<string, string> = {
+  gpt: 'GPT-5.5',
+  claude: 'Opus 4.8',
+  gemini: 'Gemini 3.1',
+};
+const rightOf = (n: { cx: number; w: number; cy: number }) => ({ x: n.cx + n.w / 2, y: n.cy });
+const leftOf = (n: { cx: number; w: number; cy: number }) => ({ x: n.cx - n.w / 2, y: n.cy });
 
 const PHASES = 5;
 const CAPTION: Record<Mode, string[]> = {
@@ -51,7 +56,18 @@ export default function OrchestratorOverview() {
     return () => clearInterval(id);
   }, [mode, reduced]);
 
-  // The travelling token's target node, by phase.
+  // Node state: a node is grayed until the request "reaches" it, then it joins the
+  // chain (coloured border), and fills solid only while it is the active step.
+  const reached = (reach: number) => phase >= reach;
+  const youState: NState = phase === 0 || phase === 4 ? 'active' : 'wait';
+  const fuguState: NState = phase === 1 || phase === 3 ? 'active' : reached(1) ? 'wait' : 'off';
+  const workerState = (id: string): NState => {
+    if (!selected.includes(id)) return 'off';
+    if (phase === 2 || phase === 3) return 'active';
+    return reached(2) ? 'wait' : 'off';
+  };
+
+  // Token target node by phase.
   const tokenNode =
     phase === 0
       ? NODE.you
@@ -64,7 +80,6 @@ export default function OrchestratorOverview() {
             : NODE.you;
   const token = useGlide({ x: tokenNode.cx, y: tokenNode.cy }, reduced);
 
-  const fuguOn = phase >= 1 && phase <= 3;
   const queryLineOn = phase === 1 || phase === 4;
   const workerLineOn = (id: string) => selected.includes(id) && (phase === 2 || phase === 3);
 
@@ -110,50 +125,49 @@ export default function OrchestratorOverview() {
         </defs>
 
         {/* connectors (anchored to box edges) */}
-        <Edge from={right(NODE.you)} to={left(NODE.fugu)} on={queryLineOn} />
+        <Edge from={rightOf(NODE.you)} to={leftOf(NODE.fugu)} on={queryLineOn} />
         {AGENTS.map((ag) => (
           <Edge
             key={ag.id}
-            from={right(NODE.fugu)}
-            to={left(NODE[ag.id as keyof typeof NODE])}
+            from={rightOf(NODE.fugu)}
+            to={leftOf(NODE[ag.id as keyof typeof NODE])}
             on={workerLineOn(ag.id)}
             dim={!selected.includes(ag.id)}
           />
         ))}
+
+        {/* travelling token — drawn before the nodes so it passes BEHIND the boxes */}
+        {!reduced && (
+          <circle cx={token.x} cy={token.y} r={6} style={{ fill: 'var(--color-accent)' }} />
+        )}
 
         {/* nodes */}
         <SvgNode
           n={NODE.you}
           title="You"
           sub="one API call"
-          color="var(--color-line-strong)"
-          active={phase === 0 || phase === 4}
+          color="var(--color-ink-soft)"
+          state={youState}
         />
         <SvgNode
           n={NODE.fugu}
           title={mode === 'ultra' ? 'Fugu-Ultra' : 'Fugu'}
           sub="orchestrator"
           color="var(--color-fugu)"
-          active={fuguOn}
-          filledWhenActive
+          state={fuguState}
+          titleSize={13}
         />
         {AGENTS.map((ag) => (
           <SvgNode
             key={ag.id}
             n={NODE[ag.id as keyof typeof NODE]}
-            title={ag.name}
+            title={WORKER_TITLE[ag.id]}
             sub={ag.provider}
             color={ag.color}
-            active={selected.includes(ag.id) && (phase === 2 || phase === 3)}
-            dim={!selected.includes(ag.id)}
-            filledWhenActive
+            state={workerState(ag.id)}
+            titleSize={12}
           />
         ))}
-
-        {/* travelling token */}
-        {!reduced && (
-          <circle cx={token.x} cy={token.y} r={6} style={{ fill: 'var(--color-accent)' }}></circle>
-        )}
       </svg>
 
       <p className="mt-2 min-h-[2.4rem] text-sm text-ink-soft">
@@ -198,31 +212,37 @@ function SvgNode({
   title,
   sub,
   color,
-  active,
-  dim,
-  filledWhenActive,
+  state,
+  titleSize = 13,
 }: {
   n: { cx: number; cy: number; w: number; h: number };
   title: string;
   sub?: string;
   color: string;
-  active?: boolean;
-  dim?: boolean;
-  filledWhenActive?: boolean;
+  state: NState;
+  titleSize?: number;
 }) {
-  const filled = active && filledWhenActive;
+  const stroke = state === 'off' ? 'var(--color-line-strong)' : color;
+  const fill = state === 'active' ? color : 'var(--color-paper)';
+  const titleFill =
+    state === 'active'
+      ? 'var(--color-paper)'
+      : state === 'off'
+        ? 'var(--color-muted)'
+        : 'var(--color-ink)';
+  const subFill = state === 'active' ? 'var(--color-paper)' : 'var(--color-muted)';
   return (
-    <g style={{ opacity: dim ? 0.45 : 1, transition: 'opacity 250ms' }}>
+    <g style={{ opacity: state === 'off' ? 0.5 : 1, transition: 'opacity 250ms' }}>
       <rect
         x={n.cx - n.w / 2}
         y={n.cy - n.h / 2}
         width={n.w}
         height={n.h}
         style={{
-          fill: filled ? color : 'var(--color-paper)',
-          stroke: color,
-          strokeWidth: active ? 2.5 : 1.5,
-          transition: 'fill 200ms, stroke-width 200ms',
+          fill,
+          stroke,
+          strokeWidth: state === 'off' ? 1.5 : 2,
+          transition: 'fill 200ms, stroke 200ms',
         }}
       />
       <text
@@ -231,9 +251,9 @@ function SvgNode({
         textAnchor="middle"
         dominantBaseline="middle"
         style={{
-          fill: filled ? 'var(--color-paper)' : 'var(--color-ink)',
+          fill: titleFill,
           fontFamily: 'var(--font-mono)',
-          fontSize: 13,
+          fontSize: titleSize,
           fontWeight: 600,
         }}
       >
@@ -245,12 +265,7 @@ function SvgNode({
           y={n.cy + 12}
           textAnchor="middle"
           dominantBaseline="middle"
-          style={{
-            fill: filled ? 'var(--color-paper)' : 'var(--color-muted)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 9,
-            opacity: 0.85,
-          }}
+          style={{ fill: subFill, fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.85 }}
         >
           {sub}
         </text>
