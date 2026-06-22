@@ -14,16 +14,16 @@ import BenchmarkChart from '../../components/interactives/fugu/BenchmarkChart.ts
 
 Frontier models have started to specialize. GPT is strong at math and planning, Opus at software
 engineering and security, Gemini at science and recall — and no single one wins everywhere. [Sakana
-AI's Fugu](https://sakana.ai/fugu) asks the obvious next question: what if a model's job was not to
-answer your query, but to decide _which other models_ should, and how they should work together?
+AI's Fugu](https://sakana.ai/fugu) takes a different tack: instead of being a model that answers your
+query, it is a model that decides _which other models_ should, and how they should work together.
 
 > "Sakana Fugu is a family of language models trained to adaptively and dynamically orchestrate a team
 > of more powerful frontier agent workers... the user interacts with Fugu as if calling a single model,
 > while internally the system can route, delegate, and coordinate across multiple specialized agents."
 > — [Sakana Fugu Technical Report](https://sakana.ai/fugu)
 
-Two things set Fugu apart. First, it is **not a model trained from scratch** and owns no frontier
-weights of its own. It is a small orchestrator that learns to combine the _existing_ models you already
+Two things are worth knowing up front. First, Fugu is **not a model trained from scratch** and owns no
+frontier weights of its own. It is a small orchestrator that learns to combine the _existing_ models you already
 know — GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro, and a bench of open-source LLMs — into one collective.
 Sakana calls this orchestration "a new complementary scaling axis beyond ever larger and expensive
 language models." Second, it is a **hosted service, not a download**: you reach it through an
@@ -55,7 +55,7 @@ Why bother? Because the workers genuinely differ, and the differences are fine-g
 > mathematical reasoning tasks, while Opus-series models have specialized in software engineering and
 > cybersecurity... in competitive coding, Gemini-3.1-Pro can be particularly effective at directly
 > implementing known algorithms, while GPT-series models can often excel at planning and combining
-> multiple algorithmic ideas."
+> multiple algorithmic ideas." — [Sakana Fugu Technical Report](https://sakana.ai/fugu)
 
 A good orchestrator should _track_ these specializations and deploy each model where it shines. Fugu
 does: its routing distribution shifts by domain, peaking on whichever worker is SOTA there. Pick a
@@ -91,6 +91,9 @@ two below:
 </div>
 
 ## Training without gradients
+
+> **Heads up:** this section gets a bit technical. If you only want the high-level picture, skip ahead to
+> [Fugu-Ultra](#fugu-ultra-conducting-an-orchestra).
 
 How do you train a head whose decision only pays off after several expensive LLM calls? In two stages.
 
