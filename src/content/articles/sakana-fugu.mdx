@@ -1,0 +1,172 @@
+---
+title: 'How Sakana Fugu Works: A Multi-Agent System Delivered as One Model'
+description: "Sakana's Fugu orchestrates frontier LLMs into a single endpoint. A guided tour of its two engines — the evolved TRINITY router and the RL-trained Conductor — with interactive diagrams of both architectures."
+date: 2026-06-22
+tags: ['blog']
+---
+
+import OrchestratorOverview from '../../components/interactives/fugu/OrchestratorOverview.tsx';
+import RoutingExplorer from '../../components/interactives/fugu/RoutingExplorer.tsx';
+import TrinityDiagram from '../../components/interactives/fugu/TrinityDiagram.tsx';
+import EvolutionStrategy from '../../components/interactives/fugu/EvolutionStrategy.tsx';
+import ConductorWorkflow from '../../components/interactives/fugu/ConductorWorkflow.tsx';
+import BenchmarkChart from '../../components/interactives/fugu/BenchmarkChart.tsx';
+
+Frontier models have started to specialize. GPT is strong at math and planning, Opus at software
+engineering and security, Gemini at science and recall — and no single one wins everywhere. [Sakana
+AI's Fugu](https://sakana.ai/fugu) asks the obvious next question: what if a model's job was not to
+answer your query, but to decide _which other models_ should, and how they should work together?
+
+> "Sakana Fugu is a family of language models trained to adaptively and dynamically orchestrate a team
+> of more powerful frontier agent workers... the user interacts with Fugu as if calling a single model,
+> while internally the system can route, delegate, and coordinate across multiple specialized agents."
+> — [Sakana Fugu Technical Report](https://sakana.ai/fugu)
+
+Fugu treats orchestration as "a new complementary scaling axis beyond ever larger and expensive
+language models." This post is a tour of how that works, built around the two ICLR 2026 papers the
+system is grounded in: [**TRINITY**](https://arxiv.org/abs/2512.04695), an _evolved_ coordinator, and
+the [**Conductor**](https://arxiv.org/abs/2512.04388), an _RL-trained_ one. The diagrams below are
+interactive — play them.
+
+## One model, many minds
+
+There are two variants. **Fugu** picks a single best worker per query, so its latency is "comparable to
+a direct call to a frontier model." **Fugu-Ultra** composes a whole team. Toggle between them:
+
+<div class="fx-figure">
+  <OrchestratorOverview client:visible />
+</div>
+
+The trick that makes this more than a router is that Fugu is itself a _trained_ model. It is not a
+hand-written `if coding: use_opus` rule; it learns, from data, who is good at what.
+
+## A pool of specialists
+
+Why bother? Because the workers genuinely differ, and the differences are fine-grained:
+
+> "At the domain level, past GPT-series models often displayed state-of-the-art performance on
+> mathematical reasoning tasks, while Opus-series models have specialized in software engineering and
+> cybersecurity... in competitive coding, Gemini-3.1-Pro can be particularly effective at directly
+> implementing known algorithms, while GPT-series models can often excel at planning and combining
+> multiple algorithmic ideas."
+
+A good orchestrator should _track_ these specializations and deploy each model where it shines. Fugu
+does: its routing distribution shifts by domain, peaking on whichever worker is SOTA there. Pick a
+domain and watch the mix move (illustrating the trends in the report's §4.2):
+
+<div class="fx-figure">
+  <RoutingExplorer client:visible />
+</div>
+
+## Fugu: routing in a single forward pass
+
+Fugu builds on **TRINITY**. The orchestrator is a small (~0.6B) language model, but it never writes the
+answer. A tiny head — about **ten thousand parameters** — reads one hidden state and emits a logit per
+worker. The policy is just a softmax over those logits:
+
+$$
+\pi_\theta(a \mid s) \;\propto\; \exp\!\big(f_\theta(h(s))_a\big)
+$$
+
+> "Our method only relies on the head's logit outputs, and the coordinator's generated text is
+> discarded because the job of prompting is delegated to the LLMs in the pool... this allows the
+> coordinator to take hidden states corresponding to an earlier token instead of the penultimate to
+> make a quick decision." — [TRINITY](https://arxiv.org/abs/2512.04695)
+
+This _decision-only_ design is the whole reason Fugu is fast. TRINITY also assigns each chosen worker
+one of three roles — **Thinker**, **Worker**, **Verifier** — and loops over several turns; production
+Fugu drops the roles to shrink the decision space further. Toggle between the two below:
+
+<div class="fx-figure">
+  <TrinityDiagram client:visible />
+</div>
+
+## Training without gradients
+
+How do you train a head whose decision only pays off after several expensive LLM calls? In two stages.
+First, supervised fine-tuning on single-step tasks, where every worker is scored and the targets are a
+_soft_ distribution over who did best — not a single hard label:
+
+$$
+p_i(j) = \frac{\exp(\bar r_{i,j}/\tau)}{\sum_{j'} \exp(\bar r_{i,j'}/\tau)}, \qquad \mathcal{L}_{\text{SFT}}(\theta) = \frac{1}{|\mathcal{D}|}\sum_i \mathbb{D}_{\mathrm{KL}}\!\big(p_i(\cdot)\,\|\,\pi_\theta(\cdot \mid q_i)\big)
+$$
+
+Then, the orchestrator is refined on full end-to-end tasks with a derivative-free evolution strategy,
+directly maximizing the terminal reward $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$ by
+sampling perturbed parameter vectors $\theta^{(k)} = \theta_t + \sigma_t D_t z^{(k)}$ and recombining
+the fittest. TRINITY found this beats reinforcement learning in its regime:
+
+> "We observe weak coupling among parameters — each has only a tiny influence on the scalar reward,
+> making traditional methods like REINFORCE's per-parameter gradients low-SNR and therefore
+> ineffective... a derivative-free Covariance Matrix Adaptation Evolution Strategy is effective in this
+> particular regime: high dimensionality, weak parameter correlations, and high per-step cost."
+
+Watch the population converge on the reward optimum:
+
+<div class="fx-figure">
+  <EvolutionStrategy client:visible />
+</div>
+
+## Fugu-Ultra: conducting an orchestra
+
+For the hardest problems, a single pick is not enough. **Fugu-Ultra** builds on the **Conductor**, which
+emits an _entire agentic workflow as natural language_ — and is trained end-to-end with reinforcement
+learning (GRPO):
+
+> "The Conductor outputs full agentic workflows as natural language that divide an input task, allocate
+> arbitrary subtasks, and define targeted communication strategies to best make use of the agents'
+> complementary capabilities." — [the Conductor](https://arxiv.org/abs/2512.04388)
+
+Concretely, the Conductor produces three aligned lists: the **subtasks**, the **worker** for each, and an
+**access list** stating which earlier outputs each worker is allowed to see. Those access lists _are_ the
+communication topology — letting the same model emit a chain, a best-of-N vote, a debate tree, or even
+a recursive call to itself. The reward is brutally simple: $0$ if the lists don't parse, $0.5$ for a
+well-formed-but-wrong workflow, $1$ for a correct one, with the GRPO advantage normalized within each
+group, $A_i = \big(r_i - \mathrm{mean}(r)\big)/\mathrm{std}(r)$. Switch topologies and step through one:
+
+<div class="fx-figure">
+  <ConductorWorkflow client:visible />
+</div>
+
+## The strategies that emerge
+
+Nothing above hand-codes "use a debate tree for trivia." These patterns _emerge_ from reward
+maximization, and the report's qualitative analysis (§4.4) reads like a set of habits a good engineering
+manager would develop. **Adaptive aggregation:** on a niche trivia question Fugu-Ultra built a tree with
+Gemini synthesizing two attempts, but on a math question it swapped GPT into the same root role —
+
+> "dynamic adaptation of an aggregator role is precisely the kind of adaptation unavailable to existing
+> multi-agent systems, which necessitate a fixed model to always act as a final synthesizer."
+
+**Build-and-debug:** GPT builds, Opus reviews. On one Terminal Bench task, after GPT built a PyPI
+server, "Opus was then deployed to enumerate all concrete risks in GPT's implementation," caught three
+real bugs and a bogus reachability check, and "relaying these findings back to GPT enabled GPT to
+complete the build successfully." **Bring in a specialist:** for a cryptanalysis problem Fugu-Ultra had
+Opus write the attack, then tasked GPT "to act specifically as a math specialist to re-derive the entire
+attack from first principles." Different jobs, different experts, decided per query.
+
+## Does it work?
+
+Orchestration alone is enough to match or beat every individual worker in the pool, and to trade blows
+with frontier models that aren't even _in_ the pool. Browse the benchmarks:
+
+<div class="fx-figure">
+  <BenchmarkChart client:visible />
+</div>
+
+It generalizes past static benchmarks too. On Karpathy's AutoResearch — an agent autonomously tuning a
+GPT training recipe over 123 experiments — "Fugu-Ultra achieves the lowest mean validation BPB
+(0.9774 ± 0.0019)," ahead of all three frontier baselines, "an initial demonstration that multi-model
+orchestration can outperform any individual frontier agent on an agentic training-optimization
+benchmark."
+
+The bigger bet is architectural: because Fugu "composes models at the behavioral level rather than the
+parameter level, it can incorporate new worker models as they become available" — no retraining, no
+weight access, just a new name in the pool. If it holds, frontier capability stops being something only
+the largest training runs can buy.
+
+## References
+
+1. Sakana AI (2026). _Sakana Fugu Technical Report_ & product page. [sakana.ai/fugu](https://sakana.ai/fugu) · [github.com/SakanaAI/fugu](https://github.com/SakanaAI/fugu)
+2. S. Nielsen, E. Cetin, P. Schwendeman, et al. (2026). _Learning to Orchestrate Agents in Natural Language with the Conductor._ ICLR 2026. [arXiv:2512.04388](https://arxiv.org/abs/2512.04388)
+3. J. Xu, Q. Sun, P. Schwendeman, et al. (2026). _TRINITY: An Evolved LLM Coordinator._ ICLR 2026. [arXiv:2512.04695](https://arxiv.org/abs/2512.04695)
