@@ -52,7 +52,8 @@ Why bother? Because the workers genuinely differ, and the differences are fine-g
 
 A good orchestrator should _track_ these specializations and deploy each model where it shines. Fugu
 does: its routing distribution shifts by domain, peaking on whichever worker is SOTA there. Pick a
-domain and watch the mix move (illustrating the trends in the report's §4.2):
+domain and watch the mix move (the percentages are illustrative of the routing trends the
+[technical report](https://sakana.ai/fugu) describes):
 
 <div class="fx-figure">
   <RoutingExplorer client:visible />
@@ -131,8 +132,8 @@ group, $A_i = \big(r_i - \mathrm{mean}(r)\big)/\mathrm{std}(r)$. Switch topologi
 ## The strategies that emerge
 
 Nothing above hand-codes "use a debate tree for trivia." These patterns _emerge_ from reward
-maximization, and the report's qualitative analysis (§4.4) reads like a set of habits a good engineering
-manager would develop. **Adaptive aggregation:** on a niche trivia question Fugu-Ultra built a tree with
+maximization, and the [technical report's](https://sakana.ai/fugu) qualitative analysis reads like a set
+of habits a good engineering manager would develop. **Adaptive aggregation:** on a niche trivia question Fugu-Ultra built a tree with
 Gemini synthesizing two attempts, but on a math question it swapped GPT into the same root role —
 
 > "dynamic adaptation of an aggregator role is precisely the kind of adaptation unavailable to existing

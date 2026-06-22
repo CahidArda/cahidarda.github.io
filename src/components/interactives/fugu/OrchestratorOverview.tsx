@@ -1,70 +1,76 @@
 import { useEffect, useState } from 'react';
-import { AGENTS, FuguBadge, Widget, useReducedMotion, type Agent } from './shared';
+import { AGENTS, Widget, useGlide, useReducedMotion } from './shared';
 
 type Mode = 'fugu' | 'ultra';
 
-// Node anchor points in %, shared by the connector SVG and the HTML chips.
-const POS = {
-  user: { x: 8, y: 50 },
-  fugu: { x: 44, y: 50 },
-  gpt: { x: 84, y: 16 },
-  claude: { x: 84, y: 50 },
-  gemini: { x: 84, y: 82 },
+// One SVG coordinate system (viewBox units) shared by every node and connector, so
+// nothing can drift out of alignment. Each node is an axis-aligned box; lines anchor to
+// box edges, never centres.
+const VB = { w: 400, h: 240 };
+const NODE = {
+  you: { cx: 48, cy: 120, w: 76, h: 44 },
+  fugu: { cx: 178, cy: 120, w: 104, h: 54 },
+  gpt: { cx: 344, cy: 52, w: 100, h: 44 },
+  claude: { cx: 344, cy: 120, w: 100, h: 44 },
+  gemini: { cx: 344, cy: 188, w: 100, h: 44 },
 } as const;
+const right = (n: { cx: number; w: number; cy: number }) => ({ x: n.cx + n.w / 2, y: n.cy });
+const left = (n: { cx: number; w: number; cy: number }) => ({ x: n.cx - n.w / 2, y: n.cy });
 
 const PHASES = 5;
 const CAPTION: Record<Mode, string[]> = {
   fugu: [
     'You send one request to a single endpoint.',
-    'Fugu reads the query and routes it — no text generated, just a decision.',
+    'Fugu reads the query and routes it — no answer is written, just a choice.',
     'The single best-suited frontier worker is dispatched.',
     'That worker solves the task with frontier-level skill.',
-    'One answer returns. You never managed a team.',
+    'One answer comes back. You never managed a team.',
   ],
   ultra: [
     'You send one request to a single endpoint.',
-    'Fugu-Ultra designs a workflow over several workers.',
+    'Fugu-Ultra designs a workflow across several workers.',
     'It dispatches a team, each with a tailored subtask.',
     'Their outputs are combined and verified.',
-    'One synthesized answer returns — a multi-agent system, as one model.',
+    'One synthesized answer comes back — a multi-agent system, as one model.',
   ],
 };
 
 export default function OrchestratorOverview() {
   const reduced = useReducedMotion();
   const [mode, setMode] = useState<Mode>('fugu');
-  const [phase, setPhase] = useState(reduced ? 4 : 0);
-
-  const selected: string[] = mode === 'fugu' ? ['claude'] : ['gpt', 'gemini', 'claude'];
+  const [phase, setPhase] = useState(reduced ? 2 : 0);
+  const selected = mode === 'fugu' ? ['claude'] : ['gpt', 'claude', 'gemini'];
 
   useEffect(() => {
     if (reduced) {
-      setPhase(4);
+      setPhase(2);
       return;
     }
     setPhase(0);
-    const id = setInterval(() => setPhase((p) => (p + 1) % PHASES), 1300);
+    const id = setInterval(() => setPhase((p) => (p + 1) % PHASES), 1400);
     return () => clearInterval(id);
   }, [mode, reduced]);
 
-  // Token position by phase.
-  const tokenAt =
-    phase <= 0
-      ? POS.user
+  // The travelling token's target node, by phase.
+  const tokenNode =
+    phase === 0
+      ? NODE.you
       : phase === 1
-        ? POS.fugu
+        ? NODE.fugu
         : phase === 2
-          ? POS[selected[0] as keyof typeof POS]
+          ? NODE[selected[0] as keyof typeof NODE]
           : phase === 3
-            ? POS.fugu
-            : POS.user;
+            ? NODE.fugu
+            : NODE.you;
+  const token = useGlide({ x: tokenNode.cx, y: tokenNode.cy }, reduced);
 
-  const workerActive = (id: string) => selected.includes(id) && phase >= 2 && phase <= 3;
-  const fuguActive = phase === 1 || phase === 3;
+  const fuguOn = phase >= 1 && phase <= 3;
+  const queryLineOn = phase === 1 || phase === 4;
+  const workerLineOn = (id: string) => selected.includes(id) && (phase === 2 || phase === 3);
 
   return (
     <Widget title="How Fugu works" kicker="one interface · many minds">
-      <div className="mb-3 flex gap-2">
+      <div className="mb-3 flex flex-wrap gap-2">
         {(['fugu', 'ultra'] as Mode[]).map((m) => (
           <button
             key={m}
@@ -82,64 +88,75 @@ export default function OrchestratorOverview() {
         ))}
       </div>
 
-      <div className="relative w-full" style={{ aspectRatio: '16 / 9', minHeight: 220 }}>
-        {/* Connectors */}
-        <svg
-          className="absolute inset-0 h-full w-full"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
-          <Line a={POS.user} b={POS.fugu} active={phase === 1 || phase === 4} />
-          {AGENTS.map((ag) => (
-            <Line
-              key={ag.id}
-              a={POS.fugu}
-              b={POS[ag.id as keyof typeof POS]}
-              active={workerActive(ag.id)}
-              dim={!selected.includes(ag.id)}
-            />
-          ))}
-        </svg>
+      <svg
+        viewBox={`0 0 ${VB.w} ${VB.h}`}
+        className="w-full"
+        style={{ maxHeight: 300 }}
+        role="img"
+        aria-label="Fugu routes one request to frontier workers and returns one answer"
+      >
+        <defs>
+          <marker
+            id="fx-arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0 L10 5 L0 10 z" style={{ fill: 'var(--color-accent)' }} />
+          </marker>
+        </defs>
 
-        {/* Travelling token */}
-        {!reduced && (
-          <span
-            aria-hidden
-            className="absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              left: `${tokenAt.x}%`,
-              top: `${tokenAt.y}%`,
-              background: 'var(--color-accent)',
-              transition: 'left 500ms ease, top 500ms ease',
-              boxShadow: '0 0 0 4px color-mix(in srgb, var(--color-accent) 25%, transparent)',
-            }}
-          />
-        )}
-
-        {/* Nodes */}
-        <Node pos={POS.user} label="You" sub="one API call" />
-        <div
-          className="absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-transform"
-          style={{
-            left: `${POS.fugu.x}%`,
-            top: `${POS.fugu.y}%`,
-            transform: `translate(-50%,-50%) scale(${fuguActive ? 1.08 : 1})`,
-          }}
-        >
-          <FuguBadge label={mode === 'ultra' ? 'Fugu-Ultra' : 'Fugu'} sub="orchestrator" />
-        </div>
+        {/* connectors (anchored to box edges) */}
+        <Edge from={right(NODE.you)} to={left(NODE.fugu)} on={queryLineOn} />
         {AGENTS.map((ag) => (
-          <WorkerNode
+          <Edge
             key={ag.id}
-            pos={POS[ag.id as keyof typeof POS]}
-            agent={ag}
-            active={workerActive(ag.id)}
+            from={right(NODE.fugu)}
+            to={left(NODE[ag.id as keyof typeof NODE])}
+            on={workerLineOn(ag.id)}
             dim={!selected.includes(ag.id)}
           />
         ))}
-      </div>
 
-      <p className="mt-3 min-h-[2.4rem] text-sm text-ink-soft">
+        {/* nodes */}
+        <SvgNode
+          n={NODE.you}
+          title="You"
+          sub="one API call"
+          color="var(--color-line-strong)"
+          active={phase === 0 || phase === 4}
+        />
+        <SvgNode
+          n={NODE.fugu}
+          title={mode === 'ultra' ? 'Fugu-Ultra' : 'Fugu'}
+          sub="orchestrator"
+          color="var(--color-fugu)"
+          active={fuguOn}
+          filledWhenActive
+        />
+        {AGENTS.map((ag) => (
+          <SvgNode
+            key={ag.id}
+            n={NODE[ag.id as keyof typeof NODE]}
+            title={ag.name}
+            sub={ag.provider}
+            color={ag.color}
+            active={selected.includes(ag.id) && (phase === 2 || phase === 3)}
+            dim={!selected.includes(ag.id)}
+            filledWhenActive
+          />
+        ))}
+
+        {/* travelling token */}
+        {!reduced && (
+          <circle cx={token.x} cy={token.y} r={6} style={{ fill: 'var(--color-accent)' }}></circle>
+        )}
+      </svg>
+
+      <p className="mt-2 min-h-[2.4rem] text-sm text-ink-soft">
         <span className="font-mono text-xs text-muted">{phase + 1}/5 · </span>
         {CAPTION[mode][phase]}
       </p>
@@ -147,71 +164,97 @@ export default function OrchestratorOverview() {
   );
 }
 
-function Line({
-  a,
-  b,
-  active,
+function Edge({
+  from,
+  to,
+  on,
   dim,
 }: {
-  a: { x: number; y: number };
-  b: { x: number; y: number };
-  active?: boolean;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  on?: boolean;
   dim?: boolean;
 }) {
   return (
     <line
-      x1={a.x}
-      y1={a.y}
-      x2={b.x}
-      y2={b.y}
-      stroke={active ? 'var(--color-accent)' : 'var(--color-line-strong)'}
-      strokeWidth={active ? 0.9 : 0.45}
-      strokeDasharray={active ? undefined : '1.5 1.5'}
-      opacity={dim ? 0.3 : 1}
-      vectorEffect="non-scaling-stroke"
-      style={{ transition: 'stroke 250ms' }}
+      x1={from.x}
+      y1={from.y}
+      x2={to.x}
+      y2={to.y}
+      markerEnd={on ? 'url(#fx-arrow)' : undefined}
+      style={{
+        stroke: on ? 'var(--color-accent)' : 'var(--color-line-strong)',
+        strokeWidth: on ? 2 : 1,
+        strokeDasharray: on ? undefined : '3 3',
+        opacity: dim ? 0.3 : 1,
+        transition: 'stroke 250ms, opacity 250ms',
+      }}
     />
   );
 }
 
-function Node({ pos, label, sub }: { pos: { x: number; y: number }; label: string; sub: string }) {
-  return (
-    <div
-      className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center border-2 border-line-strong bg-paper px-2.5 py-1.5 text-center"
-      style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-    >
-      <span className="font-mono text-xs font-semibold">{label}</span>
-      <span className="text-[0.6rem] text-muted">{sub}</span>
-    </div>
-  );
-}
-
-function WorkerNode({
-  pos,
-  agent,
+function SvgNode({
+  n,
+  title,
+  sub,
+  color,
   active,
   dim,
+  filledWhenActive,
 }: {
-  pos: { x: number; y: number };
-  agent: Agent;
+  n: { cx: number; cy: number; w: number; h: number };
+  title: string;
+  sub?: string;
+  color: string;
   active?: boolean;
   dim?: boolean;
+  filledWhenActive?: boolean;
 }) {
+  const filled = active && filledWhenActive;
   return (
-    <div
-      className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center border-2 px-2 py-1 text-center transition-all"
-      style={{
-        left: `${pos.x}%`,
-        top: `${pos.y}%`,
-        borderColor: agent.color,
-        background: active ? agent.color : 'var(--color-paper)',
-        color: active ? 'var(--color-paper)' : 'var(--color-ink)',
-        opacity: dim ? 0.5 : 1,
-        transform: `translate(-50%,-50%) scale(${active ? 1.06 : 1})`,
-      }}
-    >
-      <span className="font-mono text-[0.72rem] font-semibold leading-tight">{agent.name}</span>
-      <span className="text-[0.55rem] leading-tight opacity-80">{agent.provider}</span>
-    </div>
+    <g style={{ opacity: dim ? 0.45 : 1, transition: 'opacity 250ms' }}>
+      <rect
+        x={n.cx - n.w / 2}
+        y={n.cy - n.h / 2}
+        width={n.w}
+        height={n.h}
+        style={{
+          fill: filled ? color : 'var(--color-paper)',
+          stroke: color,
+          strokeWidth: active ? 2.5 : 1.5,
+          transition: 'fill 200ms, stroke-width 200ms',
+        }}
+      />
+      <text
+        x={n.cx}
+        y={sub ? n.cy - 3 : n.cy + 1}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        style={{
+          fill: filled ? 'var(--color-paper)' : 'var(--color-ink)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 13,
+          fontWeight: 600,
+        }}
+      >
+        {title}
+      </text>
+      {sub && (
+        <text
+          x={n.cx}
+          y={n.cy + 12}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{
+            fill: filled ? 'var(--color-paper)' : 'var(--color-muted)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 9,
+            opacity: 0.85,
+          }}
+        >
+          {sub}
+        </text>
+      )}
+    </g>
   );
 }

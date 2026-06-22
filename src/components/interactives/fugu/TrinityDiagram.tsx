@@ -3,12 +3,12 @@ import { AGENTS, Widget, useTick, type Agent } from './shared';
 
 type Mode = 'fugu' | 'trinity';
 
-// Illustrative selection logits for the example query (softmax over the worker pool).
+// Illustrative selection logits for the example query (a softmax over the worker pool).
 const LOGITS: Record<string, number> = { gpt: 0.52, claude: 0.33, gemini: 0.15 };
 const ROLES = [
-  { k: 'T', name: 'Thinker', desc: 'strategises — plans & decomposes' },
-  { k: 'W', name: 'Worker', desc: 'executes — concrete problem-solving' },
-  { k: 'V', name: 'Verifier', desc: 'evaluates — accept or revise' },
+  { k: 'T', name: 'Thinker', desc: 'plans & decomposes' },
+  { k: 'W', name: 'Worker', desc: 'does the concrete work' },
+  { k: 'V', name: 'Verifier', desc: 'accepts or asks for a revision' },
 ];
 
 // The multi-turn example from the TRINITY paper (Figure 1, depreciation problem).
@@ -16,27 +16,33 @@ const TURNS = [
   {
     role: 'T',
     agent: 'gemini',
-    text: 'Decompose: compute the double-declining-balance rate, then year-2 expense.',
+    text: 'Decompose: find the double-declining-balance rate, then the year-2 expense.',
   },
   {
     role: 'W',
     agent: 'gpt',
     text: 'Straight-line rate = 1/8; DDB rate = 2×; year-2 expense = $2,812.50.',
   },
-  { role: 'V', agent: 'claude', text: 'Checks the figure and edge cases. uₖ = ACCEPT → halt.' },
+  {
+    role: 'V',
+    agent: 'claude',
+    text: 'Checks the figure and edge cases → ACCEPT, so the loop halts.',
+  },
 ];
 
 export default function TrinityDiagram() {
   const [mode, setMode] = useState<Mode>('fugu');
   const isTrinity = mode === 'trinity';
-  const step = useTick(3, 1100); // 0 input · 1 backbone+hidden · 2 head/logits · 3 select
+  const step = useTick(3, 1100); // pipeline cursor: 0 query · 1 backbone · 2 head · 3 pick
   const turn = useTick(TURNS.length, 1300, isTrinity);
-
   const top = AGENTS.reduce((a, b) => (LOGITS[b.id] > LOGITS[a.id] ? b : a));
 
   return (
-    <Widget title="Fugu’s orchestrator — the TRINITY parametrization" kicker="logits, not text">
-      <div className="mb-3 flex gap-2">
+    <Widget
+      title="Fugu’s orchestrator — the TRINITY parametrization"
+      kicker="it outputs a choice, not an answer"
+    >
+      <div className="mb-4 flex flex-wrap gap-2">
         {(['fugu', 'trinity'] as Mode[]).map((m) => (
           <button
             key={m}
@@ -49,60 +55,56 @@ export default function TrinityDiagram() {
               color: mode === m ? 'var(--color-accent)' : 'var(--color-ink-soft)',
             }}
           >
-            {m === 'fugu' ? 'Fugu — select only' : 'TRINITY — select + role'}
+            {m === 'fugu' ? 'Fugu — pick a worker' : 'TRINITY — pick a worker + role'}
           </button>
         ))}
       </div>
 
-      {/* Forward pass */}
-      <div className="grid items-stretch gap-2 sm:grid-cols-[1.1fr_1.2fr_1.4fr]">
-        {/* Input + backbone */}
-        <Stage on={step >= 0} label="Input">
-          <code className="block font-mono text-[0.72rem] leading-snug text-ink-soft">
+      {/* Forward-pass pipeline */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <Stage on={step >= 0} label="1 · Query">
+          <code className="block font-mono text-[0.74rem] leading-snug text-ink-soft">
             “Write me code for binary search”
           </code>
-          <div className="mt-2 flex flex-col gap-0.5" aria-hidden>
+        </Stage>
+
+        <Chevron />
+
+        <Stage on={step >= 1} label="2 · SLM backbone">
+          <div className="flex flex-col gap-0.5" aria-hidden>
             {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-2 rounded-sm transition-all"
+                className="h-2 transition-all"
                 style={{
                   background: step >= 1 ? 'var(--color-fugu)' : 'var(--color-line-strong)',
-                  opacity: step >= 1 ? 0.35 + i * 0.16 : 0.4,
+                  opacity: step >= 1 ? 0.4 + i * 0.16 : 0.4,
                 }}
               />
             ))}
           </div>
-          <span className="mt-1 block font-mono text-[0.6rem] text-muted">
-            ≈0.6B SLM backbone → hidden state h ∈ ℝᵈ
+          <span className="mt-1.5 block font-mono text-[0.6rem] text-muted">
+            ≈0.6B params · read one hidden state <span className="whitespace-nowrap">h ∈ ℝᵈ</span>
           </span>
         </Stage>
 
-        {/* Two heads */}
-        <Stage on={step >= 2} label="Heads (parallel)">
-          <div className="flex flex-col gap-2">
-            <div className="border border-line px-2 py-1.5 opacity-60">
-              <span className="font-mono text-[0.66rem] text-muted">LM head → text</span>
-              <span className="block font-mono text-[0.58rem] text-muted line-through">
-                discarded
-              </span>
-            </div>
-            <div
-              className="border-2 px-2 py-1.5 transition-all"
-              style={{ borderColor: step >= 2 ? 'var(--color-accent)' : 'var(--color-line)' }}
-            >
-              <span className="font-mono text-[0.66rem]" style={{ color: 'var(--color-accent)' }}>
-                lightweight head
-              </span>
-              <span className="block font-mono text-[0.58rem] text-muted">
-                ≈10K params → {isTrinity ? 'L + 3' : 'L'} logits
-              </span>
-            </div>
-          </div>
+        <Chevron />
+
+        <Stage on={step >= 2} label="3 · Trained head" accent={step >= 2}>
+          <span
+            className="font-mono text-[0.74rem] font-semibold"
+            style={{ color: 'var(--color-accent)' }}
+          >
+            ≈10K params
+          </span>
+          <span className="mt-1 block font-mono text-[0.62rem] text-muted">
+            the <em>only</em> part trained — scores every worker{isTrinity ? ' and every role' : ''}
+          </span>
         </Stage>
 
-        {/* Logits + selection */}
-        <Stage on={step >= 2} label="Worker logits">
+        <Chevron />
+
+        <Stage on={step >= 3} label="4 · Pick">
           <div className="flex flex-col gap-1">
             {AGENTS.map((ag) => (
               <LogitBar
@@ -115,37 +117,44 @@ export default function TrinityDiagram() {
             ))}
           </div>
           {isTrinity && (
-            <div className="mt-2 flex gap-1">
-              {ROLES.map((r, i) => (
-                <span
-                  key={r.k}
-                  className="flex-1 border px-1 py-0.5 text-center font-mono text-[0.62rem] transition-all"
-                  style={{
-                    borderColor: step >= 3 && i === 0 ? 'var(--color-accent)' : 'var(--color-line)',
-                    background: step >= 3 && i === 0 ? 'var(--color-accent)' : 'transparent',
-                    color: step >= 3 && i === 0 ? 'var(--color-paper)' : 'var(--color-muted)',
-                  }}
-                  title={r.desc}
-                >
-                  {r.k}
-                </span>
-              ))}
+            <div className="mt-2">
+              <span className="font-mono text-[0.58rem] text-muted">role:</span>
+              <div className="mt-0.5 flex gap-1">
+                {ROLES.map((r, i) => (
+                  <span
+                    key={r.k}
+                    className="flex-1 border py-0.5 text-center font-mono text-[0.62rem] transition-all"
+                    style={{
+                      borderColor:
+                        step >= 3 && i === 0 ? 'var(--color-accent)' : 'var(--color-line)',
+                      background: step >= 3 && i === 0 ? 'var(--color-accent)' : 'transparent',
+                      color: step >= 3 && i === 0 ? 'var(--color-paper)' : 'var(--color-muted)',
+                    }}
+                    title={`${r.name} — ${r.desc}`}
+                  >
+                    {r.k}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </Stage>
       </div>
 
       <p className="mt-3 text-xs text-ink-soft">
-        The orchestrator never writes the answer — it reads its own hidden state and emits a
-        selection. “Since prompting and task execution are delegated to the selected frontier
-        worker, the orchestrator only needs to produce a worker-selection decision,” which is what
-        keeps Fugu’s latency “comparable to a direct call to a frontier model.”
+        The orchestrator never writes the answer — its own text output is thrown away. It only emits
+        a choice, so a decision can be read off an <em>early</em> token instead of a full
+        generation. That is what keeps Fugu’s latency “comparable to a direct call to a frontier
+        model,” and{' '}
+        {isTrinity
+          ? 'it lets TRINITY assign the picked worker a role and loop over several turns:'
+          : 'Fugu keeps it minimal: one worker, no roles, dispatched immediately.'}
       </p>
 
       {/* TRINITY multi-turn role loop */}
       {isTrinity && (
-        <div className="mt-4 border-t border-line pt-3">
-          <span className="label">Multi-turn coordination — one role per turn</span>
+        <div className="mt-3 border-t border-line pt-3">
+          <span className="label">Multi-turn coordination — one worker, one role, per turn</span>
           <div className="mt-2 flex flex-col gap-1.5">
             {TURNS.map((t, i) => {
               const ag = AGENTS.find((a) => a.id === t.agent)!;
@@ -178,7 +187,7 @@ export default function TrinityDiagram() {
             })}
           </div>
           <p className="mt-2 font-mono text-[0.62rem] text-muted">
-            Halts when a Verifier ACCEPTs, or the turn budget is spent.
+            Halts the moment a Verifier accepts (or the turn budget runs out).
           </p>
         </div>
       )}
@@ -186,14 +195,36 @@ export default function TrinityDiagram() {
   );
 }
 
-function Stage({ on, label, children }: { on: boolean; label: string; children: React.ReactNode }) {
+function Stage({
+  on,
+  label,
+  accent,
+  children,
+}: {
+  on: boolean;
+  label: string;
+  accent?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div
-      className="flex flex-col border border-line bg-paper p-2.5 transition-opacity"
-      style={{ opacity: on ? 1 : 0.55 }}
+      className="flex flex-1 flex-col border bg-paper p-2.5 transition-opacity"
+      style={{
+        borderColor: accent ? 'var(--color-accent)' : 'var(--color-line)',
+        opacity: on ? 1 : 0.5,
+      }}
     >
       <span className="label mb-1.5">{label}</span>
       {children}
+    </div>
+  );
+}
+
+function Chevron() {
+  return (
+    <div className="flex items-center justify-center text-muted" aria-hidden>
+      <span className="hidden sm:block">→</span>
+      <span className="block sm:hidden">↓</span>
     </div>
   );
 }
@@ -211,10 +242,7 @@ function LogitBar({
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span
-        className="w-14 shrink-0 truncate font-mono text-[0.62rem]"
-        style={{ color: agent.color }}
-      >
+      <span className="w-12 shrink-0 font-mono text-[0.62rem]" style={{ color: agent.color }}>
         {agent.short}
       </span>
       <div className="h-3.5 flex-1 border border-line bg-paper">
@@ -224,6 +252,7 @@ function LogitBar({
             width: fill ? `${value * 100}%` : '0%',
             background: agent.color,
             outline: selected ? '2px solid var(--color-accent)' : 'none',
+            outlineOffset: -2,
           }}
         />
       </div>

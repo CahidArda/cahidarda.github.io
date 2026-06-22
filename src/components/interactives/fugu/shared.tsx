@@ -4,7 +4,7 @@
  * orchestrator glyph, the same bordered figure frame. The reader learns the cast in the
  * first diagram and reads every later one instantly.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface Agent {
   id: string;
@@ -77,6 +77,35 @@ export function useTick(steps: number, ms: number, run = true): number {
     return () => clearInterval(id);
   }, [steps, ms, run, reduced]);
   return t;
+}
+
+/** Smoothly glides a point toward `target` (rAF lerp). Snaps instantly under reduced motion.
+ *  Coordinates are in the caller's SVG user space, so the dot stays pixel-aligned at any scale. */
+export function useGlide(target: { x: number; y: number }, reduced: boolean) {
+  const [pos, setPos] = useState(target);
+  const posRef = useRef(target);
+  const targetRef = useRef(target);
+  targetRef.current = target;
+  useEffect(() => {
+    if (reduced) {
+      posRef.current = targetRef.current;
+      setPos(targetRef.current);
+      return;
+    }
+    let raf = 0;
+    const tick = () => {
+      const p = posRef.current;
+      const t = targetRef.current;
+      const nx = p.x + (t.x - p.x) * 0.18;
+      const ny = p.y + (t.y - p.y) * 0.18;
+      posRef.current = { x: nx, y: ny };
+      setPos({ x: nx, y: ny });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [reduced]);
+  return pos;
 }
 
 /* ── The bordered figure frame every diagram shares ── */
