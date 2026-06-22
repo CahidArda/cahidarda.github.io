@@ -39,7 +39,7 @@ export default function TrinityDiagram() {
 
   return (
     <Widget
-      title="Fugu’s orchestrator — the TRINITY parametrization"
+      title="Fugu’s orchestrator: the TRINITY parametrization"
       kicker="it outputs a choice, not an answer"
     >
       <div className="mb-4 flex flex-wrap gap-2">
@@ -55,7 +55,7 @@ export default function TrinityDiagram() {
               color: mode === m ? 'var(--color-accent)' : 'var(--color-ink-soft)',
             }}
           >
-            {m === 'fugu' ? 'Fugu — pick a worker' : 'TRINITY — pick a worker + role'}
+            {m === 'fugu' ? 'Fugu: pick a worker' : 'TRINITY: pick a worker + role'}
           </button>
         ))}
       </div>
@@ -84,7 +84,7 @@ export default function TrinityDiagram() {
             ))}
           </div>
           <span className="mt-1.5 block font-mono text-[0.6rem] text-muted">
-            reads the query and turns it into an internal vector — its{' '}
+            reads the query and turns it into an internal vector; its{' '}
             <span className="whitespace-nowrap">“hidden state” h</span>
           </span>
         </Stage>
@@ -99,7 +99,7 @@ export default function TrinityDiagram() {
             ≈10K params
           </span>
           <span className="mt-1 block font-mono text-[0.62rem] text-muted">
-            the <em>only</em> part trained — turns the hidden state into a score for every worker
+            the <em>only</em> part trained; turns the hidden state into a score for every worker
             {isTrinity ? ' and every role' : ''}
           </span>
         </Stage>
@@ -132,7 +132,7 @@ export default function TrinityDiagram() {
                       background: step >= 3 && i === 0 ? 'var(--color-accent)' : 'transparent',
                       color: step >= 3 && i === 0 ? 'var(--color-paper)' : 'var(--color-muted)',
                     }}
-                    title={`${r.name} — ${r.desc}`}
+                    title={`${r.name}: ${r.desc}`}
                   >
                     {r.k}
                   </span>
@@ -144,18 +144,18 @@ export default function TrinityDiagram() {
       </div>
 
       <p className="mt-3 text-xs text-ink-soft">
-        The orchestrator never writes the answer — its own text output is thrown away. Because it
+        The orchestrator never writes the answer; its own text output is thrown away. Because it
         only needs to emit a choice, it can decide almost instantly instead of generating a full
         response, which keeps Fugu’s latency “comparable to a direct call to a frontier model.”{' '}
         {isTrinity
           ? 'TRINITY goes one step further: it gives the picked worker a role and loops over several turns.'
-          : 'Fugu keeps it minimal — one worker, no roles, dispatched at once.'}
+          : 'Fugu keeps it minimal: one worker, no roles, dispatched at once.'}
       </p>
 
       {/* TRINITY multi-turn role loop */}
       {isTrinity && (
         <div className="mt-3 border-t border-line pt-3">
-          <span className="label">Multi-turn coordination — one worker, one role, per turn</span>
+          <span className="label">Multi-turn coordination: one worker, one role, per turn</span>
           <div className="mt-2 flex flex-col gap-1.5">
             {TURNS.map((t, i) => {
               const ag = AGENTS.find((a) => a.id === t.agent)!;
@@ -181,7 +181,7 @@ export default function TrinityDiagram() {
                     <span className="font-mono" style={{ color: ag.color }}>
                       {role.name} · {ag.name}
                     </span>
-                    <span className="text-ink-soft"> — {t.text}</span>
+                    <span className="text-ink-soft">: {t.text}</span>
                   </span>
                 </div>
               );

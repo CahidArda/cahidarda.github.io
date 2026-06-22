@@ -26,7 +26,7 @@ const PHASES = 5;
 const CAPTION: Record<Mode, string[]> = {
   fugu: [
     'You send one request to a single endpoint.',
-    'Fugu reads the query and picks the best worker — no answer written, just a choice.',
+    'Fugu reads the query and picks the best worker; no answer written, just a choice.',
     'The chosen frontier worker gets the task and solves it.',
     'Its result is handed back to Fugu.',
     'One answer comes back to you. You never managed a team.',
@@ -36,7 +36,7 @@ const CAPTION: Record<Mode, string[]> = {
     'Fugu-Ultra reads the query and designs a workflow across several workers.',
     'It dispatches the team; each tackles its own subtask.',
     'Their outputs come back to be combined and verified.',
-    'One synthesized answer comes back — a multi-agent system, as one model.',
+    'One synthesized answer comes back: a multi-agent system, as one model.',
   ],
 };
 
@@ -108,7 +108,7 @@ export default function OrchestratorOverview() {
               color: mode === m ? 'var(--color-accent)' : 'var(--color-ink-soft)',
             }}
           >
-            {m === 'fugu' ? 'Fugu — one worker' : 'Fugu-Ultra — a team'}
+            {m === 'fugu' ? 'Fugu: one worker' : 'Fugu-Ultra: a team'}
           </button>
         ))}
       </div>
@@ -141,7 +141,7 @@ export default function OrchestratorOverview() {
           return <Edge key={ag.id} from={e.a} to={e.b} on={e.on} dim={e.dim} />;
         })}
 
-        {/* travelling token — drawn before the nodes so it passes BEHIND the boxes */}
+        {/* travelling token, drawn before the nodes so it passes BEHIND the boxes */}
         {!reduced && (
           <circle cx={token.x} cy={token.y} r={6} style={{ fill: 'var(--color-accent)' }} />
         )}

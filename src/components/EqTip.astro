@@ -1,0 +1,44 @@
+---
+// Wraps a display equation and reveals a plain-language explanation on hover/focus.
+// Mirrors the hover-tooltip pattern used by TagBadge.astro. Usage in MDX:
+//
+//   <EqTip note="What this equation means.">
+//
+//   $$
+//   ... LaTeX ...
+//   $$
+//
+//   </EqTip>
+//
+// The blank lines are required so MDX parses the inner $$...$$ as math.
+interface Props {
+  note: string;
+}
+
+const { note } = Astro.props;
+const slug = note
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/(^-|-$)/g, '')
+  .slice(0, 28);
+const id = `eqtip-${slug}-${note.length}`;
+---
+
+<div class="eqtip group/eq relative">
+  <slot />
+  <button
+    type="button"
+    aria-describedby={id}
+    aria-label="What this equation means"
+    class="absolute top-1 right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-line font-mono text-[0.62rem] leading-none text-muted transition-colors hover:border-accent hover:text-accent focus-visible:border-accent focus-visible:text-accent"
+  >
+    ?
+  </button>
+  <span
+    id={id}
+    role="tooltip"
+    class="pointer-events-none absolute top-full right-0 z-20 mt-1 w-72 max-w-[90vw] translate-y-1 border border-line bg-paper-raised px-3 py-2 text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-all duration-150 group-hover/eq:translate-y-0 group-hover/eq:opacity-100 group-focus-within/eq:translate-y-0 group-focus-within/eq:opacity-100"
+  >
+    {note}
+  </span>
+</div>

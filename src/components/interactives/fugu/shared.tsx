@@ -168,7 +168,7 @@ export function AgentChip({
   );
 }
 
-/** The Fugu orchestrator badge — square glyph, accent colour, used as the hub. */
+/** The Fugu orchestrator badge: square glyph, accent colour, used as the hub. */
 export function FuguBadge({ label = 'Fugu', sub }: { label?: string; sub?: string }) {
   return (
     <span

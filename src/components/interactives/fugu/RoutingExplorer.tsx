@@ -15,19 +15,19 @@ const DOMAINS: Domain[] = [
   {
     id: 'terminal',
     label: 'Terminal Bench',
-    note: 'Agentic terminal coding — GPT-5.5 is SOTA, so routing peaks on GPT.',
+    note: 'Agentic terminal coding: GPT-5.5 is SOTA, so routing peaks on GPT.',
     mix: { gpt: 0.6, claude: 0.29, gemini: 0.11 },
   },
   {
     id: 'swe',
     label: 'SWE-Bench Pro',
-    note: 'Long-horizon software engineering — Opus’ specialty leads the mix.',
+    note: 'Long-horizon software engineering: Opus’ specialty leads the mix.',
     mix: { gpt: 0.34, claude: 0.55, gemini: 0.11 },
   },
   {
     id: 'gpqa',
     label: 'GPQA-Diamond',
-    note: 'Graduate science — Gemini is the leading model, so Fugu focuses on Gemini.',
+    note: 'Graduate science: Gemini is the leading model, so Fugu focuses on Gemini.',
     mix: { gpt: 0.16, claude: 0.24, gemini: 0.6 },
   },
   {
@@ -45,7 +45,7 @@ const DOMAINS: Domain[] = [
   {
     id: 'hle',
     label: "Humanity's Last Exam",
-    note: 'Multidisciplinary by nature — a “highly balanced distribution” over all three.',
+    note: 'Multidisciplinary by nature: a “highly balanced distribution” over all three.',
     mix: { gpt: 0.35, claude: 0.32, gemini: 0.33 },
   },
 ];
@@ -59,7 +59,7 @@ export default function RoutingExplorer() {
     <Widget title="Domain adaptivity" kicker="route a query, watch the mix shift">
       <p className="mb-3 text-sm text-ink-soft">
         Pick a domain. The orchestrator’s routing distribution re-weights toward whichever worker is
-        strongest there — “a hallmark feature of an intelligent orchestrator.”
+        strongest there, “a hallmark feature of an intelligent orchestrator.”
       </p>
 
       <div className="mb-4 flex flex-wrap gap-1.5">

@@ -193,7 +193,7 @@ export default function EvolutionStrategy() {
 
   return (
     <Widget
-      title="Training stage 2 — evolution with sep-CMA-ES"
+      title="Training stage 2: evolution with sep-CMA-ES"
       kicker="no gradients, just fitness"
     >
       <p className="mb-3 text-sm text-ink-soft">

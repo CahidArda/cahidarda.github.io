@@ -20,7 +20,7 @@ const TOPOS: Topology[] = [
     id: 'chain',
     label: 'Sequential chain',
     blurb:
-      'Plan, then implement — the Conductor’s own Figure 2 example (count “complete subarrays”).',
+      'Plan, then implement: the Conductor’s own Figure 2 example (count “complete subarrays”).',
     steps: [
       {
         subtask: 'Design an efficient algorithm to count complete subarrays',
@@ -64,7 +64,7 @@ const TOPOS: Topology[] = [
     id: 'recursive',
     label: 'Recursive',
     blurb:
-      'The Conductor names itself as a worker — a sub-workflow nested inside the workflow, a new test-time-scaling axis.',
+      'The Conductor names itself as a worker: a sub-workflow nested inside the workflow, a new test-time-scaling axis.',
     steps: [
       { subtask: 'Build a first-pass chosen-plaintext attack', agent: 'claude', access: [] },
       {
@@ -120,7 +120,7 @@ export default function ConductorWorkflow() {
   }, [topo]);
 
   return (
-    <Widget title="Fugu-Ultra — the Conductor’s workflow" kicker="three lists become a topology">
+    <Widget title="Fugu-Ultra: the Conductor’s workflow" kicker="three lists become a topology">
       <p className="mb-3 text-sm text-ink-soft">
         Unlike Fugu’s tiny routing head, the Conductor is a{' '}
         <strong>full language model (~7B)</strong> that actually writes. It reads the query and
