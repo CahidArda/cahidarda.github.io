@@ -20,6 +20,7 @@ const EXTRA_REPOS = [
   'upstash/agent-analytics',
   'upstash/eve-example',
   'upstash/skills',
+  'upstash/agentkit',
 ];
 
 // Lenient: many repos lack a description, homepage, or language.
