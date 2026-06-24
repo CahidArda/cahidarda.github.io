@@ -64,16 +64,19 @@ const paletteItems: PaletteItem[] = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Google tag (gtag.js) -->
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-JEFFYQNEL0"></script>
-    <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-      gtag('config', 'G-JEFFYQNEL0');
-    </script>
+    <!-- Google tag (gtag.js) — production builds only -->
+    {
+      import.meta.env.PROD && (
+        <Fragment>
+          <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-JEFFYQNEL0" />
+          <script is:inline>
+            window.dataLayer = window.dataLayer || []; function gtag() {
+            dataLayer.push(arguments); } gtag('js', new Date()); gtag('config',
+            'G-JEFFYQNEL0');
+          </script>
+        </Fragment>
+      )
+    }
     <!-- End Google tag -->
     <link rel="icon" type="image/png" href="/favicon.png" />
 
