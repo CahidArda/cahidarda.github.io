@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { experience, education, type CvEntry } from '../data/cv';
+
+const sections: { title: string; entries: CvEntry[] }[] = [
+  { title: 'Experience', entries: experience },
+  { title: 'Education', entries: education },
+];
+---
+
+<BaseLayout
+  title="Experience"
+  description="Work, research, and education - from Boğaziçi University to Upstash."
+  activeNav="experience"
+>
+  <header>
+    <h1 class="font-display text-4xl text-ink md:text-5xl">Experience</h1>
+    <p class="mt-3 max-w-2xl text-ink-soft">
+      Where I’ve worked and studied - software, research, and a computer engineering degree along
+      the way.
+    </p>
+  </header>
+
+  {
+    sections.map((section) => (
+      <section class="mt-14">
+        <h2 class="label">{section.title}</h2>
+
+        <div class="mt-4 border-t border-line">
+          {section.entries.map((entry) => (
+            <article class="border-b border-line py-7">
+              <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+                <h3 class="font-display text-xl text-ink">
+                  <span class="text-ink-soft">{entry.role}</span>
+                  {' · '}
+                  {entry.orgHref ? (
+                    <a
+                      href={entry.orgHref}
+                      target="_blank"
+                      rel="noopener"
+                      class="underline decoration-line underline-offset-2 hover:text-accent hover:decoration-accent"
+                    >
+                      {entry.org}
+                    </a>
+                  ) : (
+                    <span>{entry.org}</span>
+                  )}
+                </h3>
+                <p class="label shrink-0 sm:text-right">{entry.period}</p>
+              </div>
+              <p class="label mt-1">{entry.location}</p>
+
+              <ul class="mt-4 flex flex-col gap-2.5">
+                {entry.bullets.map((bullet) => (
+                  <li class="flex gap-3 text-[0.95rem] leading-relaxed text-ink-soft">
+                    <span class="mt-2 h-1 w-1 shrink-0 bg-line-strong" aria-hidden="true" />
+                    <span class="cv-bullet min-w-0" set:html={bullet} />
+                  </li>
+                ))}
+              </ul>
+
+              {entry.stack && (
+                <ul class="mt-4 flex flex-wrap gap-2">
+                  {entry.stack.map((tech) => (
+                    <li class="border border-line px-2 py-0.5 font-mono text-[0.7rem] tracking-[0.08em] text-muted">
+                      {tech}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+    ))
+  }
+</BaseLayout>
+
+<style is:global>
+  /* Inline links inside trusted CV bullets (rendered via set:html). */
+  .cv-bullet a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--color-line-strong);
+  }
+  .cv-bullet a:hover {
+    text-decoration-color: var(--color-accent);
+  }
+  .cv-bullet strong {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+</style>
