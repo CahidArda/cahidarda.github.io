@@ -34,6 +34,10 @@ pnpm format    # prettier --write .
   once in `ArticleLayout.astro`). Don't re-add it.
 - OG images auto-generate per slug (`/og/<slug>.png`). Don't hand-author them.
 - Keep the editorial/brutalist look: reuse existing tokens, typography, and the tag system.
+- **Article prose & widget text: no em-dashes** (use `.`, `:`, `,`, or parentheses), and do a quick
+  signs-of-AI-writing pass. Cite quotes to the exact source document (link the PDF, not a landing page)
+  and fact-check quotes/equations/benchmark numbers against primary sources before publishing. Reusable
+  helpers: `EqTip.astro` (equation hover-tooltip), `TweetEmbed.astro`. See the skill for details.
 - Don't commit/push to the default branch; branch first. Only open a PR when asked.
 
 ## Writing interactive articles, charts, and diagrams

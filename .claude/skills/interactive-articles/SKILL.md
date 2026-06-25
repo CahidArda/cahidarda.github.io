@@ -24,6 +24,9 @@ most of it is failures we already hit and fixed.
 - Frontmatter must satisfy `src/content.config.ts` (`title`, `description`, `date`, `tags` — the enum
   there is the source of truth; default `['blog']`). `draft: true` excludes a post from the build.
 - React islands don't share state across mounts. Cross-widget messaging → a `window` `CustomEvent`.
+- Reusable blocks already in `src/components/`: `EqTip.astro` (hover tooltip explaining a display
+  equation, modeled on `TagBadge.astro`'s CSS tooltip), `TweetEmbed.astro` (X/tweet embed with a text
+  `fallback`; use the `twitter.com/…/status/…` URL form). Prefer these over re-inventing.
 
 ## 1. Article shell
 
@@ -47,13 +50,22 @@ Prose…
 - Every widget gets `client:visible` (lazy-hydrate on scroll; never block first paint) and is wrapped
   in a full-bleed figure div (`.fx-figure`, defined in `global.css`).
 - `##` headings become the in-sidebar table of contents (scroll-spy). Keep them meaningful.
-- Cite sources generously: end each blockquote with `— [Source](url)`. Mark estimated/illustrative
-  data as such ("illustrative of the trends…"), never as exact figures.
+- Cite sources generously, and link a quote to the **exact document its words are in** (e.g. the
+  technical-report PDF on GitHub), not a generic landing/product page. House citation style is a
+  parenthetical after the closing quote, `"…quote." ([Source](url))`, **not** the `— [Source]` dash
+  form. Mark estimated/illustrative data as such ("illustrative of the trends…"), never as exact figures.
+- **House style: no em-dashes in article prose or widget text.** Use `.`, `:`, `,`, or parentheses,
+  and do a quick [signs-of-AI-writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) pass
+  (drop intensifiers like "brutally"/"striking", avoid the `not X; it's Y` antithesis, thin out
+  tricolons). The **one** exception: never alter an em-dash that sits **inside a verbatim quotation**,
+  fixing prose must not corrupt a quote.
+- **Markdown link URLs with literal parentheses must be percent-encoded**, or the `[text](url)` breaks:
+  `Fine-tuning_(deep_learning)` → `Fine-tuning_%28deep_learning%29`.
 - "This gets technical, skip ahead" notes: link to the **generated** heading id, which is
   github-slugger style (lowercase, spaces→`-`, punctuation dropped). `## Fugu-Ultra: conducting an
   orchestra` → `#fugu-ultra-conducting-an-orchestra`. **Verify** the id in the built HTML.
 
-## 2. KaTeX in MDX — the two traps
+## 2. KaTeX in MDX — the traps
 
 1. **Display math needs the `$$` fences on their OWN lines.** A single-line `$$E=mc^2$$` renders as
    *inline* KaTeX (no centering). This is the #1 surprise here.
@@ -68,8 +80,24 @@ Prose…
    parse error that **cascades and breaks every later equation** on the page. Keep the body on one line
    between own-line fences; use `\qquad`/`\;` for spacing, not newlines.
 
+3. **Wrapping math in a JSX component needs blank lines.** To attach a tooltip/figure wrapper (e.g.
+   `<EqTip note="…">`) around display math, leave a blank line between the JSX tags and the `$$` fences,
+   or MDX treats the `$$` as literal text and KaTeX never runs (you get raw `$$` in the output, no
+   `katex-display`):
+
+   ```mdx
+   <EqTip note="what it means">
+
+   $$
+   E = mc^2
+   $$
+
+   </EqTip>
+   ```
+
 Inline `$...$` is fine anywhere. **Verify** after building (see §6): `katex-error` must be `0`,
-`katex-display` must equal the number of block equations.
+`katex-display` must equal the number of block equations (the post-KaTeX class is `katex-display`, not
+`math math-display`).
 
 ## 3. Widgets: the shared design system
 
@@ -184,7 +212,23 @@ extensions to relative imports when doing this.
 Heads-up: `pnpm format` (Prettier) reorders/reflows files. **Re-read a file after formatting** before
 your next Edit, or `old_string` won't match.
 
-## 7. Log: things we actually fixed (Sakana Fugu post)
+## 7. Fact-check sourced claims before publishing
+
+When a post leans on papers/reports, verify **every quote, equation, and number** against the primary
+source, not memory or a secondary summary.
+
+- Extract PDF text once: `pip install pypdf`, then dump pages to `.txt`. **Gotcha:** extracted text is
+  often not clean UTF-8, so `grep` flags the file as binary and silently matches nothing — use
+  `grep -a`, or a Python `needle.lower() in text.lower()` check.
+- Match quotes word-for-word. A sentence can appear **verbatim in one document but reworded in
+  another** — attribute it to the document the exact words are in. (In the Fugu post a line credited to
+  "the Conductor" was actually verbatim from the technical report; the paper's own wording differed.)
+- Re-derive each equation and re-check table numbers cell-by-cell against the source figure/table.
+- If a sentence is the author's **gloss** on a quote, confirm it's actually true. (We had "no
+  retraining" sitting next to a quote that only supported "no weight access"; the product FAQ says they
+  retrain ~2 weeks to add a model.)
+
+## 8. Log: things we actually fixed (Sakana Fugu post)
 
 - Display `$$` math rendered inline → fences must be on their own lines (§2.1).
 - A multi-line `$$` block threw a KaTeX parse error that broke all later equations (§2.2).
@@ -197,3 +241,14 @@ your next Edit, or `old_string` won't match.
 - Canvas (evolution sim) needed base tokens + dpr scaling (§4.7).
 - Prose: dropped filler ("the obvious next question"), broke a dense two-item paragraph into a list,
   attributed every quote with a link, added a "skip ahead" note with a verified anchor.
+- Built `EqTip.astro` for per-equation hover tooltips; learned display `$$` inside a JSX wrapper needs
+  blank lines around it or KaTeX never runs (§2.3).
+- Proofread pass: scrubbed every em-dash from prose **and** widget labels (house style), kept the one
+  inside a verbatim quote, switched citations from `— [Source]` to `([Source])`, and dropped
+  editorializing intensifiers.
+- Verified all quotes/equations/benchmark numbers against the source PDFs (§7): caught a quote
+  misattributed to the wrong paper and a false "no retraining" gloss; re-pointed "technical report"
+  links to the actual PDF and landing links to the product page.
+- A parenthesized Wikipedia URL needed percent-encoding (`%28…%29`) to survive markdown link syntax.
+- Embedded the launch tweet via `TweetEmbed.astro` (placement matters: a tweet wedged between a
+  paragraph and a blockquote read badly; moving it to the top with a one-line lead-in fixed it).
