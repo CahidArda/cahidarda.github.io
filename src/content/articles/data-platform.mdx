@@ -1,6 +1,6 @@
 ---
-title: 'Building a Local Multi-Tenant Data Platform'
-description: 'A fully-local, multi-tenant data platform built on a laptop in tagged phases, to learn data engineering and platform work by building it with AI as a helper: read the articles and code, try the setup, ask about what is unclear, refine, repeat.'
+title: 'Building a Local Data Platform on Kubernetes'
+description: 'A local, end-to-end data platform on one k3d Kubernetes cluster, built on a laptop in tagged phases: streaming ingest, the right storage shape per access pattern, observability, and resilience.'
 date: 2026-06-25
 tags: ['blog']
 seriesLanding: data-platform
@@ -9,11 +9,11 @@ seriesLanding: data-platform
 import SeriesList from '../../components/SeriesList.astro';
 
 I wanted hands-on experience running a modern, cloud-style data stack on Kubernetes, and a project
-where I could lean on what I do in data engineering while learning a lot of the platform side around
+where I could lean on what I know about data engineering while learning a lot of the platform side around
 it. It is only local, one k3d cluster on a laptop with zero paid services, but standing the whole
-thing up by hand made the moving parts concrete in a way reading never did. So I built one: a
-multi-tenant event platform that ingests streams, processes them, stores each dataset in the format
-that fits its access pattern, and exposes dashboards. The code is at
+thing up by hand made the moving parts concrete in a way reading never did. So I built one: a data
+platform that ingests event streams, processes them, stores each dataset in the format that fits its
+access pattern, and exposes dashboards. The code is at
 [github.com/CahidArda/local-data-platform](https://github.com/CahidArda/local-data-platform); this
 post is the map for the series that follows.
 
@@ -54,14 +54,12 @@ explanations here are the ones that finally made each concept click for me.
 
 One scenario keeps the layers reinforcing each other instead of being disconnected toys.
 
-Internal product groups are the tenants: `retail`, `marketplace`, `subscriptions`. Each emits a stream
-of synthetic order events into a shared platform. The platform ingests those events, processes
-them (stream and batch), stores each dataset where it belongs, and serves two audiences:
-platform admins who watch cross-tenant health, and tenant users who see only their own data.
+Internal product groups, `retail`, `marketplace`, and `subscriptions`, each emit a stream of
+synthetic order events into a shared platform. The platform ingests those events, processes them
+(stream and batch), stores each dataset where it belongs, and serves dashboards over all of it.
 
 That single scenario is enough to make every hard trade-off show up on its own: row versus column
-storage, a log versus a queue, OLTP versus OLAP, isolation versus convenience, and what it costs
-to keep all of it observable.
+storage, a log versus a queue, OLTP versus OLAP, and what it costs to keep all of it observable.
 
 ## Built in phases you can diff
 
