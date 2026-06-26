@@ -61,6 +61,10 @@ Prose…
   fixing prose must not corrupt a quote.
 - **Markdown link URLs with literal parentheses must be percent-encoded**, or the `[text](url)` breaks:
   `Fine-tuning_(deep_learning)` → `Fine-tuning_%28deep_learning%29`.
+- **Internal article links carry NO trailing slash.** The build emits `dist/articles/<slug>.html`
+  (a file, not a `<slug>/index.html` directory), so the canonical path is `/articles/<slug>` with no
+  trailing `/`. Write `[text](/articles/my-post)`, never `/articles/my-post/` (the trailing-slash form
+  does not match the emitted page and reads as a broken/redirecting link).
 - "This gets technical, skip ahead" notes: link to the **generated** heading id, which is
   github-slugger style (lowercase, spaces→`-`, punctuation dropped). `## Fugu-Ultra: conducting an
   orchestra` → `#fugu-ultra-conducting-an-orchestra`. **Verify** the id in the built HTML.

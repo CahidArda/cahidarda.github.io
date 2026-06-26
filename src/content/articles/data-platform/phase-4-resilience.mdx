@@ -1,0 +1,188 @@
+---
+title: 'Phase 4: Resilience'
+description: 'Making the pipeline survive the things a real quarter would throw at it: poison messages routed to a dead-letter topic, backpressure on the consumer, a killed processor resuming from its checkpoint, and an SLO with an error budget you can watch hold. Plus a log-DLQ vs queue-DLQ contrast.'
+date: 2026-06-26
+tags: ['blog']
+series: data-platform
+seriesOrder: 7
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+import DlqSplit from '../../../components/interactives/dataplat/DlqSplit.tsx';
+
+Fifth build post in the [data-platform series](/articles/data-platform). Everything
+so far assumed the happy path. Phase 4 breaks things on purpose and makes the platform survive,
+which is the mechanism behind the "99% uptime over 90 days" outcome: you cannot wait 90 days, so
+you inject a quarter of failures in a few seconds and watch the error budget hold.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-4
+make tilt PHASE=phase-4-resilience
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+- a dead-letter topic for poison messages,
+- backpressure on the stream processor,
+- failure recovery from the streaming checkpoint,
+- an SLO with recording rules, an error-budget dashboard, and alerts,
+- an SQS-compatible queue to contrast queue-DLQ with log-DLQ.
+
+<div class="fx-figure">
+  <ClusterMap phase={4} client:visible />
+</div>
+
+## Nothing is silently dropped
+
+In phase 1 the processor quietly dropped events it could not parse. That is exactly the bug that
+corrupts a platform invisibly. So the producer now emits a small fraction of malformed messages,
+and the processor ([`job.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/stream-processor/job.py))
+splits each batch into valid events and poison, and routes the poison to a dead-letter topic
+instead of dropping it:
+
+```python
+def process_batch(batch_df, batch_id):
+    valid   = batch_df.where(col("e.event_id").isNotNull()).select("e.*")
+    invalid = batch_df.where(col("e.event_id").isNull()).select("raw")
+    sink_dlq(invalid)     # poison -> events.dlq, counted as a metric
+    ...                   # valid -> the sinks
+```
+
+A poison message is now a thing you can inspect and replay, and a `stream_dlq_messages_total`
+counter feeds the dashboard. The failure is visible, not lost.
+
+<div class="fx-figure">
+  <DlqSplit client:visible />
+</div>
+
+## Backpressure
+
+If lag spikes (a burst of events, or the processor falling behind), pulling the entire backlog
+into one giant batch is how a streaming job falls over. Structured Streaming caps how many offsets
+a trigger reads, set via a phase-4 patch
+([`app-resilience-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/app-resilience-patch.yaml)):
+
+```yaml
+env:
+  - { name: MAX_OFFSETS_PER_TRIGGER, value: "500" }
+```
+
+The backlog drains steadily instead of in one oversized gulp. Lag climbs, then recovers, and you
+watch both on the lag panel.
+
+## Survive a kill
+
+Spark Structured Streaming records its progress, the Kafka offsets it has committed and its
+in-flight batch state, in a checkpoint directory. In this platform that directory is a
+PersistentVolumeClaim rather than the pod's ephemeral `emptyDir`, so it outlives any single pod.
+That is what makes killing the processor survivable: a fresh pod mounts the same checkpoint and
+resumes from the last committed offset, with no gap and no double-processing. The demo
+([`scripts/demo-phase-4.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-4.sh))
+deletes the pod and confirms the row count keeps climbing with no gap after it reschedules:
+
+```bash
+kubectl delete pod -l app.kubernetes.io/name=stream-processor
+kubectl rollout status deploy/stream-processor
+# before: N rows ; after: N+... (no gap, resumed from checkpoint)
+```
+
+## An error budget you can watch
+
+The SLO is a success ratio: events processed divided by events processed plus dead-lettered, over
+a rolling window, recorded as a Prometheus rule
+([`prometheus-rules.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/prometheus-rules.yaml)):
+
+```yaml
+- record: sli:success:ratio5m
+  expr: |
+    sum(rate(stream_events_processed_total[5m]))
+    / (
+        sum(rate(stream_events_processed_total[5m]))
+        + sum(rate(stream_dlq_messages_total[5m]))
+        + 1e-9
+      )
+```
+
+A 99% target leaves a 1% error budget. An "error budget remaining" panel shows how much slack is
+left, and an `ErrorBudgetBurn` alert fires through Alertmanager if the ratio drops below target.
+The demo injects failures and you watch the budget dip and hold rather than blow.
+
+## Log-DLQ vs queue-DLQ
+
+The phase also stands up ElasticMQ
+([`elasticmq.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/elasticmq.yaml)),
+an SQS-compatible queue, purely to feel a semantic contrast.
+Both a log and a queue can dead-letter, but they decide differently:
+
+- **Log (Kafka/Redpanda):** the consumer decides a message is poison and writes it to a separate
+  topic. The original stays on the log and can be replayed.
+- **Queue (SQS):** the broker redrives a message to the DLQ automatically after it fails to be
+  processed N times (a `maxReceiveCount` redrive policy). The consumer never explicitly routes it.
+
+The demo sends a poison message to the SQS queue, fails to process it three times, and watches the
+broker move it to the dead-letter queue on its own. Same idea, opposite owner.
+
+## What's in the overlay
+
+Phase 4 is [`overlays/phase-4-resilience/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-4-resilience), which bases on phase 3 and adds the dead-letter path, the SLO machinery, and the queue contrast.
+
+<details>
+<summary><code>dlq-topic-init.yaml</code>: the dead-letter topic</summary>
+
+[`dlq-topic-init.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/dlq-topic-init.yaml) is a Job that creates the `events.dlq` topic.
+
+</details>
+
+<details>
+<summary><code>app-resilience-patch.yaml</code>: make failure visible</summary>
+
+[`app-resilience-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/app-resilience-patch.yaml) sets the producer to emit a small fraction of poison messages, and gives the stream-processor backpressure (`maxOffsetsPerTrigger`) and the DLQ topic name.
+
+</details>
+
+<details>
+<summary><code>prometheus-rules.yaml</code>: the SLO</summary>
+
+[`prometheus-rules.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/prometheus-rules.yaml) holds recording rules for the success-ratio SLI and alerting rules for error-budget burn, high consumer lag, and a down processor.
+
+</details>
+
+<details>
+<summary><code>prometheus-patch.yaml</code>: load the rules</summary>
+
+[`prometheus-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/prometheus-patch.yaml) patches the phase-2 Prometheus to load those rules and point at Alertmanager, and mounts the rules ConfigMap.
+
+</details>
+
+<details>
+<summary><code>alertmanager.yaml</code>: alerting</summary>
+
+[`alertmanager.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/alertmanager.yaml) is Alertmanager, which receives the alerts. The receiver is a no-op locally; the point is the alerting path exists and fires.
+
+</details>
+
+<details>
+<summary><code>grafana-slo-patch.yaml</code>: the SLO dashboard</summary>
+
+[`grafana-slo-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/grafana-slo-patch.yaml) adds an SLO / error-budget dashboard alongside the platform overview.
+
+</details>
+
+<details>
+<summary><code>elasticmq.yaml</code>: the queue contrast</summary>
+
+[`elasticmq.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/elasticmq.yaml) is ElasticMQ, an SQS-compatible queue preconfigured with a main queue, a dead-letter queue, and a redrive policy, purely to contrast a queue DLQ with the log DLQ.
+
+</details>
+
+## Done when
+
+Injected failures are visibly survived and the SLO stays within budget. Poison diverts, lag
+recovers, a killed processor resumes, the queue redrives, and the error-budget panel dips but does
+not bottom out.

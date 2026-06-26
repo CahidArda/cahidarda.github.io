@@ -1,0 +1,208 @@
+---
+title: 'Phase 1: First Data in Motion'
+description: 'The end-to-end spine: a synthetic event producer to a Redpanda topic, a Spark Structured Streaming job that upserts current order state into Postgres, and a live orders view served over it.'
+date: 2026-06-26
+tags: ['blog']
+series: data-platform
+seriesOrder: 4
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+import DataFlow from '../../../components/interactives/dataplat/DataFlow.tsx';
+
+Second build post in the [data-platform series](/articles/data-platform). Phase 0
+left a green but empty cluster. Phase 1 puts the first event through the whole spine:
+generate, ingest, process, store, serve.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-1
+make tilt PHASE=phase-1-ingest
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+<div class="fx-figure">
+  <DataFlow stores={['row']} client:visible />
+</div>
+
+- a synthetic event producer,
+- a Redpanda topic as the log,
+- a Spark Structured Streaming job writing to Postgres,
+- a small API serving a live orders view.
+
+<div class="fx-figure">
+  <ClusterMap phase={1} client:visible />
+</div>
+
+## Redpanda and Kafka
+
+Apache Kafka is the original distributed event log, and over the years its client protocol (the
+"Kafka API") became the de facto standard that a whole ecosystem of tools and client libraries
+speaks. [Redpanda](https://www.redpanda.com/) is a different *implementation* of that same protocol:
+it is wire-compatible with Kafka, so anything that talks to Kafka talks to Redpanda unchanged. In
+this project that is why the producer uses a Kafka client library (`confluent-kafka`), the config
+key is `KAFKA_BOOTSTRAP`, and Spark reads the stream with its Kafka connector, all pointed at
+Redpanda. Nothing in the application code is Redpanda-specific; you could swap in real Kafka (for
+example via the Strimzi operator) by changing only the broker address.
+
+So why Redpanda here rather than Kafka itself? It is a single C++ binary with no JVM and no separate
+coordination service (it has Raft built in), which makes it dramatically lighter to run on a laptop,
+the binding constraint for this whole project. The trade-off worth knowing: Redpanda is
+source-available under the BSL licence rather than Apache 2, which does not affect local learning
+but would matter for some production uses. Throughout the series, read "Kafka" (the protocol, the
+topic, the consumer group) and "Redpanda" (the thing running) as the same log.
+
+## The producer
+
+The producer ([`app/producer/producer.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/producer/producer.py))
+emits order-lifecycle events for each tenant, keyed by tenant so a tenant's events keep their order
+on the log. It exposes a Prometheus counter from the start, even though nothing scrapes it until
+phase 2.
+
+```python
+def make_event(tenant: str) -> dict:
+    return {
+        "event_id": str(uuid.uuid4()),
+        "tenant": tenant,
+        "event_type": random.choices(EVENT_TYPES, weights=[5, 4, 3, 1])[0],
+        "order_id": f"ord-{random.randint(1, 100_000)}",
+        "amount_cents": random.randint(500, 50_000),
+        "event_time": datetime.now(UTC).isoformat(),
+    }
+```
+
+## The stream processor
+
+The stream processor is a [Spark Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
+job ([`job.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/stream-processor/job.py)).
+Structured Streaming does not handle events one by one; it works in **micro-batches**. On a fixed
+trigger (here every 5 seconds) it asks the topic for the records that have arrived since the offset
+it last read, hands them to your code as one small table (a Spark DataFrame), and records the new
+offset only once that batch has been written successfully. So its input is "the new events on the
+topic since last time," and its unit of work is one small batch.
+
+For each batch the job parses the raw JSON into typed rows (`event_id`, `tenant`, `event_type`,
+`amount_cents`, `event_time`, and so on) and writes them to two tables: it appends every event to
+an append-only `events` table (the full history), and it upserts the latest state per order into
+`current_orders` (the live view the API serves).
+
+The one fiddly bit is "latest event per order wins," since a single batch can contain a tenant's
+events out of order. That reducer is pulled into a small pure function
+([`transforms.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/stream-processor/transforms.py))
+and unit tested on its own
+([`tests/test_transforms.py`](https://github.com/CahidArda/local-data-platform/blob/main/tests/test_transforms.py)),
+following the project's rule: test the transformation logic you wrote, not the infrastructure around it.
+
+The upsert itself guards against stale writes, so a late event never overwrites a newer status:
+
+```sql
+INSERT INTO current_orders
+  (order_id, tenant, status, amount_cents, currency, updated_at)
+VALUES %s
+ON CONFLICT (order_id) DO UPDATE SET
+  status = EXCLUDED.status,
+  amount_cents = EXCLUDED.amount_cents,
+  updated_at = EXCLUDED.updated_at
+WHERE EXCLUDED.updated_at >= current_orders.updated_at
+```
+
+## The serving layer
+
+The serving layer is a small [FastAPI](https://fastapi.tiangolo.com/) app
+([`app/api/main.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/api/main.py)) that reads
+`current_orders` from Postgres and exposes a few endpoints. Tilt port-forwards it to
+[http://localhost:8000](http://localhost:8000):
+
+- `GET /` is a minimal HTML page that polls `/orders` once a second and renders the live orders
+  table. It is functional, not designed, which is the explicit bar for dashboards in this project.
+- `GET /orders` returns the current order state as JSON (optionally filtered by tenant).
+- `GET /stats` returns a per-tenant rollup: order count and revenue.
+- `GET /metrics` exposes Prometheus metrics (nothing scrapes them until phase 2).
+
+## What you see
+
+Events flow on the topic, rows land in Postgres, and the live orders page updates once a second as
+order statuses move from `order_placed` to `order_paid` to `order_shipped`.
+
+There is no Grafana yet (that is phase 2), so you watch this one through the API page, the Tilt UI,
+and a few peeks at the stores:
+
+- **The live orders page.** Tilt port-forwards the API to `localhost:8000`: open
+  [http://localhost:8000](http://localhost:8000) for the auto-refreshing table, `/stats` for a
+  per-tenant rollup, `/orders` for the raw JSON.
+- **The Tilt UI** at `localhost:10350`: click any resource (producer, stream-processor, redpanda,
+  postgres) to tail its logs.
+- **What the producer emits**, read straight off the topic:
+
+  ```bash
+  kubectl -n platform exec -it statefulset/redpanda -- \
+    rpk topic consume events --num 5
+  ```
+
+- **What landed in Postgres:**
+
+  ```bash
+  kubectl -n platform exec -it statefulset/postgres -- \
+    psql -U platform -d platform -c "SELECT count(*) FROM events;" \
+    -c "SELECT tenant, count(*) FROM current_orders GROUP BY tenant;"
+  ```
+
+- **What the stream is doing**, one log line per 5-second micro-batch:
+
+  ```bash
+  kubectl -n platform logs -f deploy/stream-processor
+  ```
+
+Keep the orders page open and re-run the `count(*)` query a few times: the page ticks and the count
+climbs. That is producer to Redpanda to Spark to Postgres to API, end to end.
+
+## What's in the overlay
+
+Phase 1 is [`overlays/phase-1-ingest/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-1-ingest), which bases on phase 0 and adds the spine's infrastructure and workloads.
+
+<details>
+<summary><code>redpanda.yaml</code>: the event log</summary>
+
+[`redpanda.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-1-ingest/redpanda.yaml) is a single-node Redpanda StatefulSet in dev-container mode, with a headless service exposing the Kafka port (9092) and the admin/metrics port (9644). One broker is plenty locally; the headless service gives it stable DNS for clients.
+
+</details>
+
+<details>
+<summary><code>postgres.yaml</code>: the row store</summary>
+
+[`postgres.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-1-ingest/postgres.yaml) is a Postgres StatefulSet with a PersistentVolumeClaim, its user and password read from the OpenTofu-generated `postgres-credentials` Secret. It holds `current_orders` and the append-only `events` table.
+
+</details>
+
+<details>
+<summary><code>topic-init.yaml</code>: create the events topic</summary>
+
+[`topic-init.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-1-ingest/topic-init.yaml) is a one-shot Job that waits for the broker, then creates the `events` topic with three partitions. It is idempotent, so re-running it does nothing.
+
+</details>
+
+<details>
+<summary><code>app.yaml</code>: producer, stream-processor, api</summary>
+
+[`app.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-1-ingest/app.yaml) holds the three application Deployments: the producer, the Spark stream-processor (its streaming checkpoint on a PVC so a killed pod resumes), and the api. Config comes from `platform-config`, database credentials from the Secret, and `enableServiceLinks` is off so Kubernetes' injected service env vars do not clobber the app's own `POSTGRES_PORT`.
+
+</details>
+
+<details>
+<summary><code>kustomization.yaml</code>: ties it together</summary>
+
+[`kustomization.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-1-ingest/kustomization.yaml) lists phase 0 as its base plus the files above, so applying it brings up everything through phase 1.
+
+</details>
+
+## Done when
+
+Producing events results in rows appearing in Postgres, visible live. The spine is the thing every
+later phase decorates: phase 2 makes it observable, phase 3 tees it into more stores, phase 4
+makes it survive failure.

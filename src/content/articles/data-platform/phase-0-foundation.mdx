@@ -1,0 +1,283 @@
+---
+title: 'Phase 0: Foundation'
+description: 'The empty cluster and the wiring that makes every later phase a reviewable diff: a k3d cluster, cumulative Kustomize overlays, OpenTofu-generated secrets kept out of git, a Makefile, and the Tilt dev UI.'
+date: 2026-06-25
+tags: ['blog']
+series: data-platform
+seriesOrder: 3
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+
+This is the first build post in the [data-platform series](/articles/data-platform).
+The [architecture post](/articles/data-platform/architecture) covered the shape; this one stands
+up the empty cluster and the scaffolding that makes the next seven phases legible. Phase 0 ships
+almost no behaviour on purpose. Its job is to make every later change a clean diff.
+
+## Run it
+
+```bash
+make cluster      # create the local k3d cluster
+make phase-0      # apply the foundation
+make tofu-apply   # generate + install the Secrets
+make tilt PHASE=phase-0-foundation
+```
+
+Each command, in detail:
+
+<details>
+<summary><code>make cluster</code>: create the local Kubernetes cluster</summary>
+
+Runs:
+
+```bash
+k3d cluster create --config infra/k3d/cluster.yaml
+```
+
+Kubernetes is the system that runs your containers for you and keeps them running. A *cluster* is
+the group of machines it manages, plus that managing software. In a company a cluster is many real
+servers; here, [k3d](https://k3d.io/) runs a small Kubernetes (called k3s) inside Docker on your
+laptop, so your one machine becomes a one-machine cluster. The command reads the settings in
+[`infra/k3d/cluster.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/infra/k3d/cluster.yaml)
+(how many machines, which ports to expose to your browser) and starts it.
+
+**Result:** an empty but running Kubernetes you can now deploy things to. Nothing of ours is on it
+yet. `kubectl get nodes` shows one machine marked `Ready`.
+
+</details>
+
+## What's added in this phase?
+
+- a local Kubernetes cluster (k3d),
+- the cumulative-overlay model (Kustomize),
+- infrastructure as code for the one thing that must never live in git: secrets (OpenTofu),
+- a `Makefile` and the [Tilt](https://tilt.dev/) dev UI,
+- one trivial service, so the cluster has something real to schedule and show green.
+
+<div class="fx-figure">
+  <ClusterMap phase={0} client:visible />
+</div>
+
+## What to install
+
+Everything runs locally with no cloud account. The binding constraint is RAM, not difficulty:
+roughly 16 GB minimum, 32 GB comfortable. The phases are additive but need not all run at once, so
+earlier layers can be scaled down to free memory when working on a later phase.
+
+| Tool | Role | Install |
+| --- | --- | --- |
+| [Docker](https://docs.docker.com/get-docker/) | container runtime k3d runs on | Docker Desktop or Engine |
+| [k3d](https://k3d.io/) | k3s (Kubernetes) in Docker | `brew install k3d` |
+| [kubectl](https://kubernetes.io/docs/tasks/tools/) | talk to the cluster (ships kustomize) | `brew install kubectl` |
+| [Helm](https://helm.sh/docs/intro/install/) | packaging for a few components | `brew install helm` |
+| [Tilt](https://docs.tilt.dev/install.html) | live "what changed" dev UI | `brew install tilt` |
+| [OpenTofu](https://opentofu.org/docs/intro/install/) | generates the secrets | `brew install opentofu` |
+
+Then clone the repo and bring up the foundation:
+
+```bash
+git clone https://github.com/CahidArda/local-data-platform.git
+cd local-data-platform
+make cluster && make phase-0 && make tofu-apply
+```
+
+The [`Makefile`](https://github.com/CahidArda/local-data-platform/blob/main/Makefile) wraps the cluster
+lifecycle and the per-phase apply; the cluster definition is
+[`infra/k3d/cluster.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/infra/k3d/cluster.yaml).
+
+## The cumulative-overlay model
+
+The whole series rests on one idea: each phase is a Kustomize overlay that bases on the phase
+before it. Phase 0 is the root of that chain
+([`overlays/phase-0-foundation/kustomization.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-0-foundation/kustomization.yaml)).
+
+```yaml
+# overlays/phase-0-foundation/kustomization.yaml
+resources:
+  - ../../platform/base   # shared namespaces + config
+  - placeholder.yaml
+```
+
+Every later overlay starts by listing the previous one as a resource, so applying any phase brings
+up everything through it:
+
+```bash
+make phase-0   # base + the foundation
+make phase-3   # base + phases 0,1,2,3, in one apply
+```
+
+The cluster grows monotonically, and because a phase is a directory plus a Git tag, the delta it
+introduces is exactly `git diff phase-2 phase-3`: application code and manifests together, nothing
+hidden in a separate environment. That diff is the unit the rest of the series is written in.
+
+## Secrets are generated, never committed
+
+The one piece of real infrastructure-as-code in phase 0 is deliberately narrow. OpenTofu does not
+create the cluster (that is `k3d`) and does not manage workloads (that is Kustomize). It owns
+exactly one thing: credentials. It generates random passwords and materialises them as Kubernetes
+Secrets, so no password ever appears in the repo or the overlays
+([`infra/tofu/secrets.tf`](https://github.com/CahidArda/local-data-platform/blob/main/infra/tofu/secrets.tf)).
+
+```hcl
+# infra/tofu/secrets.tf
+resource "random_password" "store" {
+  for_each = local.stores   # postgres, clickhouse, minio
+  length   = 24
+  special  = false
+}
+
+resource "kubernetes_secret" "store" {
+  for_each = local.stores
+  metadata { name = each.value.secret; namespace = "platform" }
+  data = {
+    username   = each.value.username
+    password   = random_password.store[each.key].result
+    access-key = each.value.username
+    secret-key = random_password.store[each.key].result
+  }
+}
+```
+
+The overlays reference these Secrets by name; the values exist only in OpenTofu state, which is
+gitignored. This is the "no plaintext secrets" rule from phase 5's security goals, set up on day
+one so it is never retrofitted.
+
+## What you see
+
+<details>
+<summary><code>make phase-0</code>: put the foundation onto the cluster</summary>
+
+Runs:
+
+```bash
+kubectl apply -k overlays/phase-0-foundation
+```
+
+You tell Kubernetes what you want by handing it YAML files that describe the things to run: a
+service, its configuration, how many copies. Kubernetes then makes the cluster match that
+description and keeps it matching. A thing it runs for you is called a *workload*. `kubectl apply`
+is the command that submits those descriptions. The `-k` flag means "assemble the YAML with
+Kustomize first": Kustomize is a tool that stitches together layered YAML files into one set before
+they are submitted. For phase 0 there are two layers:
+
+- the **shared base**, [`platform/base/`](https://github.com/CahidArda/local-data-platform/tree/main/platform/base):
+  the things every phase needs. Two files: `namespaces.yaml` (the named partitions of the cluster
+  the platform lives in, `platform` and `observability`) and `platform-config.yaml` (platform-wide
+  settings like the tenant list and the event-log address).
+- **phase 0's own file**, [`overlays/phase-0-foundation/placeholder.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-0-foundation/placeholder.yaml):
+  the trivial echo service.
+
+Phase 0's [`kustomization.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-0-foundation/kustomization.yaml)
+is just a list naming those two as its inputs. Each later phase adds its own files and lists the
+phase before it, which is how the overlays stack up.
+
+So this single command creates phase 0's pieces, the namespaces, the shared config, and the
+placeholder service, and starts them.
+
+**Result:** those objects exist and the placeholder service is running and healthy.
+
+</details>
+
+<details>
+<summary><code>make tofu-apply</code>: generate the passwords and install them as Secrets</summary>
+
+Runs:
+
+```bash
+kubectl apply -f platform/base/namespaces.yaml   # make namespaces
+cd infra/tofu && tofu init && tofu apply
+```
+
+The Secrets live in the `platform` namespace, so the target first ensures that namespace exists
+(idempotent with `make phase-0`), then runs OpenTofu. `tofu init` downloads the providers (once per
+checkout); `tofu apply` makes the changes.
+[OpenTofu](https://opentofu.org/) reads the `.tf` files in
+[`infra/tofu`](https://github.com/CahidArda/local-data-platform/tree/main/infra/tofu), invents a random
+password for each data store (Postgres, ClickHouse, MinIO), and creates a Kubernetes *Secret* (an
+object built to hold sensitive values) for each one, inside the cluster.
+
+**Result:** the credentials those services will need now exist in the cluster, but the passwords
+were never written into the repo.
+
+</details>
+
+`make tilt` (from **Run it**) runs `tilt up`, which serves the Tilt web UI at [http://localhost:10350](http://localhost:10350)
+(it usually opens your browser and prints the URL). Leave it running: it watches your files, shows
+every service with its logs, and re-applies on save.
+
+In that UI the cluster is green and the placeholder service (a tiny HTTP echo) is listed and ready.
+There is no data yet; there is a healthy, observable substrate to build on. The placeholder gets
+replaced by the real producer/stream/api spine in the next phase.
+
+To pause without losing anything (and free the RAM), stop the cluster and start it again later:
+
+```bash
+make stop     # k3d cluster stop: halt containers, keep data
+make start    # k3d cluster start: pods reschedule, context kept
+```
+
+Use `make down` only when you want to destroy the cluster and its data for good.
+
+## What shows up in Docker Desktop
+
+Because k3d runs the cluster inside Docker, Docker Desktop is a useful window onto it, with one
+catch worth understanding up front: your services do not appear as Docker containers. The whole
+Kubernetes cluster runs *inside* one or two Docker containers, and everything you deploy lives
+inside those. So you inspect your services with `kubectl get pods -A` (or Tilt), not the Docker UI.
+
+- **Containers tab.** After `make cluster` you see the cluster's own containers, not your
+  workloads: `k3d-data-platform-server-0` (the node, which is the entire Kubernetes running inside
+  one container) and `k3d-data-platform-serverlb` (a small load balancer that maps the host ports
+  to the cluster). Postgres, Redpanda, and the rest, added in later phases, run as pods *inside* the
+  server container, so they will not be listed here.
+- **Images tab.** The images k3d itself uses: `rancher/k3s` (the node) and the k3d load-balancer
+  image. The images for your services are pulled by Kubernetes *inside* the node, so they generally
+  do not appear in this tab either. (From phase 1 on, images Tilt builds locally are the exception;
+  Tilt builds them with Docker and imports them into the cluster.)
+- **Volumes tab.** A volume or two that k3d created for the node. The data volumes the databases use
+  from phase 1 on are Kubernetes PersistentVolumeClaims, provisioned *inside* the node, so they also
+  will not show up as Docker volumes.
+- **Kubernetes tab.** Leave Docker Desktop's own built-in Kubernetes turned **off**. It is a
+  separate, optional cluster that this project does not use; enabling it only adds confusion. Our
+  cluster is the k3d one, which you talk to with `kubectl` (context `k3d-data-platform`).
+
+The short version: Docker Desktop shows the *box* the cluster runs in; `kubectl` and Tilt show
+what is running *inside* it.
+
+## What's in the overlay
+
+Phase 0 is [`overlays/phase-0-foundation/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-0-foundation), which is the shared base plus one placeholder. The base files are also walked through in the `make phase-0` toggle above.
+
+<details>
+<summary><code>platform/base/namespaces.yaml</code>: the namespaces</summary>
+
+[`namespaces.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/platform/base/namespaces.yaml) declares the `platform` and `observability` namespaces with Pod Security Admission labels (baseline enforce, restricted warn).
+
+</details>
+
+<details>
+<summary><code>platform/base/platform-config.yaml</code>: platform-wide config</summary>
+
+[`platform-config.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/platform/base/platform-config.yaml) is a ConfigMap with the stable settings every phase shares: the tenant list, the Redpanda bootstrap address, and the events topic name.
+
+</details>
+
+<details>
+<summary><code>placeholder.yaml</code>: the trivial service</summary>
+
+[`placeholder.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-0-foundation/placeholder.yaml) is a tiny HTTP echo Deployment plus Service, so the cluster has something real to schedule and show green. ArgoCD prunes it in phase 7.
+
+</details>
+
+<details>
+<summary><code>kustomization.yaml</code>: the root of the chain</summary>
+
+[`kustomization.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-0-foundation/kustomization.yaml) lists `platform/base` and the placeholder. Every later phase bases on this one.
+
+</details>
+
+## Done when
+
+`make phase-0` brings up a green cluster and the Tilt UI lists the placeholder service. That is the
+entire bar, and it is the point: the foundation is boring so that everything after it is a small,
+readable step.

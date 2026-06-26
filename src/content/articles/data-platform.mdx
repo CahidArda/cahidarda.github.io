@@ -1,0 +1,73 @@
+---
+title: 'Building a Local Multi-Tenant Data Platform'
+description: 'A fully-local, multi-tenant data platform built on a laptop in tagged phases, to learn data engineering and platform work by building it with AI as a helper: read the articles and code, try the setup, ask about what is unclear, refine, repeat.'
+date: 2026-06-25
+tags: ['blog']
+seriesLanding: data-platform
+---
+
+import SeriesList from '../../components/SeriesList.astro';
+
+I wanted to learn how a modern data platform is actually built and operated, and reading about it
+was not sticking. So I built the thing: a multi-tenant event platform that ingests streams,
+processes them, stores each dataset in the format that fits its access pattern, and exposes
+dashboards. It runs entirely on a laptop, on one k3d Kubernetes cluster, with zero paid services.
+The code is at [github.com/CahidArda/local-data-platform](https://github.com/CahidArda/local-data-platform); this post is
+the map for the series that follows.
+
+I built it with a lot of help from AI, and I wrote these articles the same way: by asking hundreds
+of questions about the parts I did not understand, then turning the answers into the explanations
+you are reading.
+
+## What I wanted to learn
+
+The point was to get hands-on with the parts of data engineering and platform work that are hard
+to absorb from reading alone:
+
+- engineering **batch and streaming pipelines** that are observable, resilient, and efficient,
+- the trade-offs between **transactional (OLTP), analytical (OLAP), and streaming** processing, and
+  between **row and column** storage, felt directly rather than read about,
+- operating a **Kubernetes-native, cloud-style** data stack end to end,
+- clean **Git, GitOps, and CI/CD** workflows around all of it.
+
+And to learn it by building, with AI as the helper. The loop went like this:
+
+1. create the repo and a series of articles, each explaining one concept at a time,
+2. read the series and the code, stand the setup up, and try to make it work,
+3. wherever something did not make sense, ask AI about it until it did,
+4. fold the answer back into the article or the code, then go around again.
+
+So these posts are not a tutorial written from authority. They are the trail of that loop: the
+explanations here are the ones that finally made each concept click for me.
+
+## The scenario everything hangs off
+
+One scenario keeps the layers reinforcing each other instead of being disconnected toys.
+
+Internal product groups are the tenants: `retail`, `marketplace`, `subscriptions`. Each emits a stream
+of synthetic order events into a shared platform. The platform ingests those events, processes
+them (stream and batch), stores each dataset where it belongs, and serves two audiences:
+platform admins who watch cross-tenant health, and tenant users who see only their own data.
+
+That single scenario is enough to make every hard trade-off show up on its own: row versus column
+storage, a log versus a queue, OLTP versus OLAP, isolation versus convenience, and what it costs
+to keep all of it observable.
+
+## Built in phases you can diff
+
+The platform grows in eight phases. Each one adds exactly one layer onto the same cluster, and
+each is a Git tag, so `git diff phase-2 phase-3` shows precisely what a step introduced,
+application code and infrastructure, in one diff. That is the whole point: describe a change,
+apply it, see what changed.
+
+The stack is deliberately all open-source and local: k3d for Kubernetes, Redpanda for the event
+log, Spark Structured Streaming for processing, Postgres / ClickHouse / Iceberg-on-MinIO for the
+three storage shapes, Prometheus and Grafana and Loki for observability, Dagster for
+orchestration, OPA for policy. Each was chosen by its strength.
+
+## The series
+
+Read it in order. The first two posts lay the conceptual groundwork (the architecture and the
+storage trade-offs); the rest build the platform one phase at a time.
+
+<SeriesList series="data-platform" />

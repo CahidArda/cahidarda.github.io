@@ -1,0 +1,128 @@
+---
+title: 'Phase 6: Orchestration and Data Quality'
+description: 'Scheduled batch rollups with Dagster and, more importantly, a blocking data-quality gate: a deliberately broken data contract fails the check and is stopped before promotion instead of silently corrupting the warehouse.'
+date: 2026-06-26
+tags: ['blog']
+series: data-platform
+seriesOrder: 9
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+import AssetGraph from '../../../components/interactives/dataplat/AssetGraph.tsx';
+
+Seventh build post in the [data-platform series](/articles/data-platform). The
+streaming spine handles "now". Phase 6 adds the scheduled, batch side, and with it the mechanism
+behind "zero recurring incidents of the same type": a data-quality gate that catches a bad data
+contract before it reaches anything downstream.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-6
+make tilt PHASE=phase-6-orchestration
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+- Dagster, running a nightly batch rollup,
+- an asset graph with lineage,
+- a blocking data-quality check as a promotion gate,
+- a deliberately broken data contract to fire the gate on demand.
+
+<div class="fx-figure">
+  <ClusterMap phase={6} client:visible />
+</div>
+
+## The asset graph
+
+The rollup is three [Dagster](https://dagster.io/) assets with a check wired between them
+([`app/orchestration/definitions.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/orchestration/definitions.py)):
+
+```
+events_snapshot ──▶ daily_revenue_rollup ──▶ promoted_rollup
+                          │
+                          └── revenue_quality (blocking check)
+```
+
+`events_snapshot` reads raw events from ClickHouse, `daily_revenue_rollup` aggregates revenue per
+tenant per day, and `promoted_rollup` writes the validated result to a served `daily_revenue`
+table. Dagster draws this graph and records every run, so lineage is a thing you look at, not infer.
+
+<div class="fx-figure">
+  <AssetGraph client:visible />
+</div>
+
+## The gate is the point
+
+The aggregation logic lives in a pure module,
+[`rollup.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/orchestration/rollup.py), so it
+is unit tested without Dagster or a database
+([`tests/test_rollup.py`](https://github.com/CahidArda/local-data-platform/blob/main/tests/test_rollup.py)).
+That module also holds the data contract:
+
+```python
+def check_rollup(rollup):
+    failures = []
+    if not rollup:
+        failures.append("empty rollup: no rows to promote")
+    for row in rollup:
+        if not row["tenant"]:
+            failures.append("null/empty tenant")
+        if row["revenue_cents"] < 0:
+            failures.append("negative revenue")
+    return (len(failures) == 0, failures)
+```
+
+In Dagster this becomes a **blocking** asset check, so a failure stops the run before the
+promotion asset runs:
+
+```python
+@asset_check(asset=daily_revenue_rollup, blocking=True)
+def revenue_quality(daily_revenue_rollup):
+    passed, failures = check_rollup(daily_revenue_rollup)
+    return AssetCheckResult(
+        passed=passed,
+        metadata={"failures": MetadataValue.json(failures)},
+    )
+```
+
+That single word, `blocking`, is the difference between a test that warns and a gate that stops.
+
+## Fire the broken contract
+
+The `events_snapshot` asset honours an `INJECT_DRIFT` flag that appends a schema-drift row (null
+tenant, negative revenue). The demo
+([`scripts/demo-phase-6.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-6.sh))
+runs the job clean (it promotes), then with drift injected (the gate fails, nothing is promoted):
+
+```bash
+bash scripts/demo-phase-6.sh
+# 1. Clean run: the gate passes and the rollup is promoted
+# 2. Inject drift: revenue_quality FAILS, promotion blocked
+```
+
+The deployment ([`overlays/phase-6-orchestration/dagster.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-6-orchestration/dagster.yaml))
+runs Dagster in dev mode reading ClickHouse with the same generated credentials as everything else.
+(The rollup reads ClickHouse to stay in one container; the heavier variant is a Spark job writing
+into Iceberg. The orchestration, lineage, and gate are identical either way.)
+
+## What's in the overlay
+
+Phase 6 is [`overlays/phase-6-orchestration/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-6-orchestration), which bases on phase 5 and adds the orchestrator.
+
+<details>
+<summary><code>dagster.yaml</code>: the orchestrator</summary>
+
+[`dagster.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-6-orchestration/dagster.yaml) runs Dagster in dev mode (webserver and daemon together), reading ClickHouse with the platform credentials, with an `INJECT_DRIFT` env var to fire the broken-contract demo and a writable volume for its run storage.
+
+</details>
+
+## Done when
+
+A schema-drift event fails the gate rather than poisoning the warehouse. The bad row never reaches
+`daily_revenue`, and the failed run is visible in the Dagster UI with the exact contract violation
+attached.

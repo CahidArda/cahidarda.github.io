@@ -24,7 +24,9 @@ export interface ListEntry {
 const REPO_LIMIT = 100;
 
 export async function getEntries(): Promise<ListEntry[]> {
-  const articles = await getCollection('articles', ({ data }) => !data.draft);
+  // Series member pages are hidden from the index; only the landing page (which
+  // sets seriesLanding, not series) and standalone articles appear.
+  const articles = await getCollection('articles', ({ data }) => !data.draft && !data.series);
   const articleEntries: ListEntry[] = articles.map((entry) => ({
     title: entry.data.title,
     description: entry.data.description,

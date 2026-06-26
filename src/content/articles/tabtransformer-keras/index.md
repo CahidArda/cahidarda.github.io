@@ -22,14 +22,18 @@ class RNN(tf.Module):
         super().__init__(**kwargs)
 
         # for calculating the next state
-        self.w1 = tf.Variable(np.random.rand(state_size + 1, state_size), dtype=tf.float64)
+        self.w1 = tf.Variable(
+            np.random.rand(state_size + 1, state_size), dtype=tf.float64)
         self.b1 = tf.Variable(np.random.rand(1), dtype=tf.float64)
 
         # for calculating output
-        self.w2 = tf.Variable(np.random.rand(state_size, 1), dtype=tf.float64)
+        self.w2 = tf.Variable(
+            np.random.rand(state_size, 1), dtype=tf.float64)
         self.b2 = tf.Variable(np.random.rand(1), dtype=tf.float64)
 
-        self.states = tf.Variable(np.zeros((batch_size, state_size)), shape=(batch_size, state_size))
+        self.states = tf.Variable(
+            np.zeros((batch_size, state_size)),
+            shape=(batch_size, state_size))
 
     # calculate output from current state
     # calcualte next state from current state + input
@@ -37,7 +41,8 @@ class RNN(tf.Module):
     def __call__(self, x):
         input_state_stacked = tf.concat([x, self.states], axis=1)
         output = tf.matmul(self.states, self.w2) + self.b2
-        self.states = tf.tanh(tf.matmul(input_state_stacked, self.w1) + self.b1)
+        self.states = tf.tanh(
+            tf.matmul(input_state_stacked, self.w1) + self.b1)
         return tf.sigmoid(output)
 
     def run_batch(self, batch):
@@ -63,7 +68,8 @@ def train(model, batch, y_actual, learning_rate):
 
         current_loss = tf.reduce_mean(tf.square(y_pred - y_actual))
 
-        d_w1, d_b1, d_w2, d_b2 = tape.gradient(current_loss, [model.w1, model.b1, model.w2, model.b2])
+        d_w1, d_b1, d_w2, d_b2 = tape.gradient(
+            current_loss, [model.w1, model.b1, model.w2, model.b2])
 
         model.w1.assign_sub(learning_rate * d_w1)
         model.b1.assign_sub(learning_rate * d_b1)
@@ -73,7 +79,8 @@ def train(model, batch, y_actual, learning_rate):
     return current_loss.numpy()
 
 # Define a training loop
-def training_loop(model, x, y, epochs, learning_rate, print_every = 1, split=0.2):
+def training_loop(model, x, y, epochs, learning_rate,
+                  print_every=1, split=0.2):
     split_index = int(x.shape[0] * split)
 
     x_train = x[split_index:]
@@ -88,7 +95,8 @@ def training_loop(model, x, y, epochs, learning_rate, print_every = 1, split=0.2
         batch_test_losses  = []
         for batch in range(x_train.shape[0]):
             # Update the model with the single giant batch
-            train_loss = train(model, x_train[batch], y_train[batch], learning_rate)
+            train_loss = train(
+                model, x_train[batch], y_train[batch], learning_rate)
             batch_train_losses.append(train_loss)
 
         
@@ -103,7 +111,8 @@ def training_loop(model, x, y, epochs, learning_rate, print_every = 1, split=0.2
         test_losses.append(epoch_test_loss)
 
         if epoch%print_every == 0 or epoch == epochs-1:
-            print("Epoch %d: train loss=%.5f, test loss=%.5f" % (epoch, epoch_train_loss, epoch_test_loss))
+            print("Epoch %d: train loss=%.5f, test loss=%.5f"
+                  % (epoch, epoch_train_loss, epoch_test_loss))
 
     return train_losses, test_losses
 ```
@@ -143,9 +152,11 @@ class TransformerBlock(layers.Layer):
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super(TransformerBlock, self).__init__()
         # parametreleri
-        self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
+        self.att = layers.MultiHeadAttention(
+            num_heads=num_heads, key_dim=embed_dim)
         self.ffn = keras.Sequential(
-            [layers.Dense(ff_dim, activation="relu"), layers.Dense(embed_dim),]
+            [layers.Dense(ff_dim, activation="relu"),
+             layers.Dense(embed_dim)]
         )
         # batch-layer
         self.layernorm1 = layers.LayerNormalization(epsilon=1e-6)
@@ -176,19 +187,19 @@ class TabTransformer(keras.Model):
             normalize_continuous = True):
         """TabTrasformer model constructor
         Args:
-            categories (:obj:`list`): list of integers denoting the number of 
-                classes for a categorical feature.
+            categories (:obj:`list`): integers, the number of classes
+                per categorical feature.
             num_continuous (int): number of categorical features
-            dim (int): dimension of each embedding layer output, also transformer dimension
+            dim (int): embedding output dim, also transformer dim
             dim_out (int): output dimension of the model
             depth (int): number of transformers to stack
             heads (int): number of attention heads
-            attn_dropout (float): dropout to use in attention layer of transformers
-            ff_dropout (float): dropout to use in feed-forward layer of transformers
-            mlp_hidden (:obj:`list`): list of tuples, indicating the size of the mlp layers and
-                their activation functions
-            normalize_continuous (boolean, optional): whether the continuous features are normalized
-                before MLP layers, True by default
+            attn_dropout (float): dropout in the attention layer
+            ff_dropout (float): dropout in the feed-forward layer
+            mlp_hidden (:obj:`list`): list of (size, activation)
+                tuples for the MLP layers.
+            normalize_continuous (bool, optional): normalize the
+                continuous features before the MLP. True by default.
         """
         super(TabTransformer, self).__init__()
 
@@ -202,7 +213,9 @@ class TabTransformer(keras.Model):
         # embedding
         self.embedding_layers = []
         for number_of_classes in categories:
-            self.embedding_layers.append(layers.Embedding(input_dim = number_of_classes, output_dim = dim))
+            self.embedding_layers.append(
+                layers.Embedding(
+                    input_dim=number_of_classes, output_dim=dim))
 
         # concatenation
         self.embedded_concatenation = layers.Concatenate(axis=1)
@@ -219,7 +232,8 @@ class TabTransformer(keras.Model):
         # mlp layers
         self.mlp_layers = []
         for size, activation in mlp_hidden:
-            self.mlp_layers.append(layers.Dense(size, activation=activation))
+            self.mlp_layers.append(
+                layers.Dense(size, activation=activation))
 
         self.output_layer = layers.Dense(dim_out)
 
@@ -229,20 +243,24 @@ class TabTransformer(keras.Model):
         
         # --> continuous
         if self.normalize_continuous:
-            continuous_inputs = self.continuous_normalization(continuous_inputs)
+            continuous_inputs = self.continuous_normalization(
+                continuous_inputs)
 
         # --> categorical
         embedding_outputs = []
-        for categorical_input, embedding_layer in zip(categorical_inputs, self.embedding_layers):
+        for categorical_input, embedding_layer in zip(
+                categorical_inputs, self.embedding_layers):
             embedding_outputs.append(embedding_layer(categorical_input))
         categorical_inputs = self.embedded_concatenation(embedding_outputs)
 
         for transformer in self.transformers:
             categorical_inputs = transformer(categorical_inputs)
-        contextual_embedding = self.flatten_transformer_output(categorical_inputs)
+        contextual_embedding = self.flatten_transformer_output(
+            categorical_inputs)
 
         # --> MLP
-        mlp_input = self.pre_mlp_concatenation([continuous_inputs, contextual_embedding])
+        mlp_input = self.pre_mlp_concatenation(
+            [continuous_inputs, contextual_embedding])
         for mlp_layer in self.mlp_layers:
             mlp_input = mlp_layer(mlp_input)
 

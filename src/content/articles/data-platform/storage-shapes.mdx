@@ -1,0 +1,96 @@
+---
+title: 'Storage by Strength: Row, Column, Log, Lakehouse'
+description: 'Why the platform writes the same event into four different stores. The row-versus-column trade-off made physical and quantitative, plus where a replayable log and a lakehouse fit, and how to feel the difference on your own measured numbers.'
+date: 2026-06-25
+tags: ['blog']
+series: data-platform
+seriesOrder: 2
+---
+
+import RowVsColumn from '../../../components/interactives/dataplat/RowVsColumn.tsx';
+
+This is the third post in the [data-platform series](/articles/data-platform). The
+[architecture post](/articles/data-platform/architecture) showed the stream teeing into three
+stores. This one explains why that fan-out is not redundancy. The same bytes get read in
+incompatible ways, and the physical layout that makes one access pattern fast makes another slow.
+
+## Two questions, two answers
+
+Hold one dataset of order events in your head and ask two questions of it.
+
+1. "What is the current status of order `ord-3`?" You want one row, all of its columns, right
+   now. This is an **OLTP** question: transactional, point-lookup, latency-sensitive.
+2. "What is revenue per tenant per hour over all of history?" You want two columns across millions
+   of rows, and you can wait a beat. This is an **OLAP** question: analytical, scan-heavy.
+
+The same storage engine cannot be good at both, and the reason is physical: how the bytes are
+laid out on disk.
+
+## Row versus column, made physical
+
+A row store keeps all of a row's columns next to each other on disk. A column store keeps all of
+one column's values next to each other. That single difference decides who reads less. Pick a
+query and watch which cells each layout is forced to touch:
+
+<div class="fx-figure">
+  <RowVsColumn client:visible />
+</div>
+
+The point lookup wants a whole row, so the row store wins: one contiguous block, one seek. The
+analytics scan wants two columns across every row, so the column store wins: it reads only the
+segments it needs and skips the rest entirely, while the row store drags every byte off disk and
+discards half.
+
+Two consequences fall out of the column layout, both of which the platform leans on:
+
+- **Compression.** Values in one column are the same type and often nearly the same value
+  (`paid`, `paid`, `shipped`, `paid`). Stored together they compress far better than a row's mix
+  of an id, a string, and a number. Less data on disk means less data to read. Phase 3 measures
+  the on-disk size of the same events in Postgres and ClickHouse to see this directly.
+- **Vectorized execution.** A contiguous column of one type is exactly what a CPU wants to crunch
+  in batches. The scan is not just reading less, it is computing faster per byte. (Kleppmann's
+  *Designing Data-Intensive Applications* chapter 3 is the canonical treatment.)
+
+So the platform sends current-order state to **Postgres** (row, OLTP) for the lookups, and the
+analytical event history to **ClickHouse** (column, OLAP) for the scans. In phase 3 you run the
+exact same "revenue per tenant per hour" query against both and watch it crawl on one and fly on
+the other, on numbers you measured yourself rather than read here.
+
+## The log is the source of truth
+
+Sitting in front of both stores is the event log, Redpanda. It is not a third database, it is the
+thing that makes the other two disposable. Events are appended in order and retained, and each
+consumer tracks its own position. That buys two properties:
+
+- **Replay.** If a derived table is wrong, or you add a new store, you rewind to offset zero and
+  rebuild it by replaying history. The stores are projections of the log, not originals.
+- **Decoupling.** The producer does not know or care who reads the events, or how many readers
+  there are. Adding ClickHouse in phase 3 is adding a reader, not touching the producer.
+
+A queue cannot play this role. A queue deletes a message once it is acknowledged, so there is
+nothing to replay and only one logical consumer of each message. That distinction (log versus
+queue) is concrete enough that phase 4 builds a dead-letter path both ways to feel it.
+
+## The lakehouse: cheap, durable, cold
+
+The fourth store is **Iceberg tables on MinIO**, an S3-compatible object store. This is the
+lakehouse: table semantics (ACID commits, schema evolution, time travel) sitting on top of cheap
+object storage, with storage decoupled from compute. It is where data goes when it is too big and
+too cold for the warehouse but too valuable to drop. Batch rollups in phase 6 land here, and
+because compute is separate, you can point Spark or DuckDB at the same tables without moving data.
+
+## The shape of the decision
+
+Put the four side by side and the rule is just "match the layout to the read":
+
+| Store | Shape | Best at | In the platform |
+| --- | --- | --- | --- |
+| Redpanda | append-only log | ordered, replayable ingest | the event backbone |
+| Postgres | row / OLTP | point lookups by key | current order state |
+| ClickHouse | column / OLAP | scans over few columns, many rows | analytics, dashboards |
+| Iceberg / MinIO | lakehouse / object | cheap durable history, time travel | batch rollups, cold data |
+
+None of this is a judgement call you make once. It is a property of the question being asked, and
+a mature platform keeps the same data in more than one shape on purpose. With the storage
+trade-offs clear, the [phase posts](/articles/data-platform) build the platform that
+puts them to work, starting from an empty cluster.

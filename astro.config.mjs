@@ -20,6 +20,12 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
+    // Dual Shiki themes so code follows the site's light/dark mode. The default
+    // (light) token colours are applied inline; global.css swaps to the dark
+    // ones under `.dark` and keeps the editorial paper background in both.
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+    },
   },
   integrations: [react(), mdx(), sitemap()],
 

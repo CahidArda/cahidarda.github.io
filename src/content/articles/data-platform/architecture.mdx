@@ -1,0 +1,182 @@
+---
+title: 'The Architecture: One Event, Many Stores'
+description: 'The data-flow through-line of the local multi-tenant platform: a replayable log feeding a stream processor that tees each record into a row store, a column store, and a lakehouse, plus the cumulative-overlay GitOps model that grows the cluster one phase at a time.'
+date: 2026-06-25
+tags: ['blog']
+series: data-platform
+seriesOrder: 1
+---
+
+import DataFlow from '../../../components/interactives/dataplat/DataFlow.tsx';
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+
+This is the second post in a series on a [local multi-tenant data
+platform](/articles/data-platform). Here I lay out the shape of the system: how one
+event travels from a producer to three different stores, why those three stores exist, and how
+the whole cluster grows one reviewable phase at a time.
+
+## The through-line
+
+Everything in the platform sits on one path. A producer emits an event, the event lands on a
+log, a stream processor reads it, and the processor writes it into whichever stores serve the way
+that data will later be read. Watch one event make the trip:
+
+<div class="fx-figure">
+  <DataFlow client:visible />
+</div>
+
+The important move is the last one. The processor does not pick one database. It tees the same
+record into three, because the same data gets read in three incompatible ways, and no single
+store is good at all three.
+
+## Storage chosen by strength
+
+The reason there are three stores is that "where do I put the data" has three different answers
+depending on the question you will ask of it later.
+
+- **Replayable log (Redpanda).** The event backbone. Events are appended in order and kept, so a
+  consumer can be rewound and a whole derived table rebuilt by replaying history. This is what
+  makes the other stores disposable: they are projections of the log, not the source of truth.
+- **Row store (Postgres).** Operational state and point lookups by key. "What is the current
+  status of order `ord-8123`?" touches one row and wants the whole row. A row-oriented engine
+  stores all of a row's columns together, so that lookup is one seek.
+- **Column store (ClickHouse).** Scan-heavy analytics. "Revenue per tenant per hour over all of
+  history" reads two columns across millions of rows and ignores the rest. A column-oriented
+  engine stores each column contiguously, so the scan reads only what it needs and compresses it
+  hard. The [next post](/articles/data-platform/storage-shapes) makes this difference physical
+  with measured numbers.
+- **Lakehouse (Iceberg on MinIO).** Cheap, durable history with ACID guarantees and time travel,
+  storage decoupled from compute. This is where the long tail of data lives when it is too big
+  and too cold to keep in a warehouse but too valuable to drop.
+
+A queue would not do the log's job. A queue deletes a message once it is acknowledged, so there
+is nothing to replay. The log keeps everything and tracks each consumer's position separately,
+which is why reprocessing is just "start again from offset zero." Phase 4 builds both a log-based
+dead-letter path and a queue-based one side by side to make that contrast concrete.
+
+<details>
+<summary>Why not write to the databases directly?</summary>
+
+For a single store with one writer, no failures, and no need to ever reprocess, you could, and it
+would be simpler. The log and the stream processor earn their place the moment you have what this
+platform actually has: three stores, the need to rebuild a table, resilience to a store being down,
+parsing and validation, and recovery that does not lose or duplicate data.
+
+The mental model is that the log is the source of truth, the databases are materialised views over
+it, and the stream processor is the thing that maintains those views. Direct writes collapse all
+three roles into the producer, which is fine until it is not.
+
+</details>
+
+<details>
+<summary>What does Redpanda (the log) provide?</summary>
+
+Things a direct write cannot:
+
+- **Decoupling and fan-out.** The producer publishes once and does not know who reads. Postgres,
+  ClickHouse, and Iceberg are independent readers, each at its own pace. With direct writes the
+  producer would have to know about and write to all three, and adding a store would mean changing
+  the producer.
+- **A durable buffer.** If a store is slow or down, events pile up safely on the log and the
+  producer keeps running. A direct write to a slow or down database either blocks the producer or
+  drops data.
+- **Replay.** Events are retained and each reader tracks its own offset, so rebuilding a wrong
+  table, adding a store, or changing the transformation is just "rewind to offset zero and run
+  again." Direct writes have nothing to rebuild from.
+- **Ordering and delivery semantics** (per-tenant order, at-least-once, consumer groups) without
+  hand-rolling them.
+
+</details>
+
+<details>
+<summary>What does Spark (the stream processor) provide?</summary>
+
+On top of the log:
+
+- **Transformation, validation, and routing.** Raw bytes become typed records; unparseable poison
+  messages are routed to a dead-letter topic instead of corrupting a table. Direct writes push all
+  of this into the producer, or skip it.
+- **Stateful logic** like "latest state per order" (the upsert) or windowed aggregations, computed
+  incrementally over the stream rather than bolted onto ad-hoc writes.
+- **Recovery via checkpointing.** It records its offsets in a checkpoint and resumes exactly where
+  it left off after a crash, with no gaps and no double-writes. A naive consumer loses or duplicates
+  data on restart. This is the failure-recovery demo in phase 4.
+- **One place to fan out** to every sink, with per-sink batching and backpressure so a burst does
+  not overwhelm it.
+
+</details>
+
+<details>
+<summary>Is the dead-letter queue part of the Spark stream?</summary>
+
+For the main (log) path, yes. The Spark job parses each micro-batch, splits valid events from
+unparseable poison, and writes the poison to a separate `events.dlq` topic itself. So the stream
+processor is what detects and routes poison; the dead-letter topic just lives in Redpanda. This is
+the "the consumer decides" model, and it is the failure path phase 4 builds out.
+
+Phase 4 also runs a second, broker-driven dead-letter queue purely for contrast: an SQS-compatible
+queue (ElasticMQ) whose redrive policy moves a message to its dead-letter queue automatically after
+it fails to be processed a few times, with no consumer code involved. Same idea, opposite owner:
+"the broker decides."
+
+</details>
+
+## Two audiences, one platform
+
+The serving layer answers to two kinds of user. Platform admins want cross-tenant health: total
+throughput, end-to-end latency, consumer lag, error budget. Tenant users want only their own
+data and must not be able to see anyone else's. That single requirement, "tenant A cannot read
+tenant B," is what pulls in namespaces, network policy, RBAC, per-tenant Kafka ACLs, warehouse
+schemas, and an audit log. All of that arrives in phase 5; the early phases run as a single
+trusted tenant so the spine is legible before isolation complicates it.
+
+## Growing the cluster one phase at a time
+
+The platform is not built all at once. It grows in eight phases, and the build workflow is itself
+the lesson: describe a change, apply it, see what changed.
+
+Concretely, each phase is a [Kustomize](https://kustomize.io/) overlay
+([`overlays/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays)) that bases on the phase
+before it. Phase 3's overlay lists phase 2 as a resource, which lists phase 1, down to a shared
+base of namespaces and config. So one command (in the
+[`Makefile`](https://github.com/CahidArda/local-data-platform/blob/main/Makefile)) applies the whole stack
+through any phase:
+
+```bash
+make phase-3   # applies base + phases 0,1,2,3 onto the same cluster
+```
+
+The cluster grows monotonically, and each phase directory reads as a self-contained chapter. Two
+things make a change legible:
+
+- **A Git tag per phase.** `git diff phase-2 phase-3` is the exact delta a phase introduced, code
+  and manifests together. Nothing is hidden in a separate environment.
+- **A live dev UI.** [Tilt](https://tilt.dev/) shows every service, its logs, and what
+  re-applied on save. It is the visual half of the same loop.
+
+This is the GitOps inner loop in miniature, and it is the reason the series can hand you one
+phase at a time: every step is a diff you can read. Scrub the phases below to watch the same
+cluster grow, one layer at a time, from an empty foundation to the full platform:
+
+<div class="fx-figure">
+  <ClusterMap phase={7} client:visible />
+</div>
+
+## What runs it
+
+The stack is open-source and runs locally with no cloud dependency:
+
+| Layer | Choice |
+| --- | --- |
+| Local Kubernetes | k3d (k3s in Docker) |
+| Event log | Redpanda (Kafka API) |
+| Stream + batch processing | Spark Structured Streaming |
+| Row / column / lakehouse | Postgres / ClickHouse / Iceberg on MinIO |
+| Observability | Prometheus, Grafana, Loki |
+| Orchestration | Dagster |
+| Policy + GitOps | OPA, ArgoCD |
+| Infra as code + dev loop | OpenTofu, Kustomize, Tilt |
+
+With the shape in place, the [next post](/articles/data-platform/storage-shapes) zooms into the
+single most felt trade-off in the whole platform: row versus column storage, and why the same
+query that crawls on one flies on the other.

@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
+    "check:code-lines": "node scripts/check-code-line-length.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {

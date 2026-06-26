@@ -1,0 +1,41 @@
+---
+// Reusable across collections: previous/next links shown at the end of a series
+// member page. Previous falls back to the series landing page when the current
+// page is the first member; next is omitted on the last member.
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'articles'>;
+}
+const { entry } = Astro.props;
+const series = entry.data.series!;
+
+const members = (
+  await getCollection('articles', ({ data }) => data.series === series && !data.draft)
+).sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+
+const idx = members.findIndex((m) => m.id === entry.id);
+const prev = idx > 0 ? members[idx - 1] : null;
+const next = idx >= 0 && idx < members.length - 1 ? members[idx + 1] : null;
+
+const landing = (await getCollection('articles', ({ data }) => data.seriesLanding === series))[0];
+
+const prevHref = prev ? `/articles/${prev.id}` : landing ? `/articles/${landing.id}` : '/articles';
+const prevKicker = prev ? 'Previous' : 'Series';
+const prevLabel = prev ? prev.data.title : landing ? landing.data.title : 'Index';
+---
+
+<nav class="mt-12 grid grid-cols-1 gap-3 border-t border-line pt-6 sm:grid-cols-2" aria-label="Series navigation">
+  <a href={prevHref} class="group border border-line p-4 transition-colors hover:border-accent">
+    <span class="label">← {prevKicker}</span>
+    <span class="mt-1 block font-display text-ink group-hover:text-accent">{prevLabel}</span>
+  </a>
+  {
+    next && (
+      <a href={`/articles/${next.id}`} class="group border border-line p-4 text-right transition-colors hover:border-accent">
+        <span class="label">Next →</span>
+        <span class="mt-1 block font-display text-ink group-hover:text-accent">{next.data.title}</span>
+      </a>
+    )
+  }
+</nav>

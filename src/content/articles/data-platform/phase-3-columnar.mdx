@@ -1,0 +1,130 @@
+---
+title: 'Phase 3: Row vs Column, Made Physical'
+description: 'Teeing the same stream into ClickHouse (column/OLAP) and Iceberg-on-MinIO (lakehouse) next to Postgres (row/OLTP), then running the identical analytical query on the row store and the column store to feel the difference on measured numbers.'
+date: 2026-06-26
+tags: ['blog']
+series: data-platform
+seriesOrder: 6
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+
+Fourth build post in the [data-platform series](/articles/data-platform). The
+[storage-shapes post](/articles/data-platform/storage-shapes) argued, with an interactive widget,
+why one dataset wants more than one storage layout. Phase 3 builds it and turns the argument into
+numbers you measure yourself.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-3
+make tilt PHASE=phase-3-columnar
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+- ClickHouse, the column store, for analytics,
+- Iceberg tables on MinIO, the lakehouse, for cheap durable history,
+- a ClickHouse-backed analytics endpoint on the API,
+- admin (cross-tenant) vs user (single-tenant) framing for dashboards.
+
+<div class="fx-figure">
+  <ClusterMap phase={3} client:visible />
+</div>
+
+## The tee is a config flag, not a rewrite
+
+The stream processor ([`job.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/stream-processor/job.py))
+was written from phase 1 to dispatch each batch to a set of sinks chosen by an environment variable.
+So adding two stores is mostly switching them on, plus the sink code:
+
+```python
+def process_batch(batch_df, batch_id):
+    rows = [r.asDict() for r in batch_df.collect()]
+    if "postgres" in SINKS:   sink_postgres(rows)
+    if "clickhouse" in SINKS: sink_clickhouse(rows)   # column store
+    if "iceberg" in SINKS:    sink_iceberg(batch_df)  # lakehouse
+```
+
+The platform half of the phase is a patch
+([`app-sinks-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-3-columnar/app-sinks-patch.yaml))
+that flips `SINKS` and wires the new credentials:
+
+```yaml
+env:
+  - { name: SINKS, value: "postgres,clickhouse,iceberg" }
+```
+
+This is the payoff of the log being the source of truth: ClickHouse and Iceberg are new readers
+of the same events, not a change to the producer. The Iceberg write goes through a REST catalog
+with S3FileIO pointed at MinIO, which is how a real lakehouse is run rather than a toy file path.
+
+## The measurement
+
+The done-when for this phase is not "it runs", it is "you can articulate the difference from your
+own numbers". The demo script
+([`scripts/demo-phase-3.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-3.sh))
+runs the identical query, revenue per tenant per hour, on Postgres and on ClickHouse, and prints
+timing and on-disk size for each:
+
+```bash
+bash scripts/demo-phase-3.sh
+# == Postgres (row / OLTP): revenue per tenant per hour ==
+#   query Time: ... ms
+#   on-disk size: ...
+# == ClickHouse (column / OLAP): same query ==
+#   query seconds: ...
+#   on-disk size: ...
+```
+
+The same query the API exposes at `/analytics/revenue`
+([`app/api/main.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/api/main.py)) runs on the
+column store, while the operational `/orders` lookups stay on the row store. Same data, two shapes, each serving the read
+pattern it is good at.
+
+What you should see, and the reason the widget in the [storage post](/articles/data-platform/storage-shapes)
+exists: the column store scans this query faster and stores the events smaller, because it reads
+only the columns the query touches and compresses each column hard. The row store drags every
+column off disk and discards most of them. Those are your numbers, not mine.
+
+## What's in the overlay
+
+Phase 3 is [`overlays/phase-3-columnar/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-3-columnar), which bases on phase 2 and adds the column store and the lakehouse.
+
+<details>
+<summary><code>clickhouse.yaml</code>: the column store</summary>
+
+[`clickhouse.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-3-columnar/clickhouse.yaml) is ClickHouse as a StatefulSet (a MergeTree-backed column store), credentials from the `clickhouse-credentials` Secret.
+
+</details>
+
+<details>
+<summary><code>minio.yaml</code>: object storage</summary>
+
+[`minio.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-3-columnar/minio.yaml) is MinIO (S3-compatible) plus a one-shot Job that creates the `warehouse` bucket. It backs the Iceberg lakehouse.
+
+</details>
+
+<details>
+<summary><code>iceberg-rest.yaml</code>: the table catalog</summary>
+
+[`iceberg-rest.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-3-columnar/iceberg-rest.yaml) is an Iceberg REST catalog that tracks table metadata and points the warehouse at MinIO via S3FileIO. It is the catalog the stream-processor writes through.
+
+</details>
+
+<details>
+<summary><code>app-sinks-patch.yaml</code>: turn the sinks on</summary>
+
+[`app-sinks-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-3-columnar/app-sinks-patch.yaml) flips the stream-processor's `SINKS` to `postgres,clickhouse,iceberg` and wires the new credentials, and enables the api's ClickHouse analytics endpoint. The sink code already existed, gated by `SINKS`.
+
+</details>
+
+## Done when
+
+You can state the latency and size difference between Postgres and ClickHouse for the same query,
+from measurements you took. At that point row-versus-column has stopped being a sentence you read
+and become a thing you felt.

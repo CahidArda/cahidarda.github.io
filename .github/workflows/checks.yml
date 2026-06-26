@@ -1,0 +1,21 @@
+name: checks
+
+# Content/lint checks that run on every push and pull request, separate from the
+# Pages deploy.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  code-line-length:
+    name: code-snippet line length (<= 75)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # No dependencies needed: the checker uses only the Node standard library.
+      - run: node scripts/check-code-line-length.mjs
