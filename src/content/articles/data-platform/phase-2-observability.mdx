@@ -1,0 +1,178 @@
+---
+title: 'Phase 2: Observability'
+description: 'Making the pipeline legible: Prometheus scraping by pod annotation, a provisioned Grafana dashboard, Loki and Alloy for logs, and consumer lag as a first-class metric. Plus why end-to-end latency has to be instrumented in the app, not inferred.'
+date: 2026-06-26
+tags: ['blog']
+series: data-platform
+seriesOrder: 5
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+import ConsumerLag from '../../../components/interactives/dataplat/ConsumerLag.tsx';
+
+Third build post in the [data-platform series](/articles/data-platform). Phase 1
+moved data. Phase 2 makes that movement visible, because every change after this is only as
+trustworthy as your ability to see what it did.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-2
+make tilt PHASE=phase-2-observability
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+- [Prometheus](https://prometheus.io), scraping by pod annotation (no operator, no CRDs),
+- a provisioned [Grafana](https://grafana.com/oss/grafana/) dashboard, baked in as a ConfigMap,
+- [Loki](https://grafana.com/oss/loki/) and [Grafana Alloy](https://grafana.com/oss/alloy/) for log aggregation,
+- [kafka-lag-exporter](https://github.com/seglo/kafka-lag-exporter), so consumer lag is a real metric,
+- end-to-end latency instrumented inside the [Spark](https://spark.apache.org/streaming/) stream processor.
+
+<div class="fx-figure">
+  <ClusterMap phase={2} client:visible />
+</div>
+
+## Scraping without an operator
+
+Prometheus here is the bare server, not the operator
+([`overlays/phase-2-observability/prometheus.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/prometheus.yaml)).
+It discovers targets by pod annotation. An annotation is a free-form `key: value` you attach to a
+pod's metadata; unlike a label it is not used for selection, it just carries information for tools to
+read. Prometheus watches the Kubernetes API for pods and keeps only the ones whose annotation says
+to scrape them. That keeps the platform light and the mechanism obvious:
+
+```yaml
+relabel_configs:
+  - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+    action: keep
+    regex: "true"
+```
+
+Turning on scraping for a workload is then just three annotations on its pod, added as a phase-2
+patch over the phase-1 app
+([`instrumentation-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/instrumentation-patch.yaml)):
+
+```yaml
+prometheus.io/scrape: "true"
+prometheus.io/port: "9000"
+prometheus.io/path: /metrics
+```
+
+## Latency you cannot infer
+
+Throughput and consumer lag come for free from the broker (Redpanda) and the exporter
+(kafka-lag-exporter). End-to-end latency does not. "How long from when an event happened to when we stored it" can only be measured by the
+code that sees both timestamps, so the stream processor records it as a histogram per batch:
+
+```python
+E2E_LATENCY = Histogram("stream_end_to_end_latency_seconds", ...)
+
+def observe(rows):
+    now = datetime.now(UTC)
+    for r in rows:
+        E2E_LATENCY.observe((now - r["event_time"]).total_seconds())
+```
+
+Grafana then renders p50 and p99 from the histogram buckets. This is the difference between a
+metric you compute and one you wish you had: latency had to be designed in.
+
+## Consumer lag is the health signal
+
+For a streaming platform, consumer lag (how far behind the Redpanda log the Spark stream-processor
+is) is the single most important number. If lag is flat, the platform is keeping up; if it climbs,
+something is wrong upstream or the processor is too slow. kafka-lag-exporter polls the
+stream-processor's consumer-group offsets against the end of the log and exports
+`kafka_consumergroup_group_lag`, which becomes a panel and, in phase 4, an alert and the basis for
+backpressure.
+
+<div class="fx-figure">
+  <ConsumerLag client:visible />
+</div>
+
+## Logs, searchable
+
+Alloy runs as a DaemonSet, discovers pods through the Kubernetes API, tails their logs, and ships
+them to Loki with `namespace`, `pod`, and `app` labels attached. Grafana queries Loki as a second
+datasource, so a spike on a metric panel and the log lines behind it are one click apart.
+
+To actually read them, two UIs, both port-forwarded by Tilt:
+
+- **Grafana, [http://localhost:3000](http://localhost:3000).** Go to **Explore**, pick the **Loki**
+  datasource, and query logs by label, for example `{app="producer"}` or
+  `{namespace="platform"} |= "error"`. That is LogQL: select a log stream by its labels, then
+  optionally filter the lines (`|=` is "contains"). The Prometheus metrics are available here too:
+  in **Explore** via the **Prometheus** datasource, and pre-built in the **"Platform overview"**
+  dashboard.
+- **Prometheus, [http://localhost:9090](http://localhost:9090).** Use the **Graph** tab to run raw
+  PromQL (try `up` to see which targets are scraped, or `kafka_consumergroup_group_lag`), and
+  **Status → Targets** to confirm the scrape is working. Its **Alerts** tab is empty on purpose, no
+  alert rules ship until phase 4.
+
+## What you see
+
+The Grafana "Platform overview" dashboard comes up already provisioned, no click-ops
+([`grafana.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/grafana.yaml)):
+producer throughput by tenant, end-to-end latency p50/p99, consumer lag, and processed rows per
+second. A verification script
+([`scripts/demo-phase-2.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-2.sh))
+asserts the three required signals and the dashboard all exist:
+
+```bash
+bash scripts/demo-phase-2.sh   # asserts the signals + dashboard exist
+```
+
+## What's in the overlay
+
+Phase 2 is [`overlays/phase-2-observability/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-2-observability), which bases on phase 1 and adds the metrics, logs, lag, and dashboards.
+
+<details>
+<summary><code>prometheus.yaml</code>: metrics</summary>
+
+[`prometheus.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/prometheus.yaml) is Prometheus (no operator): a ConfigMap scrape config that discovers pods by the `prometheus.io/scrape` annotation and statically scrapes Redpanda and the lag exporter, plus the ClusterRole it needs to list pods for discovery.
+
+</details>
+
+<details>
+<summary><code>loki.yaml</code>: logs</summary>
+
+[`loki.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/loki.yaml) runs Loki in single-binary mode with filesystem storage. It stores the logs Alloy ships.
+
+</details>
+
+<details>
+<summary><code>alloy.yaml</code>: log shipping</summary>
+
+[`alloy.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/alloy.yaml) is a Grafana Alloy DaemonSet that discovers pods through the Kubernetes API, tails their logs, and pushes them to Loki with namespace/pod/app labels (plus the RBAC it needs).
+
+</details>
+
+<details>
+<summary><code>kafka-lag-exporter.yaml</code>: consumer lag</summary>
+
+[`kafka-lag-exporter.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/kafka-lag-exporter.yaml) polls consumer-group offsets against the log end and exports `kafka_consumergroup_group_lag`, the lag metric.
+
+</details>
+
+<details>
+<summary><code>grafana.yaml</code>: dashboards</summary>
+
+[`grafana.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/grafana.yaml) is Grafana with provisioned datasources (Prometheus and Loki) and a baked-in platform-overview dashboard, so it comes up working with no click-ops.
+
+</details>
+
+<details>
+<summary><code>instrumentation-patch.yaml</code>: wire the app in</summary>
+
+[`instrumentation-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/instrumentation-patch.yaml) is a strategic-merge patch over the phase-1 app that adds the `prometheus.io/scrape` annotations to producer, stream-processor, and api, and the stream-processor's metrics port.
+
+</details>
+
+## Done when
+
+Every later change is legible on a dashboard, and lag is a visible metric. From here on, when a
+phase changes the platform's behaviour, you can watch it happen rather than guess.

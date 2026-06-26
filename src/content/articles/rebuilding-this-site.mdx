@@ -58,13 +58,18 @@ are four:
 
 ```ts
 const articles = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/articles' }),
+  loader: glob({
+    pattern: '**/*.{md,mdx}',
+    base: './src/content/articles',
+  }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
       description: z.string(),
       date: z.coerce.date(),
-      tags: z.array(z.enum(['blog', 'publication', 'accessions'])).default(['blog']),
+      tags: z
+        .array(z.enum(['blog', 'publication', 'accessions']))
+        .default(['blog']),
       // ...external-post and publication-only fields
     }),
 });

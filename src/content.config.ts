@@ -14,6 +14,15 @@ const articles = defineCollection({
       draft: z.boolean().default(false),
       heroImage: image().optional(), // optimized via astro:assets
 
+      // Series / collection support. A member page sets `series` (the collection id)
+      // and `seriesOrder` (position); it is hidden from the index and lives under
+      // /articles/<series>/<slug>. The collection's landing page sets `seriesLanding`
+      // (the same id); it appears in the index at /articles/<series> and renders the
+      // member list via <SeriesList>.
+      series: z.string().optional(),
+      seriesOrder: z.number().optional(),
+      seriesLanding: z.string().optional(),
+
       // external posts (e.g. Upstash) - card links out, no local page
       externalUrl: z.string().url().optional(),
       source: z.string().optional(), // e.g. "Upstash"

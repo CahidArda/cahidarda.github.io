@@ -1,0 +1,142 @@
+---
+title: 'Phase 5: Multi-Tenancy and Isolation'
+description: 'Turning one trusted tenant into many isolated ones with the Kubernetes-native primitives: a namespace per tenant, a ResourceQuota that contains a noisy neighbour, deny-by-default NetworkPolicies that block cross-tenant traffic, and namespace-scoped RBAC.'
+date: 2026-06-26
+tags: ['blog']
+draft: true
+series: data-platform
+seriesOrder: 8
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+import TenantIsolation from '../../../components/interactives/dataplat/TenantIsolation.tsx';
+
+Sixth build post in the [data-platform series](/articles/data-platform). Everything
+so far ran as a single trusted tenant. Phase 5 introduces the wall between tenants, because "tenant
+A cannot touch tenant B" is the requirement that, once taken seriously, pulls in most of what a
+platform team actually does.
+
+This phase is built in its minimal form: namespaces, quotas, network policy, and RBAC. The heavier
+isolation layers (Kafka ACLs over SASL, OPA/Gatekeeper admission policies, per-tenant warehouse
+authorization, cluster audit logging) are real and worth doing, but they are noted as extensions
+rather than built here, to keep the core isolation legible.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-5
+make tilt PHASE=phase-5-multitenancy
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+- a namespace per tenant (`tenant-retail`, `tenant-marketplace`, `tenant-subscriptions`),
+- a ResourceQuota + LimitRange per tenant,
+- deny-by-default NetworkPolicies,
+- namespace-scoped RBAC,
+- a generator that renders all of the above from a tenant name.
+
+<div class="fx-figure">
+  <ClusterMap phase={5} client:visible />
+</div>
+
+## Isolation is generated, not hand-written
+
+Per-tenant manifests are nearly identical, so they are rendered by a script
+([`scripts/gen-tenant.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/gen-tenant.sh))
+rather than copied. The generator takes a tenant name and emits the namespace, quota, limit range,
+network policies, and RBAC:
+
+```bash
+scripts/gen-tenant.sh retail > tenants/retail/manifests.yaml
+```
+
+This matters beyond convenience: the generator is the seed of phase 7's one-command onboarding. The
+isolation a tenant gets is defined once, in code, and applied identically to every tenant.
+
+## The four walls
+
+<div class="fx-figure">
+  <TenantIsolation client:visible />
+</div>
+
+**ResourceQuota** contains a noisy neighbour. A tenant cannot schedule more than its budget of CPU,
+memory, and pods, so one tenant's runaway job cannot starve the others:
+
+```yaml
+spec:
+  hard:
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+    pods: "10"
+```
+
+**NetworkPolicy** is deny-by-default. Each tenant namespace starts with all ingress and egress
+denied, then opens only what is needed: DNS, and egress to the shared event log. Traffic to another
+tenant is never on the allow list, so it stays blocked:
+
+```yaml
+kind: NetworkPolicy
+metadata: { name: default-deny }
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]   # deny-by-default; opened up below
+```
+
+**RBAC** scopes identity. Each tenant gets a ServiceAccount bound to a Role that grants verbs only
+inside its own namespace. There are no cluster-wide rules, so the tenant identity cannot read or
+touch anything in another namespace.
+
+**Pod Security** is set to `restricted` on every tenant namespace, so tenant workloads must run
+non-root with dropped capabilities.
+
+## What you see
+
+```bash
+bash scripts/demo-phase-5.sh
+```
+
+The demo
+([`scripts/demo-phase-5.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-5.sh))
+proves all three denials:
+
+```
+== RBAC: tenant A's identity cannot touch tenant B ==
+  can retail list pods in its own ns?   yes
+  can retail list pods in tenant-marketplace? no
+== NetworkPolicy: default-deny blocks egress except the allowed log ==
+    postgres:5432  -> BLOCKED
+    redpanda:9092  -> OPEN
+== ResourceQuota: a noisy neighbour cannot outgrow its budget ==
+  quota verdict: exceeded quota: tenant-quota ...
+```
+
+## What's in the overlay
+
+Phase 5 is [`overlays/phase-5-multitenancy/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-5-multitenancy), which bases on phase 4 and adds one isolated namespace per tenant. The per-tenant manifests are generated, not hand-written.
+
+<details>
+<summary><code>tenants/&lt;tenant&gt;/manifests.yaml</code>: the generated isolation</summary>
+
+Each tenant directory (for example [`tenants/retail/`](https://github.com/CahidArda/local-data-platform/tree/main/tenants/retail)) is rendered by [`scripts/gen-tenant.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/gen-tenant.sh) and contains the namespace (Pod Security restricted), a ResourceQuota and LimitRange, deny-by-default plus scoped-allow NetworkPolicies, and a namespace-scoped ServiceAccount, Role, and RoleBinding. These are the four walls the article describes above.
+
+</details>
+
+<details>
+<summary><code>kustomization.yaml</code>: include the tenants</summary>
+
+[`kustomization.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-5-multitenancy/kustomization.yaml) bases on phase 4 and adds the three tenant directories as resources.
+
+</details>
+
+## Done when
+
+Cross-tenant access is provably blocked (RBAC denies it, NetworkPolicy denies the traffic) and a
+quota contains a hog. The isolation is the same for every tenant because it comes from one
+generator, which is exactly what phase 7 turns into self-service.

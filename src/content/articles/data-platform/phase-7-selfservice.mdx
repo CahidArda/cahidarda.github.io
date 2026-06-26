@@ -1,0 +1,129 @@
+---
+title: 'Phase 7: Self-Service and GitOps'
+description: 'The capstone: one command provisions a fully isolated, fully observable tenant from a single name, and ArgoCD turns the repo into a GitOps tree where committing a tenant directory provisions it. The mechanism behind cutting manual operational load.'
+date: 2026-06-26
+tags: ['blog']
+draft: true
+series: data-platform
+seriesOrder: 10
+---
+
+import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
+import OnboardFanout from '../../../components/interactives/dataplat/OnboardFanout.tsx';
+
+Final build post in the [data-platform series](/articles/data-platform). The phases
+before this built capabilities. Phase 7 makes them self-service, which is the mechanism behind
+"reduce manual operational load by 30%": the work a platform team does over and over (onboarding a
+team) collapses into one command, and then into one commit.
+
+## Run it
+
+Apply everything through this phase (cumulative), then open the live dev UI:
+
+```bash
+make phase-7
+make tilt PHASE=phase-7-selfservice
+```
+
+(First run on a clean machine: bring up the cluster first, see [Phase 0](/articles/data-platform/phase-0-foundation).)
+
+## What's added in this phase?
+
+- one-command tenant onboarding from a single name,
+- a starter Grafana dashboard that auto-loads per tenant,
+- ArgoCD app-of-apps GitOps, including a per-tenant ApplicationSet.
+
+<div class="fx-figure">
+  <ClusterMap phase={7} client:visible />
+</div>
+
+## One command, a whole tenant
+
+[`scripts/onboard-tenant.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/onboard-tenant.sh)
+turns a tenant name into everything a tenant needs to be isolated and observable:
+
+```bash
+scripts/onboard-tenant.sh payments
+# onboarded payments in 6s: ns, quota, netpol, rbac, topic, schema, dash
+```
+
+It composes the phase-5 isolation generator
+([`scripts/gen-tenant.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/gen-tenant.sh))
+with the phase-7 additions, a Kafka topic, a warehouse schema, and a starter dashboard, and writes
+them as declarative manifests under `tenants/<name>/` so GitOps can own them. Compare that with the
+manual path: create a namespace, write and apply a quota, a limit range, three network policies, a
+service account, a role and binding, create the topic, create the schema, build a dashboard. The
+demo ([`scripts/demo-phase-7.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-7.sh))
+runs the one command on a stopwatch and then verifies the tenant is isolated and observable.
+
+<div class="fx-figure">
+  <OnboardFanout client:visible />
+</div>
+
+## Dashboards that appear by themselves
+
+The starter dashboard is a ConfigMap labelled `grafana_dashboard`. Phase 7 adds a sidecar to
+Grafana ([`overlays/phase-7-selfservice/grafana-selfservice-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-7-selfservice/grafana-selfservice-patch.yaml))
+that watches for those ConfigMaps across all namespaces and drops them into a tenant dashboards
+folder. So onboarding creating the ConfigMap is all it takes for the tenant's dashboard to show up
+in Grafana. No click-ops, no manual import.
+
+## GitOps: onboarding becomes a commit
+
+The capstone of the capstone is removing even the command from the human's hands. The
+[`argocd/`](https://github.com/CahidArda/local-data-platform/blob/main/argocd) directory makes the repo a
+GitOps tree: an app-of-apps root, a platform Application synced from the phase-7 overlay, and a
+per-tenant [ApplicationSet](https://github.com/CahidArda/local-data-platform/blob/main/argocd/applications/tenants.yaml)
+with a git-directory generator over `tenants/*`:
+
+```yaml
+generators:
+  - git:
+      repoURL: https://github.com/CahidArda/local-data-platform.git
+      directories:
+        - path: tenants/*
+```
+
+Commit a `tenants/<name>/` directory (the onboarding script does this with `--git`) and ArgoCD
+creates and syncs that tenant's Application on its own. Delete the directory and ArgoCD prunes the
+tenant. This is also where the phase-0 placeholder finally disappears: plain `kubectl apply` never
+pruned it, but ArgoCD reconciles the cluster to exactly what the repo declares.
+
+ArgoCD installs once with
+[`scripts/install-argocd.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/install-argocd.sh)
+(the upstream release is fetched rather than vendored), then the app-of-apps root is applied.
+
+## What's in the overlay
+
+Phase 7 is [`overlays/phase-7-selfservice/`](https://github.com/CahidArda/local-data-platform/tree/main/overlays/phase-7-selfservice), which bases on phase 6. The GitOps wiring ([`argocd/`](https://github.com/CahidArda/local-data-platform/tree/main/argocd)) and the onboarding script live outside the overlay and are covered above.
+
+<details>
+<summary><code>grafana-rbac.yaml</code>: sidecar permissions</summary>
+
+[`grafana-rbac.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-7-selfservice/grafana-rbac.yaml) is a ServiceAccount and ClusterRole/Binding letting the Grafana dashboard sidecar watch ConfigMaps across all namespaces.
+
+</details>
+
+<details>
+<summary><code>grafana-selfservice-patch.yaml</code>: auto-loading dashboards</summary>
+
+[`grafana-selfservice-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-7-selfservice/grafana-selfservice-patch.yaml) patches Grafana to add a kiwigrid/k8s-sidecar container and a second dashboard provider, so a ConfigMap labelled `grafana_dashboard` (like the one onboarding creates) auto-loads as a dashboard.
+
+</details>
+
+## Done when
+
+Spinning up a new tenant is a single command (or a single commit) and is measurably faster than the
+manual runbook. Tenant number three, and tenant number four, take seconds.
+
+## The whole platform, in one sitting
+
+That closes the series. Across eight phases the platform grew from an empty cluster to a
+multi-tenant event platform that ingests a stream, processes it, stores each dataset in the shape
+its reads want, survives injected failure inside its error budget, isolates tenants, gates bad data
+at the door, and onboards a new tenant in one command. Every phase is a Git tag, so the whole thing
+is a sequence of diffs you can read from
+[`phase-0`](https://github.com/CahidArda/local-data-platform/releases/tag/phase-0) to
+[`phase-7`](https://github.com/CahidArda/local-data-platform/releases/tag/phase-7). The point was never the
+individual tools. It was building the mechanism behind each outcome and proving it works by
+simulating, in minutes, the condition that would otherwise take months.

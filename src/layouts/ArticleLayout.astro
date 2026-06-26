@@ -1,10 +1,11 @@
 ---
-import type { CollectionEntry } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import 'katex/dist/katex.min.css';
 import { Image } from 'astro:assets';
 import BaseLayout from './BaseLayout.astro';
 import Prose from '../components/Prose.astro';
+import SeriesNav from '../components/SeriesNav.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CitationBlock from '../components/CitationBlock.astro';
 import OrcidBadge from '../components/OrcidBadge.astro';
@@ -25,6 +26,21 @@ const isPublication = tags.includes('publication');
 const ogImage = `/og/${entry.id}.png`;
 // Highlight this content type in the sidebar (publication/blog/accessions).
 const activeNav = tags[0];
+
+// Back-link: a member of a collection goes back to that collection's landing page;
+// the landing page itself and standalone articles go back to the index. Used at the
+// top (above the date) and in the footer.
+let backHref = '/articles';
+let backLabel = 'Index';
+if (entry.data.series) {
+  const landing = (
+    await getCollection('articles', ({ data }) => data.seriesLanding === entry.data.series)
+  )[0];
+  if (landing) {
+    backHref = `/articles/${landing.id}`;
+    backLabel = landing.data.title;
+  }
+}
 ---
 
 <BaseLayout
@@ -36,13 +52,17 @@ const activeNav = tags[0];
 >
   <article>
     <header class="border-b border-line pb-8">
-      <div class="flex flex-wrap items-center gap-3">
-        <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
-        {updated && <span class="label">· Updated {formatDate(updated)}</span>}
-      </div>
+      <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
+        ← {backLabel}
+      </a>
 
       <h1 class="mt-4 font-display text-4xl leading-tight text-ink md:text-5xl">{title}</h1>
       <p class="mt-4 max-w-2xl text-lg text-ink-soft">{description}</p>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
+        {updated && <span class="label">· Updated {formatDate(updated)}</span>}
+      </div>
 
       <div class="mt-5 flex flex-wrap items-center gap-2">
         {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} />)}
@@ -77,9 +97,11 @@ const activeNav = tags[0];
       <slot />
     </Prose>
 
+    {entry.data.series && <SeriesNav entry={entry} />}
+
     <footer class="mt-12 border-t border-line pt-6">
-      <a href="/articles" class="label inline-flex items-center gap-2 hover:text-accent">
-        ← Index
+      <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
+        ← {backLabel}
       </a>
     </footer>
   </article>

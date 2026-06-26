@@ -60,6 +60,16 @@
   --color-claude: var(--fugu-claude);
   --color-gemini: var(--fugu-gemini);
   --color-open: var(--fugu-open);
+
+  /* Data-platform widget palette - one fixed colour per component / storage shape,
+     learned once in the architecture diagram and reused in every later figure
+     (event log, stream, row store, column store, lakehouse). */
+  --color-dp-producer: var(--dp-producer);
+  --color-dp-log: var(--dp-log);
+  --color-dp-stream: var(--dp-stream);
+  --color-dp-row: var(--dp-row);
+  --color-dp-col: var(--dp-col);
+  --color-dp-lake: var(--dp-lake);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -78,6 +88,27 @@
   --fugu-claude: #e0935f;
   --fugu-gemini: #6f9fd8;
   --fugu-open: #a892c4;
+}
+
+/* The platform cast. Producer = slate source; the event log a Redpanda red; the
+   stream processor an amber; then the three storage shapes each get a hue that
+   matches how the post talks about them: row = postgres blue, column = warehouse
+   gold, lakehouse = iceberg teal. Tuned for light paper and dark ground. */
+:root {
+  --dp-producer: #6b7180;
+  --dp-log: #c0392b;
+  --dp-stream: #c47d1f;
+  --dp-row: #2f6db0;
+  --dp-col: #a8841c;
+  --dp-lake: #2a8f86;
+}
+.dark {
+  --dp-producer: #9aa1b2;
+  --dp-log: #e2675a;
+  --dp-stream: #e2a14a;
+  --dp-row: #69a0e0;
+  --dp-col: #d6b551;
+  --dp-lake: #54bdb2;
 }
 
 @layer base {
@@ -241,6 +272,19 @@
   padding: 1em 1.15em;
   overflow-x: auto;
   line-height: 1.5;
+  /* Theme-aware horizontal scrollbar (the default light track is too bright in dark mode). */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+.prose pre::-webkit-scrollbar {
+  height: 8px;
+}
+.prose pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+.prose pre::-webkit-scrollbar-thumb {
+  background-color: var(--color-line-strong);
+  border-radius: 4px;
 }
 .prose pre code {
   background: none;
@@ -248,9 +292,55 @@
   padding: 0;
   font-size: 1em;
 }
+/* Shiki dual themes (github-light/github-dark). Token colours are applied inline
+   from the light theme by default; under `.dark` we swap to the dark token vars.
+   The block chrome (background, border) stays on the editorial paper palette in
+   both modes so code reads as part of the page, not a foreign dark slab. */
+.prose pre.astro-code {
+  background-color: var(--color-paper-raised) !important;
+}
+.dark .prose pre.astro-code,
+.dark .prose pre.astro-code span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
 .prose hr {
   border: none;
   border-top: 1px solid var(--color-line);
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.prose th,
+.prose td {
+  text-align: left;
+  padding: 0.5em 1.25em 0.5em 0;
+  vertical-align: top;
+}
+.prose th:last-child,
+.prose td:last-child {
+  padding-right: 0;
+}
+.prose th {
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-line);
+}
+.prose tbody td {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-line) 50%, transparent);
+}
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+/* Expanded <details> content aligns with the summary title (past the marker). */
+.prose details {
+  padding-left: 1.0em;
+}
+.prose summary {
+  margin-left: -1.0em;
 }
 .prose h2 + *,
 .prose h3 + * {

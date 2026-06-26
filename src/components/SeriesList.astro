@@ -1,0 +1,37 @@
+---
+// Reusable across collections: renders the ordered member pages of a series as a
+// numbered list of links. Used on a series landing page. Members are any articles
+// whose `series` matches; they are sorted by `seriesOrder`.
+import { getCollection } from 'astro:content';
+
+interface Props {
+  series: string;
+  heading?: string;
+}
+const { series, heading } = Astro.props;
+
+const members = (
+  await getCollection('articles', ({ data }) => data.series === series && !data.draft)
+).sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+---
+
+<nav class="fx mt-8 border-t border-line" aria-label={heading ?? 'In this series'}>
+  {heading && <h2 class="label mt-6 mb-2">{heading}</h2>}
+  <ol class="list-none divide-y divide-line pl-0">
+    {
+      members.map((m, i) => (
+        <li>
+          <a
+            href={`/articles/${m.id}`}
+            class="group flex items-baseline gap-4 py-3.5 no-underline transition-colors hover:bg-paper-raised"
+          >
+            <span class="font-mono text-sm text-muted tabular-nums">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span class="font-display text-lg text-ink group-hover:text-accent">{m.data.title}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
