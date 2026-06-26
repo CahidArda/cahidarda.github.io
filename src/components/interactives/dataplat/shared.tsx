@@ -45,6 +45,24 @@ export function useReducedMotion(): boolean {
   return reduced;
 }
 
+/**
+ * Tab preview-on-hover. A tabbed widget keeps its committed selection in `selected`
+ * (set by onClick); this returns the value to actually render (`active`) which
+ * follows the hovered tab while hovering and falls back to the selection on leave,
+ * plus a `bind(value)` to spread onto each tab button. Clicking still commits;
+ * hovering only previews. Keep `aria-pressed`/selected styling on `selected` so the
+ * chosen tab stays marked while another is previewed.
+ */
+export function useHoverPreview<T>(selected: T) {
+  const [hover, setHover] = useState<T | null>(null);
+  const active = hover === null ? selected : hover;
+  const bind = (value: T) => ({
+    onMouseEnter: () => setHover(value),
+    onMouseLeave: () => setHover(null),
+  });
+  return [active, bind] as const;
+}
+
 /** Smoothly glides a point toward `target` (rAF lerp) in the caller's SVG user space. */
 export function useGlide(target: { x: number; y: number }, reduced: boolean) {
   const [pos, setPos] = useState(target);

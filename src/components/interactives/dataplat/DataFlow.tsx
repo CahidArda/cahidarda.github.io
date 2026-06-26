@@ -8,7 +8,6 @@ import {
   type NState,
   rightOf,
   SvgNode,
-  useGlide,
   useReducedMotion,
   Widget,
 } from './shared';
@@ -57,9 +56,6 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
   const streamState: NState = phase === 2 ? 'active' : phase === 3 ? 'wait' : 'off';
   const storeState: NState = phase === 3 ? 'active' : 'off';
 
-  const tokenNode = phase === 0 ? NODE.producer : phase === 1 ? NODE.log : NODE.stream;
-  const token = useGlide({ x: tokenNode.cx, y: tokenNode.cy }, reduced);
-
   // Store boxes are laid out vertically, centred on the stream's row, so 1, 2, or
   // 3 stores all stay balanced.
   const SPACING = 83;
@@ -96,10 +92,6 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
         {stores.map((id, i) => (
           <Edge key={id} from={rightOf(NODE.stream)} to={leftOf(storeBox(i))} on={phase === 3} dim={phase < 3} />
         ))}
-
-        {!reduced && phase < 3 && (
-          <circle cx={token.x} cy={token.y} r={6} style={{ fill: 'var(--color-accent)' }} />
-        )}
 
         <g onMouseEnter={() => hoverNode(0)} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
           <SvgNode n={NODE.producer} title="Producers" sub="events" color={COMPONENT_BY_ID.producer.color} state={producerState} />

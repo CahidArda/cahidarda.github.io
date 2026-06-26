@@ -112,8 +112,13 @@ Define a `shared.tsx` per topic ONCE and reuse it everywhere so the post reads a
 - A shared **frame** component (bordered figure + title), shared **hooks** (`useReducedMotion`,
   `useTick`, `useGlide`), shared chips/legends.
 - **Prose insulation.** Widgets render *inside* `.prose`, so editorial rules (link underlines, list
-  markers, code chrome) leak in. Give every widget root a class (we use `.fx` / `not-prose`) and reset
-  those in `global.css` under `.prose .fx { … }`.
+  markers, code chrome) leak in. Give every widget root the **`.fx`** class and reset those in
+  `global.css` under `.prose .fx { … }`. IMPORTANT: this repo's `.prose` is hand-written CSS, **not**
+  the Tailwind typography plugin, so the `not-prose` / `list-none` / `no-underline` utilities silently
+  lose on specificity to `.prose a` / `.prose ol`. `.fx` is what actually works (its resets are
+  `.prose .fx :where(a|ul|ol|…)`, whose `.prose .fx` specificity beats `.prose element`). This bit us
+  on a non-widget element too (the `SeriesList` had `not-prose`, still showed underlines + a duplicate
+  list marker until switched to `.fx`).
 - **`prefers-reduced-motion`:** every animation needs an instant/static fallback. Use `useReducedMotion`
   and render the final state (a "poster") instead of animating. Also kill transitions in CSS under the
   media query.
@@ -194,6 +199,10 @@ arrows, and the token must all agree about what phase it is — desync ("caption
 solving, but the token is back at the hub") reads as a bug. Auto-play on scroll-into-view via the
 island's mount effect (it fires when `client:visible` hydrates).
 
+**Reading-paced flows go slower.** When each step has a sentence of explanatory caption the reader
+must read (e.g. the data-flow diagram), ~1.3s/step is too fast: use ~2.5–3.2s/step. Pair auto-play
+with the hover interactions in §9 so the reader can stop and inspect any step/tab.
+
 ## 6. Verify before committing
 
 ```bash
@@ -256,3 +265,112 @@ source, not memory or a secondary summary.
 - A parenthesized Wikipedia URL needed percent-encoding (`%28…%29`) to survive markdown link syntax.
 - Embedded the launch tweet via `TweetEmbed.astro` (placement matters: a tweet wedged between a
   paragraph and a blockquote read badly; moving it to the top with a one-line lead-in fixed it).
+
+## 9. Interaction patterns: hover to preview, click to commit
+
+These came out of the data-platform series and are the default for any widget with discrete states.
+
+### 9.1 Hover a tab to preview it; click to commit (`useHoverPreview`)
+
+Most widgets have tab/segmented buttons. Hovering a tab should **preview** that tab's view and revert
+on mouse-out; **clicking** commits. The shared hook (in `dataplat/shared.tsx`):
+
+```ts
+export function useHoverPreview<T>(selected: T) {
+  const [hover, setHover] = useState<T | null>(null);
+  const active = hover === null ? selected : hover;           // what you RENDER
+  const bind = (value: T) => ({
+    onMouseEnter: () => setHover(value),
+    onMouseLeave: () => setHover(null),
+  });
+  return [active, bind] as const;
+}
+```
+
+Wiring trick that keeps the render code untouched: rename the committed state to `sel`/`setSel`, and
+keep the **active** value under the original variable name so every existing reference renders the
+preview automatically:
+
+```tsx
+const [sel, setSel] = useState<Mode>('clean');
+const [mode, bindMode] = useHoverPreview(sel);   // `mode` (active) is used everywhere in render
+// button: onClick commits, the spread previews on hover
+<button onClick={() => setSel(m)} aria-pressed={mode === m} {...bindMode(m)}>…</button>
+```
+
+For widgets whose animation/interval reads the mode (AssetGraph keys its `useEffect` on the mode;
+ConsumerLag reads it through a `modeRef`), pointing those at the **active** value makes hovering a tab
+replay that scenario — a free, accurate preview.
+
+### 9.2 Hover a diagram NODE to jump to its step; resume on leave
+
+For an auto-playing flow, hovering a node jumps to the step where that node is active and **pauses**
+the auto-advance; leaving resumes from there (don't reset to step 0):
+
+```tsx
+const [paused, setPaused] = useState(false);
+const hoverNode = (p) => { setPaused(true); setPhase(p); };
+useEffect(() => { if (reduced || paused) return; const id = setInterval(...); return () => clearInterval(id); }, [reduced, paused]);
+// wrap each node so its area captures the hover:
+<g onMouseEnter={() => hoverNode(2)} onMouseLeave={() => setPaused(false)} style={{ cursor: 'pointer' }}>
+  <SvgNode … />
+</g>
+```
+
+## 10. The data-platform diagram system (reusable model)
+
+`dataplat/shared.tsx` is the second worked example after `fugu/`. Copy its shape for a new topic:
+
+- **Cast as CSS vars.** One colour per component (`--color-dp-log`, `--color-dp-row`, …) in
+  `global.css` `:root`/`.dark`, exposed via `@theme`. Referenced as `style={{ fill: 'var(--color-dp-…)' }}`.
+- **Primitives:** `Widget` (bordered figure + title + kicker), `SvgNode` (rect+title+sub with
+  off/wait/active states), `Edge` (+ `ArrowDefs`, one shared arrow marker), `leftOf/rightOf/topOf/bottomOf`,
+  `useGlide`, `useReducedMotion`, `useHoverPreview`.
+- **Parameterize widgets so the same component is accurate per article.** `DataFlow` takes a `stores`
+  prop (phase 1 passes `stores={['row']}` to show only Postgres; the architecture post passes none and
+  shows all three). `ClusterMap` takes a `phase` prop and an internal stepper that scrubs `0..phase`,
+  so each phase article shows the cluster *at that phase*, with a per-phase "what's added" summary.
+  Lay out a variable node set by centring on a row: `cy = mid + (i - (n-1)/2) * SPACING`.
+- **SSR-seed animated charts.** An island SSRs its *initial* state only (e.g. phase 0, or an empty
+  series). Seed meaningful content: `ConsumerLag` initialises `samples` to a static `POSTER` so the
+  chart renders server-side and under reduced-motion, then the live interval scrolls real data in.
+- **Align table-like cells with ONE grid, not independent flex rows.** In `RowVsColumn` the row-store
+  panel laid each row as its own flex container, so a long unbreakable value ("subscriptions") widened
+  just that row. Fix: one CSS grid for all cells with
+  `gridTemplateColumns: 'repeat(N, minmax(min-content, 1fr))'` so a column is one width across every
+  row (no mid-word breaks, fills the panel). Add the header cells as the grid's first row.
+
+## 11. Series / collection primitive
+
+A reusable "collection" sits on top of the single `articles` collection:
+
+- Frontmatter: a member sets `series: <id>` + `seriesOrder: N`; the landing sets `seriesLanding: <id>`.
+- Members live in `src/content/articles/<id>/` so their slugs nest under `/articles/<id>/…` (the
+  `[...slug]` route is already catch-all). Landing is `src/content/articles/<id>.mdx` → `/articles/<id>`.
+- Members are hidden from the index (`getEntries` filters `!data.series`); the landing appears.
+- `<SeriesList series="<id>" />` renders the ordered members on the landing. `<SeriesNav>` is rendered
+  by `ArticleLayout` for any member (prev/next; prev falls back to the landing). The `ArticleLayout`
+  back-link goes to the collection landing for a member, else to the index.
+- **Imports go one level deeper** for moved members (`../../../components/...`). The OG route must be
+  catch-all (`og/[...slug].png.ts`) for nested slugs.
+
+## 12. Code snippets: ≤ 75 chars, theme-aware scrollbar
+
+- **Keep every fenced-code line ≤ 75 chars** so snippets never scroll horizontally. Wrap SQL/PromQL/
+  Python across lines; shorten inline comments. Enforced by `scripts/check-code-line-length.mjs`
+  (`pnpm check:code-lines`) and the `checks.yml` CI job.
+- The default code-block scrollbar is glaring in dark mode. Style `.prose pre` with
+  `scrollbar-color: var(--color-line-strong) transparent` + `::-webkit-scrollbar-thumb`.
+
+## 13. Log: data-platform series
+
+- Built `dataplat/` (8 widgets) on the `fugu` model; added `useHoverPreview` and node-hover-to-step
+  (§9); slowed the data-flow auto-play to ~3.2s/step with connection-explaining captions (§5).
+- `SeriesList` showed a duplicate list marker + underlines: `not-prose` is inert here; use `.fx` (§3).
+- `RowVsColumn` had a single wide row from a long value → one grid with `minmax(min-content,1fr)` (§10);
+  added the missing column headers to the row-store panel.
+- `ConsumerLag` SSR'd an empty chart → seed `samples` with the reduced-motion poster (§10).
+- Parameterized `DataFlow` (`stores`) and `ClusterMap` (`phase`) for per-article accuracy (§10).
+- House-style: scrubbed em-dashes from widget captions/labels; dropped a filler opener ("A fair
+  question at this point"); internal links carry no trailing slash (§1).
+- Reflowed all code snippets to ≤75 chars and added the CI check (§12); theme-aware code scrollbar.

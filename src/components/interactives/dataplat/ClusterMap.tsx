@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Widget } from './shared';
+import { useHoverPreview, Widget } from './shared';
 
 // The cluster, as of a given phase. Overlays are cumulative, so the cluster only
 // grows: each phase adds namespaces and workloads onto the same cluster. Embed
@@ -75,8 +75,9 @@ const PHASES: { title: string; adds: string }[] = [
 ];
 
 export default function ClusterMap({ phase = 7 }: { phase?: number }) {
-  const [p, setP] = useState(phase);
-  useEffect(() => setP(phase), [phase]);
+  const [sel, setSel] = useState(phase);
+  const [p, bindP] = useHoverPreview(sel);
+  useEffect(() => setSel(phase), [phase]);
 
   const namespaces = NAMESPACES.filter((n) => n.phase <= p);
 
@@ -85,7 +86,7 @@ export default function ClusterMap({ phase = 7 }: { phase?: number }) {
       <div className="mb-3 flex items-center gap-2">
         <span className="font-mono text-[0.7rem] text-muted">phase</span>
         {Array.from({ length: phase + 1 }, (_, i) => i).map((i) => (
-          <button key={i} type="button" onClick={() => setP(i)} aria-pressed={p === i}
+          <button key={i} type="button" onClick={() => setSel(i)} aria-pressed={p === i} {...bindP(i)}
             className="h-6 w-6 border-2 font-mono text-[0.7rem] transition-colors"
             style={{ borderColor: p === i ? 'var(--color-accent)' : 'var(--color-line)', color: p === i ? 'var(--color-accent)' : 'var(--color-ink-soft)' }}>
             {i}

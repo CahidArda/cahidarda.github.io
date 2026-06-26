@@ -27,11 +27,11 @@ make tilt PHASE=phase-2-observability
 
 ## What's added in this phase?
 
-- Prometheus, scraping by pod annotation (no operator, no CRDs),
-- a provisioned Grafana dashboard, baked in as a ConfigMap,
-- Loki and Grafana Alloy for log aggregation,
-- kafka-lag-exporter, so consumer lag is a real metric,
-- end-to-end latency instrumented inside the stream processor.
+- [Prometheus](https://prometheus.io), scraping by pod annotation (no operator, no CRDs),
+- a provisioned [Grafana](https://grafana.com/oss/grafana/) dashboard, baked in as a ConfigMap,
+- [Loki](https://grafana.com/oss/loki/) and [Grafana Alloy](https://grafana.com/oss/alloy/) for log aggregation,
+- [kafka-lag-exporter](https://github.com/seglo/kafka-lag-exporter), so consumer lag is a real metric,
+- end-to-end latency instrumented inside the [Spark](https://spark.apache.org/streaming/) stream processor.
 
 <div class="fx-figure">
   <ClusterMap phase={2} client:visible />
@@ -41,7 +41,10 @@ make tilt PHASE=phase-2-observability
 
 Prometheus here is the bare server, not the operator
 ([`overlays/phase-2-observability/prometheus.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/prometheus.yaml)).
-It discovers targets by pod annotation, which keeps the platform light and the mechanism obvious:
+It discovers targets by pod annotation. An annotation is a free-form `key: value` you attach to a
+pod's metadata; unlike a label it is not used for selection, it just carries information for tools to
+read. Prometheus watches the Kubernetes API for pods and keeps only the ones whose annotation says
+to scrape them. That keeps the platform light and the mechanism obvious:
 
 ```yaml
 relabel_configs:
@@ -62,8 +65,8 @@ prometheus.io/path: /metrics
 
 ## Latency you cannot infer
 
-Throughput and consumer lag come for free from the broker and the exporter. End-to-end latency
-does not. "How long from when an event happened to when we stored it" can only be measured by the
+Throughput and consumer lag come for free from the broker (Redpanda) and the exporter
+(kafka-lag-exporter). End-to-end latency does not. "How long from when an event happened to when we stored it" can only be measured by the
 code that sees both timestamps, so the stream processor records it as a histogram per batch:
 
 ```python
@@ -80,11 +83,12 @@ metric you compute and one you wish you had: latency had to be designed in.
 
 ## Consumer lag is the health signal
 
-For a streaming platform, consumer lag (how far behind the log the processor is) is the single
-most important number. If lag is flat, the platform is keeping up; if it climbs, something is
-wrong upstream or the processor is too slow. kafka-lag-exporter polls group offsets against the
-log end and exports `kafka_consumergroup_group_lag`, which becomes a panel and, in phase 4, an
-alert and the basis for backpressure.
+For a streaming platform, consumer lag (how far behind the Redpanda log the Spark stream-processor
+is) is the single most important number. If lag is flat, the platform is keeping up; if it climbs,
+something is wrong upstream or the processor is too slow. kafka-lag-exporter polls the
+stream-processor's consumer-group offsets against the end of the log and exports
+`kafka_consumergroup_group_lag`, which becomes a panel and, in phase 4, an alert and the basis for
+backpressure.
 
 <div class="fx-figure">
   <ConsumerLag client:visible />
@@ -95,6 +99,19 @@ alert and the basis for backpressure.
 Alloy runs as a DaemonSet, discovers pods through the Kubernetes API, tails their logs, and ships
 them to Loki with `namespace`, `pod`, and `app` labels attached. Grafana queries Loki as a second
 datasource, so a spike on a metric panel and the log lines behind it are one click apart.
+
+To actually read them, two UIs, both port-forwarded by Tilt:
+
+- **Grafana, [http://localhost:3000](http://localhost:3000).** Go to **Explore**, pick the **Loki**
+  datasource, and query logs by label, for example `{app="producer"}` or
+  `{namespace="platform"} |= "error"`. That is LogQL: select a log stream by its labels, then
+  optionally filter the lines (`|=` is "contains"). The Prometheus metrics are available here too:
+  in **Explore** via the **Prometheus** datasource, and pre-built in the **"Platform overview"**
+  dashboard.
+- **Prometheus, [http://localhost:9090](http://localhost:9090).** Use the **Graph** tab to run raw
+  PromQL (try `up` to see which targets are scraped, or `kafka_consumergroup_group_lag`), and
+  **Status → Targets** to confirm the scrape is working. Its **Alerts** tab is empty on purpose, no
+  alert rules ship until phase 4.
 
 ## What you see
 

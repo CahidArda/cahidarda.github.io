@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Widget, useReducedMotion } from './shared';
+import { useHoverPreview, Widget, useReducedMotion } from './shared';
 
 // Consumer lag = how far the processor is behind the log. The producer appends at
 // a steady rate; the consumer drains at a rate you control. When draining is
@@ -9,27 +9,20 @@ import { Widget, useReducedMotion } from './shared';
 const N = 48; // samples shown
 const MAXLAG = 240; // y-axis cap (records)
 const PRODUCE = 12; // events appended per tick
+const SEED = 180; // a backlog already built up, so a healthy consumer visibly drains it
 const VB = { w: 340, h: 130 };
 const PAD = { l: 4, r: 4, t: 10, b: 4 };
 
 type Mode = 'healthy' | 'slow' | 'stalled';
+// cap = records the consumer drains per tick. Above PRODUCE it catches up; below, lag grows.
 const MODES: { key: Mode; label: string; cap: number }[] = [
-  { key: 'healthy', label: 'healthy', cap: 16 }, // drains faster than it fills -> catches up
-  { key: 'slow', label: 'slow', cap: 6 },
-  { key: 'stalled', label: 'stalled', cap: 0 },
+  { key: 'healthy', label: 'healthy', cap: 24 }, // drains faster than it fills -> catches up
+  { key: 'slow', label: 'slow', cap: 8 }, // drains some, but keeps falling behind
+  { key: 'stalled', label: 'stalled', cap: 0 }, // drains nothing
 ];
 
-// A static poster for reduced-motion: lag rises while stalled, then drains.
-const POSTER = (() => {
-  const a: number[] = [];
-  let lag = 0;
-  for (let i = 0; i < N; i++) {
-    const stalled = i > 12 && i < 28;
-    lag += stalled ? PRODUCE : i < 12 ? 0 : -10;
-    a.push(Math.max(0, Math.min(MAXLAG, lag)));
-  }
-  return a;
-})();
+// A static poster (SSR + reduced motion): a backlog that has ramped up to SEED.
+const POSTER = Array.from({ length: N }, (_, i) => Math.min(SEED, Math.round((i / (N * 0.55)) * SEED)));
 
 function lagColor(lag: number): string {
   if (lag < 60) return 'var(--color-dp-lake)'; // teal: keeping up
@@ -39,12 +32,14 @@ function lagColor(lag: number): string {
 
 export default function ConsumerLag() {
   const reduced = useReducedMotion();
-  const [mode, setMode] = useState<Mode>('stalled');
+  const [sel, setSel] = useState<Mode>('healthy');
+  const [mode, bindMode] = useHoverPreview(sel);
   // Seed with the poster so the chart renders server-side; the live interval then
   // appends real samples and the poster scrolls off.
   const [samples, setSamples] = useState<number[]>(POSTER);
-  const produced = useRef(0);
-  const consumed = useRef(0);
+  // Lag is a single value clamped to [0, MAXLAG]; each tick it moves by PRODUCE - cap,
+  // so it always drains under "healthy" no matter how high it climbed (no runaway backlog).
+  const lagRef = useRef(SEED);
   const modeRef = useRef<Mode>(mode);
   modeRef.current = mode;
 
@@ -54,11 +49,9 @@ export default function ConsumerLag() {
       return;
     }
     const id = setInterval(() => {
-      produced.current += PRODUCE;
       const cap = MODES.find((m) => m.key === modeRef.current)!.cap;
-      consumed.current += Math.min(cap, produced.current - consumed.current);
-      const lag = Math.max(0, produced.current - consumed.current);
-      setSamples((s) => [...s, Math.min(MAXLAG, lag)].slice(-N));
+      lagRef.current = Math.max(0, Math.min(MAXLAG, lagRef.current + PRODUCE - cap));
+      setSamples((s) => [...s, lagRef.current].slice(-N));
     }, 450);
     return () => clearInterval(id);
   }, [reduced]);
@@ -78,8 +71,9 @@ export default function ConsumerLag() {
           <button
             key={m.key}
             type="button"
-            onClick={() => setMode(m.key)}
+            onClick={() => setSel(m.key)}
             aria-pressed={mode === m.key}
+            {...bindMode(m.key)}
             className="border-2 px-2.5 py-1 font-mono text-[0.72rem] tracking-wide transition-colors"
             style={{
               borderColor: mode === m.key ? 'var(--color-accent)' : 'var(--color-line)',

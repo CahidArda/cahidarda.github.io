@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowDefs, type Box, Edge, leftOf, rightOf, SvgNode, useGlide, useReducedMotion, Widget } from './shared';
+import { ArrowDefs, type Box, Edge, leftOf, rightOf, SvgNode, useHoverPreview, useReducedMotion, Widget } from './shared';
 
 // Each message is parsed; valid ones go to the sinks, unparseable "poison" ones
 // are routed to the dead-letter topic instead of being dropped. Watch one message
@@ -20,7 +20,8 @@ const PERIOD: Record<Rate, number> = { low: 6, high: 3 }; // every Nth message i
 
 export default function DlqSplit() {
   const reduced = useReducedMotion();
-  const [rate, setRate] = useState<Rate>('low');
+  const [sel, setSel] = useState<Rate>('low');
+  const [rate, bindRate] = useHoverPreview(sel);
   const [phase, setPhase] = useState(0); // 0 born · 1 at processor · 2 routed
   const [count, setCount] = useState(0);
   const [stats, setStats] = useState({ ok: 0, dlq: 0 });
@@ -51,15 +52,11 @@ export default function DlqSplit() {
     setStats((s) => (isPoison ? { ...s, dlq: s.dlq + 1 } : { ...s, ok: s.ok + 1 }));
   }, [phase, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const tokenNode = phase === 0 ? NODE.producer : phase === 1 ? NODE.proc : isPoison ? NODE.dlq : NODE.sinks;
-  const token = useGlide({ x: tokenNode.cx, y: tokenNode.cy }, reduced);
-  const tokenColor = isPoison ? POISON : VALID;
-
   return (
     <Widget title="Poison messages are dead-lettered, not dropped" kicker="parse · split · route">
       <div className="mb-3 flex flex-wrap gap-2">
         {(['low', 'high'] as Rate[]).map((r) => (
-          <button key={r} type="button" onClick={() => setRate(r)} aria-pressed={rate === r}
+          <button key={r} type="button" onClick={() => setSel(r)} aria-pressed={rate === r} {...bindRate(r)}
             className="border-2 px-2.5 py-1 font-mono text-[0.72rem] tracking-wide transition-colors"
             style={{ borderColor: rate === r ? 'var(--color-accent)' : 'var(--color-line)', color: rate === r ? 'var(--color-accent)' : 'var(--color-ink-soft)' }}>
             poison rate {r}
@@ -73,8 +70,6 @@ export default function DlqSplit() {
         <Edge from={rightOf(NODE.producer)} to={leftOf(NODE.proc)} on={phase === 1} />
         <Edge from={rightOf(NODE.proc)} to={leftOf(NODE.sinks)} on={phase === 2 && !isPoison} dim={phase === 2 && isPoison} />
         <Edge from={rightOf(NODE.proc)} to={leftOf(NODE.dlq)} on={phase === 2 && isPoison} dim={phase === 2 && !isPoison} />
-
-        {!reduced && <circle cx={token.x} cy={token.y} r={6} style={{ fill: tokenColor }} />}
 
         <SvgNode n={NODE.producer} title="Producer" sub="messages" color="var(--color-dp-producer)" state={phase === 0 ? 'active' : 'wait'} />
         <SvgNode n={NODE.proc} title="Stream processor" sub="parse + split" color="var(--color-dp-stream)" state={phase === 1 ? 'active' : 'wait'} />

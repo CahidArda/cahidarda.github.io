@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type Box, leftOf, rightOf, SvgNode, Widget } from './shared';
+import { type Box, leftOf, rightOf, SvgNode, useHoverPreview, Widget } from './shared';
 
 // Pick an action the retail tenant might attempt; see whether it is allowed and
 // which isolation control decides. Cross-tenant access is denied by RBAC and by
@@ -24,7 +24,8 @@ const SCN: Scn[] = [
 ];
 
 export default function TenantIsolation() {
-  const [i, setI] = useState(0);
+  const [sel, setSel] = useState(0);
+  const [i, bindI] = useHoverPreview(sel);
   const s = SCN[i];
   const tgt = NODE[s.target];
   const v = s.allow ? ALLOW : DENY;
@@ -35,7 +36,7 @@ export default function TenantIsolation() {
     <Widget title="What can a tenant do?" kicker="isolation: rbac · netpol · quota">
       <div className="mb-3 flex flex-wrap gap-2">
         {SCN.map((sc, idx) => (
-          <button key={idx} type="button" onClick={() => setI(idx)} aria-pressed={i === idx}
+          <button key={idx} type="button" onClick={() => setSel(idx)} aria-pressed={i === idx} {...bindI(idx)}
             className="border-2 px-2 py-1 font-mono text-[0.68rem] tracking-wide transition-colors"
             style={{ borderColor: i === idx ? 'var(--color-accent)' : 'var(--color-line)', color: i === idx ? 'var(--color-accent)' : 'var(--color-ink-soft)' }}>
             {sc.label}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { type Box, leftOf, rightOf, SvgNode, useReducedMotion, Widget } from './shared';
+import { type Box, leftOf, rightOf, SvgNode, useHoverPreview, useReducedMotion, Widget } from './shared';
 
 // The nightly rollup as a Dagster asset graph with a BLOCKING data-quality gate.
 // Run it clean and the gate passes, promoting the rollup. Inject a broken contract
@@ -20,7 +20,8 @@ type Mode = 'clean' | 'drift';
 
 export default function AssetGraph() {
   const reduced = useReducedMotion();
-  const [mode, setMode] = useState<Mode>('clean');
+  const [sel, setSel] = useState<Mode>('clean');
+  const [mode, bindMode] = useHoverPreview(sel);
   const [phase, setPhase] = useState(0); // 0 snapshot · 1 rollup · 2 gate · 3 result
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function AssetGraph() {
     <Widget title="Data-quality gate" kicker="snapshot → rollup → [gate] → promote">
       <div className="mb-3 flex flex-wrap gap-2">
         {(['clean', 'drift'] as Mode[]).map((m) => (
-          <button key={m} type="button" onClick={() => setMode(m)} aria-pressed={mode === m}
+          <button key={m} type="button" onClick={() => setSel(m)} aria-pressed={mode === m} {...bindMode(m)}
             className="border-2 px-2.5 py-1 font-mono text-[0.72rem] tracking-wide transition-colors"
             style={{ borderColor: mode === m ? 'var(--color-accent)' : 'var(--color-line)', color: mode === m ? 'var(--color-accent)' : 'var(--color-ink-soft)' }}>
             {m === 'clean' ? 'clean run' : 'inject drift'}

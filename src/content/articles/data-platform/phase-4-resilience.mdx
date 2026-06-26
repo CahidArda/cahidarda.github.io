@@ -9,11 +9,31 @@ seriesOrder: 7
 
 import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
 import DlqSplit from '../../../components/interactives/dataplat/DlqSplit.tsx';
+import DlqContrast from '../../../components/interactives/dataplat/DlqContrast.tsx';
+import CheckpointRecovery from '../../../components/interactives/dataplat/CheckpointRecovery.tsx';
 
 Fifth build post in the [data-platform series](/articles/data-platform). Everything
-so far assumed the happy path. Phase 4 breaks things on purpose and makes the platform survive,
-which is the mechanism behind the "99% uptime over 90 days" outcome: you cannot wait 90 days, so
-you inject a quarter of failures in a few seconds and watch the error budget hold.
+so far assumed the happy path. Phase 4 breaks things on purpose and makes the platform survive. You
+cannot wait a quarter to find out whether it holds, so you inject the failures in a few seconds and
+watch the error budget absorb them.
+
+## SLO, SLI, and error budget
+
+Three terms run through this phase, so quickly:
+
+- An **SLI** (service level indicator) is a measured number for how well the service is doing right
+  now. Ours is a **success ratio**: of the events the processor handled, what fraction were processed
+  successfully rather than dead-lettered.
+- An **SLO** (service level objective) is the target you hold that SLI to. Ours is **99%**: at least
+  99 of every 100 events should succeed.
+- The **error budget** is what the objective leaves room for, `100% - 99% = 1%`. It is the failure
+  you are allowed before you have missed the SLO: a budget you spend, not a line you must never touch.
+
+In this system the SLI is computed by Prometheus over a rolling 5-minute window, from two counters
+the processor already exports, `stream_events_processed_total` and `stream_dlq_messages_total`:
+`success ratio = processed / (processed + dead-lettered)`, recorded as `sli:success:ratio5m`. The SLO
+target is `0.99`, the error budget is the remaining `1%`, and an alert fires when the ratio drops
+below target. The "error budget you can watch" section below builds all of that out.
 
 ## Run it
 
@@ -55,7 +75,8 @@ def process_batch(batch_df, batch_id):
 ```
 
 A poison message is now a thing you can inspect and replay, and a `stream_dlq_messages_total`
-counter feeds the dashboard. The failure is visible, not lost.
+counter drives a **Dead-lettered messages/s** panel on the Grafana "Platform overview" dashboard.
+The failure is visible, not lost.
 
 <div class="fx-figure">
   <DlqSplit client:visible />
@@ -80,22 +101,60 @@ watch both on the lag panel.
 
 Spark Structured Streaming records its progress, the Kafka offsets it has committed and its
 in-flight batch state, in a checkpoint directory. In this platform that directory is a
-PersistentVolumeClaim rather than the pod's ephemeral `emptyDir`, so it outlives any single pod.
+[PersistentVolumeClaim](https://kubernetes.io/docs/reference/kubernetes-api/core/persistent-volume-claim-v1/)
+rather than the pod's ephemeral `emptyDir`, so it outlives any single pod.
 That is what makes killing the processor survivable: a fresh pod mounts the same checkpoint and
-resumes from the last committed offset, with no gap and no double-processing. The demo
-([`scripts/demo-phase-4.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-4.sh))
-deletes the pod and confirms the row count keeps climbing with no gap after it reschedules:
+resumes from the last committed offset, with no gap and no double-processing.
+
+One script ([`scripts/demo-phase-4.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-4.sh))
+exercises all four mechanisms in a single run, and the kill is its centerpiece:
 
 ```bash
-kubectl delete pod -l app.kubernetes.io/name=stream-processor
-kubectl rollout status deploy/stream-processor
-# before: N rows ; after: N+... (no gap, resumed from checkpoint)
+bash scripts/demo-phase-4.sh
+# == 1. Poison is dead-lettered, not dropped ==
+#    events.dlq messages so far: 412
+# == 2. Killed processor resumes from its checkpoint (no data loss) ==
+#    events before: 234114  after: 234493  (climbed, no gap, no dupes)
+# == 3. The SLO stays within its error budget ==
+#    success ratio (SLI): 0.995  (target 0.99)
+# == 4. Queue contrast: the broker redrives after maxReceiveCount ==
+#    messages redriven to orders-dlq: 1
 ```
+
+Step 2 is the kill. The script counts the events stored so far, deletes the running processor pod
+(`kubectl delete pod -l app.kubernetes.io/name=stream-processor`), waits for it to catch back up, and
+counts again. The deletion is the only deliberate act: from there Kubernetes does the recovery on its
+own, scheduling a replacement that mounts the same checkpoint PersistentVolumeClaim and resumes from
+the last committed offset. In a real outage this happens automatically, with no commands run by a
+human. The two counts bracket the kill and prove it worked: `after` has climbed past `before`, and
+because the processor restarted exactly at its checkpoint, the stored events are continuous, nothing
+lost while it was down and nothing processed twice.
+
+<div class="fx-figure">
+  <CheckpointRecovery client:visible />
+</div>
+
+<details>
+<summary>What if Redpanda or Postgres crashes?</summary>
+
+The same idea covers the rest of the pipeline, because the durable state lives on disk, not in a pod:
+
+- **Redpanda (the log)** runs as a StatefulSet with its own PersistentVolumeClaim, so a restarted
+  broker comes back with every event still on disk. Producers and the stream processor reconnect and
+  carry on, and the processor resumes from its checkpoint exactly as above. (This is a single local
+  broker, so it buys availability across restarts, not durability against disk loss; a real cluster
+  replicates partitions across brokers for that.)
+- **Postgres and ClickHouse** are also StatefulSets on PersistentVolumeClaims, and they are
+  projections of the log, so even a total wipe is recoverable by replaying the log back into them.
+
+The pattern repeats throughout: keep the truth on a persistent volume, and make everything else a
+restartable, replayable reader of it.
+
+</details>
 
 ## An error budget you can watch
 
-The SLO is a success ratio: events processed divided by events processed plus dead-lettered, over
-a rolling window, recorded as a Prometheus rule
+That success-ratio SLI is recorded as a Prometheus rule
 ([`prometheus-rules.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-4-resilience/prometheus-rules.yaml)):
 
 ```yaml
@@ -111,7 +170,16 @@ a rolling window, recorded as a Prometheus rule
 
 A 99% target leaves a 1% error budget. An "error budget remaining" panel shows how much slack is
 left, and an `ErrorBudgetBurn` alert fires through Alertmanager if the ratio drops below target.
-The demo injects failures and you watch the budget dip and hold rather than blow.
+Because the producer's poison rate is a small fraction (around 0.5%, well under the 1% budget), the
+success ratio sits above target and the budget holds with room to spare. Killing the processor does
+not move it: recovery loses no events, so the ratio is unaffected. That is exactly the point, a
+survived failure should not spend error budget. (If you push the poison rate above 1%, the budget
+drains to 0% and the alert fires, which is the failure this panel is built to catch.)
+
+To watch it: the **error-budget panel** is on the
+[SLO and error-budget dashboard](http://localhost:3000/d/slo-error-budget/slo-and-error-budget?orgId=1&refresh=10s)
+in Grafana, and the `ErrorBudgetBurn` alert's state (inactive, then pending, then firing) is on
+Prometheus's alerts page at [http://localhost:9090/alerts](http://localhost:9090/alerts).
 
 ## Log-DLQ vs queue-DLQ
 
@@ -125,8 +193,14 @@ Both a log and a queue can dead-letter, but they decide differently:
 - **Queue (SQS):** the broker redrives a message to the DLQ automatically after it fails to be
   processed N times (a `maxReceiveCount` redrive policy). The consumer never explicitly routes it.
 
+<div class="fx-figure">
+  <DlqContrast client:visible />
+</div>
+
 The demo sends a poison message to the SQS queue, fails to process it three times, and watches the
-broker move it to the dead-letter queue on its own. Same idea, opposite owner.
+broker move it to the dead-letter queue on its own. Since ElasticMQ speaks the SQS API, the demo
+drives it with the standard SQS client, the AWS CLI, pointed at the in-cluster endpoint. Same idea,
+opposite owner.
 
 ## What's in the overlay
 

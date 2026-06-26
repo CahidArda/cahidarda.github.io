@@ -10,9 +10,8 @@ seriesOrder: 6
 import ClusterMap from '../../../components/interactives/dataplat/ClusterMap.tsx';
 
 Fourth build post in the [data-platform series](/articles/data-platform). The
-[storage-shapes post](/articles/data-platform/storage-shapes) argued, with an interactive widget,
-why one dataset wants more than one storage layout. Phase 3 builds it and turns the argument into
-numbers you measure yourself.
+[storage-shapes post](/articles/data-platform/storage-shapes) argued why one dataset wants more than
+one storage layout. Phase 3 builds it and turns the argument into numbers you measure yourself.
 
 ## Run it
 
@@ -27,14 +26,40 @@ make tilt PHASE=phase-3-columnar
 
 ## What's added in this phase?
 
-- ClickHouse, the column store, for analytics,
-- Iceberg tables on MinIO, the lakehouse, for cheap durable history,
-- a ClickHouse-backed analytics endpoint on the API,
+- [ClickHouse](https://clickhouse.com/), the column store, for analytics,
+- [Apache Iceberg](https://iceberg.apache.org/) tables on [MinIO](https://min.io/), the lakehouse, for cheap durable history,
+- a ClickHouse-backed analytics endpoint ([`localhost:8000/analytics/revenue`](http://localhost:8000/analytics/revenue)) on the API,
 - admin (cross-tenant) vs user (single-tenant) framing for dashboards.
 
 <div class="fx-figure">
   <ClusterMap phase={3} client:visible />
 </div>
+
+## The log is the source of truth; these stores read from it
+
+Redpanda is still the source of truth: every event is appended to the log in order and can be
+replayed. But a log is not where you *read* data from. It is append-ordered bytes tuned for streaming
+and replay, not for "revenue per tenant" or "fetch order `ord-8123`", and keeping it forever is
+expensive. So the platform derives purpose-built stores from the log, each a materialised view you
+could rebuild by replaying it:
+
+- **ClickHouse, the column store.** An OLAP database that keeps each column stored together and
+  compressed, so analytical scans (aggregate a couple of columns over millions of rows) are fast and
+  small. It backs the dashboards and the analytics endpoint.
+- **Iceberg on MinIO, the lakehouse.** MinIO is S3-compatible object storage: cheap commodity disk,
+  not a database. Iceberg turns the files in it into a real table with a schema,
+  [ACID](https://en.wikipedia.org/wiki/ACID) commits, and time travel. This is where the full history
+  lives once it is too big or too cold for the log's bounded retention, queryable later by batch
+  engines without paying warehouse prices to store it.
+- **iceberg-rest, the catalog.** An Iceberg table is just data files plus metadata files in the
+  bucket; something has to track which files make up the table's current snapshot and schema. The
+  REST catalog is that authority: writers and readers ask it for the table's current state and it
+  points them at the files in MinIO. Without it, the bucket is just loose files nobody can read as a
+  table.
+
+So Redpanda holds the recent, replayable log; Iceberg holds the durable, queryable history of the
+same events; ClickHouse and Postgres are the fast read paths. One stream, fanned out to the shape
+each question needs.
 
 ## The tee is a config flag, not a rewrite
 
@@ -65,31 +90,105 @@ with S3FileIO pointed at MinIO, which is how a real lakehouse is run rather than
 
 ## The measurement
 
-The done-when for this phase is not "it runs", it is "you can articulate the difference from your
-own numbers". The demo script
+The goal is to feel the row-versus-column difference from numbers you measure. The demo script
 ([`scripts/demo-phase-3.sh`](https://github.com/CahidArda/local-data-platform/blob/main/scripts/demo-phase-3.sh))
-runs the identical query, revenue per tenant per hour, on Postgres and on ClickHouse, and prints
-timing and on-disk size for each:
+runs two queries on the same `events` data, one suited to each store, and prints query time and table
+size (each store in its own SQL dialect):
 
 ```bash
 bash scripts/demo-phase-3.sh
-# == Postgres (row / OLTP): revenue per tenant per hour ==
-#   query Time: ... ms
-#   on-disk size: ...
-# == ClickHouse (column / OLAP): same query ==
-#   query seconds: ...
-#   on-disk size: ...
 ```
 
-The same query the API exposes at `/analytics/revenue`
-([`app/api/main.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/api/main.py)) runs on the
-column store, while the operational `/orders` lookups stay on the row store. Same data, two shapes, each serving the read
-pattern it is good at.
+The same split shows up in production: the API serves analytics from the column store at
+[`localhost:8000/analytics/revenue`](http://localhost:8000/analytics/revenue) and operational lookups
+from the row store at [`localhost:8000/orders`](http://localhost:8000/orders)
+([`app/api/main.py`](https://github.com/CahidArda/local-data-platform/blob/main/app/api/main.py)).
 
-What you should see, and the reason the widget in the [storage post](/articles/data-platform/storage-shapes)
-exists: the column store scans this query faster and stores the events smaller, because it reads
-only the columns the query touches and compresses each column hard. The row store drags every
-column off disk and discards most of them. Those are your numbers, not mine.
+<details>
+<summary>Why is Iceberg not in the comparison?</summary>
+
+Iceberg is the lakehouse, not an interactive query store competing with ClickHouse on latency: cheap,
+durable history on object storage (MinIO) with ACID and time travel, read later by batch engines like
+Spark or Trino. So the demo benchmarks only the two SQL stores; the Iceberg sink's job is simply to
+land the same events durably, which you can see in the MinIO `warehouse` bucket and the REST catalog.
+
+</details>
+
+### Measurement 1: an analytical scan (the column store wins)
+
+Revenue per tenant per hour, the same query on both:
+
+```sql
+SELECT tenant,
+       date_trunc('hour', event_time) AS hour,
+       sum(amount_cents),
+       count(*)
+FROM events
+GROUP BY tenant, hour;
+```
+
+This is an analytical scan: it reads a few columns across every row and aggregates them, the column
+store's strong suit.
+
+```bash
+# == Postgres (row / OLTP) ==
+#    query Time:            42.655 ms
+#    table size on disk:    49.720 MB
+# == ClickHouse (column / OLAP) ==
+#    query Time:             5.000 ms
+#    table size on disk:     3.450 MB
+```
+
+ClickHouse answers it faster and stores the same events far smaller, because it reads only the columns
+the query touches and compresses each column hard, while the row store drags every column off disk and
+discards most of them. ("Table size on disk" is the whole table's footprint at rest, the same rows
+stored each way, not the bytes this query read.)
+
+### Measurement 2: a point lookup (the row store wins)
+
+Flip to the row store's home turf, fetching one whole row by its key:
+
+```sql
+SELECT * FROM events WHERE event_id = '...';
+```
+
+`event_id` is the Postgres table's `PRIMARY KEY`, so Postgres seeks straight to that row through its
+B-tree index. ClickHouse stores the same rows ordered by `(tenant, event_time)`, so it has no index on
+`event_id` and has to scan to find it.
+
+```bash
+# == Postgres (row / OLTP) ==
+#    query Time:             0.803 ms
+# == ClickHouse (column / OLAP) ==
+#    query Time:             4.000 ms
+```
+
+Now the result inverts: the row store answers in well under a millisecond, the column store scans.
+This is the whole reason to keep both, the same events sitting in a row store for "fetch this one
+record" and a column store for "aggregate across all of them".
+
+<details>
+<summary>Could ClickHouse just order by <code>event_id</code> too?</summary>
+
+It could, and then the lookup would use its sparse primary index instead of a full scan. But you
+would not do it, for two reasons:
+
+- **It would wreck the column store's actual job.** `event_id` is a random, unique value. Columnar
+  compression depends on similar values sitting next to each other (so they encode as runs, deltas,
+  or dictionaries); ordering the table by a random key scatters every column and collapses
+  compression, and the analytical scans the column store exists for get slower because related rows
+  are no longer near each other. Ordering by `(tenant, event_time)` keeps each tenant's events
+  together in time, which compresses hard and keeps the scans fast.
+- **A column store still is not a point-lookup engine.** ClickHouse's primary index is *sparse* (one
+  mark per ~8192-row granule), not a row-level B-tree. Even sorted on `event_id` it would read and
+  decompress a whole granule and reassemble the row from every column file, heavier than Postgres
+  seeking to a single contiguous row.
+
+So the comparison is fair in the way that matters: each store is laid out for the workload it is meant
+to serve. The lesson is not "ClickHouse cannot index this", it is that the layout that makes scans
+fast is the opposite of the one that makes point lookups fast, so you keep both.
+
+</details>
 
 ## What's in the overlay
 

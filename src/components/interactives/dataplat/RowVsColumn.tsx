@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Widget } from './shared';
+import { useHoverPreview, Widget } from './shared';
 
 // A tiny orders table. The point is physical layout, so we show the SAME five rows
 // laid out two ways and count which bytes each engine must actually read.
@@ -13,6 +13,7 @@ const ROWS: Record<Col, string>[] = [
   { order_id: 'ord-5', tenant: 'marketplace', status: 'cancelled', amount: '210' },
 ];
 const TARGET_ROW = 2; // ord-3
+const KEY_COL: Col = 'order_id'; // the column the point lookup filters on
 
 type Query = 'point' | 'scan';
 const QUERIES: Record<Query, { label: string; sql: string; cols: Col[]; rows: 'one' | 'all' }> = {
@@ -31,13 +32,18 @@ function rowStoreCell(q: Query, r: number, c: Col): Cell {
   return Q.cols.includes(c) ? 'used' : 'wasted';
 }
 
-// What a COLUMN store must read: it fetches whole columns. It reads only the columns the
-// query needs, but for those columns it must scan every row segment.
+// What a COLUMN store must read: it fetches whole columns. For a scan it reads only
+// the needed columns (every row, nothing wasted). For a point lookup it has no row
+// index, so it scans the key column to find the matching row (wasting the
+// non-matches), then fetches that row's other fields from their segments.
 function colStoreCell(q: Query, r: number, c: Col): Cell {
   const Q = QUERIES[q];
+  if (Q.rows === 'all') {
+    return Q.cols.includes(c) ? 'used' : 'skipped';
+  }
+  if (c === KEY_COL) return r === TARGET_ROW ? 'used' : 'wasted'; // scan to find the row
   if (!Q.cols.includes(c)) return 'skipped';
-  const rowTouched = Q.rows === 'all' || r === TARGET_ROW;
-  return rowTouched ? 'used' : 'skipped';
+  return r === TARGET_ROW ? 'used' : 'skipped';
 }
 
 function tally(fn: (r: number, c: Col) => Cell) {
@@ -60,7 +66,8 @@ const cellStyle = (s: Cell, color: string): React.CSSProperties =>
       : { background: 'transparent', color: 'var(--color-muted)', borderColor: 'var(--color-line)', opacity: 0.25 };
 
 export default function RowVsColumn() {
-  const [q, setQ] = useState<Query>('scan');
+  const [sel, setSel] = useState<Query>('scan');
+  const [q, bindQ] = useHoverPreview(sel);
   const ROW_COLOR = 'var(--color-dp-row)';
   const COL_COLOR = 'var(--color-dp-col)';
   const rowT = tally((r, c) => rowStoreCell(q, r, c));
@@ -73,8 +80,9 @@ export default function RowVsColumn() {
           <button
             key={k}
             type="button"
-            onClick={() => setQ(k)}
+            onClick={() => setSel(k)}
             aria-pressed={q === k}
+            {...bindQ(k)}
             className="border-2 px-2.5 py-1 font-mono text-[0.72rem] tracking-wide transition-colors"
             style={{
               borderColor: q === k ? 'var(--color-accent)' : 'var(--color-line)',
@@ -145,10 +153,13 @@ export default function RowVsColumn() {
           </>
         ) : (
           <>
-            The point lookup wants one whole row. The row store fetches it as a single contiguous
-            block: 4 cells, one seek. The column store must touch all four column segments to
-            reassemble that one row. Same cells read, but four seeks instead of one. This is why
-            current-state lookups live on a row store.
+            The point lookup wants one whole row. The row store jumps straight to it by primary key
+            and reads one contiguous block: 4 cells, nothing wasted. The column store has no row
+            index, so it scans the whole
+            <span style={{ color: COL_COLOR }} className="font-medium"> order_id</span> column to find
+            the row (the non-matches are wasted). That scan also tells it the match is the 3rd row, so
+            it seeks straight to that slot in each other column (one cell each, no re-scan). More
+            cells, out of four separate places. This is why current-state lookups live on a row store.
           </>
         )}
       </p>
