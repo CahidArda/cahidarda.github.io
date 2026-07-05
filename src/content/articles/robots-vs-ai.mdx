@@ -13,6 +13,7 @@ import BargainingTimeline from '../../components/interactives/robots-ai/Bargaini
 import SafetyNetCushion from '../../components/interactives/robots-ai/SafetyNetCushion.tsx';
 import AutorReversal from '../../components/interactives/robots-ai/AutorReversal.tsx';
 import WagePercentileExposure from '../../components/interactives/robots-ai/WagePercentileExposure.tsx';
+import ReshoringChain from '../../components/interactives/robots-ai/ReshoringChain.tsx';
 
 AI is changing how people work, and it is introducing a lot of uncertainty for anyone in the
 workforce. This is not the first time a technology has forced large numbers of people to change jobs.
@@ -194,18 +195,20 @@ there to absorb.
 
 ## What actually softened the blow
 
-What actually helped the workers who were displaced? Two answers stand out, and both cut against
-intuition. Bringing the old jobs back did little for them, and the most reliable cushion turned out to
-be plain income support.
+What actually helped the workers who were displaced? Two responses get tried after a wave of
+displacement. The first is to bring the lost jobs back. The second is to cushion the people who lost
+them with income support. In the robot record, the first did little for the workers themselves, and the
+second is the one the evidence backs.
 
-Start with bringing the jobs back. Facing low-wage foreign competition, firms had three responses to
-costs, and often substituted between them: automate the work at home, offshore it, or do both. Research
-on the robots-reshoring link
-([Krenz, Prettner and Strulik, 2021](https://www.econstor.eu/handle/10419/180197)) finds that one more
-robot per thousand workers is associated with about 3.5% more reshoring activity, and that the returning
-production lifted wages and jobs for professional occupations but not for routine ones. When production
-came back to high-wage countries, it came back _more automated_, not more staffed. "The jobs came back"
-and "the jobs came back to people" are different sentences.
+Start with bringing the jobs back. Reshoring means moving production home from lower-wage countries, and
+[Krenz, Prettner and Strulik (2021)](https://www.econstor.eu/handle/10419/180197) find that robots drove
+more of it: one extra robot per thousand workers is associated with about 3.5% more reshoring. But the
+production came back automated. The new jobs and pay went to professional occupations, not to the
+routine workers who had been displaced.
+
+<div class="fx-figure">
+  <ReshoringChain client:visible />
+</div>
 
 That leaves the safety net, and it is where the evidence is strongest. The most durable cushion was
 income support: money that softened the fall, paid over the years a displaced worker actually spends
@@ -215,11 +218,11 @@ looking for stable work.
   <SafetyNetCushion client:visible />
 </div>
 
-The clearest result is the IMF finding that US regions with more generous unemployment benefits between
-2000 and 2007 saw _smaller_ automation-driven wage losses. Income support absorbed the shock. That is
-the same lesson the German robot story told from the other direction, where a denser safety net kept a
-wave of automation from turning into job losses. For the AI policy debate, the evidence points in a
-clear direction: the highest-leverage intervention on this record is income support.
+One IMF finding is striking here: US regions with more generous unemployment benefits between 2000 and
+2007 saw _smaller_ automation-driven wage losses. Income support appeared to absorb some of the shock.
+The German robot story points the same way, where a denser safety net went with a wave of automation
+that did not turn into net job losses. In the robot record, income support did more to cushion
+displacement than bringing the jobs back did. Whether that carries over to AI has not been tested.
 
 ## Why AI will play out differently
 
