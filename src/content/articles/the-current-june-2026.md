@@ -66,5 +66,5 @@ older classics worth revisiting.
   - We were discussing with friends how the world feels like it
   is accelerating toward something, the way technology did in the run-up to WWII, which got me
   wondering whether there is any resemblance between AI and the Antichrist. To my surprise,
-  The first result when I searched on Google was a Scott Alexander blog post (which I assume
+  the first result when I searched on Google was a Scott Alexander blog post (which I assume
   is satirical) on similarities between Anthropic and the Antichrist.
