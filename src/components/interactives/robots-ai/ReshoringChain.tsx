@@ -137,8 +137,9 @@ export default function ReshoringChain() {
       </svg>
 
       <p className="mt-3 font-mono text-[0.62rem] text-muted">
-        Reshoring means production moving back home from lower-wage countries. Only the +3.5% figure
-        is from the paper; the split outcome is directional.
+        Reshoring means production moving back home from lower-wage countries. The gains land on
+        professionals, widening the skill gap. Only the +3.5% figure is from the paper; the split is
+        directional.
       </p>
     </Widget>
   );

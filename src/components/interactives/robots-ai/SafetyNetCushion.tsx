@@ -1,151 +1,121 @@
 import { ROBOT, Widget } from './shared';
 
-// The policy punchline: US regions with more generous unemployment benefits (2000-2007)
-// saw SMALLER automation-driven wage losses (IMF, via Bipartisan Policy Center). The
-// points are illustrative of that reported relationship, not the underlying regional data.
-// Y is inverted so "smaller loss" reads as higher up.
+// IMF Staff Discussion Note SDN/2024/002 (Brollo, Dabla-Norris et al., 2024), Figure 1. Over US
+// commuting zones in 2000-07, the wage decline from robot adoption was "about two-thirds smaller"
+// in states with more generous unemployment insurance than in stingier ones. It was a binary
+// high/low-UI comparison, not a continuous scatter, and it moved wages, not employment. No
+// invented numbers here: the two bars only encode that real ~2/3 ratio; the axis carries no scale.
 
-// Deterministic illustrative points (benefit generosity, wage loss %). Hand-placed around
-// a downward trend so SSR and client render identically (no runtime randomness).
-const POINTS: [number, number][] = [
-  [8, -3.1],
-  [15, -3.4],
-  [19, -2.4],
-  [24, -2.9],
-  [31, -2.1],
-  [37, -2.4],
-  [43, -1.7],
-  [49, -2.0],
-  [55, -1.3],
-  [61, -1.6],
-  [68, -1.1],
-  [74, -1.4],
-  [81, -0.8],
-  [88, -1.0],
-  [93, -0.6],
-];
-
-const VB = { w: 380, h: 230 };
-const PAD = { l: 36, r: 14, t: 16, b: 42 };
-const YMIN = -3.8;
+const VB = { w: 340, h: 214 };
+const Y0 = 46; // zero baseline (robots arrive)
+const LOW_LEN = 138; // low-UI wage decline (relative height only)
+const HIGH_LEN = LOW_LEN / 3; // "about two-thirds smaller"
 
 export default function SafetyNetCushion() {
-  const w = VB.w - PAD.l - PAD.r;
-  const h = VB.h - PAD.t - PAD.b;
-  const x = (g: number) => PAD.l + (g / 100) * w;
-  const y = (v: number) => PAD.t + (v / YMIN) * h;
-
-  // simple least-squares fit for the trend line
-  const n = POINTS.length;
-  const sx = POINTS.reduce((a, [g]) => a + g, 0);
-  const sy = POINTS.reduce((a, [, v]) => a + v, 0);
-  const sxx = POINTS.reduce((a, [g]) => a + g * g, 0);
-  const sxy = POINTS.reduce((a, [g, v]) => a + g * v, 0);
-  const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
-  const intercept = (sy - slope * sx) / n;
-  const fit = (g: number) => intercept + slope * g;
-
   return (
-    <Widget
-      title="The cushion that worked"
-      kicker="IMF, via Bipartisan Policy Center · illustrative"
-    >
+    <Widget title="The cushion that worked" kicker="IMF SDN 2024/002 · US commuting zones, 2000-07">
       <p className="mb-3 text-sm text-ink-soft">
-        The counterintuitive result from the policy literature: regions with more generous
-        unemployment benefits absorbed automation with{' '}
-        <span style={{ color: ROBOT, fontWeight: 600 }}>smaller</span> wage losses. Income support
-        absorbed the shock of automation more reliably than any other lever.
+        Same robot shock, two kinds of state. Where unemployment insurance was more generous, the
+        wage decline from robots was{' '}
+        <span style={{ color: ROBOT, fontWeight: 600 }}>about two-thirds smaller</span>.
       </p>
 
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
         className="w-full"
         role="img"
-        aria-label="A scatter of regions: more generous unemployment benefits on the x-axis correspond to smaller automation wage losses, with a downward-then-upward trend line."
+        aria-label="Two bars showing the wage decline from robots: large in low-UI states, about two-thirds smaller in high-UI states."
       >
-        {/* y gridlines */}
-        {[0, -1, -2, -3].map((v) => (
-          <g key={v}>
-            <line
-              x1={PAD.l}
-              y1={y(v)}
-              x2={VB.w - PAD.r}
-              y2={y(v)}
-              style={{
-                stroke: 'var(--color-line)',
-                strokeWidth: 1,
-                strokeDasharray: v === 0 ? undefined : '2 3',
-              }}
-            />
+        {/* zero baseline */}
+        <line
+          x1={30}
+          y1={Y0}
+          x2={VB.w - 14}
+          y2={Y0}
+          style={{ stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
+        />
+        <text
+          x={30}
+          y={Y0 - 5}
+          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
+        >
+          before robots (no change)
+        </text>
+
+        {/* low-UI bar: full decline */}
+        <rect x={70} y={Y0} width={74} height={LOW_LEN} style={{ fill: ROBOT }} />
+        {/* high-UI bar: about a third of it */}
+        <rect x={210} y={Y0} width={74} height={HIGH_LEN} style={{ fill: ROBOT, opacity: 0.42 }} />
+
+        {/* dashed guide from the low-UI depth across to show the gap */}
+        <line
+          x1={144}
+          y1={Y0 + LOW_LEN}
+          x2={284}
+          y2={Y0 + LOW_LEN}
+          style={{ stroke: 'var(--color-muted)', strokeWidth: 1, strokeDasharray: '3 3' }}
+        />
+        <text
+          x={247}
+          y={Y0 + HIGH_LEN + 16}
+          textAnchor="middle"
+          style={{ fill: ROBOT, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700 }}
+        >
+          ≈ two-thirds
+        </text>
+        <text
+          x={247}
+          y={Y0 + HIGH_LEN + 27}
+          textAnchor="middle"
+          style={{ fill: ROBOT, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700 }}
+        >
+          smaller
+        </text>
+
+        {/* bar labels */}
+        {[
+          { cx: 107, main: 'low-UI states', sub: 'stingier benefits' },
+          { cx: 247, main: 'high-UI states', sub: 'more generous' },
+        ].map((b) => (
+          <g key={b.main}>
             <text
-              x={PAD.l - 6}
-              y={y(v) + 3}
-              textAnchor="end"
+              x={b.cx}
+              y={VB.h - 20}
+              textAnchor="middle"
+              style={{
+                fill: 'var(--color-ink)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                fontWeight: 600,
+              }}
+            >
+              {b.main}
+            </text>
+            <text
+              x={b.cx}
+              y={VB.h - 9}
+              textAnchor="middle"
               style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
             >
-              {v}%
+              {b.sub}
             </text>
           </g>
         ))}
 
-        {/* fit line */}
-        <line
-          x1={x(4)}
-          y1={y(fit(4))}
-          x2={x(96)}
-          y2={y(fit(96))}
-          style={{ stroke: ROBOT, strokeWidth: 2, strokeDasharray: '5 4', opacity: 0.85 }}
-        />
-
-        {/* points */}
-        {POINTS.map(([g, v], i) => (
-          <circle
-            key={i}
-            cx={x(g)}
-            cy={y(v)}
-            r={3.4}
-            style={{ fill: ROBOT, opacity: 0.7, stroke: 'var(--color-paper)', strokeWidth: 1 }}
-          />
-        ))}
-
-        {/* axis labels */}
+        {/* y-axis label (qualitative, no scale) */}
         <text
-          x={PAD.l}
-          y={VB.h - 20}
-          textAnchor="start"
-          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
-        >
-          less generous benefits
-        </text>
-        <text
-          x={VB.w - PAD.r}
-          y={VB.h - 20}
-          textAnchor="end"
-          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
-        >
-          more generous →
-        </text>
-        <text
-          x={PAD.l + w / 2}
-          y={VB.h - 6}
+          transform={`translate(12 ${Y0 + LOW_LEN / 2}) rotate(-90)`}
           textAnchor="middle"
           style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
         >
-          unemployment-benefit generosity by region
-        </text>
-        <text
-          transform={`translate(11 ${PAD.t + h / 2}) rotate(-90)`}
-          textAnchor="middle"
-          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
-        >
-          automation wage loss
+          wage decline from robots ↓
         </text>
       </svg>
 
       <p className="mt-3 font-mono text-[0.62rem] text-muted">
-        Points are illustrative of the reported relationship, not the underlying regional data. The
-        same pattern shows up across countries: where the safety net was denser, the wage hit was
-        smaller.
+        The cushion showed up in wages, not employment, and was strongest for workers without a
+        college degree. Bar heights encode only the reported ~two-thirds ratio, not absolute
+        figures.
       </p>
     </Widget>
   );
