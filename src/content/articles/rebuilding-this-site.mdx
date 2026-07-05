@@ -67,9 +67,7 @@ const articles = defineCollection({
       title: z.string(),
       description: z.string(),
       date: z.coerce.date(),
-      tags: z
-        .array(z.enum(['blog', 'publication', 'accessions']))
-        .default(['blog']),
+      tags: z.array(z.enum(['blog', 'publication', 'accessions'])).default(['blog']),
       // ...external-post and publication-only fields
     }),
 });

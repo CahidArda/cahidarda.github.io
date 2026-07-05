@@ -37,33 +37,86 @@ export default function OnboardFanout() {
 
   return (
     <Widget title="One command, a whole tenant" kicker="onboard-tenant.sh <name>">
-      <svg viewBox={`0 0 ${VB.w} ${VB.h}`} className="w-full" style={{ maxHeight: 250 }} role="img"
-        aria-label="A single onboarding command fanning out into namespace, quota, network policy, rbac, kafka topic, warehouse schema, and dashboard">
+      <svg
+        viewBox={`0 0 ${VB.w} ${VB.h}`}
+        className="w-full"
+        style={{ maxHeight: 250 }}
+        role="img"
+        aria-label="A single onboarding command fanning out into namespace, quota, network policy, rbac, kafka topic, warehouse schema, and dashboard"
+      >
         {/* fan-out connectors */}
         {RES.map((r, i) => {
           const on = i < lit;
           const a = rightOf(CMD);
           const b = { x: BOX.x, y: ys[i] + BOX.h / 2 };
           return (
-            <line key={r.name} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-              style={{ stroke: on ? r.color : 'var(--color-line-strong)', strokeWidth: on ? 2 : 1, strokeDasharray: on ? undefined : '3 3', opacity: on ? 1 : 0.5, transition: 'stroke 200ms, opacity 200ms' }} />
+            <line
+              key={r.name}
+              x1={a.x}
+              y1={a.y}
+              x2={b.x}
+              y2={b.y}
+              style={{
+                stroke: on ? r.color : 'var(--color-line-strong)',
+                strokeWidth: on ? 2 : 1,
+                strokeDasharray: on ? undefined : '3 3',
+                opacity: on ? 1 : 0.5,
+                transition: 'stroke 200ms, opacity 200ms',
+              }}
+            />
           );
         })}
 
-        <SvgNode n={CMD} title="onboard" sub="one command" color="var(--color-accent)" state="active" titleSize={12} />
+        <SvgNode
+          n={CMD}
+          title="onboard"
+          sub="one command"
+          color="var(--color-accent)"
+          state="active"
+          titleSize={12}
+        />
 
         {RES.map((r, i) => {
           const on = i < lit;
           return (
             <g key={r.name} style={{ opacity: on ? 1 : 0.45, transition: 'opacity 200ms' }}>
-              <rect x={BOX.x} y={ys[i]} width={BOX.w} height={BOX.h}
-                style={{ fill: on ? r.color : 'var(--color-paper)', stroke: on ? r.color : 'var(--color-line-strong)', strokeWidth: 1.5, transition: 'fill 200ms' }} />
-              <text x={BOX.x + 8} y={ys[i] + BOX.h / 2 + 1} dominantBaseline="middle"
-                style={{ fill: on ? 'var(--color-paper)' : 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600 }}>
+              <rect
+                x={BOX.x}
+                y={ys[i]}
+                width={BOX.w}
+                height={BOX.h}
+                style={{
+                  fill: on ? r.color : 'var(--color-paper)',
+                  stroke: on ? r.color : 'var(--color-line-strong)',
+                  strokeWidth: 1.5,
+                  transition: 'fill 200ms',
+                }}
+              />
+              <text
+                x={BOX.x + 8}
+                y={ys[i] + BOX.h / 2 + 1}
+                dominantBaseline="middle"
+                style={{
+                  fill: on ? 'var(--color-paper)' : 'var(--color-muted)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                }}
+              >
                 {r.name}
               </text>
-              <text x={BOX.x + BOX.w - 6} y={ys[i] + BOX.h / 2 + 1} textAnchor="end" dominantBaseline="middle"
-                style={{ fill: on ? 'var(--color-paper)' : 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 7, opacity: 0.85 }}>
+              <text
+                x={BOX.x + BOX.w - 6}
+                y={ys[i] + BOX.h / 2 + 1}
+                textAnchor="end"
+                dominantBaseline="middle"
+                style={{
+                  fill: on ? 'var(--color-paper)' : 'var(--color-muted)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 7,
+                  opacity: 0.85,
+                }}
+              >
                 {r.group}
               </text>
             </g>
@@ -73,9 +126,16 @@ export default function OnboardFanout() {
 
       <div className="mt-2 flex items-center gap-2">
         <span className="font-mono text-[0.7rem] text-muted">provisioned</span>
-        <span className="font-mono text-base font-semibold text-ink">{lit}/{RES.length}</span>
+        <span className="font-mono text-base font-semibold text-ink">
+          {lit}/{RES.length}
+        </span>
         <span className="font-mono text-[0.7rem] text-muted">in</span>
-        <span className="font-mono text-base font-semibold" style={{ color: 'var(--color-accent)' }}>{seconds}s</span>
+        <span
+          className="font-mono text-base font-semibold"
+          style={{ color: 'var(--color-accent)' }}
+        >
+          {seconds}s
+        </span>
       </div>
       <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         <span className="border border-line px-2 py-1.5 font-mono text-[0.66rem] text-ink-soft">

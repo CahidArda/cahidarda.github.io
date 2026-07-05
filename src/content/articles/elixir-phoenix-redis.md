@@ -1,6 +1,6 @@
 ---
-title: "Elixir/Phoenix App using Redis on Fly"
-description: "A tutorial deploying an Elixir/Phoenix app that caches WeatherAPI responses in Upstash Redis on Fly."
+title: 'Elixir/Phoenix App using Redis on Fly'
+description: 'A tutorial deploying an Elixir/Phoenix app that caches WeatherAPI responses in Upstash Redis on Fly.'
 date: 2024-03-28
 tags: ['blog']
 ---

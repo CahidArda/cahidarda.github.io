@@ -47,8 +47,7 @@ export default function CommandPalette({ items }: Props) {
     const q = query.trim().toLowerCase();
     if (!q) return items;
     return items.filter(
-      (it) =>
-        it.title.toLowerCase().includes(q) || it.subtitle.toLowerCase().includes(q),
+      (it) => it.title.toLowerCase().includes(q) || it.subtitle.toLowerCase().includes(q),
     );
   }, [query, items]);
 

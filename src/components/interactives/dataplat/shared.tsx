@@ -18,7 +18,12 @@ export interface Component {
 
 /** The platform cast: source, log, processor, and the three storage shapes. */
 export const COMPONENTS: Component[] = [
-  { id: 'producer', name: 'Producers', role: 'synthetic events', color: 'var(--color-dp-producer)' },
+  {
+    id: 'producer',
+    name: 'Producers',
+    role: 'synthetic events',
+    color: 'var(--color-dp-producer)',
+  },
   { id: 'log', name: 'Redpanda', role: 'event log', color: 'var(--color-dp-log)' },
   { id: 'stream', name: 'Spark', role: 'stream processor', color: 'var(--color-dp-stream)' },
   { id: 'row', name: 'Postgres', role: 'row · OLTP', color: 'var(--color-dp-row)' },
@@ -187,7 +192,11 @@ export function SvgNode({
   const stroke = state === 'off' ? 'var(--color-line-strong)' : color;
   const fill = state === 'active' ? color : 'var(--color-paper)';
   const titleFill =
-    state === 'active' ? 'var(--color-paper)' : state === 'off' ? 'var(--color-muted)' : 'var(--color-ink)';
+    state === 'active'
+      ? 'var(--color-paper)'
+      : state === 'off'
+        ? 'var(--color-muted)'
+        : 'var(--color-ink)';
   const subFill = state === 'active' ? 'var(--color-paper)' : 'var(--color-muted)';
   return (
     <g style={{ opacity: state === 'off' ? 0.5 : 1, transition: 'opacity 250ms' }}>
@@ -208,7 +217,12 @@ export function SvgNode({
         y={sub ? n.cy - 3 : n.cy + 1}
         textAnchor="middle"
         dominantBaseline="middle"
-        style={{ fill: titleFill, fontFamily: 'var(--font-mono)', fontSize: titleSize, fontWeight: 600 }}
+        style={{
+          fill: titleFill,
+          fontFamily: 'var(--font-mono)',
+          fontSize: titleSize,
+          fontWeight: 600,
+        }}
       >
         {title}
       </text>

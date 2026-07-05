@@ -25,16 +25,24 @@ const prevKicker = prev ? 'Previous' : 'Series';
 const prevLabel = prev ? prev.data.title : landing ? landing.data.title : 'Index';
 ---
 
-<nav class="mt-12 grid grid-cols-1 gap-3 border-t border-line pt-6 sm:grid-cols-2" aria-label="Series navigation">
+<nav
+  class="mt-12 grid grid-cols-1 gap-3 border-t border-line pt-6 sm:grid-cols-2"
+  aria-label="Series navigation"
+>
   <a href={prevHref} class="group border border-line p-4 transition-colors hover:border-accent">
     <span class="label">← {prevKicker}</span>
     <span class="mt-1 block font-display text-ink group-hover:text-accent">{prevLabel}</span>
   </a>
   {
     next && (
-      <a href={`/articles/${next.id}`} class="group border border-line p-4 text-right transition-colors hover:border-accent">
+      <a
+        href={`/articles/${next.id}`}
+        class="group border border-line p-4 text-right transition-colors hover:border-accent"
+      >
         <span class="label">Next →</span>
-        <span class="mt-1 block font-display text-ink group-hover:text-accent">{next.data.title}</span>
+        <span class="mt-1 block font-display text-ink group-hover:text-accent">
+          {next.data.title}
+        </span>
       </a>
     )
   }

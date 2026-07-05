@@ -4,14 +4,14 @@ Personal website of Cahid Arda Öz - built with [Astro](https://astro.build), Ty
 
 ## Commands
 
-| Command            | Action                                    |
-| :----------------- | :---------------------------------------- |
-| `pnpm install`     | Install dependencies                      |
-| `pnpm dev`         | Start dev server at `localhost:4321`      |
-| `pnpm build`       | Build to `./dist/`                        |
-| `pnpm preview`     | Preview the build locally                 |
-| `pnpm check`       | Type-check with `astro check`             |
-| `pnpm format`      | Format with Prettier                      |
+| Command        | Action                               |
+| :------------- | :----------------------------------- |
+| `pnpm install` | Install dependencies                 |
+| `pnpm dev`     | Start dev server at `localhost:4321` |
+| `pnpm build`   | Build to `./dist/`                   |
+| `pnpm preview` | Preview the build locally            |
+| `pnpm check`   | Type-check with `astro check`        |
+| `pnpm format`  | Format with Prettier                 |
 
 ## Structure
 

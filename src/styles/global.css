@@ -70,6 +70,13 @@
   --color-dp-row: var(--dp-row);
   --color-dp-col: var(--dp-col);
   --color-dp-lake: var(--dp-lake);
+
+  /* Choice-blindness widget palette - one fixed colour per outcome, learned once
+     and reused across the transcript animation and every results chart:
+     confabulated (defended the swap) vs detected (caught it) vs hedged. */
+  --color-cb-confab: var(--cb-confab);
+  --color-cb-detect: var(--cb-detect);
+  --color-cb-hedge: var(--cb-hedge);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -109,6 +116,20 @@
   --dp-row: #69a0e0;
   --dp-col: #d6b551;
   --dp-lake: #54bdb2;
+}
+
+/* The choice-blindness cast. Confabulated (defended an answer it never gave) takes
+   a warm accent-adjacent burnt orange so the effect reads as the "hot" outcome;
+   detected (caught the swap) a cool teal contrast; hedged a neutral muted grey. */
+:root {
+  --cb-confab: #c0562e;
+  --cb-detect: #2f7d8f;
+  --cb-hedge: #8f8a7b;
+}
+.dark {
+  --cb-confab: #e08a5c;
+  --cb-detect: #58b0bf;
+  --cb-hedge: #a9a493;
 }
 
 @layer base {
@@ -337,10 +358,10 @@
 }
 /* Expanded <details> content aligns with the summary title (past the marker). */
 .prose details {
-  padding-left: 1.0em;
+  padding-left: 1em;
 }
 .prose summary {
-  margin-left: -1.0em;
+  margin-left: -1em;
 }
 .prose h2 + *,
 .prose h3 + * {

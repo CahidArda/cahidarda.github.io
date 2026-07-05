@@ -44,7 +44,7 @@ make tilt PHASE=phase-1-ingest
 
 Apache Kafka is the original distributed event log, and over the years its client protocol (the
 "Kafka API") became the de facto standard that a whole ecosystem of tools and client libraries
-speaks. [Redpanda](https://www.redpanda.com/) is a different *implementation* of that same protocol:
+speaks. [Redpanda](https://www.redpanda.com/) is a different _implementation_ of that same protocol:
 it is wire-compatible with Kafka, so anything that talks to Kafka talks to Redpanda unchanged. In
 this project that is why the producer uses a Kafka client library (`confluent-kafka`), the config
 key is `KAFKA_BOOTSTRAP`, and Spark reads the stream with its Kafka connector, all pointed at
