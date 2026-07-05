@@ -1,38 +1,38 @@
 import { useState } from 'react';
-import { AI, ROBOT, LegendDot, Widget } from './shared';
+import { AI, ROBOT, Widget } from './shared';
 
-// The signature figure. Two exposure curves over the same education / income axis:
-// robots slope DOWN the ladder (worst for the least-educated), AI slopes UP it (rises
-// with skill and income). They cross in the middle. The index values are illustrative
-// of the directions the studies report, not exact figures: the robot curve traces
-// Acemoglu-Restrepo (2020) and the UK study's "declines monotonically with education";
-// the AI curve traces the same UK study's "increases monotonically across income
-// percentiles" plus Autor (2024).
+// The signature figure, the EDUCATION cut of Labaj, Oles & Prochazka (2025): robot exposure
+// is strongest among high-school dropouts and "declines monotonically with education", while
+// AI exposure runs the other way, lightest on the least-educated and heaviest on college
+// graduates. The curve heights are illustrative of those reported DIRECTIONS, not data, so no
+// numbers are shown. Each line is labelled in its own colour, on the chart, so the inversion
+// reads in one look: the word "robots" sits where robots peak (left), "AI" where AI peaks.
 
 interface Band {
   key: string;
   label: string;
   short: string;
-  robot: number; // relative exposure index, 0-100
+  robot: number; // relative shape only, never displayed
   ai: number;
 }
 
+// Values are perfectly linear (equal steps) so each line renders dead straight and the dots
+// sit on it; the two cross exactly at "Some college". Heights are illustrative direction only.
 const BANDS: Band[] = [
-  { key: 'nohs', label: 'No HS diploma', short: '<HS', robot: 100, ai: 16 },
-  { key: 'hs', label: 'High-school grad', short: 'HS', robot: 76, ai: 33 },
-  { key: 'some', label: 'Some college', short: 'Some', robot: 54, ai: 54 },
-  { key: 'ba', label: "Bachelor's", short: 'BA', robot: 30, ai: 82 },
-  { key: 'adv', label: 'Advanced degree', short: 'Adv', robot: 11, ai: 100 },
+  { key: 'nohs', label: 'No HS diploma', short: '<HS', robot: 96, ai: 8 },
+  { key: 'hs', label: 'High-school grad', short: 'HS', robot: 74, ai: 30 },
+  { key: 'some', label: 'Some college', short: 'Some', robot: 52, ai: 52 },
+  { key: 'ba', label: "Bachelor's", short: 'BA', robot: 30, ai: 74 },
+  { key: 'adv', label: 'Advanced degree', short: 'Adv', robot: 8, ai: 96 },
 ];
 
 const VB = { w: 380, h: 250 };
-const PAD = { l: 34, r: 14, t: 18, b: 46 };
+const PAD = { l: 32, r: 14, t: 22, b: 46 };
 
-export default function InvertedLadder({ variant = 'full' }: { variant?: 'full' | 'knowledge' }) {
-  // Default readout = the crossover band ("some college"), where the two waves meet.
+export default function InvertedLadder() {
   const [sel, setSel] = useState<number | null>(null);
-  const active = sel ?? 2;
-  const b = BANDS[active];
+  // No band is highlighted until one is actually hovered.
+  const active = sel;
 
   const w = VB.w - PAD.l - PAD.r;
   const h = VB.h - PAD.t - PAD.b;
@@ -41,101 +41,48 @@ export default function InvertedLadder({ variant = 'full' }: { variant?: 'full' 
 
   const robotPts = BANDS.map((d, i) => `${x(i)},${y(d.robot)}`).join(' ');
   const aiPts = BANDS.map((d, i) => `${x(i)},${y(d.ai)}`).join(' ');
-  // The lines cross exactly at band index 2 (both = 54), so the crossover marker sits there.
-  const cross = { x: x(2), y: y(54) };
-
-  const focusBA = variant === 'knowledge'; // dim the low end, spotlight the credentialed end
 
   return (
-    <Widget
-      title={variant === 'knowledge' ? 'The same ladder, from the top' : 'The inverted ladder'}
-      kicker="exposure index · illustrative of the reported directions"
-    >
-      <p className="mb-3 text-sm text-ink-soft">
-        {variant === 'knowledge' ? (
-          <>
-            The right half is where most software, design, legal and analyst work sits. It is the
-            low point of the robot curve and the high point of the AI curve. Hover a band to read
-            both.
-          </>
-        ) : (
-          <>
-            Relative exposure to automation across the education / income ladder. Robots fall{' '}
-            <span style={{ color: ROBOT, fontWeight: 600 }}>down</span> it; AI climbs{' '}
-            <span style={{ color: AI, fontWeight: 600 }}>up</span> it. Hover a band to read both,
-            and notice where they cross.
-          </>
-        )}
-      </p>
-
+    <Widget title="The inverted ladder" kicker="by education · direction from Labaj et al. (2025)">
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
         className="w-full"
         role="img"
         aria-label="Two curves over the education ladder: robot exposure falls from left to right, AI exposure rises, and they cross in the middle."
       >
-        {/* y gridlines */}
+        {/* faint gridlines for structure (no numeric scale: the index is illustrative) */}
         {[0, 25, 50, 75, 100].map((v) => (
-          <g key={v}>
-            <line
-              x1={PAD.l}
-              y1={y(v)}
-              x2={VB.w - PAD.r}
-              y2={y(v)}
-              style={{ stroke: 'var(--color-line)', strokeWidth: 1, strokeDasharray: '2 3' }}
-            />
-            <text
-              x={PAD.l - 6}
-              y={y(v) + 3}
-              textAnchor="end"
-              style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
-            >
-              {v}
-            </text>
-          </g>
+          <line
+            key={v}
+            x1={PAD.l}
+            y1={y(v)}
+            x2={VB.w - PAD.r}
+            y2={y(v)}
+            style={{ stroke: 'var(--color-line)', strokeWidth: 1, strokeDasharray: '2 3' }}
+          />
         ))}
 
-        {/* knowledge-worker spotlight band (section-3 variant) */}
-        {focusBA && (
-          <rect
-            x={x(2.5)}
-            y={PAD.t}
-            width={x(4) - x(2.5) + PAD.r}
-            height={h}
-            style={{ fill: AI, opacity: 0.08 }}
-          />
-        )}
-
         {/* the two curves */}
-        <polyline
-          points={robotPts}
-          fill="none"
-          style={{ stroke: ROBOT, strokeWidth: 2.5, opacity: focusBA ? 0.5 : 1 }}
-        />
+        <polyline points={robotPts} fill="none" style={{ stroke: ROBOT, strokeWidth: 2.5 }} />
         <polyline points={aiPts} fill="none" style={{ stroke: AI, strokeWidth: 2.5 }} />
 
-        {/* crossover marker */}
-        <circle
-          cx={cross.x}
-          cy={cross.y}
-          r={4}
-          style={{ fill: 'var(--color-paper)', stroke: 'var(--color-ink)', strokeWidth: 1.5 }}
-        />
-        {sel === null && !focusBA && (
-          <text
-            x={cross.x}
-            y={cross.y - 10}
-            textAnchor="middle"
-            style={{
-              fill: 'var(--color-ink)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 8.5,
-              fontWeight: 600,
-            }}
-          >
-            they cross here
-          </text>
-        )}
+        {/* direct colour-coded labels, each sitting where its line peaks */}
+        <text
+          x={x(0) + 6}
+          y={y(100) - 7}
+          textAnchor="start"
+          style={{ fill: ROBOT, fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}
+        >
+          robots ↓
+        </text>
+        <text
+          x={x(4) - 6}
+          y={y(100) - 7}
+          textAnchor="end"
+          style={{ fill: AI, fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}
+        >
+          ↑ AI
+        </text>
 
         {/* data dots, highlighted on the active band */}
         {BANDS.map((d, i) => (
@@ -144,12 +91,7 @@ export default function InvertedLadder({ variant = 'full' }: { variant?: 'full' 
               cx={x(i)}
               cy={y(d.robot)}
               r={i === active ? 4.5 : 3}
-              style={{
-                fill: ROBOT,
-                opacity: focusBA && i < 3 ? 0.4 : 1,
-                stroke: 'var(--color-paper)',
-                strokeWidth: 1,
-              }}
+              style={{ fill: ROBOT, stroke: 'var(--color-paper)', strokeWidth: 1 }}
             />
             <circle
               cx={x(i)}
@@ -178,7 +120,7 @@ export default function InvertedLadder({ variant = 'full' }: { variant?: 'full' 
                 height={h}
                 style={{ fill: 'transparent' }}
               />
-              {i === active && (
+              {sel !== null && i === active && (
                 <line
                   x1={x(i)}
                   y1={PAD.t}
@@ -206,12 +148,19 @@ export default function InvertedLadder({ variant = 'full' }: { variant?: 'full' 
 
         {/* axis labels */}
         <text
+          transform={`translate(11 ${PAD.t + h / 2}) rotate(-90)`}
+          textAnchor="middle"
+          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
+        >
+          exposure →
+        </text>
+        <text
           x={PAD.l}
           y={VB.h - 12}
           textAnchor="start"
           style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
         >
-          least educated / lower income
+          least educated
         </text>
         <text
           x={VB.w - PAD.r}
@@ -219,27 +168,16 @@ export default function InvertedLadder({ variant = 'full' }: { variant?: 'full' 
           textAnchor="end"
           style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
         >
-          most educated / higher income →
+          most educated →
         </text>
       </svg>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
-        <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[0.7rem] text-muted">{b.label}</span>
-          <div className="flex gap-4">
-            <span className="font-mono text-sm" style={{ color: ROBOT }}>
-              robots <span className="font-semibold">{b.robot}</span>
-            </span>
-            <span className="font-mono text-sm" style={{ color: AI }}>
-              AI <span className="font-semibold">{b.ai}</span>
-            </span>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <LegendDot color={ROBOT}>robot exposure</LegendDot>
-          <LegendDot color={AI}>AI exposure</LegendDot>
-        </div>
-      </div>
+      <p className="mt-3 text-sm text-ink-soft">
+        Relative exposure to automation across the education ladder. Robots fall{' '}
+        <span style={{ color: ROBOT, fontWeight: 600 }}>down</span> it, hitting high-school dropouts
+        hardest; AI climbs <span style={{ color: AI, fontWeight: 600 }}>up</span> it, heaviest on
+        college graduates.
+      </p>
     </Widget>
   );
 }

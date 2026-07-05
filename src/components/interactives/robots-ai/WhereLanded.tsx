@@ -1,125 +1,93 @@
 import { useState } from 'react';
 import { ROBOT, WARN, Widget } from './shared';
 
-// "Reemployment" hides a large permanent-pay-cut tail. Two stacked bars with DIFFERENT
-// denominators, kept explicit: the whole displaced pool, then the reemployed subset.
-// BLS Displaced Workers Survey (January 2024), long-tenured workers.
+// "Reemployment" hides a large permanent-pay-cut tail. One bar over the whole displaced
+// pool, split into three outcomes. Shares from the BLS Displaced Workers Survey (Jan 2024,
+// long-tenured workers): 65.7% reemployed, and of the full-time reemployed 62% matched or
+// beat their old pay. Combining the two gives the three slices below (the small overlap
+// between the two survey denominators is smoothed over for readability).
 
 interface Seg {
   key: string;
   label: string;
   pct: number;
   color: string;
-  denom: string;
   note: string;
 }
 
-const POOL: Seg[] = [
-  {
-    key: 'reemp',
-    label: 'reemployed',
-    pct: 65.7,
-    color: ROBOT,
-    denom: 'of all long-tenured displaced workers',
-    note: '65.7% found another job by the survey date.',
-  },
+const SEGS: Seg[] = [
   {
     key: 'not',
     label: 'not reemployed',
-    pct: 34.3,
+    pct: 34,
     color: 'var(--color-muted)',
-    denom: 'of all long-tenured displaced workers',
-    note: 'The remaining ~34% were unemployed or had left the labour force.',
-  },
-];
-
-const REEMP: Seg[] = [
-  {
-    key: 'equal',
-    label: 'equal or higher pay',
-    pct: 62,
-    color: ROBOT,
-    denom: 'of full-time reemployed workers',
-    note: '62% earned as much as, or more than, the job they lost.',
+    note: 'About a third never found another job by the survey date: still unemployed or out of the labour force.',
   },
   {
     key: 'cut',
-    label: 'took a pay cut',
-    pct: 38,
+    label: 'reemployed, pay cut',
+    pct: 25,
     color: WARN,
-    denom: 'of full-time reemployed workers',
-    note: '38% landed a permanent pay cut. This is the tail "reemployment" hides.',
+    note: 'Found full-time work but at lower pay than the job they lost. This is the tail "reemployment" hides.',
+  },
+  {
+    key: 'equal',
+    label: 'reemployed, equal or higher pay',
+    pct: 41,
+    color: ROBOT,
+    note: 'Found full-time work at pay as good as, or better than, the job they lost. The genuine recoveries.',
   },
 ];
 
-function Bar({
-  segs,
-  hover,
-  setHover,
-}: {
-  segs: Seg[];
-  hover: string | null;
-  setHover: (k: string | null) => void;
-}) {
-  return (
-    <div className="flex h-11 w-full overflow-hidden border border-line">
-      {segs.map((s) => (
-        <button
-          key={s.key}
-          type="button"
-          onMouseEnter={() => setHover(s.key)}
-          onMouseLeave={() => setHover(null)}
-          onFocus={() => setHover(s.key)}
-          onBlur={() => setHover(null)}
-          className="flex h-full items-center justify-center transition-opacity"
-          style={{
-            width: `${s.pct}%`,
-            background: s.color,
-            opacity: hover === null || hover === s.key ? 1 : 0.4,
-          }}
-        >
-          <span className="px-1 font-mono text-[0.7rem] font-semibold text-paper">{s.pct}%</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function WhereLanded() {
   const [hover, setHover] = useState<string | null>(null);
-  const all = [...POOL, ...REEMP];
-  const active = all.find((s) => s.key === hover);
+  const active = SEGS.find((s) => s.key === hover);
 
   return (
     <Widget title="Where displaced workers landed" kicker="BLS Displaced Workers Survey, Jan 2024">
       <p className="mb-4 text-sm text-ink-soft">
-        "Reemployed" sounds like recovery. Two thirds got there. But the denominators matter, and
-        the two bars below use different ones. Hover a segment to see which.
+        "Reemployed" sounds like recovery, and two thirds of long-tenured displaced workers got
+        there. But split the whole pool into what actually happened and only about four in ten came
+        out whole. Hover a segment to read it.
       </p>
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-baseline justify-between">
-          <span className="font-mono text-[0.68rem] text-ink-soft">the displaced pool (100%)</span>
-        </div>
-        <Bar segs={POOL} hover={hover} setHover={setHover} />
-        <div className="mb-2 flex justify-between font-mono text-[0.62rem] text-muted">
-          <span>reemployed</span>
-          <span>not reemployed</span>
-        </div>
-
-        <div className="flex items-baseline justify-between">
-          <span className="font-mono text-[0.68rem] text-ink-soft">
-            of the full-time reemployed (100%)
-          </span>
-        </div>
-        <Bar segs={REEMP} hover={hover} setHover={setHover} />
-        <div className="flex justify-between font-mono text-[0.62rem] text-muted">
-          <span>equal or higher</span>
-          <span style={{ color: WARN }}>pay cut</span>
-        </div>
+      <div className="flex h-11 w-full overflow-hidden border border-line">
+        {SEGS.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            onMouseEnter={() => setHover(s.key)}
+            onMouseLeave={() => setHover(null)}
+            onFocus={() => setHover(s.key)}
+            onBlur={() => setHover(null)}
+            className="flex h-full items-center justify-center transition-opacity"
+            style={{
+              width: `${s.pct}%`,
+              background: s.color,
+              opacity: hover === null || hover === s.key ? 1 : 0.4,
+            }}
+          >
+            <span className="px-1 font-mono text-[0.7rem] font-semibold text-paper">{s.pct}%</span>
+          </button>
+        ))}
       </div>
 
-      <div className="mt-4 min-h-[3rem] border-t border-line pt-3">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+        {SEGS.map((s) => (
+          <span
+            key={s.key}
+            className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] text-ink-soft"
+          >
+            <span
+              aria-hidden
+              style={{ width: 10, height: 10, background: s.color, display: 'inline-block' }}
+            />
+            {s.label}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-4 min-h-12 border-t border-line pt-3">
         {active ? (
           <>
             <div
@@ -130,14 +98,13 @@ export default function WhereLanded() {
             >
               {active.pct}% {active.label}
             </div>
-            <div className="font-mono text-[0.66rem] text-muted">{active.denom}</div>
             <p className="mt-1 text-sm text-ink-soft">{active.note}</p>
           </>
         ) : (
           <p className="text-sm text-ink-soft">
-            Combine the bars: about a third of the displaced never got reemployed, and of those who
-            did, nearly 4 in 10 took a permanent pay cut. The headline number is the friendliest
-            slice.
+            About a third of displaced workers never got reemployed, and a quarter came back only at
+            lower pay. The friendly two-thirds reemployment headline is hiding a long tail of people
+            who ended up worse off for good.
           </p>
         )}
       </div>

@@ -10,8 +10,10 @@ interface Pt {
   t: number;
   v: number;
 }
-// Jacobson-LaLonde-Sullivan (1993): ~-30% at displacement, still ~-20% at 15-20 years.
-const JLS: Pt[] = [
+// von Wachter, Song & Manchester (2009): ~-30% at displacement, still ~-20% at 15-20 years.
+// (Jacobson-LaLonde-Sullivan 1993 is the foundational study but only observed ~5 years out,
+// where it found ~-25%; the 15-20 year horizon is von Wachter et al.'s.)
+const VW: Pt[] = [
   { t: 0, v: -30 },
   { t: 2, v: -27 },
   { t: 5, v: -24 },
@@ -28,8 +30,15 @@ const CP: Pt[] = [
   { t: 6, v: -15 },
 ];
 
+// Only these years are figures the studies actually report; every other point on the line
+// is interpolated to show the path, so only these get dots and feed the readout.
+const VW_REPORTED = new Set([0, 15, 20]);
+const CP_REPORTED = new Set([0, 6]);
+const REP_VW = VW.filter((p) => VW_REPORTED.has(p.t));
+const REP_CP = CP.filter((p) => CP_REPORTED.has(p.t));
+
 const VB = { w: 380, h: 230 };
-const PAD = { l: 34, r: 14, t: 14, b: 40 };
+const PAD = { l: 46, r: 14, t: 14, b: 40 };
 const YMIN = -36;
 
 export default function EarningsScar() {
@@ -42,12 +51,12 @@ export default function EarningsScar() {
 
   const line = (pts: Pt[]) => pts.map((p) => `${x(p.t)},${y(p.v)}`).join(' ');
 
-  // nearest reported point for the readout
+  // snap the readout to the nearest REPORTED figure (never an interpolated point)
   const readT = hoverT ?? 20;
-  const jlsAt = JLS.reduce((a, b) => (Math.abs(b.t - readT) < Math.abs(a.t - readT) ? b : a));
+  const jlsAt = REP_VW.reduce((a, b) => (Math.abs(b.t - readT) < Math.abs(a.t - readT) ? b : a));
   const cpAt =
     readT <= 6
-      ? CP.reduce((a, b) => (Math.abs(b.t - readT) < Math.abs(a.t - readT) ? b : a))
+      ? REP_CP.reduce((a, b) => (Math.abs(b.t - readT) < Math.abs(a.t - readT) ? b : a))
       : null;
 
   return (
@@ -99,14 +108,26 @@ export default function EarningsScar() {
 
         {/* the two paths */}
         <polyline points={line(CP)} fill="none" style={{ stroke: WARN, strokeWidth: 2.5 }} />
-        <polyline points={line(JLS)} fill="none" style={{ stroke: ROBOT, strokeWidth: 2.5 }} />
+        <polyline points={line(VW)} fill="none" style={{ stroke: ROBOT, strokeWidth: 2.5 }} />
 
-        {/* dots */}
-        {JLS.map((p) => (
-          <circle key={p.t} cx={x(p.t)} cy={y(p.v)} r={2.6} style={{ fill: ROBOT }} />
+        {/* dots ONLY on the years each study actually reports */}
+        {REP_VW.map((p) => (
+          <circle
+            key={p.t}
+            cx={x(p.t)}
+            cy={y(p.v)}
+            r={3.6}
+            style={{ fill: ROBOT, stroke: 'var(--color-paper)', strokeWidth: 1 }}
+          />
         ))}
-        {CP.map((p) => (
-          <circle key={p.t} cx={x(p.t)} cy={y(p.v)} r={2.6} style={{ fill: WARN }} />
+        {REP_CP.map((p) => (
+          <circle
+            key={p.t}
+            cx={x(p.t)}
+            cy={y(p.v)}
+            r={3.6}
+            style={{ fill: WARN, stroke: 'var(--color-paper)', strokeWidth: 1 }}
+          />
         ))}
 
         {/* hover guide */}
@@ -140,6 +161,13 @@ export default function EarningsScar() {
         >
           years since displacement
         </text>
+        <text
+          transform={`translate(12 ${PAD.t + h / 2}) rotate(-90)`}
+          textAnchor="middle"
+          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 8 }}
+        >
+          earnings vs. peers
+        </text>
         {/* full-width hover capture */}
         {Array.from({ length: 21 }, (_, t) => (
           <rect
@@ -157,25 +185,25 @@ export default function EarningsScar() {
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
         <div className="flex flex-col gap-0.5 font-mono text-sm">
-          <span className="text-[0.7rem] text-muted">at year {readT}</span>
+          <span className="text-[0.7rem] text-muted">nearest reported figure</span>
           <span style={{ color: ROBOT }}>
-            Jacobson et al. <span className="font-semibold">{jlsAt.v}%</span>
+            von Wachter et al. <span className="font-semibold">{jlsAt.v}%</span> at year {jlsAt.t}
           </span>
           {cpAt && (
             <span style={{ color: WARN }}>
-              Couch-Placzek <span className="font-semibold">{cpAt.v}%</span>
+              Couch-Placzek <span className="font-semibold">{cpAt.v}%</span> at year {cpAt.t}
             </span>
           )}
         </div>
         <div className="flex flex-col items-start gap-1">
-          <LegendDot color={ROBOT}>Jacobson-LaLonde-Sullivan (1993)</LegendDot>
+          <LegendDot color={ROBOT}>von Wachter, Song & Manchester (2009)</LegendDot>
           <LegendDot color={WARN}>Couch-Placzek (2010), to year 6</LegendDot>
         </div>
       </div>
 
       <p className="mt-3 font-mono text-[0.62rem] text-muted">
-        This literature is mass-layoff-wide, not robot-specific. Most of the lifetime cost comes not
-        from a lower wage on the next job but from trouble finding stable full-time work at all.
+        Dots mark each study's reported figures; the line between them is interpolated to show the
+        path. This literature is mass-layoff-wide, not robot-specific.
       </p>
     </Widget>
   );

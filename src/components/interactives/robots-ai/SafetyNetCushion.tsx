@@ -53,8 +53,8 @@ export default function SafetyNetCushion() {
       <p className="mb-3 text-sm text-ink-soft">
         The counterintuitive result from the policy literature: regions with more generous
         unemployment benefits absorbed automation with{' '}
-        <span style={{ color: ROBOT, fontWeight: 600 }}>smaller</span> wage losses. The safety net
-        cushioned displacement more reliably than retraining did.
+        <span style={{ color: ROBOT, fontWeight: 600 }}>smaller</span> wage losses. Income support
+        absorbed the shock of automation more reliably than any other lever.
       </p>
 
       <svg
@@ -143,9 +143,9 @@ export default function SafetyNetCushion() {
       </svg>
 
       <p className="mt-3 font-mono text-[0.62rem] text-muted">
-        Points are illustrative of the reported relationship, not the underlying regional data.
-        Trade Adjustment Assistance retraining helped only when bundled with job-search and
-        placement support, and its earnings benefit dissipated over time.
+        Points are illustrative of the reported relationship, not the underlying regional data. The
+        same pattern shows up across countries: where the safety net was denser, the wage hit was
+        smaller.
       </p>
     </Widget>
   );

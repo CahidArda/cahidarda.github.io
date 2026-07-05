@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AI, ROBOT, WARN, Widget } from './shared';
+import { AI, ROBOT, WARN, Widget, useHoverPreview } from './shared';
 
 // 200 years of labour meeting new machines. The recurring pattern: workers bargained over
 // the TERMS of transition and rarely stopped the technology. Colour-coded by outcome, with
@@ -17,6 +17,7 @@ interface Node {
   title: string;
   outcome: Outcome;
   detail: string;
+  href: string;
 }
 
 const NODES: Node[] = [
@@ -26,6 +27,7 @@ const NODES: Node[] = [
     outcome: 'resisted',
     detail:
       'Skilled textile workers smashed the frames. Not technophobia: mechanisation destroyed their bargaining position, and they knew it. The same structure as today, 200 years early. They were crushed by the state.',
+    href: 'https://en.wikipedia.org/wiki/Luddite',
   },
   {
     year: '1950s',
@@ -33,6 +35,7 @@ const NODES: Node[] = [
     outcome: 'accepted',
     detail:
       'John L. Lewis backed the continuous mining machine, betting on fewer but secure, better-paid jobs. The machines came; the secure jobs largely did not.',
+    href: 'https://en.wikipedia.org/wiki/United_Mine_Workers',
   },
   {
     year: '1960',
@@ -40,6 +43,7 @@ const NODES: Node[] = [
     outcome: 'accepted',
     detail:
       'West Coast dockworkers accepted containerisation in exchange for benefits. It created a two-tier "A-men / B-men" workforce that foreshadowed modern two-tier labour, and containerisation went on to eliminate most longshore work.',
+    href: 'https://en.wikipedia.org/wiki/International_Longshore_and_Warehouse_Union',
   },
   {
     year: '1964',
@@ -47,6 +51,7 @@ const NODES: Node[] = [
     outcome: 'struck',
     detail:
       'A rank-and-file strike closed ports for 18 days and forced LBJ to invoke Taft-Hartley. Leadership settled for reduced gang sizes anyway. The work still went.',
+    href: 'https://en.wikipedia.org/wiki/International_Longshoremen%27s_Association',
   },
   {
     year: '1970s',
@@ -54,6 +59,7 @@ const NODES: Node[] = [
     outcome: 'accepted',
     detail:
       'Through mid-century the UAW accepted automation in exchange for job security. By the late 1970s the trade had reversed into concessions.',
+    href: 'https://en.wikipedia.org/wiki/United_Auto_Workers',
   },
   {
     year: '2023',
@@ -61,19 +67,23 @@ const NODES: Node[] = [
     outcome: 'resisted',
     detail:
       'The UPS contract banned driverless trucks for its duration. Not a bargain over terms: a temporary stop.',
+    href: 'https://en.wikipedia.org/wiki/International_Brotherhood_of_Teamsters',
   },
   {
     year: '2024',
     title: 'ILA total-automation-ban demand',
     outcome: 'resisted',
     detail:
-      'The International Longshoremen’s Association threatened to shut East and Gulf ports demanding a total ban on automating cranes, gates and container moves. Full automation framed as existential, not tradeable. The hardening is new.',
+      'The International Longshoremen’s Association threatened to shut East and Gulf ports demanding a total ban on automating cranes, gates and container moves. Full automation framed as existential, not tradeable. The shift from bargaining over automation to demanding an outright ban is new.',
+    href: 'https://en.wikipedia.org/wiki/International_Longshoremen%27s_Association',
   },
 ];
 
 export default function BargainingTimeline() {
   const [sel, setSel] = useState(0);
-  const n = NODES[sel];
+  // Hovering a node previews it (like the other widgets); leaving reverts to the click.
+  const [active, bindActive] = useHoverPreview(sel);
+  const n = NODES[active];
 
   return (
     <Widget title="200 years of bargaining, not stopping" kicker="click a node to read the case">
@@ -115,9 +125,10 @@ export default function BargainingTimeline() {
               <button
                 type="button"
                 onClick={() => setSel(i)}
-                aria-pressed={i === sel}
+                aria-pressed={i === active}
                 className="flex w-full items-center gap-3 py-1.5 text-left transition-opacity"
-                style={{ opacity: i === sel ? 1 : 0.62 }}
+                style={{ opacity: i === active ? 1 : 0.62 }}
+                {...bindActive(i)}
               >
                 <span
                   aria-hidden
@@ -125,7 +136,7 @@ export default function BargainingTimeline() {
                   style={{
                     width: 11,
                     height: 11,
-                    background: i === sel ? OUTCOME[node.outcome].color : 'var(--color-paper)',
+                    background: i === active ? OUTCOME[node.outcome].color : 'var(--color-paper)',
                     border: `2px solid ${OUTCOME[node.outcome].color}`,
                   }}
                 />
@@ -135,8 +146,8 @@ export default function BargainingTimeline() {
                 <span
                   className="font-mono text-[0.78rem]"
                   style={{
-                    color: i === sel ? 'var(--color-ink)' : 'var(--color-ink-soft)',
-                    fontWeight: i === sel ? 600 : 400,
+                    color: i === active ? 'var(--color-ink)' : 'var(--color-ink-soft)',
+                    fontWeight: i === active ? 600 : 400,
                   }}
                 >
                   {node.title}
@@ -163,6 +174,14 @@ export default function BargainingTimeline() {
           </span>
         </div>
         <p className="mt-2 text-sm text-ink-soft">{n.detail}</p>
+        <a
+          href={n.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block font-mono text-[0.68rem] text-muted underline underline-offset-2 hover:text-ink"
+        >
+          Wikipedia →
+        </a>
       </div>
     </Widget>
   );
