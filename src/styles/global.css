@@ -70,6 +70,13 @@
   --color-dp-row: var(--dp-row);
   --color-dp-col: var(--dp-col);
   --color-dp-lake: var(--dp-lake);
+
+  /* Robots-vs-AI widget palette - two fixed hues learned once and reused across every
+     figure: robots (cool steel blue, the settled past) and AI (warm orange, the wave
+     arriving now), plus an amber for the "struck / pay-cut" middle states. */
+  --color-ra-robot: var(--ra-robot);
+  --color-ra-ai: var(--ra-ai);
+  --color-ra-warn: var(--ra-warn);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -109,6 +116,21 @@
   --dp-row: #69a0e0;
   --dp-col: #d6b551;
   --dp-lake: #54bdb2;
+}
+
+/* The robots-vs-AI cast. Robots = a cool steel blue (the automation wave that already
+   ran, 1990-2015); AI = the site's warm terracotta family (the wave arriving now); warn
+   = an amber for the in-between outcomes (a strike, a permanent pay cut). Tuned for
+   light paper and dark ground. */
+:root {
+  --ra-robot: #3466a8;
+  --ra-ai: #bd5227;
+  --ra-warn: #b8871a;
+}
+.dark {
+  --ra-robot: #6f9fd8;
+  --ra-ai: #e2905a;
+  --ra-warn: #d9b24e;
 }
 
 @layer base {
