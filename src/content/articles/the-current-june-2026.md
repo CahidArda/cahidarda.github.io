@@ -5,9 +5,10 @@ date: 2026-07-05
 tags: ['accessions']
 ---
 
-The second one of these. Same idea as [last month](/articles/the-current-may-2026):
-the links I saved in June, with a line on each. A lot of them ended up circling the
-same question, what AI is doing to writing and to the people who make a living from it.
+The second monthly link post. Same idea as
+[last month](/articles/the-current-may-2026): the links I saved in June. Heavier on AI
+than I expected going in, but there is some history, a security writeup, and a couple of
+older classics worth revisiting.
 
 ## This month
 
