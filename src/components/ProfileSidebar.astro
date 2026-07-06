@@ -59,7 +59,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
 <div class="flex flex-col gap-6">
   <div class="min-w-0">
     <a href="/" class="block">
-      <h1 class="font-display text-2xl leading-tight text-ink md:text-3xl">{profile.name}</h1>
+      <h1 class="font-display text-2xl leading-tight text-ink side:text-3xl">{profile.name}</h1>
     </a>
     <p class="mt-1 text-sm text-ink-soft">
       {taglineBefore}<a
@@ -74,7 +74,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
   </div>
 
   <nav aria-label="Primary" class="border-t border-line pt-4">
-    <ul class="flex flex-row flex-wrap gap-x-5 gap-y-2 md:flex-col md:gap-2">
+    <ul class="flex flex-row flex-wrap gap-x-5 gap-y-2 side:flex-col side:gap-2">
       {
         navItems.map((item) => {
           const blurb = item.blurb;
@@ -110,7 +110,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
 
   {
     headings.length > 0 && (
-      <nav aria-label="On this page" class="hidden border-t border-line pt-4 md:block">
+      <nav aria-label="On this page" class="hidden border-t border-line pt-4 side:block">
         <p class="label mb-3">On this page</p>
         <ul class="flex flex-col gap-1.5">
           {headings.map((h) => (
@@ -137,7 +137,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
     <ThemeToggle client:load />
   </div>
 
-  <p class="hidden items-center gap-2 md:flex">
+  <p class="hidden items-center gap-2 side:flex">
     <span class="label">Press</span>
     <kbd
       class="inline-flex items-center border border-line px-1.5 py-0.5 font-mono text-xs text-ink-soft"

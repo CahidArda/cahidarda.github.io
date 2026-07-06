@@ -8,6 +8,14 @@
 /* Enable class-based dark mode: `dark:` applies under .dark */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Global scale: the whole layout (widths, text, spacing) is built in rem, so shrinking
+   the root font size scales the entire page uniformly. 75% = everything 25% smaller.
+   Note: `rem` in media queries stays relative to the browser's 16px default, so the
+   Tailwind md/lg breakpoints keep firing at their normal physical widths. */
+html {
+  font-size: 75%;
+}
+
 /*
   Editorial / brutalist palette - original, Hermes-inspired but not copied.
   Warm paper ground, near-black warm ink, hairline rules, one rust accent.
@@ -38,6 +46,13 @@
 }
 
 @theme {
+  /* Two-column (sidebar + content) layout only engages once it fits without squeezing
+     the content: 18rem sidebar + 3rem gap + 52rem content + gutters, all at the 75%
+     root scale (so ~960px physical). Below this the layout collapses to the stacked
+     mobile view. Media-query rem is relative to the browser's 16px default, so this
+     value is in unscaled rem: 62rem = 992px. */
+  --breakpoint-side: 62rem;
+
   --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
