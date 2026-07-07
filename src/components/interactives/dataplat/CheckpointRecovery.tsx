@@ -64,44 +64,94 @@ export default function CheckpointRecovery() {
 
   const note =
     status === 'down'
-      ? { c: DEAD, t: 'Pod killed. The log keeps appending and the backlog grows, but nothing past the checkpoint is processed.' }
+      ? {
+          c: DEAD,
+          t: 'Pod killed. The log keeps appending and the backlog grows, but nothing past the checkpoint is processed.',
+        }
       : status === 'recovering'
-        ? { c: PENDING, t: 'A fresh pod mounted the same checkpoint and is draining the backlog from the last committed offset: no gap, no re-processing.' }
-        : { c: PROCESSED, t: 'The processor is keeping pace; only the newest offset is still in flight.' };
+        ? {
+            c: PENDING,
+            t: 'A fresh pod mounted the same checkpoint and is draining the backlog from the last committed offset: no gap, no re-processing.',
+          }
+        : {
+            c: PROCESSED,
+            t: 'The processor is keeping pace; only the newest offset is still in flight.',
+          };
 
   return (
-    <Widget title="Killed and recovered from the checkpoint" kicker="redpanda appends · processor commits offsets">
-      <svg viewBox={`0 0 ${VB.w} ${VB.h}`} className="w-full" style={{ maxHeight: 130 }} role="img"
-        aria-label="The Redpanda log keeps appending offsets; when the stream processor pod is killed the backlog grows, then a fresh pod resumes from the checkpoint and drains it with no gap.">
-        <text x={PAD} y={18} style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 9 }}>
+    <Widget
+      title="Killed and recovered from the checkpoint"
+      kicker="redpanda appends · processor commits offsets"
+    >
+      <svg
+        viewBox={`0 0 ${VB.w} ${VB.h}`}
+        className="w-full"
+        style={{ maxHeight: 130 }}
+        role="img"
+        aria-label="The Redpanda log keeps appending offsets; when the stream processor pod is killed the backlog grows, then a fresh pod resumes from the checkpoint and drains it with no gap."
+      >
+        <text
+          x={PAD}
+          y={18}
+          style={{ fill: 'var(--color-muted)', fontFamily: 'var(--font-mono)', fontSize: 9 }}
+        >
           Redpanda log, offsets appended →
         </text>
-        <text x={VB.w - PAD} y={18} textAnchor="end" style={{ fill: note.c, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700 }}>
-          {status === 'down' ? `processor DOWN · backlog ${lag}` : status === 'recovering' ? 'recovering' : 'processor running'}
+        <text
+          x={VB.w - PAD}
+          y={18}
+          textAnchor="end"
+          style={{ fill: note.c, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700 }}
+        >
+          {status === 'down'
+            ? `processor DOWN · backlog ${lag}`
+            : status === 'recovering'
+              ? 'recovering'
+              : 'processor running'}
         </text>
 
         {Array.from({ length: W }, (_, i) => {
           const o = first + i;
           const done = o <= proc;
           return (
-            <rect key={o} x={PAD + i * STEP} y={CY} width={CELL} height={CH}
+            <rect
+              key={o}
+              x={PAD + i * STEP}
+              y={CY}
+              width={CELL}
+              height={CH}
               style={{
                 fill: done ? PROCESSED : PENDING,
                 opacity: done ? 0.85 : 0.5,
                 stroke: o === head ? 'var(--color-ink)' : 'transparent',
                 strokeWidth: 1.5,
                 transition: 'fill 200ms, opacity 200ms',
-              }} />
+              }}
+            />
           );
         })}
 
         {/* the checkpoint / processed frontier */}
-        <line x1={markerX} y1={CY - 6} x2={markerX} y2={CY + CH + 6}
-          style={{ stroke: status === 'running' ? PROCESSED : 'var(--color-accent)', strokeWidth: 2 }} />
-        <polygon points={`${markerX - 4},${CY + CH + 6} ${markerX + 4},${CY + CH + 6} ${markerX},${CY + CH + 12}`}
-          style={{ fill: status === 'running' ? PROCESSED : 'var(--color-accent)' }} />
-        <text x={markerX} y={CY + CH + 22} textAnchor="middle"
-          style={{ fill: 'var(--color-ink-soft)', fontFamily: 'var(--font-mono)', fontSize: 8.5 }}>
+        <line
+          x1={markerX}
+          y1={CY - 6}
+          x2={markerX}
+          y2={CY + CH + 6}
+          style={{
+            stroke: status === 'running' ? PROCESSED : 'var(--color-accent)',
+            strokeWidth: 2,
+          }}
+        />
+        <polygon
+          points={`${markerX - 4},${CY + CH + 6} ${markerX + 4},${CY + CH + 6} ${markerX},${CY + CH + 12}`}
+          style={{ fill: status === 'running' ? PROCESSED : 'var(--color-accent)' }}
+        />
+        <text
+          x={markerX}
+          y={CY + CH + 22}
+          textAnchor="middle"
+          style={{ fill: 'var(--color-ink-soft)', fontFamily: 'var(--font-mono)', fontSize: 8.5 }}
+        >
           {status === 'running' ? 'processed' : 'checkpoint (resume here)'}
         </text>
       </svg>

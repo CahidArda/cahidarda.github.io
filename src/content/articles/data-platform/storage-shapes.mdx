@@ -49,7 +49,7 @@ Two consequences fall out of the column layout, both of which the platform leans
   the on-disk size of the same events in Postgres and ClickHouse to see this directly.
 - **Vectorized execution.** A contiguous column of one type is exactly what a CPU wants to crunch
   in batches. The scan is not just reading less, it is computing faster per byte. (Kleppmann's
-  *Designing Data-Intensive Applications* chapter 3 is the canonical treatment.)
+  _Designing Data-Intensive Applications_ chapter 3 is the canonical treatment.)
 
 So the platform sends current-order state to **Postgres** (row, OLTP) for the lookups, and the
 analytical event history to **ClickHouse** (column, OLAP) for the scans. In phase 3 you run the
@@ -83,11 +83,11 @@ because compute is separate, you can point Spark or DuckDB at the same tables wi
 
 Put the four side by side and the rule is just "match the layout to the read":
 
-| Store | Shape | Best at | In the platform |
-| --- | --- | --- | --- |
-| Redpanda | append-only log | ordered, replayable ingest | the event backbone |
-| Postgres | row / OLTP | point lookups by key | current order state |
-| ClickHouse | column / OLAP | scans over few columns, many rows | analytics, dashboards |
+| Store           | Shape              | Best at                            | In the platform          |
+| --------------- | ------------------ | ---------------------------------- | ------------------------ |
+| Redpanda        | append-only log    | ordered, replayable ingest         | the event backbone       |
+| Postgres        | row / OLTP         | point lookups by key               | current order state      |
+| ClickHouse      | column / OLAP      | scans over few columns, many rows  | analytics, dashboards    |
 | Iceberg / MinIO | lakehouse / object | cheap durable history, time travel | batch rollups, cold data |
 
 None of this is a judgement call you make once. It is a property of the question being asked, and

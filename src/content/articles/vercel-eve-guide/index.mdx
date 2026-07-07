@@ -1,5 +1,5 @@
 ---
-title: "Vercel Eve: A Guide"
+title: 'Vercel Eve: A Guide'
 description: "Notes from building a quick demo agent on Vercel Eve: initializing a project, the file layout, the dev TUI, tools and skills, scheduling, channels, deployment, and how it builds on Vercel's stack."
 date: 2026-06-18
 tags: ['blog']
@@ -51,11 +51,11 @@ A minimal agent is two files: `agent/agent.ts` for runtime config and
 
 ```ts
 // agent/agent.ts
-import { openai } from "@ai-sdk/openai";
-import { defineAgent } from "eve";
+import { openai } from '@ai-sdk/openai';
+import { defineAgent } from 'eve';
 
 export default defineAgent({
-  model: openai("gpt-5.4-mini"),
+  model: openai('gpt-5.4-mini'),
 });
 ```
 
@@ -88,13 +88,15 @@ A tool is a typed action. The filename becomes the tool name.
 
 ```ts
 // agent/tools/get_weather.ts
-import { defineTool } from "eve/tools";
-import { z } from "zod";
+import { defineTool } from 'eve/tools';
+import { z } from 'zod';
 
 export default defineTool({
-  description: "Get the current weather for a city.",
+  description: 'Get the current weather for a city.',
   inputSchema: z.object({ city: z.string() }),
-  async execute({ city }) { /* … */ },
+  async execute({ city }) {
+    /* … */
+  },
 });
 ```
 
@@ -110,10 +112,10 @@ document and Eve turns each operation into a tool, handling auth so the model ne
 sees your tokens.
 
 ```ts
-import { defineOpenAPIConnection } from "eve/connections";
+import { defineOpenAPIConnection } from 'eve/connections';
 
 export default defineOpenAPIConnection({
-  url: "https://api.example.com/openapi.json",
+  url: 'https://api.example.com/openapi.json',
   // auth handled by Eve; the model just sees the operations
 });
 ```
@@ -155,8 +157,8 @@ deployed agent is publicly accessible.
 
 ```ts
 // agent/channels/eve.ts
-import { eveChannel } from "eve/channels/eve";
-import { localDev, vercelOidc, none } from "eve/channels/auth";
+import { eveChannel } from 'eve/channels/eve';
+import { localDev, vercelOidc, none } from 'eve/channels/auth';
 
 export default eveChannel({ auth: [localDev(), vercelOidc(), none()] });
 ```

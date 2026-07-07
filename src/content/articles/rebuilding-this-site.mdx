@@ -57,6 +57,8 @@ are four:
 - `repository` for my open-source projects.
 
 ```ts
+const tag = z.enum(['blog', 'publication', 'accessions']);
+
 const articles = defineCollection({
   loader: glob({
     pattern: '**/*.{md,mdx}',
@@ -67,9 +69,7 @@ const articles = defineCollection({
       title: z.string(),
       description: z.string(),
       date: z.coerce.date(),
-      tags: z
-        .array(z.enum(['blog', 'publication', 'accessions']))
-        .default(['blog']),
+      tags: z.array(tag).default(['blog']),
       // ...external-post and publication-only fields
     }),
 });

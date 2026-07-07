@@ -1,11 +1,4 @@
-export type SocialIcon =
-  | 'email'
-  | 'x'
-  | 'linkedin'
-  | 'github'
-  | 'orcid'
-  | 'wikipedia'
-  | 'rss';
+export type SocialIcon = 'email' | 'x' | 'linkedin' | 'github' | 'orcid' | 'wikipedia' | 'rss';
 
 export interface Social {
   label: string;

@@ -28,7 +28,9 @@ const members = (
             <span class="font-mono text-sm text-muted tabular-nums">
               {String(i + 1).padStart(2, '0')}
             </span>
-            <span class="font-display text-lg text-ink group-hover:text-accent">{m.data.title}</span>
+            <span class="font-display text-lg text-ink group-hover:text-accent">
+              {m.data.title}
+            </span>
           </a>
         </li>
       ))

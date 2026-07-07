@@ -56,6 +56,17 @@ const paletteItems: PaletteItem[] = [
     badge: tags[entry.tags[0]].label,
   })),
 ];
+
+// Google tag (gtag.js), injected raw via set:html: a <script> nested inside a JSX
+// expression breaks prettier-plugin-astro's parser, so keep the snippet as a string.
+const gtagSnippet = `
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JEFFYQNEL0"><\/script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-JEFFYQNEL0');
+<\/script>`;
 ---
 
 <!doctype html>
@@ -65,18 +76,7 @@ const paletteItems: PaletteItem[] = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Google tag (gtag.js) — production builds only -->
-    {
-      import.meta.env.PROD && (
-        <Fragment>
-          <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-JEFFYQNEL0" />
-          <script is:inline>
-            window.dataLayer = window.dataLayer || []; function gtag() {
-            dataLayer.push(arguments); } gtag('js', new Date()); gtag('config',
-            'G-JEFFYQNEL0');
-          </script>
-        </Fragment>
-      )
-    }
+    {import.meta.env.PROD && <Fragment set:html={gtagSnippet} />}
     <!-- End Google tag -->
     <link rel="icon" type="image/png" href="/favicon.png" />
 
@@ -126,8 +126,7 @@ const paletteItems: PaletteItem[] = [
         try {
           const stored = localStorage.getItem('theme');
           const prefersDark =
-            window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches;
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
           if (stored === 'dark' || (!stored && prefersDark)) {
             document.documentElement.classList.add('dark');
           }
@@ -144,7 +143,9 @@ const paletteItems: PaletteItem[] = [
       Skip to content
     </a>
 
-    <div class="mx-auto grid w-full max-w-[100rem] gap-y-8 px-5 py-8 side:grid-cols-[18rem_52rem_minmax(0,18rem)] side:gap-x-12 side:px-8 side:py-14">
+    <div
+      class="mx-auto grid w-full max-w-[100rem] gap-y-8 px-5 py-8 side:grid-cols-[18rem_52rem_minmax(0,18rem)] side:gap-x-12 side:px-8 side:py-14"
+    >
       <header class="side:sticky side:top-14 side:h-fit">
         <ProfileSidebar activeNav={activeNav} headings={headings} />
       </header>

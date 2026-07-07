@@ -83,7 +83,9 @@ export function articleOgSvg(title: string, kicker: string): string {
 
 /** Rasterize an OG SVG and composite the Apple owl (public/favicon.png) top-right. */
 export async function renderOgPng(svg: string): Promise<Buffer> {
-  const owl = await sharp(await readFile('public/favicon.png')).resize(124, 124).toBuffer();
+  const owl = await sharp(await readFile('public/favicon.png'))
+    .resize(124, 124)
+    .toBuffer();
   return sharp(Buffer.from(svg))
     .composite([{ input: owl, top: 58, left: 1012 }])
     .png()

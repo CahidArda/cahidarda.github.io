@@ -38,7 +38,7 @@ make tilt PHASE=phase-3-columnar
 ## The log is the source of truth; these stores read from it
 
 Redpanda is still the source of truth: every event is appended to the log in order and can be
-replayed. But a log is not where you *read* data from. It is append-ordered bytes tuned for streaming
+replayed. But a log is not where you _read_ data from. It is append-ordered bytes tuned for streaming
 and replay, not for "revenue per tenant" or "fetch order `ord-8123`", and keeping it forever is
 expensive. So the platform derives purpose-built stores from the log, each a materialised view you
 could rebuild by replaying it:
@@ -81,7 +81,7 @@ that flips `SINKS` and wires the new credentials:
 
 ```yaml
 env:
-  - { name: SINKS, value: "postgres,clickhouse,iceberg" }
+  - { name: SINKS, value: 'postgres,clickhouse,iceberg' }
 ```
 
 This is the payoff of the log being the source of truth: ClickHouse and Iceberg are new readers
@@ -179,7 +179,7 @@ would not do it, for two reasons:
   compression, and the analytical scans the column store exists for get slower because related rows
   are no longer near each other. Ordering by `(tenant, event_time)` keeps each tenant's events
   together in time, which compresses hard and keeps the scans fast.
-- **A column store still is not a point-lookup engine.** ClickHouse's primary index is *sparse* (one
+- **A column store still is not a point-lookup engine.** ClickHouse's primary index is _sparse_ (one
   mark per ~8192-row granule), not a row-level B-tree. Even sorted on `event_id` it would read and
   decompress a whole granule and reassemble the row from every column file, heavier than Postgres
   seeking to a single contiguous row.

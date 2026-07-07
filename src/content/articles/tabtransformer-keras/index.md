@@ -1,6 +1,6 @@
 ---
-title: "TabTransformer Keras Implementation"
-description: "Implementing the TabTransformer model in Keras, with an RNN warm-up, during a data-science internship."
+title: 'TabTransformer Keras Implementation'
+description: 'Implementing the TabTransformer model in Keras, with an RNN warm-up, during a data-science internship.'
 date: 2022-08-30
 tags: ['blog']
 ---
@@ -17,7 +17,7 @@ Within this document, I aim to showcase the RNN module I crafted and delve into 
 
 ```python
 class RNN(tf.Module):
-    
+
     def __init__(self, state_size, batch_size, **kwargs):
         super().__init__(**kwargs)
 
@@ -63,7 +63,7 @@ I then added a method for training the model and a training loop:
 # x: batch of sequences (batch_size, sequence length)
 def train(model, batch, y_actual, learning_rate):
     with tf.GradientTape() as tape:
-        
+
         y_pred = model.run_batch(batch)
 
         current_loss = tf.reduce_mean(tf.square(y_pred - y_actual))
@@ -99,7 +99,7 @@ def training_loop(model, x, y, epochs, learning_rate,
                 model, x_train[batch], y_train[batch], learning_rate)
             batch_train_losses.append(train_loss)
 
-        
+
         for batch in range(x_test.shape[0]):
             y_pred  = model.run_batch(x_test[batch])
             batch_test_losses.append(np.mean((y_pred - y_test[batch])**2))
@@ -119,13 +119,12 @@ def training_loop(model, x, y, epochs, learning_rate,
 
 I was able to train an instance of my RNN implementation to model a delayed signal:
 
-
 ![](./delayed_signal.png)
-
 
 ## TabTransformer
 
 Once I was satisfied with the RNN, I began working on the TabTransformer model. [The Tabtransformer model](https://arxiv.org/abs/2012.06678) was an attempt to harness the power of transformers in tabular data. Data followed two paths:
+
 - Continuous features were normalized
 - Categorical features were embedded and then fed to a stack of transformers, generating contextual embeddings.
 
@@ -133,16 +132,11 @@ Finally, these two paths are merged and fed to an MLP.
 
 The architecture is illustrated in the following figure from the paper:
 
-
 ![](./tabtransformer-architecture-original.png)
-
-
 
 I used the paper and [a PyTorch implementation of the TabTransformer](https://github.com/lucidrains/tab-transformer-pytorch) to implement a TabTransformer in Keras. My code is available in [a repository on my GitHub](https://github.com/CahidArda/tab-transformer-keras). You can also see the code and the architecture below:
 
-
 ![](./tabtransformer-architecture-keras.png)
-
 
 ```python
 from tensorflow import keras
@@ -174,7 +168,7 @@ class TransformerBlock(layers.Layer):
 
 class TabTransformer(keras.Model):
 
-    def __init__(self, 
+    def __init__(self,
             categories,
             num_continuous,
             dim,
@@ -240,7 +234,7 @@ class TabTransformer(keras.Model):
     def call(self, inputs):
         continuous_inputs  = inputs[0]
         categorical_inputs = inputs[1:]
-        
+
         # --> continuous
         if self.normalize_continuous:
             continuous_inputs = self.continuous_normalization(

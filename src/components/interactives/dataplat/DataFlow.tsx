@@ -77,7 +77,10 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
   ];
 
   return (
-    <Widget title="One event, end to end" kicker={`produce · log · process · ${multi ? 'tee' : 'store'}`}>
+    <Widget
+      title="One event, end to end"
+      kicker={`produce · log · process · ${multi ? 'tee' : 'store'}`}
+    >
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
         className="w-full"
@@ -90,21 +93,56 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
         <Edge from={rightOf(NODE.producer)} to={leftOf(NODE.log)} on={phase === 1} />
         <Edge from={rightOf(NODE.log)} to={leftOf(NODE.stream)} on={phase === 2} />
         {stores.map((id, i) => (
-          <Edge key={id} from={rightOf(NODE.stream)} to={leftOf(storeBox(i))} on={phase === 3} dim={phase < 3} />
+          <Edge
+            key={id}
+            from={rightOf(NODE.stream)}
+            to={leftOf(storeBox(i))}
+            on={phase === 3}
+            dim={phase < 3}
+          />
         ))}
 
         <g onMouseEnter={() => hoverNode(0)} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
-          <SvgNode n={NODE.producer} title="Producers" sub="events" color={COMPONENT_BY_ID.producer.color} state={producerState} />
+          <SvgNode
+            n={NODE.producer}
+            title="Producers"
+            sub="events"
+            color={COMPONENT_BY_ID.producer.color}
+            state={producerState}
+          />
         </g>
         <g onMouseEnter={() => hoverNode(1)} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
-          <SvgNode n={NODE.log} title="Redpanda" sub="event log" color={COMPONENT_BY_ID.log.color} state={logState} />
+          <SvgNode
+            n={NODE.log}
+            title="Redpanda"
+            sub="event log"
+            color={COMPONENT_BY_ID.log.color}
+            state={logState}
+          />
         </g>
         <g onMouseEnter={() => hoverNode(2)} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
-          <SvgNode n={NODE.stream} title="Spark" sub="streaming" color={COMPONENT_BY_ID.stream.color} state={streamState} />
+          <SvgNode
+            n={NODE.stream}
+            title="Spark"
+            sub="streaming"
+            color={COMPONENT_BY_ID.stream.color}
+            state={streamState}
+          />
         </g>
         {stores.map((id, i) => (
-          <g key={id} onMouseEnter={() => hoverNode(3)} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
-            <SvgNode n={storeBox(i)} title={STORE_META[id].title} sub={STORE_META[id].sub} color={COMPONENT_BY_ID[id].color} state={storeState} />
+          <g
+            key={id}
+            onMouseEnter={() => hoverNode(3)}
+            onMouseLeave={leaveNode}
+            style={{ cursor: 'pointer' }}
+          >
+            <SvgNode
+              n={storeBox(i)}
+              title={STORE_META[id].title}
+              sub={STORE_META[id].sub}
+              color={COMPONENT_BY_ID[id].color}
+              state={storeState}
+            />
           </g>
         ))}
       </svg>
@@ -117,7 +155,10 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
       <div className={`mt-1 grid grid-cols-1 gap-1.5 ${multi ? 'sm:grid-cols-3' : ''}`}>
         {stores.map((id) => (
           <div key={id} className="flex items-start gap-2 border border-line px-2 py-1.5">
-            <span className="mt-0.5 inline-block h-2.5 w-2.5 shrink-0" style={{ background: COMPONENT_BY_ID[id].color }} />
+            <span
+              className="mt-0.5 inline-block h-2.5 w-2.5 shrink-0"
+              style={{ background: COMPONENT_BY_ID[id].color }}
+            />
             <span className="font-mono text-[0.66rem] leading-tight text-ink-soft">
               <strong className="text-ink">{STORE_META[id].title}</strong>
               <br />

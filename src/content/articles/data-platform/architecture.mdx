@@ -166,16 +166,16 @@ cluster grow, one layer at a time, from an empty foundation to the full platform
 
 The stack is open-source and runs locally with no cloud dependency:
 
-| Layer | Choice |
-| --- | --- |
-| Local Kubernetes | k3d (k3s in Docker) |
-| Event log | Redpanda (Kafka API) |
-| Stream + batch processing | Spark Structured Streaming |
-| Row / column / lakehouse | Postgres / ClickHouse / Iceberg on MinIO |
-| Observability | Prometheus, Grafana, Loki |
-| Orchestration | Dagster |
-| Policy + GitOps | OPA, ArgoCD |
-| Infra as code + dev loop | OpenTofu, Kustomize, Tilt |
+| Layer                     | Choice                                   |
+| ------------------------- | ---------------------------------------- |
+| Local Kubernetes          | k3d (k3s in Docker)                      |
+| Event log                 | Redpanda (Kafka API)                     |
+| Stream + batch processing | Spark Structured Streaming               |
+| Row / column / lakehouse  | Postgres / ClickHouse / Iceberg on MinIO |
+| Observability             | Prometheus, Grafana, Loki                |
+| Orchestration             | Dagster                                  |
+| Policy + GitOps           | OPA, ArgoCD                              |
+| Infra as code + dev loop  | OpenTofu, Kustomize, Tilt                |
 
 With the shape in place, the [next post](/articles/data-platform/storage-shapes) zooms into the
 single most felt trade-off in the whole platform: row versus column storage, and why the same

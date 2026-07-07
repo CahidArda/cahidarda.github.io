@@ -50,7 +50,7 @@ to scrape them. That keeps the platform light and the mechanism obvious:
 relabel_configs:
   - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
     action: keep
-    regex: "true"
+    regex: 'true'
 ```
 
 Turning on scraping for a workload is then just three annotations on its pod, added as a phase-2
@@ -58,8 +58,8 @@ patch over the phase-1 app
 ([`instrumentation-patch.yaml`](https://github.com/CahidArda/local-data-platform/blob/main/overlays/phase-2-observability/instrumentation-patch.yaml)):
 
 ```yaml
-prometheus.io/scrape: "true"
-prometheus.io/port: "9000"
+prometheus.io/scrape: 'true'
+prometheus.io/port: '9000'
 prometheus.io/path: /metrics
 ```
 

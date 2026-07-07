@@ -59,8 +59,8 @@ export default function BenchmarkChart() {
     <Widget title="Results" kicker="Technical Report, Table 1">
       <p className="mb-3 text-sm text-ink-soft">
         Through orchestration alone, the Fugu models match or beat every worker in their own pool.
-        Pick a benchmark; bars are <span style={{ color: 'var(--color-accent)' }}>Fugu</span> vs
-        the three frontier workers it routes between.
+        Pick a benchmark; bars are <span style={{ color: 'var(--color-accent)' }}>Fugu</span> vs the
+        three frontier workers it routes between.
       </p>
 
       <div className="mb-4 flex flex-wrap gap-1.5">

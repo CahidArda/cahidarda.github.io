@@ -67,12 +67,12 @@ Prose…
   does not match the emitted page and reads as a broken/redirecting link).
 - "This gets technical, skip ahead" notes: link to the **generated** heading id, which is
   github-slugger style (lowercase, spaces→`-`, punctuation dropped). `## Fugu-Ultra: conducting an
-  orchestra` → `#fugu-ultra-conducting-an-orchestra`. **Verify** the id in the built HTML.
+orchestra` → `#fugu-ultra-conducting-an-orchestra`. **Verify** the id in the built HTML.
 
 ## 2. KaTeX in MDX — the traps
 
 1. **Display math needs the `$$` fences on their OWN lines.** A single-line `$$E=mc^2$$` renders as
-   *inline* KaTeX (no centering). This is the #1 surprise here.
+   _inline_ KaTeX (no centering). This is the #1 surprise here.
 
    ```
    ✅  $$            ❌  $$E = mc^2$$   (renders inline)
@@ -80,7 +80,7 @@ Prose…
        $$
    ```
 
-2. **Never split the *content* across lines with the fences attached.** `$$ a \n b $$` throws a KaTeX
+2. **Never split the _content_ across lines with the fences attached.** `$$ a \n b $$` throws a KaTeX
    parse error that **cascades and breaks every later equation** on the page. Keep the body on one line
    between own-line fences; use `\qquad`/`\;` for spacing, not newlines.
 
@@ -111,7 +111,7 @@ Define a `shared.tsx` per topic ONCE and reuse it everywhere so the post reads a
   to Tailwind via `@theme` and referenced as `var(--color-…)`. The reader learns the cast once.
 - A shared **frame** component (bordered figure + title), shared **hooks** (`useReducedMotion`,
   `useTick`, `useGlide`), shared chips/legends.
-- **Prose insulation.** Widgets render *inside* `.prose`, so editorial rules (link underlines, list
+- **Prose insulation.** Widgets render _inside_ `.prose`, so editorial rules (link underlines, list
   markers, code chrome) leak in. Give every widget root the **`.fx`** class and reset those in
   `global.css` under `.prose .fx { … }`. IMPORTANT: this repo's `.prose` is hand-written CSS, **not**
   the Tailwind typography plugin, so the `not-prose` / `list-none` / `no-underline` utilities silently
@@ -138,12 +138,12 @@ so lines and boxes drift apart. Instead: draw the **whole** diagram as one SVG w
 
 ### 4.2 Anchor connectors to box EDGES, not centers
 
-A line from node-center to node-center emerges from a box corner and runs *under* the boxes. Compute
+A line from node-center to node-center emerges from a box corner and runs _under_ the boxes. Compute
 edge anchors from node geometry:
 
 ```ts
 const rightOf = (n) => ({ x: n.cx + n.w / 2, y: n.cy });
-const leftOf  = (n) => ({ x: n.cx - n.w / 2, y: n.cy });
+const leftOf = (n) => ({ x: n.cx - n.w / 2, y: n.cy });
 // edge: from rightOf(source) to leftOf(target)
 ```
 
@@ -156,7 +156,7 @@ original way. Verify per phase that the arrow reverses (e.g. `Fugu→worker` on 
 
 ### 4.4 A node is "active" only while the token is AT it
 
-If you fill a node on a *range* of phases, it keeps its background after the action has moved on. Model
+If you fill a node on a _range_ of phases, it keeps its background after the action has moved on. Model
 three states — `off` (grayed, neutral stroke), `wait` (in the path, colored border, no fill),
 `active` (colored fill) — and make `active` true only for the single current step. Things light up as
 the flow reaches them and de-fill as it leaves.
@@ -278,7 +278,7 @@ on mouse-out; **clicking** commits. The shared hook (in `dataplat/shared.tsx`):
 ```ts
 export function useHoverPreview<T>(selected: T) {
   const [hover, setHover] = useState<T | null>(null);
-  const active = hover === null ? selected : hover;           // what you RENDER
+  const active = hover === null ? selected : hover; // what you RENDER
   const bind = (value: T) => ({
     onMouseEnter: () => setHover(value),
     onMouseLeave: () => setHover(null),
@@ -293,9 +293,11 @@ preview automatically:
 
 ```tsx
 const [sel, setSel] = useState<Mode>('clean');
-const [mode, bindMode] = useHoverPreview(sel);   // `mode` (active) is used everywhere in render
+const [mode, bindMode] = useHoverPreview(sel); // `mode` (active) is used everywhere in render
 // button: onClick commits, the spread previews on hover
-<button onClick={() => setSel(m)} aria-pressed={mode === m} {...bindMode(m)}>…</button>
+<button onClick={() => setSel(m)} aria-pressed={mode === m} {...bindMode(m)}>
+  …
+</button>;
 ```
 
 For widgets whose animation/interval reads the mode (AssetGraph keys its `useEffect` on the mode;
@@ -329,9 +331,9 @@ useEffect(() => { if (reduced || paused) return; const id = setInterval(...); re
 - **Parameterize widgets so the same component is accurate per article.** `DataFlow` takes a `stores`
   prop (phase 1 passes `stores={['row']}` to show only Postgres; the architecture post passes none and
   shows all three). `ClusterMap` takes a `phase` prop and an internal stepper that scrubs `0..phase`,
-  so each phase article shows the cluster *at that phase*, with a per-phase "what's added" summary.
+  so each phase article shows the cluster _at that phase_, with a per-phase "what's added" summary.
   Lay out a variable node set by centring on a row: `cy = mid + (i - (n-1)/2) * SPACING`.
-- **SSR-seed animated charts.** An island SSRs its *initial* state only (e.g. phase 0, or an empty
+- **SSR-seed animated charts.** An island SSRs its _initial_ state only (e.g. phase 0, or an empty
   series). Seed meaningful content: `ConsumerLag` initialises `samples` to a static `POSTER` so the
   chart renders server-side and under reduced-motion, then the live interval scrolls real data in.
 - **Align table-like cells with ONE grid, not independent flex rows.** In `RowVsColumn` the row-store

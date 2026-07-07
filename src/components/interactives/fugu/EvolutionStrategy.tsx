@@ -192,10 +192,7 @@ export default function EvolutionStrategy() {
   const done = es.gen >= MAXGEN;
 
   return (
-    <Widget
-      title="Training stage 2: evolution with sep-CMA-ES"
-      kicker="no gradients, just fitness"
-    >
+    <Widget title="Training stage 2: evolution with sep-CMA-ES" kicker="no gradients, just fitness">
       <p className="mb-3 text-sm text-ink-soft">
         After supervised fine-tuning, Fugu is refined with a derivative-free evolution strategy that
         directly maximises the <strong>terminal reward</strong> of end-to-end tasks. Each dot is one

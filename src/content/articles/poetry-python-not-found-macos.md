@@ -30,6 +30,7 @@ Upon more research, I came across [brew documentation on Python](https://docs.br
 The documentation refers to symlinks for `python`, `pip` etc:
 
 > Unversioned symlinks for python, python-config, pip etc. are installed here:
+>
 > ```
 > $(brew --prefix python)/libexec/bin
 > ```

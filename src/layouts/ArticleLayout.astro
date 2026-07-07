@@ -18,8 +18,7 @@ interface Props {
 }
 
 const { entry, headings = [] } = Astro.props;
-const { title, description, date, updated, tags, heroImage, venue, authors, doi, pdf } =
-  entry.data;
+const { title, description, date, updated, tags, heroImage, venue, authors, doi, pdf } = entry.data;
 
 const isPublication = tags.includes('publication');
 // Per-article OG image generated at build time (see src/pages/og/[slug].png.ts).

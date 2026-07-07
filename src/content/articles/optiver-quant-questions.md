@@ -1,6 +1,6 @@
 ---
-title: "Optiver Quantitative Researcher Sample Questions"
-description: "My solutions to the sample quantitative-researcher questions Optiver shares in their job listing."
+title: 'Optiver Quantitative Researcher Sample Questions'
+description: 'My solutions to the sample quantitative-researcher questions Optiver shares in their job listing.'
 date: 2023-09-17
 tags: ['blog']
 ---
@@ -18,6 +18,7 @@ Optiver provides the following questions in their [job listing](https://optiver.
 > - Can you write a program that comes up with an estimate of average time to find food for any closed boundary around the anthill? What would be the answer if food is located outside an area defined by ( (x – 2.5cm) / 30cm )2 + ( (y – 2.5cm) / 40cm )2 < 1 in coordinate system where the anthill is located at (x = 0cm, y = 0cm)?
 
 In each question, I will have three sections:
+
 1. Solution: This is where I explain my solution
 2. Implementation: This is where I write the script which will solve this problem for me with my solution
 3. Test: This is where I will run experiments to verify the correctness of my solution
@@ -38,9 +39,10 @@ $$
     g & h & i \\
 \end{bmatrix}
 
+
 $$
 
-$E$ is written in capital because it is where our ant is originally. Let each of these letters denote the *average time it will take the ant to move from that position to reach the border*. Then we can write the average time for $a$ and $b$ like the following:
+$E$ is written in capital because it is where our ant is originally. Let each of these letters denote the _average time it will take the ant to move from that position to reach the border_. Then we can write the average time for $a$ and $b$ like the following:
 
 $$
 
@@ -48,6 +50,7 @@ $$
     a & = \frac{1}{4} + \frac{1}{4} + \frac{1+b}{4} + \frac{1+d}{4} \\
     b & = \frac{1}{4} + \frac{1+a}{4} + \frac{1+c}{4} + \frac{1+E}{4} \\
 \end{align}
+
 
 $$
 
@@ -58,6 +61,7 @@ $$
 \begin{align}
     E & = \frac{1+b}{4} + \frac{1+d}{4} + \frac{1+f}{4} + \frac{1+h}{4} \\
 \end{align}
+
 
 $$
 
@@ -77,6 +81,7 @@ $$
    0.   &  0.   &  0.   &  0.   &  0.   & -0.25 &  0.   & -0.25 &  1.   \\
 \end{bmatrix}
 
+
 $$
 
 $\mathrm{b}$ is simply:
@@ -94,6 +99,7 @@ $$
     1. \\
     1. \\
 \end{bmatrix}
+
 
 $$
 
@@ -148,7 +154,6 @@ def adjacent_var_indexes(x: int, y: int) -> Iterator[int]:
 
 Finally, I initialize the matrices and calculate the solution
 
-
 ```python
 # init matrices
 A = np.zeros((variable_count, variable_count))
@@ -196,6 +201,7 @@ Output of my implementation is as follows:
 The middle element of our solution is **4.5**, which denoted the average time it will take our ant to move from the middle of the box to any border. Making our solution, 4.5.
 
 Complete code:
+
 ```python
 import numpy as np
 from typing import Iterator
@@ -237,7 +243,7 @@ def adjacent_var_indexes(x: int, y: int) -> Iterator[int]:
 
         if on_grid(_x) and on_grid(_y):
             yield point_to_index(_x, _y)
-            
+
 
 # init matrices
 A = np.zeros((variable_count, variable_count))
@@ -264,7 +270,6 @@ print(A)
 print(b)
 print(np.linalg.solve(A, b))
 ```
-
 
 ### Test
 

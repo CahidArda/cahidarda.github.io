@@ -34,7 +34,7 @@ Runs:
 k3d cluster create --config infra/k3d/cluster.yaml
 ```
 
-Kubernetes is the system that runs your containers for you and keeps them running. A *cluster* is
+Kubernetes is the system that runs your containers for you and keeps them running. A _cluster_ is
 the group of machines it manages, plus that managing software. In a company a cluster is many real
 servers; here, [k3d](https://k3d.io/) runs a small Kubernetes (called k3s) inside Docker on your
 laptop, so your one machine becomes a one-machine cluster. The command reads the settings in
@@ -64,14 +64,14 @@ Everything runs locally with no cloud account. The binding constraint is RAM, no
 roughly 16 GB minimum, 32 GB comfortable. The phases are additive but need not all run at once, so
 earlier layers can be scaled down to free memory when working on a later phase.
 
-| Tool | Role | Install |
-| --- | --- | --- |
-| [Docker](https://docs.docker.com/get-docker/) | container runtime k3d runs on | Docker Desktop or Engine |
-| [k3d](https://k3d.io/) | k3s (Kubernetes) in Docker | `brew install k3d` |
-| [kubectl](https://kubernetes.io/docs/tasks/tools/) | talk to the cluster (ships kustomize) | `brew install kubectl` |
-| [Helm](https://helm.sh/docs/intro/install/) | packaging for a few components | `brew install helm` |
-| [Tilt](https://docs.tilt.dev/install.html) | live "what changed" dev UI | `brew install tilt` |
-| [OpenTofu](https://opentofu.org/docs/intro/install/) | generates the secrets | `brew install opentofu` |
+| Tool                                                 | Role                                  | Install                  |
+| ---------------------------------------------------- | ------------------------------------- | ------------------------ |
+| [Docker](https://docs.docker.com/get-docker/)        | container runtime k3d runs on         | Docker Desktop or Engine |
+| [k3d](https://k3d.io/)                               | k3s (Kubernetes) in Docker            | `brew install k3d`       |
+| [kubectl](https://kubernetes.io/docs/tasks/tools/)   | talk to the cluster (ships kustomize) | `brew install kubectl`   |
+| [Helm](https://helm.sh/docs/intro/install/)          | packaging for a few components        | `brew install helm`      |
+| [Tilt](https://docs.tilt.dev/install.html)           | live "what changed" dev UI            | `brew install tilt`      |
+| [OpenTofu](https://opentofu.org/docs/intro/install/) | generates the secrets                 | `brew install opentofu`  |
 
 Then clone the repo and bring up the foundation:
 
@@ -94,7 +94,7 @@ before it. Phase 0 is the root of that chain
 ```yaml
 # overlays/phase-0-foundation/kustomization.yaml
 resources:
-  - ../../platform/base   # shared namespaces + config
+  - ../../platform/base # shared namespaces + config
   - placeholder.yaml
 ```
 
@@ -155,7 +155,7 @@ kubectl apply -k overlays/phase-0-foundation
 
 You tell Kubernetes what you want by handing it YAML files that describe the things to run: a
 service, its configuration, how many copies. Kubernetes then makes the cluster match that
-description and keeps it matching. A thing it runs for you is called a *workload*. `kubectl apply`
+description and keeps it matching. A thing it runs for you is called a _workload_. `kubectl apply`
 is the command that submits those descriptions. The `-k` flag means "assemble the YAML with
 Kustomize first": Kustomize is a tool that stitches together layered YAML files into one set before
 they are submitted. For phase 0 there are two layers:
@@ -193,7 +193,7 @@ The Secrets live in the `platform` namespace, so the target first ensures that n
 checkout); `tofu apply` makes the changes.
 [OpenTofu](https://opentofu.org/) reads the `.tf` files in
 [`infra/tofu`](https://github.com/CahidArda/local-data-platform/tree/main/infra/tofu), invents a random
-password for each data store (Postgres, ClickHouse, MinIO), and creates a Kubernetes *Secret* (an
+password for each data store (Postgres, ClickHouse, MinIO), and creates a Kubernetes _Secret_ (an
 object built to hold sensitive values) for each one, inside the cluster.
 
 **Result:** the credentials those services will need now exist in the cluster, but the passwords
@@ -222,27 +222,27 @@ Use `make down` only when you want to destroy the cluster and its data for good.
 
 Because k3d runs the cluster inside Docker, Docker Desktop is a useful window onto it, with one
 catch worth understanding up front: your services do not appear as Docker containers. The whole
-Kubernetes cluster runs *inside* one or two Docker containers, and everything you deploy lives
+Kubernetes cluster runs _inside_ one or two Docker containers, and everything you deploy lives
 inside those. So you inspect your services with `kubectl get pods -A` (or Tilt), not the Docker UI.
 
 - **Containers tab.** After `make cluster` you see the cluster's own containers, not your
   workloads: `k3d-data-platform-server-0` (the node, which is the entire Kubernetes running inside
   one container) and `k3d-data-platform-serverlb` (a small load balancer that maps the host ports
-  to the cluster). Postgres, Redpanda, and the rest, added in later phases, run as pods *inside* the
+  to the cluster). Postgres, Redpanda, and the rest, added in later phases, run as pods _inside_ the
   server container, so they will not be listed here.
 - **Images tab.** The images k3d itself uses: `rancher/k3s` (the node) and the k3d load-balancer
-  image. The images for your services are pulled by Kubernetes *inside* the node, so they generally
+  image. The images for your services are pulled by Kubernetes _inside_ the node, so they generally
   do not appear in this tab either. (From phase 1 on, images Tilt builds locally are the exception;
   Tilt builds them with Docker and imports them into the cluster.)
 - **Volumes tab.** A volume or two that k3d created for the node. The data volumes the databases use
-  from phase 1 on are Kubernetes PersistentVolumeClaims, provisioned *inside* the node, so they also
+  from phase 1 on are Kubernetes PersistentVolumeClaims, provisioned _inside_ the node, so they also
   will not show up as Docker volumes.
 - **Kubernetes tab.** Leave Docker Desktop's own built-in Kubernetes turned **off**. It is a
   separate, optional cluster that this project does not use; enabling it only adds confusion. Our
   cluster is the k3d one, which you talk to with `kubectl` (context `k3d-data-platform`).
 
-The short version: Docker Desktop shows the *box* the cluster runs in; `kubectl` and Tilt show
-what is running *inside* it.
+The short version: Docker Desktop shows the _box_ the cluster runs in; `kubectl` and Tilt show
+what is running _inside_ it.
 
 ## What's in the overlay
 

@@ -70,11 +70,11 @@ memory, and pods, so one tenant's runaway job cannot starve the others:
 ```yaml
 spec:
   hard:
-    requests.cpu: "1"
+    requests.cpu: '1'
     requests.memory: 1Gi
-    limits.cpu: "2"
+    limits.cpu: '2'
     limits.memory: 2Gi
-    pods: "10"
+    pods: '10'
 ```
 
 **NetworkPolicy** is deny-by-default. Each tenant namespace starts with all ingress and egress
@@ -86,7 +86,7 @@ kind: NetworkPolicy
 metadata: { name: default-deny }
 spec:
   podSelector: {}
-  policyTypes: [Ingress, Egress]   # deny-by-default; opened up below
+  policyTypes: [Ingress, Egress] # deny-by-default; opened up below
 ```
 
 **RBAC** scopes identity. Each tenant gets a ServiceAccount bound to a Role that grants verbs only

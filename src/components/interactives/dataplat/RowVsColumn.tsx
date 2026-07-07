@@ -17,8 +17,18 @@ const KEY_COL: Col = 'order_id'; // the column the point lookup filters on
 
 type Query = 'point' | 'scan';
 const QUERIES: Record<Query, { label: string; sql: string; cols: Col[]; rows: 'one' | 'all' }> = {
-  point: { label: 'Point lookup', sql: "SELECT * FROM orders WHERE order_id = 'ord-3'", cols: [...COLS], rows: 'one' },
-  scan: { label: 'Analytics scan', sql: 'SELECT tenant, sum(amount) FROM orders GROUP BY tenant', cols: ['tenant', 'amount'], rows: 'all' },
+  point: {
+    label: 'Point lookup',
+    sql: "SELECT * FROM orders WHERE order_id = 'ord-3'",
+    cols: [...COLS],
+    rows: 'one',
+  },
+  scan: {
+    label: 'Analytics scan',
+    sql: 'SELECT tenant, sum(amount) FROM orders GROUP BY tenant',
+    cols: ['tenant', 'amount'],
+    rows: 'all',
+  },
 };
 
 type Cell = 'used' | 'wasted' | 'skipped';
@@ -62,8 +72,19 @@ const cellStyle = (s: Cell, color: string): React.CSSProperties =>
   s === 'used'
     ? { background: color, color: 'var(--color-paper)', borderColor: color }
     : s === 'wasted'
-      ? { background: 'transparent', color: 'var(--color-muted)', borderColor: 'var(--color-line-strong)', opacity: 0.5, textDecoration: 'line-through' }
-      : { background: 'transparent', color: 'var(--color-muted)', borderColor: 'var(--color-line)', opacity: 0.25 };
+      ? {
+          background: 'transparent',
+          color: 'var(--color-muted)',
+          borderColor: 'var(--color-line-strong)',
+          opacity: 0.5,
+          textDecoration: 'line-through',
+        }
+      : {
+          background: 'transparent',
+          color: 'var(--color-muted)',
+          borderColor: 'var(--color-line)',
+          opacity: 0.25,
+        };
 
 export default function RowVsColumn() {
   const [sel, setSel] = useState<Query>('scan');
@@ -107,15 +128,25 @@ export default function RowVsColumn() {
         >
           {/* One shared grid (not independent flex rows) so the columns line up and a
               long value like "subscriptions" sizes its column for every row, not just its own. */}
-          <div className="grid gap-1" style={{ gridTemplateColumns: 'repeat(4, minmax(min-content, 1fr))' }}>
+          <div
+            className="grid gap-1"
+            style={{ gridTemplateColumns: 'repeat(4, minmax(min-content, 1fr))' }}
+          >
             {COLS.map((c) => (
-              <span key={`h-${c}`} className="mb-0.5 text-center font-mono text-[0.58rem] text-muted">
+              <span
+                key={`h-${c}`}
+                className="mb-0.5 text-center font-mono text-[0.58rem] text-muted"
+              >
                 {c}
               </span>
             ))}
             {ROWS.flatMap((row, r) =>
               COLS.map((c) => (
-                <CellBox key={`${r}-${c}`} v={row[c]} style={cellStyle(rowStoreCell(q, r, c), ROW_COLOR)} />
+                <CellBox
+                  key={`${r}-${c}`}
+                  v={row[c]}
+                  style={cellStyle(rowStoreCell(q, r, c), ROW_COLOR)}
+                />
               )),
             )}
           </div>
@@ -147,19 +178,30 @@ export default function RowVsColumn() {
           <>
             The scan needs two columns across every row. The row store still reads all 20 cells (it
             can only fetch whole rows) and throws half away. The column store reads just the
-            <span style={{ color: COL_COLOR }} className="font-medium"> tenant</span> and
-            <span style={{ color: COL_COLOR }} className="font-medium"> amount</span> segments: 10
-            cells, nothing wasted. This is why analytics lives on a column store.
+            <span style={{ color: COL_COLOR }} className="font-medium">
+              {' '}
+              tenant
+            </span>{' '}
+            and
+            <span style={{ color: COL_COLOR }} className="font-medium">
+              {' '}
+              amount
+            </span>{' '}
+            segments: 10 cells, nothing wasted. This is why analytics lives on a column store.
           </>
         ) : (
           <>
             The point lookup wants one whole row. The row store jumps straight to it by primary key
             and reads one contiguous block: 4 cells, nothing wasted. The column store has no row
             index, so it scans the whole
-            <span style={{ color: COL_COLOR }} className="font-medium"> order_id</span> column to find
-            the row (the non-matches are wasted). That scan also tells it the match is the 3rd row, so
-            it seeks straight to that slot in each other column (one cell each, no re-scan). More
-            cells, out of four separate places. This is why current-state lookups live on a row store.
+            <span style={{ color: COL_COLOR }} className="font-medium">
+              {' '}
+              order_id
+            </span>{' '}
+            column to find the row (the non-matches are wasted). That scan also tells it the match
+            is the 3rd row, so it seeks straight to that slot in each other column (one cell each,
+            no re-scan). More cells, out of four separate places. This is why current-state lookups
+            live on a row store.
           </>
         )}
       </p>
@@ -193,7 +235,8 @@ function Panel({
       <div className="flex flex-col gap-1">{children}</div>
       <div className="mt-2 font-mono text-[0.62rem] text-ink-soft">
         read <strong style={{ color }}>{tally.read}</strong>/20 cells
-        {tally.wasted > 0 && <span className="text-muted"> · {tally.wasted} wasted</span>} · {blocks}
+        {tally.wasted > 0 && <span className="text-muted"> · {tally.wasted} wasted</span>} ·{' '}
+        {blocks}
       </div>
     </div>
   );

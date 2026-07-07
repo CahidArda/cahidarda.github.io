@@ -22,7 +22,9 @@ const MODES: { key: Mode; label: string; cap: number }[] = [
 ];
 
 // A static poster (SSR + reduced motion): a backlog that has ramped up to SEED.
-const POSTER = Array.from({ length: N }, (_, i) => Math.min(SEED, Math.round((i / (N * 0.55)) * SEED)));
+const POSTER = Array.from({ length: N }, (_, i) =>
+  Math.min(SEED, Math.round((i / (N * 0.55)) * SEED)),
+);
 
 function lagColor(lag: number): string {
   if (lag < 60) return 'var(--color-dp-lake)'; // teal: keeping up
@@ -92,17 +94,31 @@ export default function ConsumerLag() {
         </span>
       </div>
 
-      <svg viewBox={`0 0 ${VB.w} ${VB.h}`} className="mt-1 w-full" style={{ maxHeight: 150 }} role="img"
-        aria-label="A time series of consumer lag rising when the consumer is slow and draining when it is healthy">
+      <svg
+        viewBox={`0 0 ${VB.w} ${VB.h}`}
+        className="mt-1 w-full"
+        style={{ maxHeight: 150 }}
+        role="img"
+        aria-label="A time series of consumer lag rising when the consumer is slow and draining when it is healthy"
+      >
         {/* threshold guides */}
         {[60, 150].map((t) => (
-          <line key={t} x1={PAD.l} y1={y(t)} x2={VB.w - PAD.r} y2={y(t)}
-            style={{ stroke: 'var(--color-line)', strokeWidth: 1, strokeDasharray: '2 3' }} />
+          <line
+            key={t}
+            x1={PAD.l}
+            y1={y(t)}
+            x2={VB.w - PAD.r}
+            y2={y(t)}
+            style={{ stroke: 'var(--color-line)', strokeWidth: 1, strokeDasharray: '2 3' }}
+          />
         ))}
         {area && <polygon points={area} style={{ fill: lagColor(lag), opacity: 0.14 }} />}
         {samples.length > 1 && (
-          <polyline points={pts} fill="none"
-            style={{ stroke: lagColor(lag), strokeWidth: 2, transition: 'stroke 300ms' }} />
+          <polyline
+            points={pts}
+            fill="none"
+            style={{ stroke: lagColor(lag), strokeWidth: 2, transition: 'stroke 300ms' }}
+          />
         )}
       </svg>
 

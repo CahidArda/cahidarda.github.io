@@ -59,19 +59,50 @@ const NAMESPACES: Ns[] = [
   { ns: 'tenant-retail', phase: 5, isolation: true, workloads: [] },
   { ns: 'tenant-marketplace', phase: 5, isolation: true, workloads: [] },
   { ns: 'tenant-subscriptions', phase: 5, isolation: true, workloads: [] },
-  { ns: 'argocd', phase: 7, workloads: [{ name: 'argocd', phase: 7 }, { name: 'app-of-apps', phase: 7 }] },
+  {
+    ns: 'argocd',
+    phase: 7,
+    workloads: [
+      { name: 'argocd', phase: 7 },
+      { name: 'app-of-apps', phase: 7 },
+    ],
+  },
 ];
 
 // What each phase adds to the cluster, summarised for the scrubber.
 const PHASES: { title: string; adds: string }[] = [
-  { title: 'Foundation', adds: 'the cluster, the platform and observability namespaces, shared config, and a placeholder service' },
-  { title: 'Ingest', adds: 'the data spine: a producer, the Redpanda log, the Spark stream-processor, Postgres, and the API' },
-  { title: 'Observability', adds: 'metrics, dashboards, and logs: Prometheus, Grafana, Loki, Alloy, and the consumer-lag exporter' },
-  { title: 'Columnar', adds: 'the column store and lakehouse: ClickHouse, MinIO, and the Iceberg REST catalog' },
-  { title: 'Resilience', adds: 'Alertmanager, and an SQS-compatible queue (ElasticMQ) to contrast a queue DLQ with the log DLQ' },
-  { title: 'Multi-tenancy', adds: 'a namespace per tenant, each with its own ResourceQuota, NetworkPolicy, and RBAC' },
-  { title: 'Orchestration', adds: 'Dagster, running the nightly batch rollup behind a blocking data-quality gate' },
-  { title: 'Self-service', adds: 'ArgoCD for GitOps (its pruning finally removes the phase-0 placeholder)' },
+  {
+    title: 'Foundation',
+    adds: 'the cluster, the platform and observability namespaces, shared config, and a placeholder service',
+  },
+  {
+    title: 'Ingest',
+    adds: 'the data spine: a producer, the Redpanda log, the Spark stream-processor, Postgres, and the API',
+  },
+  {
+    title: 'Observability',
+    adds: 'metrics, dashboards, and logs: Prometheus, Grafana, Loki, Alloy, and the consumer-lag exporter',
+  },
+  {
+    title: 'Columnar',
+    adds: 'the column store and lakehouse: ClickHouse, MinIO, and the Iceberg REST catalog',
+  },
+  {
+    title: 'Resilience',
+    adds: 'Alertmanager, and an SQS-compatible queue (ElasticMQ) to contrast a queue DLQ with the log DLQ',
+  },
+  {
+    title: 'Multi-tenancy',
+    adds: 'a namespace per tenant, each with its own ResourceQuota, NetworkPolicy, and RBAC',
+  },
+  {
+    title: 'Orchestration',
+    adds: 'Dagster, running the nightly batch rollup behind a blocking data-quality gate',
+  },
+  {
+    title: 'Self-service',
+    adds: 'ArgoCD for GitOps (its pruning finally removes the phase-0 placeholder)',
+  },
 ];
 
 export default function ClusterMap({ phase = 7 }: { phase?: number }) {
@@ -82,13 +113,25 @@ export default function ClusterMap({ phase = 7 }: { phase?: number }) {
   const namespaces = NAMESPACES.filter((n) => n.phase <= p);
 
   return (
-    <Widget title={`The cluster at phase ${p}: ${PHASES[p].title}`} kicker="cumulative · scrub to replay the growth">
+    <Widget
+      title={`The cluster at phase ${p}: ${PHASES[p].title}`}
+      kicker="cumulative · scrub to replay the growth"
+    >
       <div className="mb-3 flex items-center gap-2">
         <span className="font-mono text-[0.7rem] text-muted">phase</span>
         {Array.from({ length: phase + 1 }, (_, i) => i).map((i) => (
-          <button key={i} type="button" onClick={() => setSel(i)} aria-pressed={p === i} {...bindP(i)}
+          <button
+            key={i}
+            type="button"
+            onClick={() => setSel(i)}
+            aria-pressed={p === i}
+            {...bindP(i)}
             className="h-6 w-6 border-2 font-mono text-[0.7rem] transition-colors"
-            style={{ borderColor: p === i ? 'var(--color-accent)' : 'var(--color-line)', color: p === i ? 'var(--color-accent)' : 'var(--color-ink-soft)' }}>
+            style={{
+              borderColor: p === i ? 'var(--color-accent)' : 'var(--color-line)',
+              color: p === i ? 'var(--color-accent)' : 'var(--color-ink-soft)',
+            }}
+          >
             {i}
           </button>
         ))}
@@ -102,17 +145,35 @@ export default function ClusterMap({ phase = 7 }: { phase?: number }) {
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {namespaces.map((n) => {
             const fresh = n.phase === p;
-            const wls = n.workloads.filter((w) => w.phase <= p && (w.removed == null || w.removed > p));
+            const wls = n.workloads.filter(
+              (w) => w.phase <= p && (w.removed == null || w.removed > p),
+            );
             return (
-              <div key={n.ns} className="border p-2" style={{ borderColor: fresh ? 'var(--color-accent)' : 'var(--color-line)' }}>
+              <div
+                key={n.ns}
+                className="border p-2"
+                style={{ borderColor: fresh ? 'var(--color-accent)' : 'var(--color-line)' }}
+              >
                 <div className="mb-1.5 flex items-center justify-between">
                   <span className="font-mono text-[0.72rem] font-semibold text-ink">{n.ns}</span>
-                  {fresh && <span className="font-mono text-[0.55rem] uppercase tracking-wider" style={{ color: 'var(--color-accent)' }}>new</span>}
+                  {fresh && (
+                    <span
+                      className="font-mono text-[0.55rem] uppercase tracking-wider"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      new
+                    </span>
+                  )}
                 </div>
                 {n.isolation ? (
                   <div className="flex flex-wrap gap-1">
                     {['quota', 'netpol', 'rbac'].map((b) => (
-                      <span key={b} className="border border-line-strong px-1.5 py-0.5 font-mono text-[0.6rem] text-ink-soft">{b}</span>
+                      <span
+                        key={b}
+                        className="border border-line-strong px-1.5 py-0.5 font-mono text-[0.6rem] text-ink-soft"
+                      >
+                        {b}
+                      </span>
                     ))}
                   </div>
                 ) : (
@@ -120,9 +181,19 @@ export default function ClusterMap({ phase = 7 }: { phase?: number }) {
                     {wls.map((w) => {
                       const isNew = w.phase === p;
                       return (
-                        <span key={w.name} className="flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[0.62rem]"
-                          style={{ borderColor: isNew ? 'var(--color-accent)' : 'var(--color-line)', color: isNew ? 'var(--color-ink)' : 'var(--color-ink-soft)', opacity: isNew ? 1 : 0.85 }}>
-                          <span className="inline-block h-2 w-2 shrink-0" style={{ background: colorFor(w.name) }} />
+                        <span
+                          key={w.name}
+                          className="flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[0.62rem]"
+                          style={{
+                            borderColor: isNew ? 'var(--color-accent)' : 'var(--color-line)',
+                            color: isNew ? 'var(--color-ink)' : 'var(--color-ink-soft)',
+                            opacity: isNew ? 1 : 0.85,
+                          }}
+                        >
+                          <span
+                            className="inline-block h-2 w-2 shrink-0"
+                            style={{ background: colorFor(w.name) }}
+                          />
                           {w.name}
                         </span>
                       );
@@ -139,8 +210,8 @@ export default function ClusterMap({ phase = 7 }: { phase?: number }) {
           Phase {p}: {PHASES[p].title}
         </p>
         <p className="mt-0.5 text-sm text-ink-soft">
-          {p === 0 ? 'Stands up ' : 'Adds '}{PHASES[p].adds}.{' '}
-          {p > 0 && 'Everything else (in '}
+          {p === 0 ? 'Stands up ' : 'Adds '}
+          {PHASES[p].adds}. {p > 0 && 'Everything else (in '}
           {p > 0 && <span className="text-muted">muted</span>}
           {p > 0 && ') was already there: one cluster, growing a layer at a time.'}
         </p>

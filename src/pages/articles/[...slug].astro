@@ -3,10 +3,7 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 
 export async function getStaticPaths() {
-  const entries = await getCollection(
-    'articles',
-    ({ data }) => !data.draft && !data.externalUrl,
-  );
+  const entries = await getCollection('articles', ({ data }) => !data.draft && !data.externalUrl);
   return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },
