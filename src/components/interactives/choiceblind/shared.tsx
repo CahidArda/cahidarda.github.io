@@ -1,7 +1,7 @@
 /**
  * Shared design system for the choice-blindness post. Defined ONCE and reused in every
- * island so the post reads as authored: the same colour per outcome (confabulated /
- * detected / hedged), the same bordered figure frame, the same bar-with-CI primitive.
+ * island so the post reads as authored: the same colour per outcome (defended the swap /
+ * caught it), the same bordered figure frame, the same bar-with-CI primitive.
  * Data all comes from results/summary.md of the choice-blindness-llms experiment.
  */
 import { useEffect, useState } from 'react';
@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react';
 /* ── The cast: one fixed colour per outcome (global.css, theme-aware) ── */
 export const CONFAB = 'var(--color-cb-confab)'; // defended the swapped answer
 export const DETECT = 'var(--color-cb-detect)'; // caught the swap
-export const HEDGE = 'var(--color-cb-hedge)'; // vague, no committed stance
 export const ACCENT = 'var(--color-accent)';
 
 /** Respects `prefers-reduced-motion`: widgets fall back to instant state / static posters. */

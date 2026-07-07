@@ -1,138 +1,104 @@
 /**
- * The results chart. One widget, three views (by condition / by model / by question
- * category), switched by tabs. Hover a tab to preview it, click to commit (skill §9.1).
- * Every number is verbatim from results/summary.md (216 trials, Cohen's k = 0.972).
+ * The results chart. One widget, two views (by scenario / by question type), switched by
+ * tabs; the by-model view lives in IdentityIndex.tsx up top. Hover a tab to preview it,
+ * click to commit (skill §9.1). Every number is verbatim from results/summary.md
+ * (240 trials, 180 swapped, Cohen's k = 0.981).
  */
 import { useState } from 'react';
-import {
-  RateBars,
-  Widget,
-  OutcomeChip,
-  CONFAB,
-  DETECT,
-  HEDGE,
-  ACCENT,
-  type RateRow,
-} from './shared';
+import { RateBars, Widget, OutcomeChip, CONFAB, DETECT, ACCENT, type RateRow } from './shared';
 
-type View = 'condition' | 'model' | 'category';
+type View = 'scenario' | 'category';
 
-// By condition — the headline. choice-only closes the text-matching route; misattribution
+// By scenario — the mechanism. choice-only closes the text-matching route; misattribution
 // (Wu-style) leaves the real answer in context, so the swap is always caught.
-const BY_CONDITION: RateRow[] = [
+const BY_SCENARIO: RateRow[] = [
   {
     label: 'choice-only',
     sub: 'swap, no reasoning',
-    n: 54,
-    rate: 0.741,
-    ci: [0.611, 0.839],
+    n: 60,
+    rate: 0.7,
+    ci: [0.575, 0.801],
     color: CONFAB,
     emphasize: true,
   },
   {
     label: 'reasoning-intact',
     sub: 'swap + matching reasons',
-    n: 54,
-    rate: 0.611,
-    ci: [0.478, 0.73],
+    n: 60,
+    rate: 0.667,
+    ci: [0.541, 0.773],
     color: CONFAB,
   },
   {
     label: 'misattribution',
     sub: 'Wu-style, answer left in',
-    n: 54,
+    n: 60,
     rate: 0.0,
-    ci: [0.0, 0.066],
+    ci: [0.0, 0.06],
     color: CONFAB,
   },
   {
     label: 'control',
     sub: 'answer restated truthfully',
-    n: 54,
+    n: 60,
     rate: 0.0,
-    ci: [0.0, 0.066],
+    ci: [0.0, 0.06],
     color: CONFAB,
   },
 ];
 
-// By model — ranking tracks safety-tuning / the trained "flip" reflex, not introspection.
-const BY_MODEL: RateRow[] = [
-  { label: 'Opus 4.8', sub: 'anthropic', n: 18, rate: 0.111, ci: [0.031, 0.328], color: CONFAB },
-  { label: 'Sonnet 5', sub: 'anthropic', n: 18, rate: 0.333, ci: [0.163, 0.563], color: CONFAB },
-  { label: 'GPT-5.4-nano', sub: 'openai', n: 18, rate: 0.444, ci: [0.246, 0.663], color: CONFAB },
-  { label: 'Fugu-Ultra', sub: 'sakana', n: 18, rate: 0.444, ci: [0.246, 0.663], color: CONFAB },
-  { label: 'Grok 4.3', sub: 'x-ai', n: 18, rate: 0.5, ci: [0.29, 0.71], color: CONFAB },
-  {
-    label: 'DeepSeek V4 Pro',
-    sub: 'deepseek',
-    n: 18,
-    rate: 0.556,
-    ci: [0.337, 0.754],
-    color: CONFAB,
-  },
-  {
-    label: 'DeepSeek V4 Flash',
-    sub: 'deepseek',
-    n: 18,
-    rate: 0.556,
-    ci: [0.337, 0.754],
-    color: CONFAB,
-  },
-  { label: 'GPT-5.5', sub: 'openai', n: 18, rate: 0.556, ci: [0.337, 0.754], color: CONFAB },
-  { label: 'Qwen3.7 Plus', sub: 'qwen', n: 18, rate: 0.556, ci: [0.337, 0.754], color: CONFAB },
-];
-
-// By category — confabulation lives where there is no fact to anchor to.
+// By question type — defense of the swap lives where there is no fact to anchor to.
 const BY_CATEGORY: RateRow[] = [
   {
     label: 'stance',
     sub: 'yes/no positions',
-    n: 54,
-    rate: 0.574,
-    ci: [0.442, 0.697],
+    n: 60,
+    rate: 0.583,
+    ci: [0.457, 0.699],
     color: CONFAB,
     emphasize: true,
   },
   {
     label: 'preference',
     sub: 'subjective picks',
-    n: 81,
-    rate: 0.519,
-    ci: [0.411, 0.624],
+    n: 90,
+    rate: 0.511,
+    ci: [0.41, 0.612],
     color: CONFAB,
   },
-  { label: 'factual', sub: 'a definite truth', n: 27, rate: 0.0, ci: [0.0, 0.125], color: CONFAB },
+  {
+    label: 'factual',
+    sub: 'a definite truth',
+    n: 30,
+    rate: 0.033,
+    ci: [0.006, 0.167],
+    color: CONFAB,
+  },
 ];
 
 const VIEWS: { id: View; label: string; rows: RateRow[]; note: string }[] = [
   {
-    id: 'condition',
-    label: 'By condition',
-    rows: BY_CONDITION,
-    note: 'The contrast is the whole story: leave the model’s real answer in context (misattribution) and the swap is caught 100% of the time; replace the answer and strip the reasoning (choice-only) and confabulation jumps to 74%.',
-  },
-  {
-    id: 'model',
-    label: 'By model',
-    rows: BY_MODEL,
-    note: 'Choice-only condition only. The spread is real, but ranking likely tracks safety-tuning and the trained “flip” reflex, not better introspection. Opus 4.8 reverts most; the mid-pack defends the swap on ~half of trials.',
+    id: 'scenario',
+    label: 'By scenario',
+    rows: BY_SCENARIO,
+    note: 'The contrast is the whole story: leave the model’s real answer in context (misattribution) and the edit is caught 100% of the time; replace the answer itself and 67 to 70% of replies defend it. Whether reasoning is planted next to the swap barely matters.',
   },
   {
     id: 'category',
-    label: 'By category',
+    label: 'By question type',
     rows: BY_CATEGORY,
-    note: 'Swap conditions, all models. On factual items (Jupiter vs Saturn) every model corrected the record. Confabulation concentrates on preferences and stances, where there is no external fact to snap back to.',
+    note: 'Swapped trials, all models. On the factual item (Jupiter vs Saturn) 29 of 30 replies corrected the record. Defense of the planted answer concentrates on preferences and stances, where there is no external fact to snap back to.',
   },
 ];
 
 export default function Results() {
-  const [sel, setSel] = useState<View>('condition');
+  const [sel, setSel] = useState<View>('scenario');
   const [hover, setHover] = useState<View | null>(null);
   const active = hover ?? sel;
   const view = VIEWS.find((v) => v.id === active)!;
 
   return (
-    <Widget title="Confabulation rate" kicker="216 trials · Wilson 95% CI">
+    <Widget title="How often the planted answer was defended" kicker="240 trials · 180 swapped">
       <div className="mb-4 flex flex-wrap gap-1.5">
         {VIEWS.map((v) => (
           <button
@@ -159,9 +125,8 @@ export default function Results() {
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-line pt-3">
         <span className="font-mono text-[0.6rem] text-muted">bar = rate · whisker = 95% CI</span>
-        <OutcomeChip color={CONFAB} label="confabulated" />
-        <OutcomeChip color={DETECT} label="detected" />
-        <OutcomeChip color={HEDGE} label="hedged" />
+        <OutcomeChip color={CONFAB} label="defended the swap" />
+        <OutcomeChip color={DETECT} label="caught it" />
       </div>
     </Widget>
   );
