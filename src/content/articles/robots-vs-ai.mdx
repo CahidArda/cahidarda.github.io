@@ -1,0 +1,316 @@
+---
+title: 'What 25 Years of Robot Automation Research Predicts About AI and Your Job'
+description: 'Factory robots (1990-2015) are the best natural experiment we have for machines replacing workers. The mechanics of displacement carry over to AI, but the target inverts: robots hit the least-educated hardest, while AI exposure rises with skill and income. A data-driven look at who actually loses their job.'
+date: 2026-07-05
+tags: ['blog']
+---
+
+import InvertedLadder from '../../components/interactives/robots-ai/InvertedLadder.tsx';
+import RobotJobs from '../../components/interactives/robots-ai/RobotJobs.tsx';
+import EarningsScar from '../../components/interactives/robots-ai/EarningsScar.tsx';
+import WhereLanded from '../../components/interactives/robots-ai/WhereLanded.tsx';
+import BargainingTimeline from '../../components/interactives/robots-ai/BargainingTimeline.tsx';
+import SafetyNetCushion from '../../components/interactives/robots-ai/SafetyNetCushion.tsx';
+import AutorReversal from '../../components/interactives/robots-ai/AutorReversal.tsx';
+import WagePercentileExposure from '../../components/interactives/robots-ai/WagePercentileExposure.tsx';
+import ReshoringChain from '../../components/interactives/robots-ai/ReshoringChain.tsx';
+
+AI is changing how people work, and it is introducing a lot of uncertainty for anyone in the
+workforce. This is not the first time a technology has forced large numbers of people to change jobs.
+It has happened repeatedly, and the most recent case, industrial robots on the factory floor, was
+studied closely by economists for the better part of 25 years.
+
+This post walks through that robot research and asks how much of it carries over to AI. The way the
+damage lands looks likely to carry over. Who it lands on does not. Robots climbed **down** the
+education ladder and fell hardest on high-school dropouts. AI exposure climbs **up** it, rising with
+skill and income. The first chart sets up that contrast; the rest of the post is the evidence behind
+it.
+
+<div class="fx-figure">
+  <InvertedLadder client:visible />
+</div>
+
+## What robots did to jobs
+
+The canonical study is Acemoglu and Restrepo's "Robots and Jobs," which tracked US commuting zones from
+1990 to 2007. It is the most rigorous natural experiment available for a machine standing in directly
+for a worker:
+
+> "One more robot per thousand workers reduces the employment-to-population ratio by 0.2 percentage
+> points and wages by 0.42%." ([Robots and Jobs, JPE 128(6)](https://shapingwork.mit.edu/wp-content/uploads/2023/10/Robots-and-Jobs-Evidence-from-US-Labor-Markets.p.pdf))
+
+That is the aggregate, national figure. Translate the coefficient into people and it lands harder:
+within a local commuting zone, the same paper estimates one more robot reduced employment by about six
+workers.
+
+<div class="fx-figure">
+  <RobotJobs client:visible />
+</div>
+
+Three features of what robots did matter for the AI comparison:
+
+- **Occupation-specific.** The hit fell on routine manual work: machinists, assemblers, material
+  handlers, welders.
+- **Geographically concentrated.** Detroit was the single most-exposed commuting zone, with the other
+  most-exposed zones clustered in the industrial Midwest.
+- **It climbed _down_ the ladder.** Every education group lost ground, but workers without a college
+  degree lost far more, and robots showed no positive complementarity even for workers with advanced
+  degrees. Earlier IT waves had lifted the highly credentialed. Robots did not.
+
+One caveat. The sharp negative story is most robustly a _US_ result. Graetz and Michaels
+(2018) find robots raised productivity and wages across countries while reducing lower-skilled workers' hours,
+and the [German study by Dauth and coauthors](https://doku.iab.de/discussionpapers/2017/dp3017.pdf)
+found "no evidence that robots cause total job losses" in Germany, only a reshuffling of job composition
+(manufacturing losses fully offset by new service-sector jobs), plausibly because stronger unions and a
+denser safety net absorbed the shock. The policy section returns to that.
+
+## For many, the loss was permanent
+
+The aggregate story is mild. Total US employment moved only a small share. That average hides the thing
+that actually matters to a displaced person, which is that for a large minority the loss never reverses.
+
+The scarring literature measures this. These studies are not about robots. They follow workers who lost
+long-held jobs in mass layoffs, which is the same event a robot triggers for the worker, and they are
+used here as the benchmark for what losing a stable job does. The foundational study, Jacobson, LaLonde
+and Sullivan (1993), found high-tenure workers displaced in the early 1980s still down about 25% of
+prior earnings five years out (high-tenure workers were chosen because their long earnings histories
+make the loss easy to measure, not because seniority caused it).
+
+Two later studies traced the longer path, and they anchor the chart below:
+
+- **von Wachter, Song and Manchester (2009):** displaced workers were still about 20% below comparable
+  peers 15 to 20 years later.
+- **Couch and Placzek (2010):** in administrative data, about 33% down immediately, and still 15% down
+  six years out.
+
+<div class="fx-figure">
+  <EarningsScar client:visible />
+</div>
+
+The mechanism is the surprising part. Most of the lifetime cost does not come from a lower wage on the
+next job. It comes from the trouble finding stable full-time work at all: longer spells out of work,
+more part-time landings.
+
+That is also why "reemployment" is a misleading headline. The [BLS Displaced Workers Survey (January 2024)](https://www.bls.gov/news.release/disp.nr0.htm) found 65.7% of long-tenured displaced workers
+reemployed, which sounds like recovery until you open the number up.
+
+<div class="fx-figure">
+  <WhereLanded client:visible />
+</div>
+
+Open that number up and it splits into three outcomes. About a third of displaced workers never got
+reemployed at all. A quarter came back only at lower pay. And about four in ten found full-time work
+that matched or beat their old pay. Stack those and the friendly-sounding two-thirds reemployment rate
+is hiding a long tail of people who are worse off for good.
+
+The damage does not stay inside the pay stub. Displacement is linked to
+[worse physical and psychological health, family disruption, higher divorce rates, and worse outcomes
+for the workers' children](https://pmc.ncbi.nlm.nih.gov/articles/PMC4553243/). And it moves votes.
+One study found that a single robot per thousand workers cut local average "career value" by about
+$3,900 in 2004 to 2008, and that automation-hit regions
+[shifted toward populist and Republican candidates in 2016](https://knowledge.wharton.upenn.edu/article/robots-are-taking-over-low-skilled-jobs-and-changing-votes/).
+Displacement is a political event, not only an economic one, and that is where the AI story diverges
+most.
+
+## AI hits the opposite people
+
+Everything above transfers to AI as _mechanics_: concentrated, permanent for a minority, and hard to
+undo once it lands. What does not transfer is who stands in the blast radius.
+
+By education the pattern is a clean inversion, the first chart above. Robot exposure was strongest
+among high-school dropouts and
+[declined monotonically with education](https://link.springer.com/article/10.1007/s40821-025-00314-w);
+AI exposure ran the other way, lightest on the least-educated and heaviest on college graduates.
+
+Cut the same UK data by wage instead of education and the robot curve changes shape. It is not a
+straight line down. Robot exposure is an inverted-U, lowest at both ends of the wage distribution and
+concentrated in the middle, because low-wage work is often too unstructured to automate cheaply and
+high-wage work too non-routine. AI exposure, by contrast, climbs monotonically up the wage
+distribution, toward the credentialed knowledge work at the top.
+
+<div class="fx-figure">
+  <WagePercentileExposure client:visible />
+</div>
+
+This is the reversal at the heart of the comparison. Every earlier wave of automation, from the power
+loom to the industrial robot, pushed hardest on manual and lower-paid work. AI is the first to point up
+the income ladder, toward the credentialed knowledge work long assumed to be automation-proof: software,
+law, finance, analysis, design. Set what robots did beside the exposure curve and the implication is
+uncomfortable. Displacement is harsh, concentrated and permanent for a minority, and this time that
+minority sits nearer the top of the distribution than the bottom.
+
+## The optimistic case
+
+The exposure curve shows which jobs AI can reach, not how many workers it will replace, and there is a
+more hopeful reading of the same data.
+[Autor's (2024) hypothesis](https://www.nber.org/papers/w32140) is that AI might _reverse_ the wage
+polarization that robots and earlier IT produced: because it can put expert judgment within reach of
+less-credentialed workers, AI could "extend the relevance, reach, and value of human expertise" rather
+than hollowing out the middle. Whether that happens is unsettled. What is already clear is the direction
+of exposure, and it points up the ladder, not down it.
+
+<div class="fx-figure">
+  <AutorReversal client:visible />
+</div>
+
+## Workers have fought this before
+
+Yes, repeatedly, for two centuries. The pattern is remarkably stable: labor bargained over the _terms_
+of the transition, occasionally struck over its pace, and rarely stopped the technology. It did best
+when it had structural power, not when it was left to help individual workers adjust after the fact.
+
+<div class="fx-figure">
+  <BargainingTimeline client:visible />
+</div>
+
+What is genuinely new is a shift from bargaining over automation to demanding it be blocked outright,
+now aimed at AI as much as at machines:
+
+- **Driverless trucks (2023).** The Teamsters and UPS contract banned them for the length of the
+  contract.
+- **Port automation (2024).** The International Longshoremen's Association threatened to shut East and
+  Gulf ports over a demand for a _total_ ban on automating cranes, gates and container moves, framing
+  full automation as existential rather than tradeable.
+- **AI in Hollywood (2023).** The Writers Guild won terms that
+  [bar AI from writing or rewriting scripts](https://variety.com/2023/biz/news/wga-ai-writers-strike-technology-ban-1235610076/),
+  and SAG-AFTRA secured rules requiring
+  [a performer's consent and compensation before AI can recreate their voice or likeness](https://www.hollywoodreporter.com/business/business-news/sagaftra-ai-provisions-agreement-lawyer-1235869078/).
+- **A pause on AI itself (2023).** An open letter signed by Elon Musk and thousands of others
+  [called on all AI labs to pause training systems more powerful than GPT-4](https://futureoflife.org/open-letter/pause-giant-ai-experiments/),
+  citing risks from mass job automation to a loss of human control.
+
+All that resistance raises a question: did it change the outcome, or was the displacement coming either
+way? Two readings of the evidence pull in opposite directions:
+
+- **Bargaining power, not machines (EPI).** The Economic Policy Institute, a labor-aligned think tank,
+  argues there is no good evidence that automation causes mass joblessness, and that the real driver of
+  stagnant wages is the erosion of worker bargaining power. It nicknames the opposite view (that robots
+  are destroying jobs) the ["zombie robot" argument](https://files.epi.org/pdf/126750.pdf), a claim it
+  says keeps lurching back despite being debunked.
+- **The displacement was real (Acemoglu and Restrepo).** Their evidence shows the job and wage losses
+  were measurable and real regardless of how well workers bargained.
+
+Both can be true: bargaining power shaped how much of the loss workers absorbed, and the loss was still
+there to absorb.
+
+## What actually softened the blow
+
+What actually helped the workers who were displaced? Two responses get tried after a wave of
+displacement. The first is to bring the lost jobs back. The second is to cushion the people who lost
+them with income support. With robots, the first did little for the workers themselves, and the
+second is the one the evidence backs.
+
+### Bringing the jobs back
+
+One way robots can bring jobs back is through reshoring, moving production home from lower-wage
+countries. [Krenz, Prettner and Strulik (2021)](https://www.econstor.eu/handle/10419/180197) find that
+robots drove more of it: one extra robot per thousand workers is associated with about 3.5% more
+reshoring. But the production came back automated.
+
+Average pay can rise in the process, which sounds
+like good news until you see where it lands. The gains went to professional occupations, not to the
+routine workers who had been displaced, and Krenz and coauthors tie automation-driven reshoring to a
+rising skill premium and wider inequality, not a broad-based raise. Higher average wages, a bigger gap.
+
+<div class="fx-figure">
+  <ReshoringChain client:visible />
+</div>
+
+The same pattern is starting to show up in the AI wave, aimed this time at offshore service and
+software work rather than factory production. Jobs that companies once sent abroad, in call centers,
+back offices and IT, are now being automated. The US firm Opendoor is
+[closing its India operations and replacing those offshore workflows with AI](https://news.outsourceaccelerator.com/opendoor-india-ai-closure/)
+run by smaller US teams; India's IT and business-process sector, which employs
+[millions of people](https://gulfnews.com/technology/ai-agents-take-over-indias-bpos-what-it-means-for-millions-of-jobs-1.500308112),
+is bracing for the same substitution, and it reaches past support desks into software itself, where
+[entry-level coding jobs are among the first being cut](https://www.storyboard18.com/digital/entry-level-it-jobs-shrink-20-25-as-ai-reshapes-hiring-in-india-ws-l-95225.htm).
+The work that offshoring created may be exactly what AI is positioned to absorb.
+
+### The safety net
+
+That leaves the safety net, and it is where the evidence is strongest. The most durable cushion was
+income support: money that softened the fall, paid over the years a displaced worker actually spends
+looking for stable work.
+
+<div class="fx-figure">
+  <SafetyNetCushion client:visible />
+</div>
+
+The clearest evidence comes from an
+[IMF analysis of the robot era](https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024002.pdf):
+across US commuting zones in 2000 to 2007, the wage decline from robot adoption was about two-thirds
+smaller in states with more generous unemployment insurance than in stingier ones. The cushion showed
+up in wages, not employment, and was strongest for workers without a college degree. The mechanism, in
+the IMF's reading, was time. The old job was gone either way, but longer-lasting benefits let displaced
+workers search harder for a job that matched their existing skills, or reskill for a different one,
+instead of grabbing the first lower-paying opening. Better matching and time to reskill left their
+wages higher.
+
+The German robot story points the same way, where a denser safety
+net went with a wave of automation that did not turn into net job losses. With robots, income support
+did more to cushion displacement than bringing the jobs back did. Whether that carries over to AI has
+not been tested.
+
+## What robots can & can't tell us about AI
+
+What robots did is the closest precedent we have, but it has to be read with care. The authors of the
+AI-exposure-index paper flag the limit directly:
+
+> "The potential difference in the nature of robots (tangible, rivalrous assets) compared to AI
+> algorithms (intangible, non-rivalrous) remains a limitation of the external validity. Therefore, AI
+> might affect wages and unemployment differently from robots. This distinction is crucial in avoiding
+> false analogies about the effects of AI on the labor market." ([AI-exposure-index paper](https://arxiv.org/pdf/2510.13369))
+
+With that caveat, it still says something. Displacement, when it lands, tends to be
+concentrated, permanent for a sizeable minority, and only lightly softened after the fact; the clearest
+exception to the pattern is who is exposed, since robots fell on the least-educated while AI exposure
+climbs the wage and education ladder; and across the robot era the intervention that cushioned the loss
+best was income support, not the jobs coming back.
+
+The two groups also differ in how they can respond. Robots hit blue-collar manufacturing workers, who
+had little individual clout but strong union structure, and could still strike a plant or a port. AI is
+reaching white-collar workers, software engineers, designers, lawyers, analysts, who have the opposite
+mix: more visibility, but almost no union structure and little collective leverage over how the
+technology gets deployed. The historical lesson from earlier waves, that labor did best when it had
+structural power, lands on a workforce that has less of it.
+
+How all of this resolves is genuinely uncertain. AI could hollow out the top of the ladder the way
+robots hollowed the middle, or it could, as Autor hopes, extend expertise downward and lift more people
+than it displaces. The direction of exposure is clear; the effect on jobs and wages is not yet in. What
+robots did tells us how a displacement wave has played out before. Whether AI follows it, we will find out by
+watching.
+
+## Sources
+
+- Acemoglu and Restrepo, "Robots and Jobs: Evidence from US Labor Markets," _Journal of Political
+  Economy_ 128(6), 2020. ([PDF](https://shapingwork.mit.edu/wp-content/uploads/2023/10/Robots-and-Jobs-Evidence-from-US-Labor-Markets.p.pdf))
+- Dauth, Findeisen, Sudekum and Wossner, "German Robots: The Impact of Industrial Robots on Workers,"
+  IAB Discussion Paper 30/2017. ([PDF](https://doku.iab.de/discussionpapers/2017/dp3017.pdf))
+- Graetz and Michaels, "Robots at Work," _Review of Economics and Statistics_ 100(5), 2018.
+  ([PDF](http://cep.lse.ac.uk/pubs/download/dp1335.pdf))
+- Jacobson, LaLonde and Sullivan, "Earnings Losses of Displaced Workers," 1993.
+  ([Chicago Fed PDF](https://www.chicagofed.org/-/media/publications/economic-perspectives/1993/ep-nov-dec1993-part1-jacobson-pdf.pdf))
+- von Wachter, Song and Manchester, "Long-Term Earnings Losses due to Mass Layoffs During the 1982
+  Recession," 2009.
+- Couch and Placzek, "Earnings Losses of Displaced Workers Revisited," _American Economic Review_
+  100(1), 2010. ([AEA page](https://www.aeaweb.org/articles?id=10.1257/aer.100.1.572))
+- BLS, "Worker Displacement: 2021-2023," January 2024. ([release](https://www.bls.gov/news.release/disp.nr0.htm))
+- Labaj, Oles and Prochazka, "Impact of robots and AI on labor and skill demand: evidence from the UK,"
+  _Eurasian Business Review_, 2025. ([Springer](https://link.springer.com/article/10.1007/s40821-025-00314-w))
+- Schaal, "A theory-based AI automation exposure index: Applying Moravec's Paradox to the US labor
+  market," arXiv:2510.13369, 2025. ([PDF](https://arxiv.org/pdf/2510.13369))
+- Autor, "Applying AI to Rebuild Middle Class Jobs," NBER Working Paper 32140, 2024.
+  ([PDF](https://www.nber.org/papers/w32140))
+- Petrova, Schubert, Taska and Yildirim, "Automation, Career Values, and Political Preferences," NBER
+  Working Paper 32655, 2024. ([Knowledge@Wharton summary](https://knowledge.wharton.upenn.edu/article/robots-are-taking-over-low-skilled-jobs-and-changing-votes/))
+- Krenz, Prettner and Strulik, "Robots, reshoring, and the lot of low-skilled workers," _European
+  Economic Review_ 136, 2021. ([EconStor](https://www.econstor.eu/handle/10419/180197))
+- Bivens (EPI), "The zombie robot argument lurches on," 2017. ([PDF](https://files.epi.org/pdf/126750.pdf))
+- City Journal, on containerization and the long decline of longshore work.
+  ([article](https://www.city-journal.org/article/international-longshoremens-association-dockworkers-ports-trade-technology-unions))
+- Brollo, Dabla-Norris et al., "Broadening the Gains from Generative AI: The Role of Fiscal Policies,"
+  IMF Staff Discussion Note SDN/2024/002, 2024. ([PDF](https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024002.pdf))
+- Bipartisan Policy Center, "What Happens When Jobs Disappear," 2025.
+  ([explainer](https://bipartisanpolicy.org/explainer/what-happens-when-jobs-disappear-a-guide-to-displaced-worker-programs-in-the-u-s/))
+- "The Far-Reaching Impact of Job Loss and Unemployment," on displacement and family/health outcomes.
+  ([PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC4553243/))

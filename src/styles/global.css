@@ -8,6 +8,14 @@
 /* Enable class-based dark mode: `dark:` applies under .dark */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Global scale: the whole layout (widths, text, spacing) is built in rem, so shrinking
+   the root font size scales the entire page uniformly. 75% = everything 25% smaller.
+   Note: `rem` in media queries stays relative to the browser's 16px default, so the
+   Tailwind md/lg breakpoints keep firing at their normal physical widths. */
+html {
+  font-size: 75%;
+}
+
 /*
   Editorial / brutalist palette - original, Hermes-inspired but not copied.
   Warm paper ground, near-black warm ink, hairline rules, one rust accent.
@@ -38,6 +46,13 @@
 }
 
 @theme {
+  /* Two-column (sidebar + content) layout only engages once it fits without squeezing
+     the content: 18rem sidebar + 3rem gap + 52rem content + gutters, all at the 75%
+     root scale (so ~960px physical). Below this the layout collapses to the stacked
+     mobile view. Media-query rem is relative to the browser's 16px default, so this
+     value is in unscaled rem: 62rem = 992px. */
+  --breakpoint-side: 62rem;
+
   --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
@@ -70,6 +85,13 @@
   --color-dp-row: var(--dp-row);
   --color-dp-col: var(--dp-col);
   --color-dp-lake: var(--dp-lake);
+
+  /* Robots-vs-AI widget palette - two fixed hues learned once and reused across every
+     figure: robots (cool steel blue, the settled past) and AI (warm orange, the wave
+     arriving now), plus an amber for the "struck / pay-cut" middle states. */
+  --color-ra-robot: var(--ra-robot);
+  --color-ra-ai: var(--ra-ai);
+  --color-ra-warn: var(--ra-warn);
 
   /* Choice-blindness widget palette - one fixed colour per outcome, learned once
      and reused across the transcript animation and every results chart:
@@ -116,6 +138,21 @@
   --dp-row: #69a0e0;
   --dp-col: #d6b551;
   --dp-lake: #54bdb2;
+}
+
+/* The robots-vs-AI cast. Robots = a cool steel blue (the automation wave that already
+   ran, 1990-2015); AI = the site's warm terracotta family (the wave arriving now); warn
+   = an amber for the in-between outcomes (a strike, a permanent pay cut). Tuned for
+   light paper and dark ground. */
+:root {
+  --ra-robot: #3466a8;
+  --ra-ai: #bd5227;
+  --ra-warn: #b8871a;
+}
+.dark {
+  --ra-robot: #6f9fd8;
+  --ra-ai: #e2905a;
+  --ra-warn: #d9b24e;
 }
 
 /* The choice-blindness cast. Confabulated (defended an answer it never gave) takes
