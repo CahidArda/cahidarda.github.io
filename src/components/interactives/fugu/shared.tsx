@@ -63,15 +63,38 @@ export function useReducedMotion(): boolean {
   return reduced;
 }
 
+/**
+ * Freezes a widget's self-progressing animation while it is scrolled out of view, so an
+ * off-screen figure can never reflow and shove the reader's position (mobile Safari has no
+ * reliable scroll anchoring). Attach the returned ref to the widget's outer frame (via
+ * `Widget`'s `rootRef`) and pass `inView` into `useTick`'s `run` gate. Defaults to `true`
+ * so the widget animates immediately on hydration (it is on screen then, being `client:visible`).
+ */
+export function useInView<T extends Element = HTMLDivElement>() {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0,
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, inView] as const;
+}
+
 /** Drives a stepped animation; pauses when reduced-motion is on (jumps to `steps`). */
 export function useTick(steps: number, ms: number, run = true): number {
   const reduced = useReducedMotion();
   const [t, setT] = useState(0);
   useEffect(() => {
-    if (reduced || !run) {
+    if (reduced) {
       setT(steps);
       return;
     }
+    if (!run) return; // frozen (e.g. scrolled out of view): hold the current step, don't reflow
     setT(0);
     const id = setInterval(() => setT((x) => (x >= steps ? 0 : x + 1)), ms);
     return () => clearInterval(id);
@@ -115,14 +138,20 @@ export function Widget({
   kicker,
   children,
   id,
+  rootRef,
 }: {
   title: string;
   kicker?: string;
   children: React.ReactNode;
   id?: string;
+  rootRef?: React.Ref<HTMLDivElement>;
 }) {
   return (
-    <div id={id} className="fx not-prose border border-line-strong bg-paper-raised">
+    <div
+      ref={rootRef}
+      id={id}
+      className="fx not-prose border border-line-strong bg-paper-raised"
+    >
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
         <span className="label">{title}</span>
         {kicker && <span className="font-mono text-[0.65rem] text-muted">{kicker}</span>}

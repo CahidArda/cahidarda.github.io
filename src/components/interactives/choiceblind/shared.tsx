@@ -4,7 +4,7 @@
  * caught it), the same bordered figure frame, the same bar-with-CI primitive.
  * Data all comes from results/summary.md of the choice-blindness-llms experiment.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /* ── The cast: one fixed colour per outcome (global.css, theme-aware) ── */
 export const CONFAB = 'var(--color-cb-confab)'; // defended the swapped answer
@@ -22,6 +22,28 @@ export function useReducedMotion(): boolean {
     return () => mq.removeEventListener('change', update);
   }, []);
   return reduced;
+}
+
+/**
+ * Freezes a widget's self-progressing animation while it is scrolled out of view, so an
+ * off-screen figure can never reflow and shove the reader's position (mobile Safari has no
+ * reliable scroll anchoring). Attach the returned ref to the widget's outer frame (via
+ * `Widget`'s `rootRef`) and AND `inView` into each timer's pause gate. Defaults to `true`
+ * so the widget animates immediately on hydration (it is on screen then, being `client:visible`).
+ */
+export function useInView<T extends Element = HTMLDivElement>() {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0,
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, inView] as const;
 }
 
 /** Steps a phase counter 0..steps, looping. Jumps straight to `steps` under reduced motion. */
@@ -47,14 +69,20 @@ export function Widget({
   kicker,
   children,
   id,
+  rootRef,
 }: {
   title: string;
   kicker?: string;
   children: React.ReactNode;
   id?: string;
+  rootRef?: React.Ref<HTMLDivElement>;
 }) {
   return (
-    <div id={id} className="fx not-prose border border-line-strong bg-paper-raised">
+    <div
+      ref={rootRef}
+      id={id}
+      className="fx not-prose border border-line-strong bg-paper-raised"
+    >
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
         <span className="label">{title}</span>
         {kicker && <span className="font-mono text-[0.65rem] text-muted">{kicker}</span>}

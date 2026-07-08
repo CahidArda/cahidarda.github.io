@@ -8,6 +8,7 @@ import {
   type NState,
   rightOf,
   SvgNode,
+  useInView,
   useReducedMotion,
   Widget,
 } from './shared';
@@ -40,16 +41,17 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
     setPhase(p);
   };
   const leaveNode = () => setPaused(false);
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   useEffect(() => {
     if (reduced) {
       setPhase(3);
       return;
     }
-    if (paused) return;
+    if (paused || !inView) return;
     const id = setInterval(() => setPhase((p) => (p + 1) % PHASES), 3200);
     return () => clearInterval(id);
-  }, [reduced, paused]);
+  }, [reduced, paused, inView]);
 
   const producerState: NState = phase === 0 ? 'active' : 'wait';
   const logState: NState = phase === 1 ? 'active' : phase >= 2 ? 'wait' : 'off';
@@ -80,6 +82,7 @@ export default function DataFlow({ stores = ['row', 'col', 'lake'] }: { stores?:
     <Widget
       title="One event, end to end"
       kicker={`produce · log · process · ${multi ? 'tee' : 'store'}`}
+      rootRef={viewRef}
     >
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}

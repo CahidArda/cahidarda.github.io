@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Widget, useReducedMotion } from './shared';
+import { Widget, useInView, useReducedMotion } from './shared';
 
 // Redpanda keeps appending offsets to the log. The stream processor commits its
 // progress to a checkpoint on a PersistentVolumeClaim. When the pod is killed, the
@@ -47,14 +47,16 @@ function step(s: S): S {
 export default function CheckpointRecovery() {
   const reduced = useReducedMotion();
   const [s, setS] = useState<S>(INIT);
+  const [viewRef, inView] = useInView<HTMLDivElement>();
   useEffect(() => {
     if (reduced) {
       setS(POSTER);
       return;
     }
+    if (!inView) return;
     const id = setInterval(() => setS(step), 700);
     return () => clearInterval(id);
-  }, [reduced]);
+  }, [reduced, inView]);
 
   const { head, proc, status } = s;
   const first = head - W + 1;
@@ -82,6 +84,7 @@ export default function CheckpointRecovery() {
     <Widget
       title="Killed and recovered from the checkpoint"
       kicker="redpanda appends · processor commits offsets"
+      rootRef={viewRef}
     >
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}

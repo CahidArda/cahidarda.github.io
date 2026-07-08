@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AGENTS, Widget, useTick, type Agent } from './shared';
+import { AGENTS, Widget, useInView, useTick, type Agent } from './shared';
 
 type Mode = 'fugu' | 'trinity';
 
@@ -33,14 +33,16 @@ const TURNS = [
 export default function TrinityDiagram() {
   const [mode, setMode] = useState<Mode>('fugu');
   const isTrinity = mode === 'trinity';
-  const step = useTick(3, 1100); // pipeline cursor: 0 query · 1 backbone · 2 head · 3 pick
-  const turn = useTick(TURNS.length, 1300, isTrinity);
+  const [viewRef, inView] = useInView<HTMLDivElement>();
+  const step = useTick(3, 1100, inView); // pipeline cursor: 0 query · 1 backbone · 2 head · 3 pick
+  const turn = useTick(TURNS.length, 1300, isTrinity && inView);
   const top = AGENTS.reduce((a, b) => (LOGITS[b.id] > LOGITS[a.id] ? b : a));
 
   return (
     <Widget
       title="Fugu’s orchestrator: the TRINITY parametrization"
       kicker="it outputs a choice, not an answer"
+      rootRef={viewRef}
     >
       <div className="mb-4 flex flex-wrap gap-2">
         {(['fugu', 'trinity'] as Mode[]).map((m) => (

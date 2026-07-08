@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { type Box, leftOf, rightOf, SvgNode, useReducedMotion, Widget } from './shared';
+import { type Box, leftOf, rightOf, SvgNode, useInView, useReducedMotion, Widget } from './shared';
 
 // One command turns a tenant name into everything the tenant needs. Watch the
 // single onboarding command fan out into the provisioned resources, on a
@@ -23,20 +23,22 @@ const TOTAL_S = 6;
 export default function OnboardFanout() {
   const reduced = useReducedMotion();
   const [lit, setLit] = useState(0); // how many resources provisioned so far
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   useEffect(() => {
     if (reduced) {
       setLit(RES.length);
       return;
     }
+    if (!inView) return;
     const id = setInterval(() => setLit((n) => (n >= RES.length ? 0 : n + 1)), 600);
     return () => clearInterval(id);
-  }, [reduced]);
+  }, [reduced, inView]);
 
   const seconds = ((lit / RES.length) * TOTAL_S).toFixed(1);
 
   return (
-    <Widget title="One command, a whole tenant" kicker="onboard-tenant.sh <name>">
+    <Widget title="One command, a whole tenant" kicker="onboard-tenant.sh <name>" rootRef={viewRef}>
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
         className="w-full"

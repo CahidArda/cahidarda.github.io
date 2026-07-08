@@ -5,6 +5,7 @@ import {
   rightOf,
   SvgNode,
   useHoverPreview,
+  useInView,
   useReducedMotion,
   Widget,
 } from './shared';
@@ -31,16 +32,18 @@ export default function AssetGraph() {
   const [sel, setSel] = useState<Mode>('clean');
   const [mode, bindMode] = useHoverPreview(sel);
   const [phase, setPhase] = useState(0); // 0 snapshot · 1 rollup · 2 gate · 3 result
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   useEffect(() => {
     if (reduced) {
       setPhase(3);
       return;
     }
+    if (!inView) return;
     setPhase(0);
     const id = setInterval(() => setPhase((p) => (p >= 3 ? 3 : p + 1)), 900);
     return () => clearInterval(id);
-  }, [mode, reduced]);
+  }, [mode, reduced, inView]);
 
   const passed = mode === 'clean';
   const gateColor =
@@ -81,7 +84,7 @@ export default function AssetGraph() {
           : 'Check FAILED (null tenant / negative revenue). The run stops here. Nothing is promoted, so the warehouse is never poisoned.';
 
   return (
-    <Widget title="Data-quality gate" kicker="snapshot → rollup → [gate] → promote">
+    <Widget title="Data-quality gate" kicker="snapshot → rollup → [gate] → promote" rootRef={viewRef}>
       <div className="mb-3 flex flex-wrap gap-2">
         {(['clean', 'drift'] as Mode[]).map((m) => (
           <button

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useHoverPreview, Widget, useReducedMotion } from './shared';
+import { useHoverPreview, useInView, Widget, useReducedMotion } from './shared';
 
 // Consumer lag = how far the processor is behind the log. The producer appends at
 // a steady rate; the consumer drains at a rate you control. When draining is
@@ -44,19 +44,21 @@ export default function ConsumerLag() {
   const lagRef = useRef(SEED);
   const modeRef = useRef<Mode>(mode);
   modeRef.current = mode;
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   useEffect(() => {
     if (reduced) {
       setSamples(POSTER);
       return;
     }
+    if (!inView) return;
     const id = setInterval(() => {
       const cap = MODES.find((m) => m.key === modeRef.current)!.cap;
       lagRef.current = Math.max(0, Math.min(MAXLAG, lagRef.current + PRODUCE - cap));
       setSamples((s) => [...s, lagRef.current].slice(-N));
     }, 450);
     return () => clearInterval(id);
-  }, [reduced]);
+  }, [reduced, inView]);
 
   const lag = samples[samples.length - 1] ?? 0;
   const w = VB.w - PAD.l - PAD.r;
@@ -67,7 +69,7 @@ export default function ConsumerLag() {
   const area = samples.length > 1 ? `${PAD.l},${y(0)} ${pts} ${x(N - 1)},${y(0)}` : '';
 
   return (
-    <Widget title="Consumer lag" kicker="produce 12/tick · you set the drain rate">
+    <Widget title="Consumer lag" kicker="produce 12/tick · you set the drain rate" rootRef={viewRef}>
       <div className="mb-3 flex flex-wrap gap-2">
         {MODES.map((m) => (
           <button
