@@ -6,7 +6,7 @@
  * Plain HTML cards + tiny inline SVG faces so it reflows on mobile.
  */
 import { useEffect, useState } from 'react';
-import { Widget, useReducedMotion, CONFAB, DETECT } from './shared';
+import { Widget, useInView, useReducedMotion, CONFAB, DETECT } from './shared';
 
 const STEPS = [
   'Two photos. You pick the face you find more attractive: A.',
@@ -114,6 +114,7 @@ export default function HumanSwap() {
   const [phase, setPhase] = useState(0);
   const [hover, setHover] = useState<number | null>(null);
   const [pinned, setPinned] = useState<number | null>(null);
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   const view = hover ?? pinned ?? phase;
   const paused = hover !== null || pinned !== null;
@@ -123,16 +124,16 @@ export default function HumanSwap() {
       setPhase(N - 1);
       return;
     }
-    if (paused) return;
+    if (paused || !inView) return;
     const id = setInterval(() => setPhase((p) => (p + 1) % N), 3000);
     return () => clearInterval(id);
-  }, [reduced, paused]);
+  }, [reduced, paused, inView]);
 
   const stateA = view === 0 ? 'chosen' : 'faded';
   const stateB = view === 0 ? 'plain' : 'handed';
 
   return (
-    <Widget title="The card trick" kicker="Johansson et al., 2005">
+    <Widget title="The card trick" kicker="Johansson et al., 2005" rootRef={viewRef}>
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Experiment steps">
         {STEPS.map((_, i) => {
           const active = i === view;

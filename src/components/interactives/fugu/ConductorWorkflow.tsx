@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AGENT_BY_ID, FUGU_COLOR, Widget, useTick } from './shared';
+import { AGENT_BY_ID, FUGU_COLOR, Widget, useInView, useTick } from './shared';
 
 interface Step {
   subtask: string;
@@ -89,7 +89,8 @@ const VBW = 360;
 export default function ConductorWorkflow() {
   const [topoId, setTopoId] = useState('tree');
   const topo = TOPOS.find((t) => t.id === topoId)!;
-  const exec = useTick(topo.steps.length, 1200); // execution cursor
+  const [viewRef, inView] = useInView<HTMLDivElement>();
+  const exec = useTick(topo.steps.length, 1200, inView); // execution cursor
 
   // Layout: x by dependency depth, y by row within that depth-column.
   const { pos, vbh } = useMemo(() => {
@@ -120,7 +121,11 @@ export default function ConductorWorkflow() {
   }, [topo]);
 
   return (
-    <Widget title="Fugu-Ultra: the Conductor’s workflow" kicker="three lists become a topology">
+    <Widget
+      title="Fugu-Ultra: the Conductor’s workflow"
+      kicker="three lists become a topology"
+      rootRef={viewRef}
+    >
       <p className="mb-3 text-sm text-ink-soft">
         Unlike Fugu’s tiny routing head, the Conductor is a{' '}
         <strong>full language model (~7B)</strong> that actually writes. It reads the query and

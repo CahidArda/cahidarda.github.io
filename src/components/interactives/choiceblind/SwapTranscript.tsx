@@ -7,7 +7,7 @@
  * The texts are a real trial from the run: claude-fable-5, q_pref_01, choice-only.
  */
 import { useEffect, useState } from 'react';
-import { Widget, useReducedMotion, CONFAB, DETECT } from './shared';
+import { Widget, useInView, useReducedMotion, CONFAB, DETECT } from './shared';
 
 const STEPS = [
   'Call 1: the model answers for real, and rates how confident it is.',
@@ -58,6 +58,7 @@ export default function SwapTranscript() {
   const [phase, setPhase] = useState(0); // the auto-play counter
   const [hover, setHover] = useState<number | null>(null); // previewed on mouse-over
   const [pinned, setPinned] = useState<number | null>(null); // committed on click
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   // What we actually render: a hover preview wins, then a pinned step, else auto-play.
   const view = hover ?? pinned ?? phase;
@@ -68,13 +69,13 @@ export default function SwapTranscript() {
       setPhase(N - 1);
       return;
     }
-    if (paused) return;
+    if (paused || !inView) return;
     const id = setInterval(() => setPhase((p) => (p + 1) % N), 3000);
     return () => clearInterval(id);
-  }, [reduced, paused]);
+  }, [reduced, paused, inView]);
 
   return (
-    <Widget title="One trial, start to finish" kicker="choice-only · claude-fable-5">
+    <Widget title="One trial, start to finish" kicker="choice-only · claude-fable-5" rootRef={viewRef}>
       {/* Controls live ABOVE the transcript: revealing bubbles changes the transcript
           height, so a step bar below it would shift out from under the cursor. */}
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Trial steps">

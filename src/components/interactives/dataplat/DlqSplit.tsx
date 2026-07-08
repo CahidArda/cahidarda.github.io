@@ -7,6 +7,7 @@ import {
   rightOf,
   SvgNode,
   useHoverPreview,
+  useInView,
   useReducedMotion,
   Widget,
 } from './shared';
@@ -35,6 +36,7 @@ export default function DlqSplit() {
   const [phase, setPhase] = useState(0); // 0 born · 1 at processor · 2 routed
   const [count, setCount] = useState(0);
   const [stats, setStats] = useState({ ok: 0, dlq: 0 });
+  const [viewRef, inView] = useInView<HTMLDivElement>();
 
   const isPoison = count % PERIOD[rate] === PERIOD[rate] - 1;
 
@@ -44,6 +46,7 @@ export default function DlqSplit() {
       setStats({ ok: 19, dlq: 1 });
       return;
     }
+    if (!inView) return;
     const id = setInterval(() => {
       setPhase((p) => {
         if (p === 2) {
@@ -54,7 +57,7 @@ export default function DlqSplit() {
       });
     }, 1100);
     return () => clearInterval(id);
-  }, [reduced]);
+  }, [reduced, inView]);
 
   // Tally once when the message reaches its destination (phase 2).
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function DlqSplit() {
   }, [phase, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Widget title="Poison messages are dead-lettered, not dropped" kicker="parse · split · route">
+    <Widget title="Poison messages are dead-lettered, not dropped" kicker="parse · split · route" rootRef={viewRef}>
       <div className="mb-3 flex flex-wrap gap-2">
         {(['low', 'high'] as Rate[]).map((r) => (
           <button

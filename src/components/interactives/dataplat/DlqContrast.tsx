@@ -9,6 +9,7 @@ import {
   SvgNode,
   topOf,
   useHoverPreview,
+  useInView,
   useReducedMotion,
   Widget,
 } from './shared';
@@ -39,11 +40,12 @@ export default function DlqContrast() {
   const [sel, setSel] = useState<Tab>('log');
   const [tab, bindTab] = useHoverPreview(sel);
   const [tick, setTick] = useState(0);
+  const [viewRef, inView] = useInView<HTMLDivElement>();
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || !inView) return;
     const id = setInterval(() => setTick((t) => t + 1), 1100);
     return () => clearInterval(id);
-  }, [reduced]);
+  }, [reduced, inView]);
 
   const isLog = tab === 'log';
   // log: topic -> consumer -> dlq (3 steps); queue: queue, receive 1/2/3, redrive (5)
@@ -57,6 +59,7 @@ export default function DlqContrast() {
     <Widget
       title="Two ways to dead-letter"
       kicker={isLog ? 'the consumer decides' : 'the broker decides'}
+      rootRef={viewRef}
     >
       <div className="mb-3 flex flex-wrap gap-2">
         {TABS.map((t) => (
