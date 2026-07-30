@@ -39,6 +39,13 @@ const RepoSchema = z.object({
 
 type Repo = z.infer<typeof RepoSchema>;
 
+// GitHub API returns a null description for these repos; used as a fallback
+// only, so a real description set later on GitHub takes precedence.
+const DESCRIPTION_OVERRIDES: Record<string, string> = {
+  'CahidArda/choice-blindness-llms':
+    "A behavioral study of choice blindness in language models: we covertly swap a model's own answer and measure whether it confabulates a justification or catches the swap.",
+};
+
 export interface Project {
   name: string;
   description?: string;
@@ -65,9 +72,10 @@ function buildHeaders(): Record<string, string> {
 // Repos not owned by me show "owner/name" so the attribution is clear.
 function toProject(r: Repo): Project {
   const ownedByMe = !r.owner || r.owner.login === GITHUB_USER;
+  const fullName = r.full_name ?? `${r.owner?.login ?? GITHUB_USER}/${r.name}`;
   return {
     name: ownedByMe ? r.name : (r.full_name ?? r.name),
-    description: r.description ?? undefined,
+    description: r.description ?? DESCRIPTION_OVERRIDES[fullName] ?? undefined,
     url: r.html_url,
     stars: r.stargazers_count ?? 0,
     language: r.language ?? undefined,
