@@ -62,12 +62,20 @@ function buildHeaders(): Record<string, string> {
   return headers;
 }
 
+// Some repos have no GitHub description set. Fill those in by hand so the
+// project card on the site isn't left blank.
+const DESCRIPTION_OVERRIDES: Record<string, string> = {
+  'CahidArda/choice-blindness-llms':
+    "An experiment testing whether LLMs behave like the humans in the classic choice-blindness studies: their answer gets secretly swapped for the opposite one, then we check whether the model defends a choice it never actually made.",
+};
+
 // Repos not owned by me show "owner/name" so the attribution is clear.
 function toProject(r: Repo): Project {
   const ownedByMe = !r.owner || r.owner.login === GITHUB_USER;
+  const fullName = r.full_name ?? `${r.owner?.login ?? GITHUB_USER}/${r.name}`;
   return {
     name: ownedByMe ? r.name : (r.full_name ?? r.name),
-    description: r.description ?? undefined,
+    description: r.description ?? DESCRIPTION_OVERRIDES[fullName] ?? undefined,
     url: r.html_url,
     stars: r.stargazers_count ?? 0,
     language: r.language ?? undefined,
