@@ -43,7 +43,7 @@ type Repo = z.infer<typeof RepoSchema>;
 // only, so a real description set later on GitHub takes precedence.
 const DESCRIPTION_OVERRIDES: Record<string, string> = {
   'CahidArda/choice-blindness-llms':
-    "A behavioral study of choice blindness in language models: we covertly swap a model's own answer and measure whether it confabulates a justification or catches the swap.",
+    "Do LLMs confabulate justifications for answers they never gave? A choice-blindness experiment that secretly swaps a model's answer for its opposite and checks whether the model defends the swap or catches it.",
 };
 
 export interface Project {
