@@ -315,6 +315,22 @@ html {
 .prose img {
   border: 1px solid var(--color-line);
 }
+/* External screenshots quoted in a post: a padded mat and a stronger frame so
+   the capture reads as an artifact from another site, not as the article's own
+   content (a dark screenshot otherwise blends into the dark theme). */
+.prose .screenshot {
+  border: 1px solid var(--color-line-strong);
+  background-color: var(--color-paper-raised);
+  padding: 1rem;
+}
+.prose .screenshot p {
+  margin: 0;
+}
+.prose .screenshot img {
+  border: 1px solid var(--color-line-strong);
+  display: block;
+  margin: 0;
+}
 .prose code {
   font-family: var(--font-mono);
   font-size: 0.85em;
