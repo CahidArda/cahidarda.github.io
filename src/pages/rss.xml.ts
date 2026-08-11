@@ -12,7 +12,7 @@ export async function GET(context: APIContext) {
   return rss({
     title: `${profile.name} - Articles`,
     description: profile.intro,
-    site: context.site ?? 'https://cahidarda.github.io',
+    site: context.site ?? 'https://cahidarda.com',
     items: articles.map((entry) => ({
       title: entry.data.title,
       description: entry.data.description,
