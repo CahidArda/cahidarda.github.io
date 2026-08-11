@@ -10,7 +10,7 @@ import rehypeKatex from 'rehype-katex';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://cahidarda.github.io',
+  site: 'https://cahidarda.com',
   // Canonical URLs without trailing slashes. `format: 'file'` emits
   // `articles/foo.html` (served at `/articles/foo` on GitHub Pages) instead of
   // `articles/foo/index.html` (served at `/articles/foo/`).
