@@ -1,0 +1,139 @@
+---
+title: 'A Computer Can Never Be Held Accountable'
+description: "xAI's new bots ask for your logins and your trust. Their terms hand every consequence back to you, capped at $100. A 1979 IBM slide had a rule about this."
+date: 2026-08-11
+tags: ['blog']
+---
+
+import AccountabilityLoop from '../../components/interactives/acct/AccountabilityLoop.tsx';
+import TrustGap from '../../components/interactives/acct/TrustGap.tsx';
+import TweetEmbed from '../../components/TweetEmbed.astro';
+
+This week xAI launched Grok Bot: "AI teammates you can give real work to." Each bot gets a
+computer of its own in the cloud. It signs into the tools you already use. To teach it a
+workflow, you let it watch you do the job once: "It watches the steps and remembers how you
+like the work done." ([Grok Bot launch post](https://x.ai/news/introducing-grok-bot))
+
+The engineering is impressive, and my feeds were full of people saying so, me included. But I
+kept getting stuck on one boring question. If I hand a bot my Stripe and one of its runs breaks
+something, real money, gone: who is responsible?
+
+## The terms already answer this
+
+xAI thought about my question before I asked it. Their consumer terms have a passage written
+for exactly this case:
+
+> Certain features of the Service may enable Grok to take autonomous actions on your behalf
+> ("Agentic Actions"), including but not limited to web browsing, code execution, sending
+> communications, modifying files, tool invocation, data processing, or interactions with
+> third-party services, including financial institutions. We are not responsible for User
+> Content or Agentic Actions. You are responsible for User Content and Agentic Actions,
+> including ensuring that it does not violate any applicable law or these Terms and any
+> consequences, costs, or liabilities arising therefrom. xAI makes no representations
+> regarding the accuracy, safety, or legality of any Agentic Action and disclaims all
+> liability for Agentic Actions to the fullest extent permitted by law.
+
+([xAI Terms of Service, "User Content" section](https://x.ai/legal/terms-of-service), effective June 26, 2026)
+
+Two more clauses complete the picture. The limitation of liability caps what you could ever
+recover at "the amount you paid to us hereunder or one hundred U.S. dollars ($100.00),
+whichever is greater." And the indemnity clause runs the other way: if an Agentic Action
+damages a third party and that party goes after xAI, you agree to "defend, indemnify, and
+hold" xAI harmless.
+
+So the answer to the Stripe question is precise. You are responsible, entirely, for actions
+you did not perform and did not see. Your maximum recourse is roughly your subscription fee.
+
+<div class="fx-figure">
+  <AccountabilityLoop client:visible />
+</div>
+
+Notice the mechanism that makes this airtight: the bot has no identity of its own inside your
+systems. It signs in as you, on purpose; the pitch is that bots "can sign in and work across
+apps, tools, and websites, including platforms with no clean API or MCP." Every audit log,
+every chargeback dispute, every access review will show one actor, and it is you. An IBM essay
+on AI decision-making quotes the consultant Guy Pearce: "shared accountability often leads to
+no accountability" ([IBM Think](https://www.ibm.com/think/insights/ai-decision-making-where-do-businesses-draw-the-line)).
+What we have here is tidier than that. Nothing gets diluted. The accountability arrives fully
+formed, routed around the party that built the actor and the actor itself, delivered to the
+one party who did not perform the action.
+
+## Trust as a growth curve
+
+The launch post has a section titled "Trust your Bots with more over time." Its customer
+quotes chart the intended progression. From sales: "I showed Grok Bot a workflow once and now
+I just fully trust it to run forever. I feel like I'm 2-3x more efficient because it does it
+without me verifying and reviewing." From operations: "When I first started, I was checking in
+on them every 15 minutes and micromanaging the Bots to the point where they asked me why I
+kept asking so many questions."
+
+Sit with that second one. The human was reviewing the work, and the software talked her out of
+it. Verification is framed as micromanagement, a habit you mature past. The product's success
+curve is your review rate going to zero while its access grows.
+
+<div class="fx-figure">
+  <TrustGap client:visible />
+</div>
+
+Both curves are the advertised behavior, straight from the launch post. What no one advertises
+is the widening area between them. The terms quoted above are the only document that names its
+owner, and the owner is you.
+
+## A slide from 1979
+
+Engineers noticed this problem before agents existed. Before most of us existed. A 1979 IBM
+training presentation contained a slide that has been circulating ever since:
+
+> A COMPUTER CAN NEVER BE HELD ACCOUNTABLE
+>
+> THEREFORE A COMPUTER MUST NEVER MAKE A MANAGEMENT DECISION
+
+<TweetEmbed
+  url="https://twitter.com/bumblebike/status/832394003492564993"
+  fallback="This is from a 1979 presentation. We are v slow learners, it seems."
+/>
+
+The provenance is almost too on the nose. We know the slide from a single photograph, posted
+in 2017 by the account above, who in later replies described losing the original materials
+when their home flooded. IBM's own editorial site opens essays with the quote, attributing it
+to a training manual nobody can produce. The most cited sentence about computer accountability
+survives as a photo of a slide, on trust.
+
+The slide is a syllogism. Consequential decisions require accountability; a computer cannot
+carry it; therefore it must not make them. 2026 found a fourth path the authors did not list:
+let the computer make the decisions anyway, and route the accountability it cannot carry to
+whoever clicked "create your first teammate."
+
+## The teammate test
+
+Every noun in the launch post is borrowed from employment: teammate, colleague, coworker, a
+"chief of staff" bot managing specialists, an ops bot "seating new hires." The law has handled
+employees who break things for centuries. Respondeat superior: the employer answers for damage
+an employee causes in the course of their work. That rule is why staffing agencies carry
+insurance and contractors are bonded. Accountability for delegated work is a solved, priced
+problem, everywhere except here.
+
+To be fair, xAI is not unusual. I have yet to find a consumer agent whose terms accept
+liability for the agent's actions; this is the industry's standard posture, inherited from an
+era when software did exactly what you clicked and nothing else. The boilerplate did not
+change. The claim did. The same kind of paragraph that once disclaimed responsibility for a
+crashing spreadsheet now disclaims responsibility for an autonomous actor holding your logins,
+your inbox, and your payment rails. A teammate in the marketing, software in the courtroom.
+
+## Are we really doing this?
+
+I am not against agents. I use them daily, I build tools for them, and an agent dug up the
+"Agentic Actions" clause quoted above. I want this technology to exist.
+
+But in every other corner of engineering, trust is a claim someone stands behind. Here is the
+test I keep returning to: the day an agent vendor sells insurance alongside its agent, "trust
+your bots" becomes a sentence with content, because a party that can pay is betting it is
+right. Until then the trust flows in one direction only. You extend it. Nobody returns it.
+
+We are the profession wiring these things in. We grant the OAuth scopes, we record the
+workflows, we decide what the bot can touch. The people who made that slide in 1979 were not
+afraid of computers; they were selling them. Read it again and it is less a limit on what
+computers could do than a promise about what their makers would refuse to ask of them.
+
+I would like our generation of builders to be able to make a promise like that. So, before the
+next scope grant: are we really doing this?

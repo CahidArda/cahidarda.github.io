@@ -99,6 +99,14 @@ html {
   --color-cb-confab: var(--cb-confab);
   --color-cb-detect: var(--cb-detect);
   --color-cb-hedge: var(--cb-hedge);
+
+  /* Accountability widget palette - you (steel blue), the bot (violet, an actor
+     with no legal identity), your tools (teal), liability (red, reserved for
+     the money/blame flow). */
+  --color-acct-you: var(--acct-you);
+  --color-acct-bot: var(--acct-bot);
+  --color-acct-tool: var(--acct-tool);
+  --color-acct-liab: var(--acct-liab);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -167,6 +175,23 @@ html {
   --cb-confab: #e08a5c;
   --cb-detect: #58b0bf;
   --cb-hedge: #a9a493;
+}
+
+/* The accountability cast. You = steel blue (the human, the account holder);
+   the bot = violet (it acts, but no accountability can attach to it); tools =
+   teal (Stripe, the inbox, the CRM); liability = red, used only for the flow
+   of loss and blame. Tuned for light paper and dark ground. */
+:root {
+  --acct-you: #3466a8;
+  --acct-bot: #7d6a9c;
+  --acct-tool: #2a8f86;
+  --acct-liab: #b3362c;
+}
+.dark {
+  --acct-you: #6f9fd8;
+  --acct-bot: #a892c4;
+  --acct-tool: #54bdb2;
+  --acct-liab: #e2675a;
 }
 
 @layer base {
