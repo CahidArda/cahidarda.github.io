@@ -1,0 +1,338 @@
+---
+title: 'How to Write a DeepSeek Harness Plugin: Skills and MCP Servers'
+description: 'Notes from packaging Upstash skills and an MCP server as a DeepSeek Harness bundle: how dsh plugins and profiles work, where skills are discovered, and how to pass credentials to an MCP server.'
+date: 2026-08-14
+tags: ['blog']
+---
+
+import TweetEmbed from '../../components/TweetEmbed.astro';
+
+DeepSeek [open sourced their harness](https://github.com/deepseek-ai/deepseek-harness)
+yesterday. The pitch is one sentence: everything is a plugin. Models, tools, skills,
+sessions, sandboxes, storage, the agent loop and the UI are all plugin rows you can
+swap.
+
+I spent a day packaging [Upstash's skills](https://github.com/upstash/skills) and the
+Upstash MCP server as a bundle for it:
+
+<TweetEmbed
+  url="https://twitter.com/cahidarda/status/2088310024183439418"
+  fallback="Yesterday @deepseek_ai open sourced their harness. Added a bundle for @upstash skills & MCP."
+/>
+
+The plugin system is good. Finding out how it works was the hard part, so this post
+is the map I wish I had: what a plugin is, where skills come from, how to add an MCP
+server, and the one problem that forced me to write code instead of YAML.
+
+## What a DeepSeek Harness plugin actually is
+
+`dsh` boots by composing a **list of rows**. A row is an id, a module specifier and
+some config:
+
+```yaml
+- id: mcp-upstash
+  name: '@deepseek-ai/dsh-mcp-client'
+  config:
+    serverName: upstash
+    transport: stdio
+```
+
+Adding a plugin always means getting a row into that list. A **patch** is a file
+containing row edits, and the composed list is built by stacking patch layers in a
+fixed order ([CLI reference](https://github.com/deepseek-ai/deepseek-harness/blob/master/apps/cli/reference/README.md)):
+
+| Layer | Comes from | Owned by |
+| --- | --- | --- |
+| 1 | each bundle's `cordis.patch.yml` | package authors |
+| 2 | `$DSH_HOME/profiles/<name>/cordis.patch.yml` | the user, per profile |
+| 3 | `$DSH_HOME/cordis.patch.yml` | the user, machine wide |
+| 4 | each `--patch <file>` | the user, per launch |
+
+`$DSH_HOME` defaults to `~/.dsh`. Later layers win per row, and a patch replaces a
+row's whole `config` instead of merging keys. `dsh --dump-config` prints the composed
+tree with a comment naming the file that supplied each row, which is the fastest way
+to check your work.
+
+Underneath is [Cordis](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-primer.md),
+a dependency injection kernel. A plugin is a module exporting `apply(ctx, config)`,
+optionally `name`, `inject` and a schema, as described in the
+[first plugin tutorial](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/index.md).
+
+## Skills need no plugin at all
+
+This was my first surprise. The base composition already mounts
+[`dsh-skill-filesystem`](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md),
+which scans these roots, lower rank winning a duplicate name:
+
+| Rank | Source | Path |
+| --- | --- | --- |
+| 100 | `project-dsh` | `<projectRoot>/.dsh/skills` |
+| 200 | `project-agents` | `<projectRoot>/.agents/skills` |
+| 300 | `custom` | `Config.customSkillDirs` |
+| 400 | `user-dsh` | `~/.dsh/skills` |
+| 500 | `user-agents` | `~/.agents/skills` |
+
+Rank 200 and 500 are the plain
+[Agent Skills](https://agentskills.io/) convention, so anything already published
+that way works in `dsh` with zero DeepSeek specific packaging. The
+[`skills` CLI](https://github.com/vercel-labs/skills#options) installs to
+`.agents/skills/` in a project by default. For the global root, pass `--global` with
+an agent whose global path is `~/.agents/skills`:
+
+```bash
+# project scope, lands in .agents/skills/
+npx skills add upstash/skills
+
+# global scope, lands in ~/.agents/skills/
+npx skills add upstash/skills --global --agent cline
+```
+
+The format is the ordinary one: `<name>/SKILL.md` or a flat `<name>.md`, kebab case
+`name`, a required `description`, optional `whenToUse`. Two details worth knowing.
+Discovery is [one level deep](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/skills.md)
+on purpose, so a nested skill tree is invisible. And the frontmatter keys
+`disable-model-invocation` and `user-invocable` are read in exactly that kebab case:
+a camelCase spelling drops the whole skill with a warning rather than ignoring the
+field.
+
+The model only ever sees names and descriptions in an `<available_skills>` block,
+then loads a body on demand with a `skill({ name })` call. Familiar progressive
+disclosure, and the catalog hot refreshes when files change.
+
+## Shipping a bundle straight from a GitHub repo
+
+If skills already work, why package anything? Because an MCP server does not, and I
+wanted one install command for both.
+
+A **bundle** is an npm package that declares `dsh.bundle` in its `package.json`. A
+**profile** is a directory under `$DSH_HOME/profiles/<name>` listing the bundles it
+composes. You author bundles, users boot profiles. The
+[publish tutorial](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/publish.md)
+covers both.
+
+```json
+{
+  "name": "upstash-skills",
+  "dsh": {
+    "bundle": { "patch": "./.dsh-plugin/cordis.patch.yml" }
+  }
+}
+```
+
+The patch path is a plain
+[`join(packageDir, declared)`](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/boot/app-boot/src/profile.ts)
+with no validation, so everything except that one manifest key can live in a
+subdirectory. That let me keep the layout the repo already used for its Claude Code,
+Cursor and Codex manifests.
+
+`dsh plugin` is a wrapper around pnpm with the profile directory as cwd, so a git
+spec just works and nothing has to be published to npm:
+
+```bash
+dsh plugin --profile web add github:upstash/skills
+dsh web
+```
+
+Two things I checked before trusting this. Dot directories survive a git install
+(`pnpm add github:upstash/skills` really does deliver `.dsh-plugin/`), and a package
+with no build step avoids the `allowBuilds` prompt: pnpm 10 refuses to run a git
+dependency's `prepare` script until the user allowlists it, which is a fine gate but
+a bad first impression. If your bundle is TypeScript, publish to npm or ship a
+tarball instead.
+
+## Adding the MCP server
+
+The bridge is
+[`@deepseek-ai/dsh-mcp-client`](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/mcp/mcp-client/README.md):
+one plugin instance per server, stdio or streamable HTTP. Tools land on `ctx.tools`
+as `mcp__<serverName>__<rawName>`, the same server qualified shape Claude Code and
+Codex use, so the model sees `mcp__upstash__redis_database_create_new`.
+
+Nothing is enabled by default, and the reasoning is stated plainly in the CLI
+reference: "no MCP server is enabled by default because each server command is
+trusted executable code outside the agent sandbox."
+([Source](https://github.com/deepseek-ai/deepseek-harness/blob/master/apps/cli/reference/README.md))
+
+For a user who just wants a server, a patch row in `~/.dsh/cordis.patch.yml` is
+enough, and the
+[memory examples](https://github.com/deepseek-ai/deepseek-harness/blob/master/examples/mcp-memory/README.md)
+in the repo are a good template. My problem started one step later, with the API key.
+
+## The credential problem
+
+The Upstash MCP server needs an email and an API key. `dsh` has two places a secret
+can live, and they behave differently:
+
+- `$DSH_HOME/.env` is an ordinary environment layer. `loadLayeredEnv` "materializes
+  accepted values into `process.env` for Loader expressions and third-party
+  libraries."
+  ([Source](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/boot/app-boot/README.md))
+- `$DSH_HOME/.credentials.yaml` is the managed store behind `ctx.credentials`. The
+  provider "never loads it into the process environment, unlike `$DSH_HOME/.env`."
+  ([Source](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/credentials/credentials-local/README.md))
+
+That matters because YAML config can read environment variables through a `!!js`
+tag, and the implementation is
+[eight lines](https://github.com/deepseek-ai/deepseek-harness/blob/master/vendor/loader/src/config/utils.ts):
+
+```js
+export const evaluate = new Function('ctx', 'expr', `
+  with (ctx) {
+    return eval(expr)
+  }
+`);
+```
+
+So an expression gets `ctx` properties and Node globals, and nothing else. No
+`require`, no `import.meta`, and no way to await anything. `ctx.credentials.resolve()`
+is async, so YAML cannot reach the managed store at all.
+
+That left two options:
+
+1. **Put the key in `~/.dsh/.env`** and read it with
+   `!!js process.env.UPSTASH_API_KEY`. Simple, one row, no code. The downside is that
+   the file is hand edited only. Nothing in the harness writes it for you.
+2. **Put the key in `.credentials.yaml` and mount the MCP client from code.** More
+   moving parts, but `ctx.credentials` has a `set()` method, so a plugin can store
+   the key for the user.
+
+I took the second. Not needing to tell people "open this file in your editor" was
+worth the extra thirty lines.
+
+One detail applies either way. Child processes start from a scrubbed environment:
+[`SENSITIVE_ENV_PATTERN = /KEY|PASSWORD|SECRET|TOKEN/i`](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/subprocess/subprocess/src/index.ts)
+strips anything credential shaped before a spawn. `UPSTASH_API_KEY` matches on `KEY`,
+so it has to be handed to the child explicitly through the row's `env`.
+
+## Mounting the MCP server from code
+
+`ctx.plugin(plugin, config)` mounts another plugin and returns a
+[fiber](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/cordis-api/fiber.md)
+with a `dispose()`. That is all you need to mount, tear down and remount a server as
+credentials change:
+
+```js
+export const inject = ['skills', 'credentials', 'commands'];
+
+export function apply(ctx) {
+  ctx.plugin(SkillFilesystem, {
+    providerName: 'upstash',
+    includeDefaultRoots: false,
+    customSkillDirs: [SKILLS_DIR],
+  });
+
+  let fiber;
+  const remount = async () => {
+    await fiber?.dispose();
+    const mail = await ctx.credentials.resolve('UPSTASH_EMAIL');
+    const key = await ctx.credentials.resolve('UPSTASH_API_KEY');
+    if (!mail || !key) return;
+    fiber = ctx.plugin(McpClient, {
+      serverName: 'upstash',
+      transport: 'stdio',
+      command: 'npx',
+      args: ['-y', '@upstash/mcp-server@latest'],
+      env: {
+        UPSTASH_EMAIL: mail.value,
+        UPSTASH_API_KEY: key.value,
+      },
+    });
+  };
+
+  ctx.on('credentials/updated', () => void remount());
+  void remount();
+}
+```
+
+The skills half is the same trick in reverse. A second copy of the filesystem
+provider with `includeDefaultRoots: false` sees only the roots I give it, which is
+exactly how you ship skills inside a package: resolve the directory from
+`import.meta.url` in JS, since YAML cannot name it.
+
+The real version serializes those remounts through a promise chain. Storing two
+credentials fires
+[`credentials/updated`](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/credentials.md)
+twice, and two overlapping remounts would leave an orphaned server process behind.
+
+## A slash command to store the key
+
+My first idea was a settings page card. The
+[settings UI package](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/client/ui-settings-plugins/README.md)
+rules that out today, in its own words: "a plugin distributed outside this repository
+cannot surface its own configuration here without a change in
+`packages/host/apiproxy`." Exposure is a host allowlist, not a plugin declaration.
+
+So the way in is a
+[human command](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/commands.md):
+
+```js
+ctx.commands.register({
+  name: 'upstash-login',
+  description: 'Store Upstash credentials',
+  input: { hint: '<email> <api-key>' },
+  recordInput: false,
+  handler: async ({ rawInput }) => {
+    const [mail, key] = rawInput.trim().split(/\s+/);
+    await ctx.credentials.set('UPSTASH_EMAIL', mail);
+    await ctx.credentials.set('UPSTASH_API_KEY', key);
+    return { kind: 'success', text: 'Stored.' };
+  },
+});
+```
+
+Two properties make this safe enough for a secret. `recordInput: false` means the
+`command/run` session event omits the arguments, so the key never lands in the
+session log, and command results are rendered by the adapter without entering model
+history.
+
+One trap: `set()` rejects while a read only source shadows the reference. If the user
+already exported `UPSTASH_API_KEY` in the shell that launched `dsh`, the inherited
+environment wins and a write would silently have no effect. The provider refuses
+instead, so call `describe()` first and say so.
+
+## No support for agent-plugins.org
+
+I expected [Agent Plugins](https://agent-plugins.org/) to work here, since the Upstash
+repo already ships that manifest. It does not. I cloned the harness and grepped it:
+zero hits for `agent-plugins`, `plugin.schema.json` or anything related. The only
+occurrences of `mcpServers` are in the ACP bridge, where a client supplied list is
+explicitly rejected.
+
+The two models are different shapes. Agent Plugins 1.0.0 is a declarative package:
+`plugin.json` at the root, an optional `mcp.json`, a `skills/` directory, and exactly
+two component types. A `dsh` bundle is an npm package whose patch can mount arbitrary
+code, up to replacing the agent loop or the UI. `plugin.json` has no field that could
+express "swap the session store."
+
+The compatibility that does exist is at the component level, and it covers most of
+what you want: the Agent Skills format, the `.agents` roots,
+[`AGENTS.md`](https://github.com/deepseek-ai/deepseek-harness/blob/master/AGENTS.md)
+instruction loading, and the `mcp__<server>__<tool>` naming. A `dsh` bundle that reads
+installed Agent Plugins packages and emits one `mcp-client` row per `mcpServers` entry
+would be maybe fifty lines. Nobody has written it yet.
+
+## The result
+
+The bundle is [merged](https://github.com/upstash/skills/pull/19). Two files and one
+`package.json` key:
+
+```bash
+dsh plugin --profile web add github:upstash/skills
+dsh web
+```
+
+Then, inside a session:
+
+```
+/upstash-login YOUR_EMAIL YOUR_API_KEY
+```
+
+That gives you eight Upstash skills and the Upstash MCP server, with credentials in
+the managed store rather than a hand edited file.
+
+My take after a day with it: the plugin system is well designed and the package
+READMEs are unusually honest, each one carrying a "known limitations and deferred
+work" section that saved me real time. What is missing is the path from "I want to
+add a thing" to the three files that do it. Almost everything above came from reading
+package source rather than docs. Shipping the harness with skills for working on it,
+the way Vercel did with Eve, would have closed most of that gap.
