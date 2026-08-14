@@ -1,6 +1,6 @@
 ---
-title: 'How to Write a DeepSeek Harness Plugin: Skills and MCP Servers'
-description: 'Notes from packaging Upstash skills and an MCP server as a DeepSeek Harness bundle: how dsh plugins and profiles work, where skills are discovered, and how to pass credentials to an MCP server.'
+title: 'How to Write a DeepSeek Harness Plugin'
+description: 'A practical guide to the dsh plugin system: rows and patch layers, bundles and profiles, where skills are discovered, how to add an MCP server, and how to pass it credentials.'
 date: 2026-08-14
 tags: ['blog']
 ---
@@ -12,8 +12,8 @@ yesterday. The pitch is one sentence: everything is a plugin. Models, tools, ski
 sessions, sandboxes, storage, the agent loop and the UI are all plugin rows you can
 swap.
 
-I spent a day packaging [Upstash's skills](https://github.com/upstash/skills) and the
-Upstash MCP server as a bundle for it:
+I packaged [Upstash's skills](https://github.com/upstash/skills) and the Upstash MCP
+server as a bundle for it:
 
 <TweetEmbed
   url="https://twitter.com/cahidarda/status/2088310024183439418"
@@ -101,8 +101,9 @@ disclosure, and the catalog hot refreshes when files change.
 
 ## Shipping a bundle straight from a GitHub repo
 
-If skills already work, why package anything? Because an MCP server does not, and I
-wanted one install command for both.
+Skills come for free, but an MCP server does not. It needs a plugin row, and its
+credentials need somewhere to live. Packaging both together turns that into a single
+install command.
 
 A **bundle** is an npm package that declares `dsh.bundle` in its `package.json`. A
 **profile** is a directory under `$DSH_HOME/profiles/<name>` listing the bundles it
@@ -327,12 +328,12 @@ Then, inside a session:
 /upstash-login YOUR_EMAIL YOUR_API_KEY
 ```
 
-That gives you eight Upstash skills and the Upstash MCP server, with credentials in
-the managed store rather than a hand edited file.
+That gives you the Upstash skills and the Upstash MCP server, with credentials in the
+managed store rather than a hand edited file.
 
-My take after a day with it: the plugin system is well designed and the package
-READMEs are unusually honest, each one carrying a "known limitations and deferred
-work" section that saved me real time. What is missing is the path from "I want to
+My take: the plugin system is well designed and the package READMEs are unusually
+honest, each one carrying a "known limitations and deferred work" section that saved
+me real time. What is missing is the path from "I want to
 add a thing" to the three files that do it. Almost everything above came from reading
 package source rather than docs. Shipping the harness with skills for working on it,
 the way Vercel did with Eve, would have closed most of that gap.
