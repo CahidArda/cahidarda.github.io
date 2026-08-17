@@ -33,7 +33,12 @@ const {
 } = Astro.props;
 
 const pageTitle = title ? `${title} - ${profile.name}` : `${profile.name} - Software Engineer`;
-const canonical = new URL(Astro.url.pathname, Astro.site).href;
+// `build.format: 'file'` means the build-time pathname carries an `.html` suffix
+// (`/articles/foo.html`), but the sitemap and every internal link use the clean
+// `/articles/foo` form. Strip the suffix so the canonical matches those, otherwise
+// Google indexes the `.html` twin and reports the clean URL as an alternate page.
+const canonicalPath = Astro.url.pathname.replace(/(?:\/index)?\.html$/, '') || '/';
+const canonical = new URL(canonicalPath, Astro.site).href;
 const ogImageUrl = new URL(ogImage, Astro.site).href;
 const twitterHandle = '@cahidarda';
 

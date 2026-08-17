@@ -13,11 +13,15 @@ export async function GET(context: APIContext) {
     title: `${profile.name} - Articles`,
     description: profile.intro,
     site: context.site ?? 'https://cahidarda.com',
+    // @astrojs/rss appends a trailing slash to item links by default.
+    trailingSlash: false,
     items: articles.map((entry) => ({
       title: entry.data.title,
       description: entry.data.description,
       pubDate: entry.data.date,
-      link: `/articles/${entry.id}/`,
+      // No trailing slash: `build.format: 'file'` emits `articles/foo.html`, so
+      // `/articles/foo/` has no `index.html` to serve on GitHub Pages.
+      link: `/articles/${entry.id}`,
       categories: entry.data.tags,
     })),
   });
