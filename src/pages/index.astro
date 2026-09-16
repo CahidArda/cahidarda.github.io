@@ -3,6 +3,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleRowCompact from '../components/ArticleRowCompact.astro';
 import { profile } from '../data/profile';
 import { getEntries } from '../lib/entries';
+import { formatDate, isoDate } from '../lib/format';
+
+// Evaluated at build time so the date reflects the latest site deployment.
+const lastUpdated = new Date();
 
 const RECENT_COUNT = 6;
 
@@ -30,4 +34,10 @@ const recent = entries.slice(0, RECENT_COUNT);
       }
     </div>
   </section>
+
+  <footer class="mt-12 border-t border-line pt-4 text-sm text-muted">
+    <p>
+      Last updated: <time datetime={isoDate(lastUpdated)}>{formatDate(lastUpdated)}</time>
+    </p>
+  </footer>
 </BaseLayout>
