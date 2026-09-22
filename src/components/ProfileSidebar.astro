@@ -3,7 +3,7 @@ import { profile } from '../data/profile';
 import { tags, tagHref } from '../data/tags';
 import SocialLinks from './SocialLinks.astro';
 import ThemeToggle from './ThemeToggle.tsx';
-import Seal from './Seal.astro';
+import Cursor from './Cursor.astro';
 
 const navItems = [
   { key: 'home', label: 'Home', href: '/', blurb: undefined as string | undefined },
@@ -60,8 +60,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
 <div class="flex flex-col gap-6">
   <div class="min-w-0">
     <a href="/" class="sidebar-home group block" aria-label="Home">
-      <Seal class="sidebar-seal hidden w-10 text-accent side:block" />
-      <h1 class="sidebar-name side:mt-5">{profile.name}</h1>
+      <h1 class="sidebar-name">{profile.name}<Cursor class="sidebar-cursor" /></h1>
     </a>
     <p class="sidebar-tagline mt-2">
       {taglineBefore}<a

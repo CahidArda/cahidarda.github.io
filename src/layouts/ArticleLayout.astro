@@ -9,7 +9,7 @@ import SeriesNav from '../components/SeriesNav.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CitationBlock from '../components/CitationBlock.astro';
 import OrcidBadge from '../components/OrcidBadge.astro';
-import Seal from '../components/Seal.astro';
+import Cursor from '../components/Cursor.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { tagHref } from '../data/tags';
 import { formatDate, isoDate } from '../lib/format';
@@ -65,7 +65,7 @@ if (entry.data.series) {
         <span class="label">/ {minutes} min read</span>
       </Fragment>
       <div class="ornament-rule mt-10" aria-hidden="true">
-        <Seal class="w-6 text-accent" detailed={false} />
+        <Cursor class="text-[1.1rem]" />
       </div>
     </PageHeader>
 
@@ -99,7 +99,7 @@ if (entry.data.series) {
     {entry.data.series && <SeriesNav entry={entry} />}
 
     <div class="mt-16 flex justify-center" aria-hidden="true">
-      <Seal class="w-12 text-accent" />
+      <Cursor class="text-[1.6rem]" />
     </div>
 
     <footer class="mt-12 border-t border-line pt-6">
