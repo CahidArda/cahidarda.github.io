@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleRowCompact from '../components/ArticleRowCompact.astro';
 import Hero from '../components/Hero.astro';
-import { influences } from '../data/influences';
 import { getEntries } from '../lib/entries';
 
 const RECENT_COUNT = 6;
@@ -16,7 +15,7 @@ const recent = entries.slice(0, RECENT_COUNT);
 
   <section>
     <div class="flex items-baseline justify-between">
-      <h2 class="label">I. Recent work</h2>
+      <h2 class="label">Recent work</h2>
       <a href="/articles" class="label hover:text-accent">Full index →</a>
     </div>
 
@@ -26,21 +25,6 @@ const recent = entries.slice(0, RECENT_COUNT);
         recent.length === 0 && (
           <p class="border-t border-line py-6 text-sm text-muted">No articles yet.</p>
         )
-      }
-    </div>
-  </section>
-
-  <section class="mt-20">
-    <h2 class="label">II. Influences</h2>
-    <div class="influences mt-4 grid gap-x-10 sm:grid-cols-2">
-      {
-        influences.map((col) => (
-          <ul>
-            {col.map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
-        ))
       }
     </div>
   </section>
