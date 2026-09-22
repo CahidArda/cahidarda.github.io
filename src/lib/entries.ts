@@ -67,3 +67,37 @@ export async function getEntries(): Promise<ListEntry[]> {
     (a, b) => b.date.valueOf() - a.date.valueOf(),
   );
 }
+
+/** Blog posts without a `source` live on this site. */
+export const SITE_SOURCE = 'site';
+
+/** URL-safe key for a publication source ("Upstash" -> "upstash"). */
+export const sourceKey = (source?: string): string =>
+  source ? source.toLowerCase().replace(/[^a-z0-9]+/g, '-') : SITE_SOURCE;
+
+export interface BlogSource {
+  key: string;
+  label: string;
+  count: number;
+}
+
+/**
+ * Where blog posts were published: this site first, then each external source by
+ * post count. Drives the Blog source menu in the sidebar and on the Index.
+ */
+export async function getBlogSources(): Promise<BlogSource[]> {
+  const blog = (await getEntries()).filter((e) => e.tags.includes('blog'));
+  const external = [...new Set(blog.map((e) => e.source).filter((s): s is string => !!s))]
+    .map((label) => ({
+      key: sourceKey(label),
+      label,
+      count: blog.filter((e) => e.source === label).length,
+    }))
+    .sort((a, b) => b.count - a.count);
+  const site = {
+    key: SITE_SOURCE,
+    label: 'This site',
+    count: blog.filter((e) => !e.source).length,
+  };
+  return [site, ...external].filter((s) => s.count > 0);
+}

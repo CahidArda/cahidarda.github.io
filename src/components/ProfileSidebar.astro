@@ -3,6 +3,8 @@ import { profile } from '../data/profile';
 import { tags, tagHref } from '../data/tags';
 import SocialLinks from './SocialLinks.astro';
 import ThemeToggle from './ThemeToggle.tsx';
+import SourceMenu from './SourceMenu.astro';
+import { getBlogSources } from '../lib/entries';
 
 const navItems = [
   { key: 'home', label: 'Home', href: '/', blurb: undefined as string | undefined },
@@ -54,6 +56,8 @@ const serverActive = (key: string) => {
   return false;
 };
 
+const blogSources = await getBlogSources();
+
 // Split the tagline so the employer name renders as a link.
 const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.name);
 ---
@@ -79,9 +83,11 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
     <ul class="flex flex-row flex-wrap gap-x-5 gap-y-2 side:flex-col side:gap-2">
       {
         navItems.map((item, i) => {
-          const blurb = item.blurb;
+          const hasMenu = item.key === 'blog' && blogSources.length > 1;
+          // Blog gets a source menu instead of the blurb tooltip.
+          const blurb = hasMenu ? undefined : item.blurb;
           return (
-            <li class="group/nav relative inline-flex">
+            <li class="group/nav group/src relative inline-flex">
               <a
                 href={item.href}
                 data-nav={item.key}
@@ -95,6 +101,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
                 <span class="nav-num hidden side:inline">{String(i + 1).padStart(2, '0')}</span>
                 {item.label}
               </a>
+              {hasMenu && <SourceMenu sources={blogSources} />}
               {blurb && (
                 <span
                   id={`navtip-${item.key}`}

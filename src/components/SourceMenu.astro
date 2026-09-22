@@ -1,0 +1,39 @@
+---
+/**
+ * Hover / focus menu under the Blog link (sidebar) and Blog chip (Index): narrow the
+ * blog list by where a post was published. Place it inside a `group/src` element.
+ */
+import type { BlogSource } from '../lib/entries';
+
+interface Props {
+  sources: BlogSource[];
+  class?: string;
+}
+const { sources, class: className } = Astro.props;
+---
+
+{
+  sources.length > 1 && (
+    <div
+      class:list={[
+        'invisible absolute top-full left-0 z-30 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover/src:visible group-hover/src:opacity-100 group-focus-within/src:visible group-focus-within/src:opacity-100',
+        className,
+      ]}
+    >
+      <ul class="w-44 border border-line bg-paper-raised py-1.5 shadow-sm">
+        {sources.map((s) => (
+          <li>
+            <a
+              href={`/articles?tag=blog&source=${s.key}`}
+              data-source-link={s.key}
+              class="flex items-baseline justify-between px-3 py-1 text-sm text-ink-soft transition-colors hover:text-accent"
+            >
+              <span>{s.label}</span>
+              <span class="text-xs text-muted">{s.count}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}

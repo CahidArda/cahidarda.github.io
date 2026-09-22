@@ -3,7 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { tags, tagKeys } from '../../data/tags';
-import { getEntries } from '../../lib/entries';
+import SourceMenu from '../../components/SourceMenu.astro';
+import { getEntries, getBlogSources, sourceKey } from '../../lib/entries';
 
 const entries = await getEntries();
 
@@ -19,23 +20,9 @@ const chips = [
     .filter((t) => t.count > 0),
 ];
 
-// Secondary filter shown only under the Blog tag: where a post was published.
-// Posts without a `source` live on this site. New sources appear automatically.
-const SITE = 'site';
-const sourceKey = (source?: string) =>
-  source ? source.toLowerCase().replace(/[^a-z0-9]+/g, '-') : SITE;
-const blogEntries = entries.filter((e) => e.tags.includes('blog'));
-const sources = [
-  { key: ALL, label: 'anywhere', count: blogEntries.length },
-  { key: SITE, label: 'this site', count: blogEntries.filter((e) => !e.source).length },
-  ...[...new Set(blogEntries.map((e) => e.source).filter((x): x is string => Boolean(x)))].map(
-    (label) => ({
-      key: sourceKey(label),
-      label,
-      count: blogEntries.filter((e) => e.source === label).length,
-    }),
-  ),
-].filter((s) => s.count > 0);
+// Blog posts can be narrowed by source from the menu under the Blog chip.
+const blogSources = await getBlogSources();
+const sourceLabels = Object.fromEntries(blogSources.map((x) => [x.key, x.label]));
 ---
 
 <BaseLayout title="Index" description="Writing, papers, projects, and monthly reading roundups.">
@@ -48,49 +35,31 @@ const sources = [
     <span slot="meta" class="label">{entries.length} entries</span>
   </PageHeader>
 
-  <div id="tag-filter" role="group" aria-label="Filter by tag" class="mt-10 flex flex-wrap gap-2">
+  <div
+    id="tag-filter"
+    role="group"
+    aria-label="Filter by tag"
+    data-sources={JSON.stringify(sourceLabels)}
+    class="mt-10 flex flex-wrap gap-2"
+  >
     {
       chips.map((chip) => (
-        <button
-          type="button"
-          data-chip={chip.key}
-          aria-pressed="false"
-          class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
-        >
-          {chip.label}
-          <span class="opacity-70">{chip.count}</span>
-        </button>
+        <span class="group/src relative inline-flex">
+          <button
+            type="button"
+            data-chip={chip.key}
+            aria-pressed="false"
+            class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
+          >
+            {chip.label}
+            {chip.key === 'blog' && <span data-source-indicator class="normal-case" hidden />}
+            <span class="opacity-70">{chip.count}</span>
+          </button>
+          {chip.key === 'blog' && <SourceMenu sources={blogSources} />}
+        </span>
       ))
     }
   </div>
-
-  {
-    sources.length > 2 && (
-      <div
-        id="source-filter"
-        role="group"
-        aria-label="Filter blog posts by source"
-        hidden
-        class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted"
-      >
-        <span class="font-display italic">from</span>
-        {sources.map((src, i) => (
-          <>
-            {i > 0 && <span aria-hidden="true">·</span>}
-            <button
-              type="button"
-              data-source-chip={src.key}
-              aria-pressed="false"
-              title={`${src.count} posts`}
-              class="decoration-line-strong underline-offset-4 transition-colors hover:text-ink aria-pressed:text-ink aria-pressed:underline"
-            >
-              {src.label}
-            </button>
-          </>
-        ))}
-      </div>
-    )
-  }
 
   <!-- Active chip is set before paint (from ?tag=), so it never flashes "All" first. -->
   <script is:inline>
@@ -100,9 +69,9 @@ const sources = [
       if (!root) return;
       const chips = Array.from(root.querySelectorAll('[data-chip]'));
       const keys = chips.map((c) => c.getAttribute('data-chip'));
-      const srcRoot = document.getElementById('source-filter');
-      const srcChips = srcRoot ? Array.from(srcRoot.querySelectorAll('[data-source-chip]')) : [];
-      const srcKeys = srcChips.map((c) => c.getAttribute('data-source-chip'));
+      // Source keys -> labels, e.g. { site: 'This site', upstash: 'Upstash' }.
+      const sourceLabels = JSON.parse(root.getAttribute('data-sources') || '{}');
+      const indicator = root.querySelector('[data-source-indicator]');
 
       const state = () => {
         const q = new URLSearchParams(window.location.search);
@@ -110,17 +79,18 @@ const sources = [
         const tag = t && keys.includes(t) ? t : ALL;
         const s = q.get('source');
         // The source filter only exists under Blog; elsewhere it is ignored.
-        const source = tag === 'blog' && s && srcKeys.includes(s) ? s : ALL;
+        const source = tag === 'blog' && s && s in sourceLabels ? s : ALL;
         return { tag, source };
       };
       const paint = ({ tag, source }) => {
         chips.forEach((c) =>
           c.setAttribute('aria-pressed', String(c.getAttribute('data-chip') === tag)),
         );
-        if (srcRoot) srcRoot.hidden = tag !== 'blog';
-        srcChips.forEach((c) =>
-          c.setAttribute('aria-pressed', String(c.getAttribute('data-source-chip') === source)),
-        );
+        if (indicator) {
+          const on = tag === 'blog' && source !== ALL;
+          indicator.hidden = !on;
+          indicator.textContent = on ? `\u00b7 ${sourceLabels[source]}` : '';
+        }
       };
       const filter = ({ tag, source }) => {
         let shown = 0;
@@ -161,10 +131,13 @@ const sources = [
             commit({ tag: chip.getAttribute('data-chip'), source: ALL }),
           ),
         );
-        srcChips.forEach((chip) =>
-          chip.addEventListener('click', () =>
-            commit({ tag: 'blog', source: chip.getAttribute('data-source-chip') }),
-          ),
+        // Source menus (sidebar and Blog chip) filter in place instead of reloading.
+        document.querySelectorAll('[data-source-link]').forEach((link) =>
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            commit({ tag: 'blog', source: link.getAttribute('data-source-link') });
+            if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+          }),
         );
         filter(state());
       };

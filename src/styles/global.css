@@ -285,11 +285,25 @@ html {
 .prose h3 {
   font-size: 1.3rem;
 }
-.prose a {
-  color: var(--color-accent);
+/* Links in running text: ink italic serif with a rust hairline underline, the same
+   voice as the home-page hero. Only plain markdown links (no class), so buttons
+   and links inside interactive widgets keep their own styling. */
+.prose a:not([class]) {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: italic;
   text-decoration: underline;
-  text-underline-offset: 0.18em;
+  text-decoration-color: var(--color-accent);
   text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color 0.2s;
+}
+.prose a:not([class]):hover {
+  color: var(--color-accent);
+}
+/* Code inside a link keeps the mono face upright. */
+.prose a:not([class]) code {
+  font-style: normal;
 }
 .prose strong {
   color: var(--color-ink);
@@ -781,21 +795,21 @@ html {
 
 /* Drop cap (blog posts), after the engraved initials of old books: a square
    block exactly three lines tall (cap of line 1 to baseline of line 3), the
-   letter filling it in ink, over a faint interlaced-circle ground in the rule
-   colour. No frame, so it sits in the text block instead of on top of it.
+   letter filling it in ink, over a scrolling-vine arabesque in faded rust.
    The span comes from src/lib/rehype-dropcap.mjs. */
 .prose-drop .dropcap {
   position: relative;
   isolation: isolate;
   float: left;
-  /* sizes are in the letter's own em: 5em of body text */
-  font-size: 5em;
-  width: 0.84em;
-  height: 0.84em;
+  /* sizes are in the letter's own em (4.2em of body text); the capital fills
+     about 70% of the square so the ornament frames it */
+  font-size: 4.2em;
+  width: 1em;
+  height: 1em;
   /* top edge level with the cap height of line 1 */
-  margin: 0.1em 0.1em 0 0;
+  margin: 0.12em 0.12em 0 0;
   /* a line box as tall as the tile centres the capital in it */
-  line-height: 0.84em;
+  line-height: 1em;
   text-align: center;
   font-family: var(--font-display);
   font-weight: 400;
@@ -812,12 +826,11 @@ html {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-color: var(--color-line-strong);
-  opacity: 0.8;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cg fill='none' stroke='black' stroke-width='0.9'%3E%3Ccircle cx='0' cy='0' r='10'/%3E%3Ccircle cx='20' cy='0' r='10'/%3E%3Ccircle cx='0' cy='20' r='10'/%3E%3Ccircle cx='20' cy='20' r='10'/%3E%3Ccircle cx='10' cy='10' r='10'/%3E%3C/g%3E%3C/svg%3E")
-    0 0 / 0.42em 0.42em repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cg fill='none' stroke='black' stroke-width='0.9'%3E%3Ccircle cx='0' cy='0' r='10'/%3E%3Ccircle cx='20' cy='0' r='10'/%3E%3Ccircle cx='0' cy='20' r='10'/%3E%3Ccircle cx='20' cy='20' r='10'/%3E%3Ccircle cx='10' cy='10' r='10'/%3E%3C/g%3E%3C/svg%3E")
-    0 0 / 0.42em 0.42em repeat;
+  /* four-fold arabesque, drawn in public/ornaments/dropcap.svg */
+  background-color: var(--color-accent);
+  opacity: 0.7;
+  -webkit-mask: url('/ornaments/dropcap.svg') center / 100% 100% no-repeat;
+  mask: url('/ornaments/dropcap.svg') center / 100% 100% no-repeat;
 }
 .prose-drop .has-dropcap + * {
   clear: left;
