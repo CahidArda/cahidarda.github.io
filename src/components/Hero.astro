@@ -2,9 +2,15 @@
 import Cursor from './Cursor.astro';
 
 const dirs = [
-  { href: '/articles', name: 'work/', note: 'essays and repositories, from Upstash and beyond' },
+  { href: '/articles?tag=blog', name: 'blog/', note: 'essays, opinions, and how-tos' },
   { href: '/articles?tag=accessions', name: 'the-current/', note: 'monthly record of the times' },
-  { href: '/articles?tag=blog', name: 'essays/', note: "the questions I can't put down" },
+  {
+    href: '/articles?tag=repository',
+    name: 'repositories/',
+    note: 'open-source projects on GitHub',
+  },
+  { href: '/articles?tag=publication', name: 'publications/', note: 'papers and academic work' },
+  { href: '/experience', name: 'experience/', note: 'work, research, and education' },
 ];
 ---
 

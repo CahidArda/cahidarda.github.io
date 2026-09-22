@@ -5,7 +5,11 @@
 export const tags = {
   blog: { label: 'Blog', blurb: 'Essays, opinions, and how-tos.' },
   publication: { label: 'Publications', blurb: 'Peer-reviewed papers and academic work.' },
-  accessions: { label: 'Accessions', blurb: 'Monthly roundup of things I enjoyed reading.' },
+  // Key stays `accessions` so existing ?tag= URLs and frontmatter keep working.
+  accessions: {
+    label: 'The Current',
+    blurb: 'A monthly record of the news worth keeping from these revolutionary times.',
+  },
   repository: { label: 'Repositories', blurb: 'Open-source projects and experiments on GitHub.' },
 } as const;
 
