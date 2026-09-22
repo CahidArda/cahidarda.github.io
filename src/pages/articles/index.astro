@@ -26,8 +26,8 @@ const sourceKey = (source?: string) =>
   source ? source.toLowerCase().replace(/[^a-z0-9]+/g, '-') : SITE;
 const blogEntries = entries.filter((e) => e.tags.includes('blog'));
 const sources = [
-  { key: ALL, label: 'All sources', count: blogEntries.length },
-  { key: SITE, label: 'This site', count: blogEntries.filter((e) => !e.source).length },
+  { key: ALL, label: 'anywhere', count: blogEntries.length },
+  { key: SITE, label: 'this site', count: blogEntries.filter((e) => !e.source).length },
   ...[...new Set(blogEntries.map((e) => e.source).filter((x): x is string => Boolean(x)))].map(
     (label) => ({
       key: sourceKey(label),
@@ -71,18 +71,22 @@ const sources = [
         role="group"
         aria-label="Filter blog posts by source"
         hidden
-        class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2"
+        class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm text-muted"
       >
-        <span class="label">Source</span>
-        {sources.map((src) => (
-          <button
-            type="button"
-            data-source-chip={src.key}
-            aria-pressed="false"
-            class="label border-b border-transparent pb-0.5 transition-colors hover:text-accent aria-pressed:border-accent aria-pressed:text-accent"
-          >
-            {src.label} <span class="opacity-60">{src.count}</span>
-          </button>
+        <span class="font-display italic">from</span>
+        {sources.map((src, i) => (
+          <>
+            {i > 0 && <span aria-hidden="true">·</span>}
+            <button
+              type="button"
+              data-source-chip={src.key}
+              aria-pressed="false"
+              title={`${src.count} posts`}
+              class="decoration-line-strong underline-offset-4 transition-colors hover:text-ink aria-pressed:text-ink aria-pressed:underline"
+            >
+              {src.label}
+            </button>
+          </>
         ))}
       </div>
     )
