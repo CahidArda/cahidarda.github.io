@@ -42,7 +42,9 @@ interface Props {
 }
 const { activeNav, headings = [] } = Astro.props;
 
-const path = Astro.url.pathname;
+// `build.format: 'file'` gives build-time paths like `/index.html` and `/articles.html`;
+// normalize to the clean form so the active nav item matches in production too.
+const path = Astro.url.pathname.replace(/(?:\/index)?\.html$/, '') || '/';
 // An explicit activeNav wins (article pages). Otherwise: tag items resolve on the
 // client (from ?tag=); home/index are path-based.
 const serverActive = (key: string) => {

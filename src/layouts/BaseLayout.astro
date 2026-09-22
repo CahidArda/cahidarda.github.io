@@ -22,6 +22,9 @@ interface Props {
   activeNav?: string;
   /** Article headings - rendered as an in-sidebar table of contents. */
   headings?: { depth: number; slug: string; text: string }[];
+  /** Make the content grid at least one viewport tall, so a full-screen hero
+   *  above it can scroll completely out of view (home page). */
+  fillViewport?: boolean;
 }
 
 const {
@@ -31,6 +34,7 @@ const {
   noindex = false,
   activeNav,
   headings = [],
+  fillViewport = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} - ${profile.name}` : `${profile.name} - Software Engineer`;
@@ -152,6 +156,8 @@ const gtagSnippet = `
     <slot name="hero" />
 
     <div
+      id="content"
+      class:list={[fillViewport && 'min-h-svh content-start']}
       class="mx-auto grid w-full max-w-[100rem] gap-y-8 px-5 py-8 side:grid-cols-[18rem_52rem_minmax(0,18rem)] side:gap-x-12 side:px-8 side:py-14"
     >
       <header class="side:sticky side:top-14 side:h-fit">
