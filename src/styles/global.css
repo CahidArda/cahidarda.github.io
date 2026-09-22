@@ -566,9 +566,9 @@ html {
   margin: 0 auto;
   flex-direction: column;
   justify-content: center;
-  /* top and bottom padding match (the bottom also reserves room for the
-     Enter hint), so the block is centred vertically too */
-  padding: 7.5rem 2.5rem;
+  /* sits a little above centre (optical centre); the bottom padding also
+     reserves room for the Enter hint */
+  padding: 4rem 2.5rem 13rem;
 }
 .term-down {
   position: absolute;
