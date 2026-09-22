@@ -559,12 +559,16 @@ html {
   position: relative;
   display: flex;
   min-height: 100svh;
+  /* shrink-wrap to the content, then centre that block: the text stays
+     left-aligned like a terminal, but its mass sits in the middle of the page */
+  width: fit-content;
   max-width: 64rem;
   margin: 0 auto;
   flex-direction: column;
   justify-content: center;
-  /* bottom padding reserves room for the Enter hint on short screens */
-  padding: 4rem 2.5rem 7.5rem;
+  /* top and bottom padding match (the bottom also reserves room for the
+     Enter hint), so the block is centred vertically too */
+  padding: 7.5rem 2.5rem;
 }
 .term-down {
   position: absolute;
