@@ -779,27 +779,33 @@ html {
   text-wrap: pretty;
 }
 
-/* Drop cap: a true 3-line initial where `initial-letter` is supported (Chrome, Safari),
-   a hand-sized float elsewhere (Firefox). */
-.prose-drop > p:first-of-type::first-letter {
+/* Drop cap (blog posts): the first letter set in a square framed tile, three lines
+   tall whatever the glyph, so a narrow "I" and a wide "W" get the same weight.
+   The span comes from src/lib/rehype-dropcap.mjs. The paragraph after the first
+   always clears the tile, so a one-line opener does not pull the next one beside it. */
+.prose-drop .dropcap {
   float: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.14em;
+  height: 1.14em;
+  margin: 0.06em 0.2em 0.03em 0;
+  padding-top: 0.06em;
   font-family: var(--font-display);
   font-weight: 300;
   font-variation-settings: 'opsz' 144;
-  font-size: 5.6em;
-  line-height: 0.86;
-  margin: 0.02em 0.1em -0.1em 0;
+  font-size: 4.2em;
+  line-height: 1;
   color: var(--color-accent);
+  background-color: color-mix(in oklab, var(--color-accent) 7%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 55%, transparent);
+  box-shadow:
+    inset 0 0 0 3px var(--color-paper),
+    inset 0 0 0 4px color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
-@supports (initial-letter: 3) or (-webkit-initial-letter: 3) {
-  .prose-drop > p:first-of-type::first-letter {
-    float: none;
-    font-size: inherit;
-    line-height: inherit;
-    margin: 0 0.12em 0 0;
-    -webkit-initial-letter: 3;
-    initial-letter: 3;
-  }
+.prose-drop .has-dropcap + * {
+  clear: left;
 }
 
 .prose h2 {
