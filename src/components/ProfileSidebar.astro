@@ -87,12 +87,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
           // Blog gets a source menu instead of the blurb tooltip.
           const blurb = hasMenu ? undefined : item.blurb;
           return (
-            <li
-              class:list={[
-                'group/nav relative',
-                hasMenu ? 'group/src inline-grid grid-rows-[auto_0]' : 'inline-flex',
-              ]}
-            >
+            <li class:list={['group/nav relative inline-flex', hasMenu && 'group/src']}>
               <a
                 href={item.href}
                 data-nav={item.key}
@@ -106,7 +101,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
                 <span class="nav-num hidden side:inline">{String(i + 1).padStart(2, '0')}</span>
                 {item.label}
               </a>
-              {hasMenu && <SourceMenu sources={blogSources} />}
+              {hasMenu && <SourceMenu sources={blogSources} variant="nav" />}
               {blurb && (
                 <span
                   id={`navtip-${item.key}`}

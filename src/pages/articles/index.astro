@@ -46,12 +46,12 @@ const sourceMeta = Object.fromEntries(
   >
     {
       chips.map((chip) => (
-        <span class="group/src relative inline-grid grid-rows-[auto_0]">
+        <span class="group/src relative inline-flex">
           <button
             type="button"
             data-chip={chip.key}
             aria-pressed="false"
-            class="inline-flex w-full items-center justify-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
+            class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
           >
             {chip.label}
             {chip.key === 'blog' && <span data-source-indicator hidden />}
