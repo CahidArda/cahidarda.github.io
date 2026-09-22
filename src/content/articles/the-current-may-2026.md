@@ -18,10 +18,10 @@ look forward to every time.
 
 - **[Morale](https://www.lesswrong.com/posts/53ZAzbdzGJHGeE5rs/morale)**, _12 Apr 2026_
   - On morale as a resource you spend and have to replenish, not a mood you
-  happen to be in.
+    happen to be in.
 - **[The Dead Economy Theory](https://www.owenmcgrann.com/p/the-dead-economy-theory)**, _1 May 2026_
   - An essay arguing the economy looks alive on the surface while the
-  parts that actually create value have quietly stalled.
+    parts that actually create value have quietly stalled.
 - **[Magnifica Humanitas](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)**, _15 May 2026_
   - Encyclical letter of Pope Leo XIV - worth reading whatever your
-  priors, for the framing of technology and human dignity.
+    priors, for the framing of technology and human dignity.

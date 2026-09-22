@@ -3,6 +3,7 @@ import { profile } from '../data/profile';
 import { tags, tagHref } from '../data/tags';
 import SocialLinks from './SocialLinks.astro';
 import ThemeToggle from './ThemeToggle.tsx';
+import Seal from './Seal.astro';
 
 const navItems = [
   { key: 'home', label: 'Home', href: '/', blurb: undefined as string | undefined },
@@ -58,10 +59,11 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
 
 <div class="flex flex-col gap-6">
   <div class="min-w-0">
-    <a href="/" class="block">
-      <h1 class="font-display text-2xl leading-tight text-ink side:text-3xl">{profile.name}</h1>
+    <a href="/" class="sidebar-home group block" aria-label="Home">
+      <Seal class="sidebar-seal hidden w-10 text-accent side:block" />
+      <h1 class="sidebar-name side:mt-5">{profile.name}</h1>
     </a>
-    <p class="mt-1 text-sm text-ink-soft">
+    <p class="sidebar-tagline mt-2">
       {taglineBefore}<a
         href={profile.employer.href}
         target="_blank"
@@ -76,7 +78,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
   <nav aria-label="Primary" class="border-t border-line pt-4">
     <ul class="flex flex-row flex-wrap gap-x-5 gap-y-2 side:flex-col side:gap-2">
       {
-        navItems.map((item) => {
+        navItems.map((item, i) => {
           const blurb = item.blurb;
           return (
             <li class="group/nav relative inline-flex">
@@ -90,6 +92,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
                   serverActive(item.key) && 'is-active',
                 ]}
               >
+                <span class="nav-num hidden side:inline">{String(i + 1).padStart(2, '0')}</span>
                 {item.label}
               </a>
               {blurb && (

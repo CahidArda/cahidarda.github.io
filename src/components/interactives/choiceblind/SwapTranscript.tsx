@@ -75,7 +75,11 @@ export default function SwapTranscript() {
   }, [reduced, paused, inView]);
 
   return (
-    <Widget title="One trial, start to finish" kicker="choice-only · claude-fable-5" rootRef={viewRef}>
+    <Widget
+      title="One trial, start to finish"
+      kicker="choice-only · claude-fable-5"
+      rootRef={viewRef}
+    >
       {/* Controls live ABOVE the transcript: revealing bubbles changes the transcript
           height, so a step bar below it would shift out from under the cursor. */}
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Trial steps">

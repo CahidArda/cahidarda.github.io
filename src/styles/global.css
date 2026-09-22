@@ -524,27 +524,16 @@ html {
    Same paper/ink/rust tokens; just more air and more ceremony.
    ========================================================================== */
 
-.monogram {
-  isolation: isolate;
-  position: relative;
-  display: inline-block;
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-variation-settings: 'opsz' 144;
-  line-height: 0.8;
-  color: var(--color-ink);
+.seal {
+  display: block;
+  height: auto;
+  overflow: visible;
 }
-.monogram::before {
-  content: attr(data-letter);
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  font-style: italic;
-  font-weight: 200;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--color-accent);
-  transform: translate(0.09em, -0.06em) scale(1.12);
-  opacity: 0.85;
+.hero-seal {
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hero-body:hover .hero-seal {
+  transform: rotate(45deg);
 }
 
 .hero {
@@ -628,22 +617,25 @@ html {
   letter-spacing: -0.035em;
   color: var(--color-ink);
 }
-.hero-l2 {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 350;
-  font-variation-settings: 'opsz' 96;
-  font-size: clamp(2rem, 4.4vw, 4.25rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: var(--color-accent);
-}
 .hero-l3 {
   max-width: 44rem;
   font-size: 1.3rem;
   line-height: 1.65;
   color: var(--color-ink-soft);
   text-wrap: balance;
+}
+.hero-l3 a {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: italic;
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color 0.2s;
+}
+.hero-l3 a:hover {
+  color: var(--color-accent);
 }
 .hero-down {
   display: flex;
@@ -709,17 +701,7 @@ html {
   }
 }
 
-/* Home-page lede and influences. */
-.lede-grand {
-  font-family: var(--font-display);
-  font-weight: 350;
-  font-variation-settings: 'opsz' 72;
-  font-size: clamp(1.6rem, 2.4vw, 2.15rem);
-  line-height: 1.35;
-  letter-spacing: -0.012em;
-  color: var(--color-ink);
-  text-wrap: pretty;
-}
+/* Home-page preoccupations list. */
 .influences li {
   font-family: var(--font-display);
   font-size: 1.15rem;
@@ -732,4 +714,107 @@ html {
   margin-right: 0.7rem;
   color: var(--color-accent);
   font-size: 0.85em;
+}
+
+/* ==========================================================================
+   Sidebar and article pages: same ceremony, quieter volume.
+   ========================================================================== */
+
+.sidebar-name {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: 2.4rem;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+}
+@media (min-width: 62rem) {
+  .sidebar-name {
+    font-size: 3rem;
+  }
+}
+.sidebar-home:hover .sidebar-name {
+  color: var(--color-accent);
+}
+.sidebar-seal {
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sidebar-home:hover .sidebar-seal {
+  transform: rotate(45deg);
+}
+.sidebar-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  color: var(--color-ink-soft);
+}
+.sidebar-tagline a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-strong);
+  text-underline-offset: 0.2em;
+}
+.sidebar-tagline a:hover {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
+}
+.nav-num {
+  width: 2.2em;
+  color: var(--color-line-strong);
+  transition: color 0.2s;
+}
+.nav-link:hover .nav-num {
+  color: var(--color-accent);
+}
+.nav-link.is-active .nav-num {
+  display: none !important;
+}
+
+.article-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(2.75rem, 5.2vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+.article-dek {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 350;
+  font-size: 1.45rem;
+  line-height: 1.45;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+.ornament-rule {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.ornament-rule::before,
+.ornament-rule::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--color-line);
+}
+
+.prose-drop > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: 4.4em;
+  line-height: 0.82;
+  padding: 0.06em 0.12em 0 0;
+  color: var(--color-accent);
+}
+.prose h2 {
+  font-weight: 400;
+  font-variation-settings: 'opsz' 72;
+  font-size: 2rem;
+  letter-spacing: -0.015em;
 }

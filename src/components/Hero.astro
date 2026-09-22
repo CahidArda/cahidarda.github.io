@@ -1,5 +1,5 @@
 ---
-import Monogram from './Monogram.astro';
+import Seal from './Seal.astro';
 import { profile } from '../data/profile';
 ---
 
@@ -11,22 +11,24 @@ import { profile } from '../data/profile';
 
   <div class="hero-bar label reveal r0">
     <span>{profile.name}</span>
-    <span class="hidden sm:inline">Software / Agents / Infrastructure</span>
+    <span class="hidden sm:inline">Work / Record / Essays</span>
     <span>Istanbul, 41.0°N 28.9°E</span>
   </div>
 
   <div class="hero-body">
-    <Monogram letter="A" class="reveal r0 text-[7rem] md:text-[10rem]" />
+    <Seal class="hero-seal reveal r0 w-24 text-accent md:w-32" />
     <p class="hero-l1 reveal r1">Hi, I'm Arda.</p>
-    <p class="hero-l2 reveal r2">I build for the next kind of user.</p>
-    <p class="hero-l3 reveal r3">
-      Engineer at Upstash, working on agent experience: infrastructure that AI agents can discover,
-      understand, and operate on their own. On the side, long interactive essays about where
-      automation is taking the rest of us.
+    <p class="hero-l3 reveal r2">
+      One place for the work, the record, and the obsessions: <a href="/articles">what I build</a> at
+      Upstash and beyond, as essays and repositories; <a href="/articles?tag=accessions"
+        >The Current</a
+      >, a monthly ledger of the news shaping these revolutionary times; and <a
+        href="/articles?tag=blog">long essays</a
+      > on the questions I can't put down.
     </p>
   </div>
 
-  <a href="#main" class="hero-down reveal r4" aria-label="Scroll to content">
+  <a href="#main" class="hero-down reveal r3" aria-label="Scroll to content">
     <span class="label">Enter</span>
     <span class="bob text-2xl text-muted">↓</span>
   </a>

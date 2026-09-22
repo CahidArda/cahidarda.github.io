@@ -1,5 +1,5 @@
 /**
- * Home-page "influences" list, rendered in two columns. Draft: edit freely.
+ * Home-page "Preoccupations" list, rendered in two columns. Draft: edit freely.
  * Order is visual only; keep the two columns roughly equal in length.
  */
 export const influences: [string[], string[]] = [
@@ -24,9 +24,3 @@ export const influences: [string[], string[]] = [
     'Dark political satire',
   ],
 ];
-
-/** Site-wide epigraph (Tractatus 5.6, Ogden translation, 1922). */
-export const epigraph = {
-  text: 'The limits of my language mean the limits of my world.',
-  source: 'Wittgenstein, Tractatus Logico-Philosophicus, 5.6',
-};

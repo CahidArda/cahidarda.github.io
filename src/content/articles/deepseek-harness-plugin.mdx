@@ -41,12 +41,12 @@ Adding a plugin always means getting a row into that list. A **patch** is a file
 containing row edits, and the composed list is built by stacking patch layers in a
 fixed order ([CLI reference](https://github.com/deepseek-ai/deepseek-harness/blob/master/apps/cli/reference/README.md)):
 
-| Layer | Comes from | Owned by |
-| --- | --- | --- |
-| 1 | each bundle's `cordis.patch.yml` | package authors |
-| 2 | `$DSH_HOME/profiles/<name>/cordis.patch.yml` | the user, per profile |
-| 3 | `$DSH_HOME/cordis.patch.yml` | the user, machine wide |
-| 4 | each `--patch <file>` | the user, per launch |
+| Layer | Comes from                                   | Owned by               |
+| ----- | -------------------------------------------- | ---------------------- |
+| 1     | each bundle's `cordis.patch.yml`             | package authors        |
+| 2     | `$DSH_HOME/profiles/<name>/cordis.patch.yml` | the user, per profile  |
+| 3     | `$DSH_HOME/cordis.patch.yml`                 | the user, machine wide |
+| 4     | each `--patch <file>`                        | the user, per launch   |
 
 `$DSH_HOME` defaults to `~/.dsh`. Later layers win per row, and a patch replaces a
 row's whole `config` instead of merging keys. `dsh --dump-config` prints the composed
@@ -64,13 +64,13 @@ This was my first surprise. The base composition already mounts
 [`dsh-skill-filesystem`](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md),
 which scans these roots, lower rank winning a duplicate name:
 
-| Rank | Source | Path |
-| --- | --- | --- |
-| 100 | `project-dsh` | `<projectRoot>/.dsh/skills` |
-| 200 | `project-agents` | `<projectRoot>/.agents/skills` |
-| 300 | `custom` | `Config.customSkillDirs` |
-| 400 | `user-dsh` | `~/.dsh/skills` |
-| 500 | `user-agents` | `~/.agents/skills` |
+| Rank | Source           | Path                           |
+| ---- | ---------------- | ------------------------------ |
+| 100  | `project-dsh`    | `<projectRoot>/.dsh/skills`    |
+| 200  | `project-agents` | `<projectRoot>/.agents/skills` |
+| 300  | `custom`         | `Config.customSkillDirs`       |
+| 400  | `user-dsh`       | `~/.dsh/skills`                |
+| 500  | `user-agents`    | `~/.agents/skills`             |
 
 Rank 200 and 500 are the plain
 [Agent Skills](https://agentskills.io/) convention, so anything already published
@@ -177,11 +177,15 @@ tag, and the implementation is
 [eight lines](https://github.com/deepseek-ai/deepseek-harness/blob/master/vendor/loader/src/config/utils.ts):
 
 ```js
-export const evaluate = new Function('ctx', 'expr', `
+export const evaluate = new Function(
+  'ctx',
+  'expr',
+  `
   with (ctx) {
     return eval(expr)
   }
-`);
+`,
+);
 ```
 
 So an expression gets `ctx` properties and Node globals, and nothing else. No

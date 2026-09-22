@@ -147,11 +147,7 @@ export function Widget({
   rootRef?: React.Ref<HTMLDivElement>;
 }) {
   return (
-    <div
-      ref={rootRef}
-      id={id}
-      className="fx not-prose border border-line-strong bg-paper-raised"
-    >
+    <div ref={rootRef} id={id} className="fx not-prose border border-line-strong bg-paper-raised">
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
         <span className="label">{title}</span>
         {kicker && <span className="font-mono text-[0.65rem] text-muted">{kicker}</span>}

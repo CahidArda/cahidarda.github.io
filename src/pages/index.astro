@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleRowCompact from '../components/ArticleRowCompact.astro';
 import Hero from '../components/Hero.astro';
-import { profile } from '../data/profile';
 import { influences } from '../data/influences';
 import { getEntries } from '../lib/entries';
 
@@ -16,13 +15,8 @@ const recent = entries.slice(0, RECENT_COUNT);
   <Hero slot="hero" />
 
   <section>
-    <p class="label">I. Premise</p>
-    <p class="lede-grand mt-4 max-w-3xl">{profile.intro}</p>
-  </section>
-
-  <section class="mt-20">
     <div class="flex items-baseline justify-between">
-      <h2 class="label">II. Recent work</h2>
+      <h2 class="label">I. Recent work</h2>
       <a href="/articles" class="label hover:text-accent">Full index →</a>
     </div>
 
@@ -37,7 +31,7 @@ const recent = entries.slice(0, RECENT_COUNT);
   </section>
 
   <section class="mt-20">
-    <h2 class="label">III. Some influences</h2>
+    <h2 class="label">II. Preoccupations</h2>
     <div class="influences mt-4 grid gap-x-10 sm:grid-cols-2">
       {
         influences.map((col) => (

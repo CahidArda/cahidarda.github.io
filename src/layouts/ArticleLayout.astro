@@ -9,6 +9,7 @@ import SeriesNav from '../components/SeriesNav.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CitationBlock from '../components/CitationBlock.astro';
 import OrcidBadge from '../components/OrcidBadge.astro';
+import Seal from '../components/Seal.astro';
 import { tagHref } from '../data/tags';
 import { formatDate, isoDate } from '../lib/format';
 
@@ -25,6 +26,10 @@ const isPublication = tags.includes('publication');
 const ogImage = `/og/${entry.id}.png`;
 // Highlight this content type in the sidebar (publication/blog/accessions).
 const activeNav = tags[0];
+// Rough reading time from the raw source (MDX imports/JSX slightly inflate it).
+const minutes = Math.max(1, Math.round((entry.body ?? '').split(/\s+/).length / 230));
+// Essays open with a drop cap; roundups and papers stay plain.
+const dropCap = tags.includes('blog');
 
 // Back-link: a member of a collection goes back to that collection's landing page;
 // the landing page itself and standalone articles go back to the index. Used at the
@@ -50,22 +55,24 @@ if (entry.data.series) {
   headings={headings.filter((h) => h.depth === 2 || h.depth === 3)}
 >
   <article>
-    <header class="border-b border-line pb-8">
+    <header>
       <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
         ← {backLabel}
       </a>
 
-      <h1 class="mt-4 font-display text-4xl leading-tight text-ink side:text-5xl">{title}</h1>
-      <p class="mt-4 max-w-2xl text-lg text-ink-soft">{description}</p>
-
-      <div class="mt-4 flex flex-wrap items-center gap-3">
-        <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
-        {updated && <span class="label">· Updated {formatDate(updated)}</span>}
-      </div>
-
-      <div class="mt-5 flex flex-wrap items-center gap-2">
+      <div class="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
         {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} />)}
         {isPublication && <OrcidBadge />}
+        <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
+        {updated && <span class="label">/ Updated {formatDate(updated)}</span>}
+        <span class="label">/ {minutes} min read</span>
+      </div>
+
+      <h1 class="article-title mt-5">{title}</h1>
+      {description && <p class="article-dek mt-5 max-w-3xl">{description}</p>}
+
+      <div class="ornament-rule mt-10" aria-hidden="true">
+        <Seal class="w-6 text-accent" detailed={false} />
       </div>
     </header>
 
@@ -92,11 +99,15 @@ if (entry.data.series) {
       )
     }
 
-    <Prose class="mt-8">
+    <Prose class={dropCap ? 'prose-drop mt-10' : 'mt-10'}>
       <slot />
     </Prose>
 
     {entry.data.series && <SeriesNav entry={entry} />}
+
+    <div class="mt-16 flex justify-center" aria-hidden="true">
+      <Seal class="w-12 text-accent" />
+    </div>
 
     <footer class="mt-12 border-t border-line pt-6">
       <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
