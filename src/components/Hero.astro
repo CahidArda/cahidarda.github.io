@@ -1,0 +1,51 @@
+---
+import Cursor from './Cursor.astro';
+
+const dirs = [
+  { href: '/articles?tag=blog', name: 'blog/', note: 'essays, opinions, and how-tos' },
+  { href: '/articles?tag=accessions', name: 'the-current/', note: 'monthly record of the times' },
+  {
+    href: '/articles?tag=repository',
+    name: 'repositories/',
+    note: 'open-source projects on GitHub',
+  },
+  { href: '/articles?tag=publication', name: 'publications/', note: 'papers and academic work' },
+  { href: '/experience', name: 'experience/', note: 'work, research, and education' },
+];
+---
+
+<section class="term" aria-label="Introduction">
+  <p class="term-ln reveal r0"><b>~</b> $ whoami</p>
+  <div class="term-out"><p class="hero-l1 reveal r1">Hi, I'm Arda.</p></div>
+
+  <p class="term-ln reveal r2"><b>~</b> $ cat README</p>
+  <div class="term-out">
+    <p class="hero-l3 reveal r3">
+      One place for the work, the record, and the obsessions: <a href="/articles">what I build</a> at
+      Upstash and beyond, as blogs and repositories; <a href="/articles?tag=accessions"
+        >The Current</a
+      >, a monthly ledger of the news shaping these revolutionary times; and <a
+        href="/articles?tag=blog&source=site">blogs</a
+      > on the ideas I keep coming back to.
+    </p>
+  </div>
+
+  <p class="term-ln reveal r4"><b>~</b> $ ls</p>
+  <div class="term-ls reveal r5">
+    {
+      dirs.map((d) => (
+        <>
+          <a href={d.href}>{d.name}</a>
+          <span>{d.note}</span>
+        </>
+      ))
+    }
+  </div>
+
+  <p class="term-ln reveal r5"><b>~</b> $ <Cursor blink class="term-cursor" /></p>
+
+  <a href="#content" class="term-down reveal r6" aria-label="Scroll to content">
+    <span class="label">Enter</span>
+    <span class="bob text-2xl text-muted">↓</span>
+  </a>
+</section>

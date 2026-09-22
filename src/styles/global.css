@@ -1,7 +1,9 @@
 @import 'tailwindcss';
 
 /* Self-hosted variable fonts (Fontsource) */
-@import '@fontsource-variable/fraunces';
+/* opsz axis: Fraunces gets higher contrast at display sizes (hero, titles). */
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/fraunces/opsz-italic.css';
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/jetbrains-mono';
 
@@ -283,11 +285,25 @@ html {
 .prose h3 {
   font-size: 1.3rem;
 }
-.prose a {
-  color: var(--color-accent);
+/* Links in running text: ink italic serif with a rust hairline underline, the same
+   voice as the home-page hero. Only plain markdown links (no class), so buttons
+   and links inside interactive widgets keep their own styling. */
+.prose a:not([class]) {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: italic;
   text-decoration: underline;
-  text-underline-offset: 0.18em;
+  text-decoration-color: var(--color-accent);
   text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color 0.2s;
+}
+.prose a:not([class]):hover {
+  color: var(--color-accent);
+}
+/* Code inside a link keeps the mono face upright. */
+.prose a:not([class]) code {
+  font-style: normal;
 }
 .prose strong {
   color: var(--color-ink);
@@ -515,4 +531,303 @@ html {
   .fx [data-flow] {
     animation: none !important;
   }
+}
+
+/* ==========================================================================
+   Home: terminal hero, staged reveal, block-cursor mark.
+   Same paper/ink/rust tokens; just more air and more ceremony.
+   ========================================================================== */
+
+.cursor-mark {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  vertical-align: -0.15em;
+  background-color: var(--color-accent);
+}
+.cursor-mark.is-blinking {
+  animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Terminal hero: whoami / cat README / ls, revealed line by line, with serif output. */
+.term {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  /* shrink-wrap to the content, then centre that block: the text stays
+     left-aligned like a terminal, but its mass sits in the middle of the page */
+  width: fit-content;
+  max-width: 64rem;
+  margin: 0 auto;
+  flex-direction: column;
+  justify-content: center;
+  /* sits a little above centre (optical centre); the bottom padding also
+     reserves room for the Enter hint */
+  padding: 4rem 2.5rem 13rem;
+}
+.term-down {
+  position: absolute;
+  bottom: 2.25rem;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  translate: -50% 0;
+}
+.term-down:hover .label {
+  color: var(--color-accent);
+}
+.term-ln {
+  margin: 0.35rem 0;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  color: var(--color-muted);
+}
+.term-ln b {
+  font-weight: 500;
+  color: var(--color-accent);
+}
+.term-out {
+  margin: 0.4rem 0 1.6rem 1.9rem;
+}
+.term-ls {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 2rem;
+  margin: 0.6rem 0 1.4rem 1.9rem;
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+}
+.term-ls a {
+  color: var(--color-ink);
+  transition: color 0.2s;
+}
+.term-ls a:hover {
+  color: var(--color-accent);
+}
+.term-ls span {
+  color: var(--color-muted);
+}
+@media (max-width: 40rem) {
+  .term-ls {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .term-ls span {
+    margin-bottom: 0.6rem;
+  }
+}
+
+.hero-l1 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(3.5rem, 8vw, 7.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: var(--color-ink);
+}
+.hero-l3 {
+  max-width: 46rem;
+  font-size: 1.3rem;
+  line-height: 1.65;
+  color: var(--color-ink-soft);
+  text-wrap: balance;
+}
+.hero-l3 a {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: italic;
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color 0.2s;
+}
+.hero-l3 a:hover {
+  color: var(--color-accent);
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.9rem);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(0.3em);
+  }
+}
+.reveal {
+  opacity: 0;
+  animation: reveal 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.r0 {
+  animation-delay: 0.15s;
+}
+.r1 {
+  animation-delay: 0.55s;
+}
+.r2 {
+  animation-delay: 1.35s;
+}
+.r3 {
+  animation-delay: 2.1s;
+}
+.r4 {
+  animation-delay: 2.5s;
+}
+.r5 {
+  animation-delay: 2.9s;
+}
+.r6 {
+  animation-delay: 3.4s;
+}
+.bob {
+  display: inline-block;
+  animation: bob 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .bob,
+  .cursor-mark {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Sidebar and article pages: same ceremony, quieter volume.
+   ========================================================================== */
+
+.sidebar-name {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: 2.4rem;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+}
+@media (min-width: 62rem) {
+  .sidebar-name {
+    font-size: 3rem;
+  }
+}
+.sidebar-home:hover .sidebar-name {
+  color: var(--color-accent);
+}
+.sidebar-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  color: var(--color-ink-soft);
+}
+.sidebar-tagline a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-strong);
+  text-underline-offset: 0.2em;
+}
+.sidebar-tagline a:hover {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
+}
+.nav-num {
+  width: 2.2em;
+  color: var(--color-line-strong);
+  transition: color 0.2s;
+}
+.nav-link:hover .nav-num {
+  color: var(--color-accent);
+}
+.nav-link.is-active .nav-num {
+  display: none !important;
+}
+
+.article-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(2.75rem, 5.2vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+.article-dek {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 350;
+  font-size: 1.45rem;
+  line-height: 1.45;
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+/* Drop cap (blog posts), after the engraved initials of old books: a square
+   block exactly three lines tall (cap of line 1 to baseline of line 3), the
+   letter filling it in ink, over a scrolling-vine arabesque in faded rust.
+   The span comes from src/lib/rehype-dropcap.mjs. */
+.prose-drop .dropcap {
+  position: relative;
+  isolation: isolate;
+  float: left;
+  /* sizes are in the letter's own em (4.2em of body text); the capital fills
+     about 70% of the square so the ornament frames it */
+  font-size: 4.2em;
+  width: 1em;
+  height: 1em;
+  /* top edge level with the cap height of line 1 */
+  margin: 0.12em 0.12em 0 0;
+  /* a line box as tall as the tile centres the capital in it */
+  line-height: 1em;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144;
+  color: var(--color-ink);
+  /* a paper-coloured halo lifts the letter off the ornament */
+  text-shadow:
+    0 0 0.02em var(--color-paper),
+    0 0 0.02em var(--color-paper),
+    0 0 0.04em var(--color-paper);
+}
+.prose-drop .dropcap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* four-fold arabesque, drawn in public/ornaments/dropcap.svg */
+  background-color: var(--color-accent);
+  opacity: 0.7;
+  -webkit-mask: url('/ornaments/dropcap.svg') center / 100% 100% no-repeat;
+  mask: url('/ornaments/dropcap.svg') center / 100% 100% no-repeat;
+}
+.prose-drop .has-dropcap + * {
+  clear: left;
+}
+
+.prose h2 {
+  font-weight: 400;
+  font-variation-settings: 'opsz' 72;
+  font-size: 2rem;
+  letter-spacing: -0.015em;
 }

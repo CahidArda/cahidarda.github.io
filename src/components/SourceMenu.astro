@@ -1,0 +1,56 @@
+---
+/**
+ * Hover menu under the Blog link (sidebar) and Blog chip (Index): narrow the blog
+ * list by where a post was published. Place inside a `group/src relative` element.
+ * Opens on hover, or on keyboard focus (`:focus-visible`) only: a mouse click on
+ * the chip focuses it too, and plain focus-within would leave the menu stuck open.
+ *
+ * - `chip` (Index): mono caps like the chips, at least as wide as the chip it hangs
+ *   from, wider only when its own labels need it.
+ * - `nav` (sidebar): the same size and type as the sidebar's hover tooltips.
+ */
+import type { BlogSource } from '../lib/entries';
+
+interface Props {
+  sources: BlogSource[];
+  variant?: 'chip' | 'nav';
+}
+const { sources, variant = 'chip' } = Astro.props;
+const nav = variant === 'nav';
+---
+
+{
+  sources.length > 1 && (
+    <div
+      class:list={[
+        'invisible absolute top-full left-0 z-30 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover/src:visible group-hover/src:opacity-100 group-has-[:focus-visible]/src:visible group-has-[:focus-visible]/src:opacity-100',
+        nav ? 'hidden w-40 side:block' : 'w-max min-w-full',
+      ]}
+    >
+      <ul
+        class:list={[
+          'bg-paper-raised shadow-sm',
+          nav ? 'border border-line py-1' : 'border border-line-strong py-1',
+        ]}
+      >
+        {sources.map((s) => (
+          <li>
+            <a
+              href={`/articles?tag=blog&source=${s.key}`}
+              data-source-link={s.key}
+              class:list={[
+                'flex items-center justify-between gap-3 whitespace-nowrap text-ink-soft transition-colors hover:text-accent',
+                nav
+                  ? 'px-3 py-1 text-xs leading-snug'
+                  : 'px-3 py-1.5 font-mono text-[0.7rem] tracking-[0.18em] uppercase',
+              ]}
+            >
+              <span>{s.label}</span>
+              <span class="text-muted">{s.count}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}

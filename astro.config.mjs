@@ -7,6 +7,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeDropcap from './src/lib/rehype-dropcap.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,7 +20,7 @@ export default defineConfig({
   // LaTeX math via KaTeX. mdx() inherits this markdown config by default.
   markdown: {
     remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
+    rehypePlugins: [rehypeKatex, rehypeDropcap],
     // Dual Shiki themes so code follows the site's light/dark mode. The default
     // (light) token colours are applied inline; global.css swaps to the dark
     // ones under `.dark` and keeps the editorial paper background in both.

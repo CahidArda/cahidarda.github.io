@@ -1,0 +1,13 @@
+---
+/**
+ * The site mark: a rust block cursor. Blinks only where asked (the hero prompt);
+ * elsewhere it sits still, doubling as an end-of-article tombstone.
+ */
+interface Props {
+  class?: string;
+  blink?: boolean;
+}
+const { class: className, blink = false } = Astro.props;
+---
+
+<span class:list={['cursor-mark', blink && 'is-blinking', className]} aria-hidden="true"></span>

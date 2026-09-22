@@ -1,12 +1,13 @@
 ---
 import '../styles/global.css';
 import ProfileSidebar from '../components/ProfileSidebar.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 import CommandPalette, { type PaletteItem } from '../components/CommandPalette.tsx';
 import { profile } from '../data/profile';
 import { tags, tagKeys, tagHref } from '../data/tags';
 import { getEntries } from '../lib/entries';
 // Preload the primary (latin) font files so navigations don't flash the fallback (FOUT).
-import frauncesFont from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import frauncesFont from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
 import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import monoFont from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
 
@@ -21,6 +22,9 @@ interface Props {
   activeNav?: string;
   /** Article headings - rendered as an in-sidebar table of contents. */
   headings?: { depth: number; slug: string; text: string }[];
+  /** Make the content grid at least one viewport tall, so a full-screen hero
+   *  above it can scroll completely out of view (home page). */
+  fillViewport?: boolean;
 }
 
 const {
@@ -30,6 +34,7 @@ const {
   noindex = false,
   activeNav,
   headings = [],
+  fillViewport = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} - ${profile.name}` : `${profile.name} - Software Engineer`;
@@ -140,7 +145,7 @@ const gtagSnippet = `
     </script>
   </head>
 
-  <body>
+  <body id="top">
     <a
       href="#main"
       class="label sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:border focus:border-accent focus:bg-paper focus:px-3 focus:py-2"
@@ -148,16 +153,25 @@ const gtagSnippet = `
       Skip to content
     </a>
 
-    <div
-      class="mx-auto grid w-full max-w-[100rem] gap-y-8 px-5 py-8 side:grid-cols-[18rem_52rem_minmax(0,18rem)] side:gap-x-12 side:px-8 side:py-14"
-    >
-      <header class="side:sticky side:top-14 side:h-fit">
-        <ProfileSidebar activeNav={activeNav} headings={headings} />
-      </header>
+    <slot name="hero" />
 
-      <main id="main" class="min-w-0">
-        <slot />
-      </main>
+    <!-- On the home page, content + footer together are exactly one screen tall
+         (when the content fits), so the hero scrolls fully away with no dead space. -->
+    <div id="content" class:list={[fillViewport && 'flex min-h-svh flex-col']}>
+      <div
+        class:list={[fillViewport && 'flex-1 content-start']}
+        class="mx-auto grid w-full max-w-[100rem] gap-y-8 px-5 py-8 side:grid-cols-[18rem_52rem_minmax(0,18rem)] side:gap-x-12 side:px-8 side:py-14"
+      >
+        <header class="side:sticky side:top-14 side:h-fit">
+          <ProfileSidebar activeNav={activeNav} headings={headings} />
+        </header>
+
+        <main id="main" class="min-w-0">
+          <slot />
+        </main>
+      </div>
+
+      <SiteFooter compact={fillViewport} />
     </div>
 
     <CommandPalette items={paletteItems} client:idle />

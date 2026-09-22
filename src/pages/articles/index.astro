@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
+import PageHeader from '../../components/PageHeader.astro';
 import { tags, tagKeys } from '../../data/tags';
-import { getEntries } from '../../lib/entries';
+import SourceMenu from '../../components/SourceMenu.astro';
+import { getEntries, getBlogSources, sourceKey } from '../../lib/entries';
 
 const entries = await getEntries();
 
@@ -17,29 +19,48 @@ const chips = [
     }))
     .filter((t) => t.count > 0),
 ];
+
+// Blog posts can be narrowed by source from the menu under the Blog chip.
+const blogSources = await getBlogSources();
+const sourceMeta = Object.fromEntries(
+  blogSources.map((x) => [x.key, { label: x.label, count: x.count }]),
+);
 ---
 
 <BaseLayout title="Index" description="Writing, papers, projects, and monthly reading roundups.">
-  <header>
-    <h1 class="font-display text-4xl text-ink md:text-5xl">Index</h1>
-    <p class="mt-3 max-w-2xl text-ink-soft">
-      Everything in one place - writing, publications, projects, and the monthly roundup. Filter by
-      tag.
-    </p>
-  </header>
+  <PageHeader
+    title="Index"
+    dek="Everything in one place: writing, publications, projects, and the monthly record. Filter by tag."
+    backHref="/"
+    backLabel="Home"
+  >
+    <span slot="meta" class="label">{entries.length} entries</span>
+  </PageHeader>
 
-  <div id="tag-filter" role="group" aria-label="Filter by tag" class="mt-8 flex flex-wrap gap-2">
+  <div
+    id="tag-filter"
+    role="group"
+    aria-label="Filter by tag"
+    data-sources={JSON.stringify(sourceMeta)}
+    class="mt-10 flex flex-wrap gap-2"
+  >
     {
       chips.map((chip) => (
-        <button
-          type="button"
-          data-chip={chip.key}
-          aria-pressed="false"
-          class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
-        >
-          {chip.label}
-          <span class="opacity-70">{chip.count}</span>
-        </button>
+        <span class="group/src relative inline-flex">
+          <button
+            type="button"
+            data-chip={chip.key}
+            aria-pressed="false"
+            class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
+          >
+            {chip.label}
+            {chip.key === 'blog' && <span data-source-indicator hidden />}
+            <span class="opacity-70" data-chip-count={chip.key}>
+              {chip.count}
+            </span>
+          </button>
+          {chip.key === 'blog' && <SourceMenu sources={blogSources} />}
+        </span>
       ))
     }
   </div>
@@ -52,46 +73,81 @@ const chips = [
       if (!root) return;
       const chips = Array.from(root.querySelectorAll('[data-chip]'));
       const keys = chips.map((c) => c.getAttribute('data-chip'));
+      // Source key -> { label, count }, e.g. { site: { label: 'This site', count: 14 } }.
+      const sourceLabels = JSON.parse(root.getAttribute('data-sources') || '{}');
+      const indicator = root.querySelector('[data-source-indicator]');
+      const blogCount = root.querySelector('[data-chip-count="blog"]');
+      const blogTotal = blogCount ? blogCount.textContent : '';
 
-      const current = () => {
-        const p = new URLSearchParams(window.location.search).get('tag');
-        return p && keys.includes(p) ? p : ALL;
+      const state = () => {
+        const q = new URLSearchParams(window.location.search);
+        const t = q.get('tag');
+        const tag = t && keys.includes(t) ? t : ALL;
+        const s = q.get('source');
+        // The source filter only exists under Blog; elsewhere it is ignored.
+        const source = tag === 'blog' && s && s in sourceLabels ? s : ALL;
+        return { tag, source };
       };
-      const paint = (key) =>
+      const paint = ({ tag, source }) => {
         chips.forEach((c) =>
-          c.setAttribute('aria-pressed', String(c.getAttribute('data-chip') === key)),
+          c.setAttribute('aria-pressed', String(c.getAttribute('data-chip') === tag)),
         );
-      const filter = (key) => {
+        if (indicator) {
+          const on = tag === 'blog' && source !== ALL;
+          indicator.hidden = !on;
+          indicator.textContent = on ? `\u00b7 ${sourceLabels[source].label}` : '';
+          if (blogCount)
+            blogCount.textContent = on ? String(sourceLabels[source].count) : blogTotal;
+        }
+      };
+      const filter = ({ tag, source }) => {
         let shown = 0;
         document.querySelectorAll('[data-article]').forEach((el) => {
           const t = (el.getAttribute('data-tags') || '').split(' ').filter(Boolean);
-          const match = key === ALL || t.includes(key);
+          const match =
+            (tag === ALL || t.includes(tag)) &&
+            (source === ALL || el.getAttribute('data-source') === source);
           el.hidden = !match;
           if (match) shown++;
         });
         const empty = document.getElementById('article-empty');
         if (empty) empty.hidden = shown !== 0;
       };
+      const commit = (next) => {
+        const url = new URL(window.location.href);
+        if (next.tag === ALL) url.searchParams.delete('tag');
+        else url.searchParams.set('tag', next.tag);
+        if (next.source === ALL) url.searchParams.delete('source');
+        else url.searchParams.set('source', next.source);
+        window.history.replaceState({}, '', url);
+        paint(next);
+        filter(next);
+        window.dispatchEvent(
+          new CustomEvent('tagfilterchange', {
+            detail: { tag: next.tag === ALL ? null : next.tag },
+          }),
+        );
+      };
 
       // Highlight immediately (chips are already parsed); filter rows when the DOM is ready.
-      paint(current());
+      paint(state());
 
       const init = () => {
         chips.forEach((chip) =>
-          chip.addEventListener('click', () => {
-            const key = chip.getAttribute('data-chip');
-            const url = new URL(window.location.href);
-            if (key === ALL) url.searchParams.delete('tag');
-            else url.searchParams.set('tag', key);
-            window.history.replaceState({}, '', url);
-            paint(key);
-            filter(key);
-            window.dispatchEvent(
-              new CustomEvent('tagfilterchange', { detail: { tag: key === ALL ? null : key } }),
-            );
+          chip.addEventListener('click', () =>
+            // Switching tag resets the source filter.
+            commit({ tag: chip.getAttribute('data-chip'), source: ALL }),
+          ),
+        );
+        // Source menus (sidebar and Blog chip) filter in place instead of reloading.
+        document.querySelectorAll('[data-source-link]').forEach((link) =>
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            commit({ tag: 'blog', source: link.getAttribute('data-source-link') });
+            if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
           }),
         );
-        filter(current());
+        filter(state());
       };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
       else init();
@@ -101,7 +157,7 @@ const chips = [
   <div class="mt-4">
     {
       entries.map((entry) => (
-        <div data-article data-tags={entry.tags.join(' ')}>
+        <div data-article data-tags={entry.tags.join(' ')} data-source={sourceKey(entry.source)}>
           <ArticleCard entry={entry} showDescription />
         </div>
       ))

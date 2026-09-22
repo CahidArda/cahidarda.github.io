@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleRowCompact from '../components/ArticleRowCompact.astro';
-import { profile } from '../data/profile';
+import Hero from '../components/Hero.astro';
 import { getEntries } from '../lib/entries';
 
 const RECENT_COUNT = 6;
@@ -10,14 +10,12 @@ const entries = await getEntries();
 const recent = entries.slice(0, RECENT_COUNT);
 ---
 
-<BaseLayout>
-  <section>
-    <p class="max-w-2xl leading-relaxed text-ink-soft">{profile.intro}</p>
-  </section>
+<BaseLayout fillViewport>
+  <Hero slot="hero" />
 
-  <section class="mt-12">
+  <section>
     <div class="flex items-baseline justify-between">
-      <h2 class="label">Recent</h2>
+      <h2 class="label">Recent work</h2>
       <a href="/articles" class="label hover:text-accent">Full index →</a>
     </div>
 

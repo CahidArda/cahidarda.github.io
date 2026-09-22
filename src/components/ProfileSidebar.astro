@@ -3,6 +3,8 @@ import { profile } from '../data/profile';
 import { tags, tagHref } from '../data/tags';
 import SocialLinks from './SocialLinks.astro';
 import ThemeToggle from './ThemeToggle.tsx';
+import SourceMenu from './SourceMenu.astro';
+import { getBlogSources } from '../lib/entries';
 
 const navItems = [
   { key: 'home', label: 'Home', href: '/', blurb: undefined as string | undefined },
@@ -42,7 +44,9 @@ interface Props {
 }
 const { activeNav, headings = [] } = Astro.props;
 
-const path = Astro.url.pathname;
+// `build.format: 'file'` gives build-time paths like `/index.html` and `/articles.html`;
+// normalize to the clean form so the active nav item matches in production too.
+const path = Astro.url.pathname.replace(/(?:\/index)?\.html$/, '') || '/';
 // An explicit activeNav wins (article pages). Otherwise: tag items resolve on the
 // client (from ?tag=); home/index are path-based.
 const serverActive = (key: string) => {
@@ -52,16 +56,18 @@ const serverActive = (key: string) => {
   return false;
 };
 
+const blogSources = await getBlogSources();
+
 // Split the tagline so the employer name renders as a link.
 const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.name);
 ---
 
 <div class="flex flex-col gap-6">
   <div class="min-w-0">
-    <a href="/" class="block">
-      <h1 class="font-display text-2xl leading-tight text-ink side:text-3xl">{profile.name}</h1>
+    <a href="/" class="sidebar-home group block" aria-label="Home">
+      <h1 class="sidebar-name">{profile.name}</h1>
     </a>
-    <p class="mt-1 text-sm text-ink-soft">
+    <p class="sidebar-tagline mt-2">
       {taglineBefore}<a
         href={profile.employer.href}
         target="_blank"
@@ -76,10 +82,12 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
   <nav aria-label="Primary" class="border-t border-line pt-4">
     <ul class="flex flex-row flex-wrap gap-x-5 gap-y-2 side:flex-col side:gap-2">
       {
-        navItems.map((item) => {
-          const blurb = item.blurb;
+        navItems.map((item, i) => {
+          const hasMenu = item.key === 'blog' && blogSources.length > 1;
+          // Blog gets a source menu instead of the blurb tooltip.
+          const blurb = hasMenu ? undefined : item.blurb;
           return (
-            <li class="group/nav relative inline-flex">
+            <li class:list={['group/nav relative inline-flex', hasMenu && 'group/src']}>
               <a
                 href={item.href}
                 data-nav={item.key}
@@ -90,8 +98,10 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
                   serverActive(item.key) && 'is-active',
                 ]}
               >
+                <span class="nav-num hidden side:inline">{String(i + 1).padStart(2, '0')}</span>
                 {item.label}
               </a>
+              {hasMenu && <SourceMenu sources={blogSources} variant="nav" />}
               {blurb && (
                 <span
                   id={`navtip-${item.key}`}
