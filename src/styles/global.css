@@ -731,12 +731,6 @@ html {
 .sidebar-home:hover .sidebar-name {
   color: var(--color-accent);
 }
-.sidebar-cursor {
-  width: 0.32em;
-  height: 0.7em;
-  margin-left: 0.12em;
-  vertical-align: -0.02em;
-}
 .sidebar-tagline {
   font-family: var(--font-display);
   font-style: italic;
