@@ -1,26 +1,14 @@
 /**
- * Home-page "Preoccupations" list, rendered in two columns. Draft: edit freely.
- * Order is visual only; keep the two columns roughly equal in length.
+ * Home-page "Obsessions" list, rendered in two columns (the hero promises "the
+ * work, the record, and the obsessions"). Order is visual only; keep the two
+ * columns roughly equal in length.
  */
 export const influences: [string[], string[]] = [
   [
-    'Wittgenstein, read too early',
-    'Camus and the absurd',
+    'The Black Swan',
+    'The Elephant in the Brain',
     "Keynes' beauty contest",
-    'Focal points and self-fulfilling prices',
-    'The Bomber Mafia',
-    'Taleb on the unknown unknowns',
-    "The Prisoner's Dilemma, iterated",
-    'Apollo, the archetype',
+    "Game theory, the Prisoner's Dilemma most of all",
   ],
-  [
-    'Ottoman domes, drawn by hand',
-    'Turkish etymology',
-    'Qibla lines that miss Mecca',
-    'A street documented building by building',
-    'Reading at Çamlıca',
-    'Distributed systems that fail politely',
-    'Military history',
-    'Dark political satire',
-  ],
+  ['Camus and the absurd', 'Dune & Star Wars', 'The Collapse', 'French, and where words come from'],
 ];
