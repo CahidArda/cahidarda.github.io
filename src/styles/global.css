@@ -803,6 +803,8 @@ html {
   font-family: var(--font-display);
   font-weight: 400;
   font-variation-settings: 'opsz' 144;
+  /* an initial is always a capital, even when the word is not ("xAI") */
+  text-transform: uppercase;
   color: var(--color-ink);
   /* a paper-coloured halo lifts the letter off the ornament */
   text-shadow:
@@ -821,7 +823,12 @@ html {
   -webkit-mask: url('/ornaments/dropcap.svg') center / 100% 100% no-repeat;
   mask: url('/ornaments/dropcap.svg') center / 100% 100% no-repeat;
 }
-.prose-drop .has-dropcap + * {
+/* The opening paragraph contains its own initial (clearfix), so whatever follows,
+   a paragraph or an image, keeps the normal gap below it. (Clearing the next
+   element instead swallows that element's top margin.) */
+.prose-drop .has-dropcap::after {
+  content: '';
+  display: block;
   clear: left;
 }
 

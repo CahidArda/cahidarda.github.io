@@ -29,8 +29,8 @@ const ogImage = `/og/${entry.id}.png`;
 const activeNav = tags[0];
 // Rough reading time from the raw source (MDX imports/JSX slightly inflate it).
 const minutes = Math.max(1, Math.round((entry.body ?? '').split(/\s+/).length / 230));
-// Essays open with a drop cap; roundups and papers stay plain.
-const dropCap = tags.includes('blog');
+// Every local article (blog posts, publications, The Current) opens with a drop cap.
+const dropCap = tags.some((t) => t === 'blog' || t === 'publication' || t === 'accessions');
 
 // Back-link: a member of a collection goes back to that collection's landing page;
 // the landing page itself and standalone articles go back to the index. Used at the
