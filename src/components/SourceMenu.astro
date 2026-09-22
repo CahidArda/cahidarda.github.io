@@ -1,7 +1,9 @@
 ---
 /**
- * Hover / focus menu under the Blog link (sidebar) and Blog chip (Index): narrow the
- * blog list by where a post was published. Place inside a `group/src relative` element.
+ * Hover menu under the Blog link (sidebar) and Blog chip (Index): narrow the blog
+ * list by where a post was published. Place inside a `group/src relative` element.
+ * Opens on hover, or on keyboard focus (`:focus-visible`) only: a mouse click on
+ * the chip focuses it too, and plain focus-within would leave the menu stuck open.
  *
  * - `chip` (Index): mono caps like the chips, at least as wide as the chip it hangs
  *   from, wider only when its own labels need it.
@@ -21,7 +23,7 @@ const nav = variant === 'nav';
   sources.length > 1 && (
     <div
       class:list={[
-        'invisible absolute top-full left-0 z-30 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover/src:visible group-hover/src:opacity-100 group-focus-within/src:visible group-focus-within/src:opacity-100',
+        'invisible absolute top-full left-0 z-30 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover/src:visible group-hover/src:opacity-100 group-has-[:focus-visible]/src:visible group-has-[:focus-visible]/src:opacity-100',
         nav ? 'hidden w-40 side:block' : 'w-max min-w-full',
       ]}
     >
