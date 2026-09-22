@@ -802,15 +802,35 @@ html {
   border-top: 1px solid var(--color-line);
 }
 
+/* Drop cap: a true 3-line initial where `initial-letter` is supported (Chrome, Safari),
+   a hand-sized float elsewhere (Firefox). The first line runs in spaced caps, so the
+   initial reads into it the way a book opening does. */
 .prose-drop > p:first-of-type::first-letter {
   float: left;
   font-family: var(--font-display);
   font-weight: 300;
   font-variation-settings: 'opsz' 144;
-  font-size: 4.4em;
-  line-height: 0.82;
-  padding: 0.06em 0.12em 0 0;
+  font-size: 5.6em;
+  line-height: 0.86;
+  margin: 0.02em 0.1em -0.1em 0;
   color: var(--color-accent);
+}
+@supports (initial-letter: 3) or (-webkit-initial-letter: 3) {
+  .prose-drop > p:first-of-type::first-letter {
+    float: none;
+    font-size: inherit;
+    line-height: inherit;
+    margin: 0 0.12em 0 0;
+    -webkit-initial-letter: 3;
+    initial-letter: 3;
+  }
+}
+.prose-drop > p:first-of-type::first-line {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  color: var(--color-ink);
 }
 .prose h2 {
   font-weight: 400;
