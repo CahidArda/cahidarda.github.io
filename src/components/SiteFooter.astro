@@ -1,0 +1,14 @@
+---
+import Monogram from './Monogram.astro';
+import { epigraph } from '../data/influences';
+---
+
+<footer class="mx-auto mt-24 w-full max-w-3xl px-5 pb-20 text-center">
+  <Monogram letter="A" class="text-[4.5rem]" />
+  <hr class="mx-auto mt-6 w-1/2 border-0 border-t border-line" />
+  <blockquote class="mt-10">
+    <p class="font-display text-xl text-ink-soft italic md:text-2xl">“{epigraph.text}”</p>
+    <cite class="label mt-3 block not-italic">{epigraph.source}</cite>
+  </blockquote>
+  <a href="#top" class="label mt-10 inline-block hover:text-accent">Return to the top ↑</a>
+</footer>

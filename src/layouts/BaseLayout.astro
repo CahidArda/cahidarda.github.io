@@ -1,12 +1,13 @@
 ---
 import '../styles/global.css';
 import ProfileSidebar from '../components/ProfileSidebar.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 import CommandPalette, { type PaletteItem } from '../components/CommandPalette.tsx';
 import { profile } from '../data/profile';
 import { tags, tagKeys, tagHref } from '../data/tags';
 import { getEntries } from '../lib/entries';
 // Preload the primary (latin) font files so navigations don't flash the fallback (FOUT).
-import frauncesFont from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import frauncesFont from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
 import interFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import monoFont from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
 
@@ -140,13 +141,15 @@ const gtagSnippet = `
     </script>
   </head>
 
-  <body>
+  <body id="top">
     <a
       href="#main"
       class="label sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:border focus:border-accent focus:bg-paper focus:px-3 focus:py-2"
     >
       Skip to content
     </a>
+
+    <slot name="hero" />
 
     <div
       class="mx-auto grid w-full max-w-[100rem] gap-y-8 px-5 py-8 side:grid-cols-[18rem_52rem_minmax(0,18rem)] side:gap-x-12 side:px-8 side:py-14"
@@ -159,6 +162,8 @@ const gtagSnippet = `
         <slot />
       </main>
     </div>
+
+    <SiteFooter />
 
     <CommandPalette items={paletteItems} client:idle />
   </body>
