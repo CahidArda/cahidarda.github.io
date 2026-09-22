@@ -10,6 +10,7 @@ import TagBadge from '../components/TagBadge.astro';
 import CitationBlock from '../components/CitationBlock.astro';
 import OrcidBadge from '../components/OrcidBadge.astro';
 import Seal from '../components/Seal.astro';
+import PageHeader from '../components/PageHeader.astro';
 import { tagHref } from '../data/tags';
 import { formatDate, isoDate } from '../lib/format';
 
@@ -55,26 +56,18 @@ if (entry.data.series) {
   headings={headings.filter((h) => h.depth === 2 || h.depth === 3)}
 >
   <article>
-    <header>
-      <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
-        ← {backLabel}
-      </a>
-
-      <div class="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <PageHeader title={title} dek={description} backHref={backHref} backLabel={backLabel}>
+      <Fragment slot="meta">
         {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} />)}
         {isPublication && <OrcidBadge />}
         <time datetime={isoDate(date)} class="label">{formatDate(date)}</time>
         {updated && <span class="label">/ Updated {formatDate(updated)}</span>}
         <span class="label">/ {minutes} min read</span>
-      </div>
-
-      <h1 class="article-title mt-5">{title}</h1>
-      {description && <p class="article-dek mt-5 max-w-3xl">{description}</p>}
-
+      </Fragment>
       <div class="ornament-rule mt-10" aria-hidden="true">
         <Seal class="w-6 text-accent" detailed={false} />
       </div>
-    </header>
+    </PageHeader>
 
     {
       heroImage && (

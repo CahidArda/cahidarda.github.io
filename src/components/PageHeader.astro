@@ -1,0 +1,31 @@
+---
+/**
+ * Shared page header so the title sits at the same height on every page:
+ * a fixed-height kicker row (back link left, metadata right), then title, then dek.
+ * Anything page-specific that varies in size goes in the kicker row or below the dek.
+ */
+interface Props {
+  title: string;
+  dek?: string;
+  backHref: string;
+  backLabel: string;
+}
+const { title, dek, backHref, backLabel } = Astro.props;
+---
+
+<header>
+  <div
+    class="flex min-h-[2.4rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-line pb-3"
+  >
+    <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
+      ← {backLabel}
+    </a>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <slot name="meta" />
+    </div>
+  </div>
+
+  <h1 class="article-title mt-10">{title}</h1>
+  {dek && <p class="article-dek mt-5 max-w-3xl">{dek}</p>}
+  <slot />
+</header>

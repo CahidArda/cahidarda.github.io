@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
+import PageHeader from '../../components/PageHeader.astro';
 import { tags, tagKeys } from '../../data/tags';
 import { getEntries } from '../../lib/entries';
 
@@ -20,15 +21,16 @@ const chips = [
 ---
 
 <BaseLayout title="Index" description="Writing, papers, projects, and monthly reading roundups.">
-  <header>
-    <h1 class="article-title">Index</h1>
-    <p class="mt-3 max-w-2xl text-ink-soft">
-      Everything in one place - writing, publications, projects, and the monthly roundup. Filter by
-      tag.
-    </p>
-  </header>
+  <PageHeader
+    title="Index"
+    dek="Everything in one place: writing, publications, projects, and the monthly record. Filter by tag."
+    backHref="/"
+    backLabel="Home"
+  >
+    <span slot="meta" class="label">{entries.length} entries</span>
+  </PageHeader>
 
-  <div id="tag-filter" role="group" aria-label="Filter by tag" class="mt-8 flex flex-wrap gap-2">
+  <div id="tag-filter" role="group" aria-label="Filter by tag" class="mt-10 flex flex-wrap gap-2">
     {
       chips.map((chip) => (
         <button
