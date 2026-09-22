@@ -1,35 +1,34 @@
 ---
 /**
  * Hover / focus menu under the Blog link (sidebar) and Blog chip (Index): narrow the
- * blog list by where a post was published. Place it inside a `group/src` element.
+ * blog list by where a post was published.
+ *
+ * Width: the parent is an `inline-grid` with rows `auto 0` (see SOURCE_MENU_HOST).
+ * The menu sits in the zero-height second row, so it overflows downward without
+ * taking space, but it still counts toward the column width. The trigger and the
+ * menu are therefore always exactly as wide as the wider of the two.
  */
 import type { BlogSource } from '../lib/entries';
 
 interface Props {
   sources: BlogSource[];
-  class?: string;
 }
-const { sources, class: className } = Astro.props;
+const { sources } = Astro.props;
 ---
 
 {
   sources.length > 1 && (
-    <div
-      class:list={[
-        'invisible absolute top-full left-0 z-30 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover/src:visible group-hover/src:opacity-100 group-focus-within/src:visible group-focus-within/src:opacity-100',
-        className,
-      ]}
-    >
-      <ul class="w-44 border border-line bg-paper-raised py-1.5 shadow-sm">
+    <div class="invisible z-30 hidden pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover/src:visible group-hover/src:opacity-100 group-focus-within/src:visible group-focus-within/src:opacity-100 side:block">
+      <ul class="border border-line-strong bg-paper-raised py-1 shadow-sm">
         {sources.map((s) => (
           <li>
             <a
               href={`/articles?tag=blog&source=${s.key}`}
               data-source-link={s.key}
-              class="flex items-baseline justify-between px-3 py-1 text-sm text-ink-soft transition-colors hover:text-accent"
+              class="flex items-center justify-between gap-3 px-3 py-1.5 font-mono text-[0.7rem] tracking-[0.18em] whitespace-nowrap text-ink-soft uppercase transition-colors hover:text-accent"
             >
               <span>{s.label}</span>
-              <span class="text-xs text-muted">{s.count}</span>
+              <span class="opacity-70">{s.count}</span>
             </a>
           </li>
         ))}

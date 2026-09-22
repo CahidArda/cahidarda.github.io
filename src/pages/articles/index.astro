@@ -22,7 +22,9 @@ const chips = [
 
 // Blog posts can be narrowed by source from the menu under the Blog chip.
 const blogSources = await getBlogSources();
-const sourceLabels = Object.fromEntries(blogSources.map((x) => [x.key, x.label]));
+const sourceMeta = Object.fromEntries(
+  blogSources.map((x) => [x.key, { label: x.label, count: x.count }]),
+);
 ---
 
 <BaseLayout title="Index" description="Writing, papers, projects, and monthly reading roundups.">
@@ -39,21 +41,23 @@ const sourceLabels = Object.fromEntries(blogSources.map((x) => [x.key, x.label])
     id="tag-filter"
     role="group"
     aria-label="Filter by tag"
-    data-sources={JSON.stringify(sourceLabels)}
+    data-sources={JSON.stringify(sourceMeta)}
     class="mt-10 flex flex-wrap gap-2"
   >
     {
       chips.map((chip) => (
-        <span class="group/src relative inline-flex">
+        <span class="group/src relative inline-grid grid-rows-[auto_0]">
           <button
             type="button"
             data-chip={chip.key}
             aria-pressed="false"
-            class="inline-flex items-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
+            class="inline-flex w-full items-center justify-center gap-1.5 border border-line-strong px-3 py-1 font-mono text-[0.7rem] tracking-[0.18em] text-ink-soft uppercase transition-colors hover:border-accent hover:text-accent aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-paper"
           >
             {chip.label}
-            {chip.key === 'blog' && <span data-source-indicator class="normal-case" hidden />}
-            <span class="opacity-70">{chip.count}</span>
+            {chip.key === 'blog' && <span data-source-indicator hidden />}
+            <span class="opacity-70" data-chip-count={chip.key}>
+              {chip.count}
+            </span>
           </button>
           {chip.key === 'blog' && <SourceMenu sources={blogSources} />}
         </span>
@@ -69,9 +73,11 @@ const sourceLabels = Object.fromEntries(blogSources.map((x) => [x.key, x.label])
       if (!root) return;
       const chips = Array.from(root.querySelectorAll('[data-chip]'));
       const keys = chips.map((c) => c.getAttribute('data-chip'));
-      // Source keys -> labels, e.g. { site: 'This site', upstash: 'Upstash' }.
+      // Source key -> { label, count }, e.g. { site: { label: 'This site', count: 14 } }.
       const sourceLabels = JSON.parse(root.getAttribute('data-sources') || '{}');
       const indicator = root.querySelector('[data-source-indicator]');
+      const blogCount = root.querySelector('[data-chip-count="blog"]');
+      const blogTotal = blogCount ? blogCount.textContent : '';
 
       const state = () => {
         const q = new URLSearchParams(window.location.search);
@@ -89,7 +95,9 @@ const sourceLabels = Object.fromEntries(blogSources.map((x) => [x.key, x.label])
         if (indicator) {
           const on = tag === 'blog' && source !== ALL;
           indicator.hidden = !on;
-          indicator.textContent = on ? `\u00b7 ${sourceLabels[source]}` : '';
+          indicator.textContent = on ? `\u00b7 ${sourceLabels[source].label}` : '';
+          if (blogCount)
+            blogCount.textContent = on ? String(sourceLabels[source].count) : blogTotal;
         }
       };
       const filter = ({ tag, source }) => {

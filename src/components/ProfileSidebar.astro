@@ -87,7 +87,12 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
           // Blog gets a source menu instead of the blurb tooltip.
           const blurb = hasMenu ? undefined : item.blurb;
           return (
-            <li class="group/nav group/src relative inline-flex">
+            <li
+              class:list={[
+                'group/nav relative',
+                hasMenu ? 'group/src inline-grid grid-rows-[auto_0]' : 'inline-flex',
+              ]}
+            >
               <a
                 href={item.href}
                 data-nav={item.key}
