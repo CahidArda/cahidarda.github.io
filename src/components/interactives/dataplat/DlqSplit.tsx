@@ -66,11 +66,7 @@ export default function DlqSplit() {
   }, [phase, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Widget
-      title="Poison messages are dead-lettered, not dropped"
-      kicker="parse · split · route"
-      rootRef={viewRef}
-    >
+    <Widget title="Poison messages are dead-lettered, not dropped" kicker="parse · split · route" rootRef={viewRef}>
       <div className="mb-3 flex flex-wrap gap-2">
         {(['low', 'high'] as Rate[]).map((r) => (
           <button

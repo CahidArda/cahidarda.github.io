@@ -69,11 +69,7 @@ export default function ConsumerLag() {
   const area = samples.length > 1 ? `${PAD.l},${y(0)} ${pts} ${x(N - 1)},${y(0)}` : '';
 
   return (
-    <Widget
-      title="Consumer lag"
-      kicker="produce 12/tick · you set the drain rate"
-      rootRef={viewRef}
-    >
+    <Widget title="Consumer lag" kicker="produce 12/tick · you set the drain rate" rootRef={viewRef}>
       <div className="mb-3 flex flex-wrap gap-2">
         {MODES.map((m) => (
           <button

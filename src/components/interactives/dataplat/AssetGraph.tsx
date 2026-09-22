@@ -84,11 +84,7 @@ export default function AssetGraph() {
           : 'Check FAILED (null tenant / negative revenue). The run stops here. Nothing is promoted, so the warehouse is never poisoned.';
 
   return (
-    <Widget
-      title="Data-quality gate"
-      kicker="snapshot → rollup → [gate] → promote"
-      rootRef={viewRef}
-    >
+    <Widget title="Data-quality gate" kicker="snapshot → rollup → [gate] → promote" rootRef={viewRef}>
       <div className="mb-3 flex flex-wrap gap-2">
         {(['clean', 'drift'] as Mode[]).map((m) => (
           <button
