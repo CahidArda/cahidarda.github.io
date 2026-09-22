@@ -778,17 +778,6 @@ html {
   color: var(--color-ink-soft);
   text-wrap: pretty;
 }
-.ornament-rule {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-.ornament-rule::before,
-.ornament-rule::after {
-  content: '';
-  flex: 1;
-  border-top: 1px solid var(--color-line);
-}
 
 /* Drop cap: a true 3-line initial where `initial-letter` is supported (Chrome, Safari),
    a hand-sized float elsewhere (Firefox). */
