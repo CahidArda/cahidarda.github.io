@@ -1,9 +1,18 @@
 ---
 import Cursor from './Cursor.astro';
 import { profile } from '../data/profile';
+
+interface Props {
+  /** Smaller top gap, for pages where the footer is pinned to the screen bottom. */
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
 ---
 
-<footer class="mx-auto mt-20 w-full max-w-[100rem] px-5 side:px-8">
+<footer
+  class:list={[compact ? 'mt-8' : 'mt-20']}
+  class="mx-auto w-full max-w-[100rem] px-5 side:px-8"
+>
   <div
     class="flex flex-col items-center gap-4 border-t border-line py-6 sm:flex-row sm:justify-between"
   >
