@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  Source for public/og-card.png, the default social-share image (1200x630, rendered at 2x).
+  Regenerate: open this file in Chromium at a 1200x630 viewport, deviceScaleFactor 2, and
+  screenshot the page once fonts have loaded.
+-->
+<meta charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=JetBrains+Mono:wght@400;500&display=block" />
+<style>
+  :root { --paper:#131210; --ink:#f1eee4; --soft:#cbc7ba; --muted:#908b7d; --line:#322f29; --accent:#d4794f; }
+  * { margin:0; box-sizing:border-box; }
+  html, body { width:1200px; height:630px; overflow:hidden; background:var(--paper); }
+  .plate { position:absolute; inset:30px; border:1px solid var(--line); padding:54px 64px 48px; display:flex; flex-direction:column; }
+  .tick { position:absolute; width:16px; height:16px; border:0 solid var(--accent); }
+  .tl { top:-1px; left:-1px; border-width:2px 0 0 2px; } .tr { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+  .bl { bottom:-1px; left:-1px; border-width:0 0 2px 2px; } .br { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+  .mono { font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .prompt { font-size:22px; color:var(--muted); }
+  .prompt b { color:var(--accent); font-weight:500; }
+  h1 { font-family:'Fraunces',Georgia,serif; font-weight:350; font-variation-settings:'opsz' 72; font-size:118px;
+       line-height:1; letter-spacing:-.035em; color:var(--ink); margin:26px 0 0 30px; }
+  .dek { font-family:'Fraunces',Georgia,serif; font-style:italic; font-weight:350; font-variation-settings:'opsz' 36;
+         font-size:38px; color:var(--soft); margin:22px 0 0 32px; }
+  .rule { width:120px; height:3px; background:var(--accent); margin:34px 0 0 32px; }
+  .foot { margin-top:auto; display:flex; justify-content:space-between; align-items:baseline;
+          font-size:17px; letter-spacing:.24em; text-transform:uppercase; }
+  .foot .site { color:var(--ink); } .foot .nav { color:var(--muted); }
+  .owl { position:absolute; top:38px; right:52px; width:104px; height:104px; }
+</style>
+<div class="plate">
+  <span class="tick tl"></span><span class="tick tr"></span><span class="tick bl"></span><span class="tick br"></span>
+  <img class="owl" src="../../public/favicon.png" alt="" />
+  <p class="prompt mono"><b>~</b> $ whoami</p>
+  <h1>Cahid Arda Öz</h1>
+  <p class="dek">DX - Software Engineer at Upstash</p>
+  <div class="rule"></div>
+  <div class="foot mono"><span class="site">cahidarda.com</span><span class="nav">Blog · The Current · Repositories · Publications</span></div>
+</div>
