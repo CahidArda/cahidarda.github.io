@@ -34,12 +34,7 @@ const sections: { title: string; entries: CvEntry[] }[] = [
                   <span class="text-ink-soft">{entry.role}</span>
                   {' · '}
                   {entry.orgHref ? (
-                    <a
-                      href={entry.orgHref}
-                      target="_blank"
-                      rel="noopener"
-                      class="underline decoration-line underline-offset-2 hover:text-accent hover:decoration-accent"
-                    >
+                    <a href={entry.orgHref} target="_blank" rel="noopener" class="link-text">
                       {entry.org}
                     </a>
                   ) : (
@@ -77,17 +72,7 @@ const sections: { title: string; entries: CvEntry[] }[] = [
 </BaseLayout>
 
 <style is:global>
-  /* Inline links inside trusted CV bullets (rendered via set:html). */
-  .cv-bullet a {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
-    text-decoration-thickness: 1px;
-    text-decoration-color: var(--color-line-strong);
-  }
-  .cv-bullet a:hover {
-    text-decoration-color: var(--color-accent);
-  }
+  /* Emphasis inside CV bullets (rendered via set:html). Links use the global .cv-bullet a rule. */
   .cv-bullet strong {
     color: var(--color-ink);
     font-weight: 600;
