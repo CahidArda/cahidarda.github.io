@@ -38,6 +38,8 @@ export default defineConfig({
     // public/articles/vercel-eve-primer/index.html — `trailingSlash: 'never'`
     // makes Astro strip trailing slashes from redirect sources.)
     '/articles/vercel-eve-primer': '/articles/vercel-eve-guide',
+    // The Current's July & August issue was split into one post per month.
+    '/articles/the-current-july-august-2026': '/articles/the-current-july-2026',
   },
 
   vite: {
