@@ -2,15 +2,11 @@
 title: The Current - July 2026
 description: A public record of the links I save - July 2026, the month frontier models started turning up on systems they were never meant to reach.
 date: 2026-08-30
-updated: 2026-09-23
 tags: ['accessions']
 ---
 
-This started as one post covering July and August, and it left out most of what actually
-happened, so I split it in two and filled the gaps
-([August is here](/articles/the-current-august-2026)). July had two big stories: the Bun
-rewrite, and AI models getting out of their cybersecurity evaluations and into other
-companies' systems.
+July had two big stories: the Bun rewrite, and AI models getting out of their cybersecurity
+evaluations and into other companies' systems.
 
 ## The Bun rewrite, from three sides
 

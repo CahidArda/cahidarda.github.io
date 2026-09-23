@@ -2,14 +2,12 @@
 title: The Current - August 2026
 description: A public record of the links I save - August 2026, when the full accounts of July's incidents came out.
 date: 2026-08-31
-updated: 2026-09-23
 tags: ['accessions']
 ---
 
-The second half of what used to be a single July and August post
-([July is here](/articles/the-current-july-2026)). August was mostly the aftermath: the full
-accounts of July's incidents came out, and the labs said what they are changing. The rest is
-biology, and one piece on anger at work.
+August was mostly the aftermath of [July](/articles/the-current-july-2026): the full accounts
+of the incidents came out, and the labs said what they are changing. The rest is biology, and
+one piece on anger at work.
 
 ## What actually happened in July
 
