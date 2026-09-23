@@ -1,7 +1,7 @@
 ---
 title: The Current - July 2026
 description: A public record of the links I save - July 2026, the month frontier models started turning up on systems they were never meant to reach.
-date: 2026-08-30
+date: 2026-07-31
 tags: ['accessions']
 ---
 
