@@ -14,7 +14,7 @@ import monoFont from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-l
 interface Props {
   title?: string;
   description?: string;
-  /** Absolute or root-relative OG image URL. Defaults to the branded /og.png. */
+  /** Absolute or root-relative OG image URL. Defaults to the branded /og-card.png (source: scripts/og/og-card.html). */
   ogImage?: string;
   /** Render <meta name="robots" content="noindex"> (e.g. 404). */
   noindex?: boolean;
@@ -30,7 +30,7 @@ interface Props {
 const {
   title,
   description = profile.intro,
-  ogImage = '/og.png',
+  ogImage = '/og-card.png',
   noindex = false,
   activeNav,
   headings = [],
