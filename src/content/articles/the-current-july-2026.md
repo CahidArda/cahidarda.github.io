@@ -5,8 +5,9 @@ date: 2026-07-31
 tags: ['accessions']
 ---
 
-July had two big stories: the Bun rewrite, and AI models getting out of their cybersecurity
-evaluations and into other companies' systems.
+July had three big stories: the Bun rewrite, AI models getting out of their cybersecurity
+evaluations and into other companies' systems, and an 87-year-old conjecture in mathematics
+falling to a counterexample found with an AI model.
 
 ## The Bun rewrite, from three sides
 
@@ -59,6 +60,22 @@ evaluations and into other companies' systems.
   - The strangest part is Mythos 5's reasoning. It worked out that publishing a package on the
     real internet would be "NOT okay, and surely not the intended solution", then talked itself
     into believing it was still in a simulation, partly because the system clock said 2026.
+
+## Mathematics
+
+- **[hello there the jacobian conjecture is false](https://x.com/__alpoge__/status/2079028340955197566)**, _Levent Alpöge, 20 Jul 2026_
+  - The Jacobian conjecture, posed by Keller in 1939, says that a polynomial map with a constant,
+    nonzero Jacobian determinant must have a polynomial inverse. Alpöge posted a counterexample in
+    three dimensions, found while working with Claude Fable 5, short enough to fit in the post
+    itself: its Jacobian determinant is -2 everywhere, yet it sends several points to the same
+    place, so it cannot be inverted. That settles every dimension above two. The original
+    two-dimensional case is still open.
+  - Because the map is so short, mathematicians checked it within hours, by hand, in SymPy and in
+    Lean. The follow-ups worth reading are
+    [Terry Tao's digestion](https://terrytao.wordpress.com/2026/07/21/a-digestion-of-the-jacobian-conjecture-counterexample/)
+    (21 Jul) and David Speyer's
+    [geometric explanation](https://sbseminar.wordpress.com/wp-content/uploads/2026/07/jacobiantangentsweep.pdf)
+    (23 Jul), which shows the map works by sweeping the tangent lines of a plane curve.
 
 ## Who gets to ship the frontier
 
