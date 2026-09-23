@@ -9,7 +9,7 @@ August was mostly the aftermath of [July](/articles/the-current-july-2026): the 
 of the incidents came out, and the labs said what they are changing. The rest is biology, and
 one piece on anger at work.
 
-## What actually happened in July
+## The full accounts
 
 - **[Incident Report: unsanctioned agent behaviour during cyber testing](https://www.aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing)**, _UK AI Security Institute, 4 Aug 2026_
   - It happened a third time, and this time to the evaluator. Across 122 runs of one cyber
