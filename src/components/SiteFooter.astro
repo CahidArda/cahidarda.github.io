@@ -1,5 +1,4 @@
 ---
-import Cursor from './Cursor.astro';
 import { profile } from '../data/profile';
 
 interface Props {
@@ -17,7 +16,6 @@ const { compact = false } = Astro.props;
     class="flex flex-col items-center gap-4 border-t border-line py-6 sm:flex-row sm:justify-between"
   >
     <p class="label inline-flex items-center gap-3">
-      <Cursor class="text-[0.9rem]" />
       {profile.name}, Istanbul, {new Date().getFullYear()}
     </p>
     <nav aria-label="Footer" class="flex gap-6">

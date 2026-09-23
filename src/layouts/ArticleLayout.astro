@@ -9,7 +9,6 @@ import SeriesNav from '../components/SeriesNav.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CitationBlock from '../components/CitationBlock.astro';
 import OrcidBadge from '../components/OrcidBadge.astro';
-import Cursor from '../components/Cursor.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { tagHref } from '../data/tags';
 import { formatDate, isoDate } from '../lib/format';
@@ -95,10 +94,6 @@ if (entry.data.series) {
     </Prose>
 
     {entry.data.series && <SeriesNav entry={entry} />}
-
-    <div class="mt-16 flex justify-center" aria-hidden="true">
-      <Cursor class="text-[1.6rem]" />
-    </div>
 
     <footer class="mt-12 border-t border-line pt-6">
       <a href={backHref} class="label inline-flex items-center gap-2 hover:text-accent">
