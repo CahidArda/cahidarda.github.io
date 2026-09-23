@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 
 /* Self-hosted variable fonts (Fontsource) */
-/* opsz axis: Fraunces gets higher contrast at display sizes (hero, titles). */
+/* opsz axis. Display type stays at opsz 72 or below: at 144 the hairlines (the H crossbar,
+   the e bar) drop below a pixel on screens and in video, so H reads as I I. */
 @import '@fontsource-variable/fraunces/opsz.css';
 @import '@fontsource-variable/fraunces/opsz-italic.css';
 @import '@fontsource-variable/inter';
@@ -287,8 +288,11 @@ html {
 }
 /* Links in running text: ink italic serif with a rust hairline underline, the same
    voice as the home-page hero. Only plain markdown links (no class), so buttons
-   and links inside interactive widgets keep their own styling. */
-.prose a:not([class]) {
+   and links inside interactive widgets keep their own styling. Outside prose, the
+   same look comes from .link-text (and CV bullets, which arrive as raw HTML). */
+.prose a:not([class]),
+.cv-bullet a,
+.link-text {
   color: var(--color-ink);
   font-family: var(--font-display);
   font-style: italic;
@@ -298,11 +302,14 @@ html {
   text-underline-offset: 0.2em;
   transition: color 0.2s;
 }
-.prose a:not([class]):hover {
+.prose a:not([class]):hover,
+.cv-bullet a:hover,
+.link-text:hover {
   color: var(--color-accent);
 }
 /* Code inside a link keeps the mono face upright. */
-.prose a:not([class]) code {
+.prose a:not([class]) code,
+.cv-bullet a code {
   font-style: normal;
 }
 .prose strong {
@@ -626,8 +633,8 @@ html {
 
 .hero-l1 {
   font-family: var(--font-display);
-  font-weight: 300;
-  font-variation-settings: 'opsz' 144;
+  font-weight: 350;
+  font-variation-settings: 'opsz' 72;
   font-size: clamp(3.5rem, 8vw, 7.5rem);
   line-height: 0.95;
   letter-spacing: -0.035em;
@@ -719,8 +726,8 @@ html {
 
 .sidebar-name {
   font-family: var(--font-display);
-  font-weight: 300;
-  font-variation-settings: 'opsz' 144;
+  font-weight: 350;
+  font-variation-settings: 'opsz' 72;
   font-size: 2.4rem;
   line-height: 0.95;
   letter-spacing: -0.03em;
@@ -764,8 +771,8 @@ html {
 
 .article-title {
   font-family: var(--font-display);
-  font-weight: 300;
-  font-variation-settings: 'opsz' 144;
+  font-weight: 350;
+  font-variation-settings: 'opsz' 72;
   font-size: clamp(2.75rem, 5.2vw, 5rem);
   line-height: 1;
   letter-spacing: -0.03em;
@@ -802,7 +809,7 @@ html {
   text-align: center;
   font-family: var(--font-display);
   font-weight: 400;
-  font-variation-settings: 'opsz' 144;
+  font-variation-settings: 'opsz' 72;
   /* an initial is always a capital, even when the word is not ("xAI") */
   text-transform: uppercase;
   color: var(--color-ink);
