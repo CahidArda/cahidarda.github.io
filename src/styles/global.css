@@ -102,6 +102,11 @@ html {
   --color-cb-confab: var(--cb-confab);
   --color-cb-detect: var(--cb-detect);
   --color-cb-hedge: var(--cb-hedge);
+
+  /* Bosphore 1819 widget palette - two fixed hues: the map ink (sepia, the data and the
+     pipeline steps that touch it) and the agents (teal, the subagents that read and review). */
+  --color-bos-ink: var(--bos-ink);
+  --color-bos-agent: var(--bos-agent);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -844,4 +849,15 @@ html {
   font-variation-settings: 'opsz' 72;
   font-size: 2rem;
   letter-spacing: -0.015em;
+}
+
+/* The Bosphore 1819 cast: sepia for the map ink, teal for the subagents. Tuned for light
+   paper and dark ground. */
+:root {
+  --bos-ink: #7a4f2a;
+  --bos-agent: #1f6f8b;
+}
+.dark {
+  --bos-ink: #d9a46f;
+  --bos-agent: #6cb6d1;
 }
