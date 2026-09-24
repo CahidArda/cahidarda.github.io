@@ -1,0 +1,142 @@
+---
+title: 'Bosphore 1819: Every Name on a 200-Year-Old Map of Istanbul'
+description: 'How a map on a café wall turned into an app that reads, maps and translates all 380 labels of an 1819 French map of the Bosphorus, built with Claude Opus 5.5 subagents in an afternoon.'
+date: 2026-09-24
+tags: ['blog']
+---
+
+I built a small app called [Bosphore 1819](https://bosphore-1819.vercel.app/). It
+shows an 1819 French map of the Bosphorus, and every place name on it is listed,
+searchable, and given three ways: the French original as engraved, the Ottoman
+Turkish name in Latin and Arabic script, and the name we use today.
+
+<video
+  controls
+  muted
+  playsInline
+  preload="metadata"
+  src="https://cdn.jsdelivr.net/gh/CahidArda/bosphore-1819@main/docs/demo-10s-tr.mp4"
+  style="width: 100%; border-radius: 4px;"
+>
+  Your browser does not support the video tag.
+</video>
+
+The code and the data are on GitHub:
+[CahidArda/bosphore-1819](https://github.com/CahidArda/bosphore-1819).
+
+## Why
+
+I was sitting in a café in Istanbul. On the wall there was a huge old map of the
+city, and someone had marked the location of the café on it. I asked Claude what
+the map was. It turned out to be the *Plan Topographique du Bosphore de Thrace ou
+Canal de Constantinople et de ses environs*: surveyed by François Kauffer between
+1776 and 1786, redrawn by Barbié du Bocage, and published in 1819 in Melling's
+*Voyage pittoresque de Constantinople*.
+
+The map is dense. Hundreds of villages, capes, streams, palaces and ruins, all
+written in French spelling of Turkish names: *Roumili-Hisari*, *Kandlidgé*,
+*Cheïtan-Akindisi*. Reading it is a small puzzle every time. I thought it would be
+fun to have an app that lists every location on the map, so you can search for a
+place and see where it was and what it was called. So why not build it?
+
+## What the app is
+
+- The scan comes from the Bibliothèque nationale de France, mirrored on Wikimedia
+  Commons. It is 12,509 by 7,749 pixels and in the public domain. The app streams
+  it straight from Wikimedia through a deep-zoom viewer (OpenSeadragon).
+- Every label has a box on the map and an entry in the sidebar. Hover a box and a
+  card shows the three names with a literal translation under each one.
+- Search works across all three spellings, with Turkish letters folded, so
+  "hisar", "Hisari" and the Arabic-script form all find the same place.
+- You can select places, fit the map to them, and share the view: the selection
+  and the interface language (FR, TR, EN) live in the URL.
+- Readings that are guesses carry a small "?" badge. There are 153 of those out of
+  380 labels, and I would rather show the doubt than hide it.
+
+The stack is Vite, React, Tailwind and shadcn/ui, with no server. First load is
+about 185 KB of gzipped JavaScript, most of it the viewer.
+
+## How we built it
+
+The hard part is not the app. It is turning a 13 MB scan of engraved, letter-spaced,
+curved 1819 handwriting into structured data. I did it with Claude Code, and the
+work was split between a main agent that orchestrated and a set of Claude Opus 5.5
+subagents that did the reading.
+
+### Chunk the map so the reader can give coordinates
+
+A Python script cuts the scan into 54 overlapping tiles of 1500 by 1300 pixels and
+renders each one at 80 percent scale with a thin red grid every 100 pixels. The
+grid lines are labelled with full-image coordinates, so a model looking at a tile
+can report a bounding box in real pixels without doing arithmetic. A second script
+renders any small area at up to 1.5x for text that is too fine to read.
+
+### Give the subagents one clear job
+
+Each OCR subagent got four neighbouring tiles, a prompt with the record format,
+the include and skip rules, a French-to-Turkish transliteration table (*ou* = u,
+*tch* = ç, *keui* = köy) and eight verified examples. For every label
+it wrote a record like this:
+
+```json
+{
+  "fr": "ROUMILI-HISARI",
+  "ota": { "latn": "Rumeli Hisari", "arab": "..." },
+  "modern": "Rumelihisari",
+  "lit": { "fr": { "en": "Fortress of Rumelia", "tr": "..." } },
+  "kind": "village",
+  "bbox": [5445, 4033, 5678, 4062],
+  "uncertain": false
+}
+```
+
+The one rule I pushed hardest was honesty: set `uncertain: true` whenever the
+reading, the Ottoman form or the modern identification is a guess. A flagged guess
+is fine. A confident wrong answer is not.
+
+Fourteen batches ran six at a time. Each subagent read its tiles, asked for zoom
+renders when it needed them, and wrote one JSON file per tile. A subagent never
+touched anything but its own files, so they could not step on each other.
+
+### Merge, draw it back, review
+
+A merge script validates every record against a schema, drops duplicates (the
+tiles overlap, so a label near an edge is often read twice), converts the boxes
+to fractions of the image, and writes one `labels.json`.
+
+Then an overlay script draws every box back onto the map, green for confident and
+orange for uncertain, with the label id next to it. Twelve reviewer subagents got
+those overlay renders next to the clean tiles and were told to fix boxes that
+missed their text, add labels that had no box, correct wrong readings, and make
+sure the same place is spelt the same way everywhere.
+
+The main agent did the big letter-spaced region names itself from a whole-sheet
+render (MER NOIRE, EUROPE, the title cartouche), because those span many tiles
+and no single subagent could see one whole. A last pass checked that Arabic-script
+forms used the same letterforms throughout and that no entry was missing a gloss
+the interface needs.
+
+## How it worked
+
+Better than I expected, with some lessons.
+
+- **The grid did most of the work.** Once coordinates were written on the tiles,
+  the boxes came back tight enough to draw on the map directly. Reviewers still
+  found one tile where every box was shifted by 30 to 60 pixels, and fixed all
+  twelve records in it. The review pass earned its cost.
+- **Uncertainty flags were used, a lot.** 153 of 380 labels are flagged. Most are
+  tiny italic labels for farms, ruins and streams that no longer have a name. That
+  is the honest state of the data, and the app shows it.
+- **Overlap needs a dedupe rule, not a convention.** Telling subagents to record a
+  cut label only from the tile that shows it whole did not work every time. The
+  merge dedupes by normalised text and box overlap instead, and that did.
+- **Some labels need a different view.** Names spread letter by letter across half
+  the sheet cannot be read tile by tile. Doing them from a low-resolution render
+  of the whole map took ten minutes.
+- **Consistency needs a global pass.** Two subagents reading neighbouring tiles
+  will spell the same Ottoman name two ways. A script that groups labels by their
+  modern name and prints the disagreements caught these in one go.
+
+From the first script to the deployed app took one afternoon. The map has been on
+that café wall for years. If you know Istanbul and spot a wrong identification,
+the data lives in plain JSON files and corrections are welcome as pull requests.
