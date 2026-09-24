@@ -12,12 +12,16 @@ shows an 1819 French map of the Bosphorus, and every place name on it is listed,
 searchable, and given three ways: the French original as engraved, the Ottoman
 Turkish name in Latin and Arabic script, and the name we use today.
 
+I will say this up front: building it was the most satisfying thing I have made in a
+long while, and I am a little amazed that an idea from a café table can become a
+finished thing in an afternoon now. More on that at the end.
+
 <video
   controls
   muted
   playsInline
   preload="metadata"
-  src="https://cdn.jsdelivr.net/gh/CahidArda/bosphore-1819@main/docs/demo-10s-tr.mp4"
+  src="https://cdn.jsdelivr.net/gh/CahidArda/bosphore-1819@main/docs/demo-10s-en.mp4"
   style="width: 100%; border-radius: 4px;"
 >
   Your browser does not support the video tag.
@@ -30,14 +34,15 @@ The code and the data are on GitHub:
 
 I was sitting in a café in Istanbul. On the wall there was a huge old map of the
 city, and someone had marked the location of the café on it. I asked Claude what
-the map was. It turned out to be the *Plan Topographique du Bosphore de Thrace ou
-Canal de Constantinople et de ses environs*: surveyed by François Kauffer between
-1776 and 1786, redrawn by Barbié du Bocage, and published in 1819 in Melling's
-*Voyage pittoresque de Constantinople*.
+the map was. It turned out to be the [_Plan Topographique du Bosphore de Thrace ou
+Canal de Constantinople et de ses environs_](https://commons.wikimedia.org/wiki/File:Plan_Topographique_du_Bosphore,_de_Thrace_ou_Canal_de_Constantinople_et_de_ses_environs_-_Fr._Kauffer_;_J.D._Barbi%C3%A9_du_Bocage_-_btv1b10100957j.jpg):
+surveyed by François Kauffer between 1776 and 1786, redrawn by
+[Barbié du Bocage](https://en.wikipedia.org/wiki/Jean-Denis_Barbi%C3%A9_du_Bocage),
+and published in 1819 in Melling's _Voyage pittoresque de Constantinople_.
 
 The map is dense. Hundreds of villages, capes, streams, palaces and ruins, all
-written in French spelling of Turkish names: *Roumili-Hisari*, *Kandlidgé*,
-*Cheïtan-Akindisi*. Reading it is a small puzzle every time. I thought it would be
+written in French spelling of Turkish names: _Roumili-Hisari_, _Kandlidgé_,
+_Cheïtan-Akindisi_. Reading it is a small puzzle every time. I thought it would be
 fun to have an app that lists every location on the map, so you can search for a
 place and see where it was and what it was called. So why not build it?
 
@@ -69,8 +74,6 @@ subagents that did the reading.
   <PipelineFlow client:visible />
 </div>
 
-Hover a node to jump to that step, or use the buttons under the diagram.
-
 ### Chunk the map so the reader can give coordinates
 
 A Python script cuts the scan into 54 overlapping tiles of 1500 by 1300 pixels and
@@ -82,8 +85,8 @@ renders any small area at up to 1.5x for text that is too fine to read.
 ### Give the subagents one clear job
 
 Each OCR subagent got four neighbouring tiles, a prompt with the record format,
-the include and skip rules, a French-to-Turkish transliteration table (*ou* = u,
-*tch* = ç, *keui* = köy) and eight verified examples. For every label
+the include and skip rules, a French-to-Turkish transliteration table (_ou_ = u,
+_tch_ = ç, _keui_ = köy) and eight verified examples. For every label
 it wrote a record like this:
 
 ```json
@@ -146,5 +149,11 @@ Better than I expected, with some lessons.
   modern name and prints the disagreements caught these in one go.
 
 From the first script to the deployed app took one afternoon. The map has been on
-that café wall for years. If you know Istanbul and spot a wrong identification,
-the data lives in plain JSON files and corrections are welcome as pull requests.
+that café wall for years, and now I can read it. That is the part I keep coming back
+to: I did not have the time, or honestly the patience, to transcribe 387 labels by
+hand, and I would never have started. With the agents doing the reading and me doing
+the deciding, it was a pleasure from start to finish. I love that I get to make
+things like this now.
+
+If you know Istanbul and spot a wrong identification, the data lives in plain JSON
+files and corrections are welcome as pull requests.
