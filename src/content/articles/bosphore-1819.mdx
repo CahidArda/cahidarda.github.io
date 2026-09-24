@@ -1,9 +1,11 @@
 ---
 title: 'Bosphore 1819: Every Name on a 200-Year-Old Map of Istanbul'
-description: 'How a map on a café wall turned into an app that reads, maps and translates all 380 labels of an 1819 French map of the Bosphorus, built with Claude Opus 5.5 subagents in an afternoon.'
+description: 'How a map on a café wall turned into an app that reads, maps and translates all 387 labels of an 1819 French map of the Bosphorus, built with Claude Opus 5.5 subagents in an afternoon.'
 date: 2026-09-24
 tags: ['blog']
 ---
+
+import PipelineFlow from '../../components/interactives/bosphore/PipelineFlow.tsx';
 
 I built a small app called [Bosphore 1819](https://bosphore-1819.vercel.app/). It
 shows an 1819 French map of the Bosphorus, and every place name on it is listed,
@@ -50,8 +52,8 @@ place and see where it was and what it was called. So why not build it?
   "hisar", "Hisari" and the Arabic-script form all find the same place.
 - You can select places, fit the map to them, and share the view: the selection
   and the interface language (FR, TR, EN) live in the URL.
-- Readings that are guesses carry a small "?" badge. There are 153 of those out of
-  380 labels, and I would rather show the doubt than hide it.
+- Readings that are guesses carry a small "?" badge. There are 156 of those out of
+  387 labels, and I would rather show the doubt than hide it.
 
 The stack is Vite, React, Tailwind and shadcn/ui, with no server. First load is
 about 185 KB of gzipped JavaScript, most of it the viewer.
@@ -62,6 +64,12 @@ The hard part is not the app. It is turning a 13 MB scan of engraved, letter-spa
 curved 1819 handwriting into structured data. I did it with Claude Code, and the
 work was split between a main agent that orchestrated and a set of Claude Opus 5.5
 subagents that did the reading.
+
+<div class="fx-figure">
+  <PipelineFlow client:visible />
+</div>
+
+Hover a node to jump to that step, or use the buttons under the diagram.
 
 ### Chunk the map so the reader can give coordinates
 
@@ -124,7 +132,7 @@ Better than I expected, with some lessons.
   the boxes came back tight enough to draw on the map directly. Reviewers still
   found one tile where every box was shifted by 30 to 60 pixels, and fixed all
   twelve records in it. The review pass earned its cost.
-- **Uncertainty flags were used, a lot.** 153 of 380 labels are flagged. Most are
+- **Uncertainty flags were used, a lot.** 156 of 387 labels are flagged. Most are
   tiny italic labels for farms, ruins and streams that no longer have a name. That
   is the honest state of the data, and the app shows it.
 - **Overlap needs a dedupe rule, not a convention.** Telling subagents to record a
