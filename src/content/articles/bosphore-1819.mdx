@@ -105,6 +105,12 @@ Fourteen batches ran six at a time. Each subagent read its tiles, asked for zoom
 renders when it needed them, and wrote one JSON file per tile. A subagent never
 touched anything but its own files, so they could not step on each other.
 
+A few side jobs ran in [Upstash Box](https://upstash.com/docs/box) sandboxes, driven
+from one Claude Code session through the
+[Upstash MCP server](https://upstash.com/docs/agent-resources/overview): rendering the
+demo video above with ffmpeg, and editing and previewing this post before opening the
+pull request.
+
 ## In the end
 
 From the first script to the deployed app took one afternoon. The map had been on
