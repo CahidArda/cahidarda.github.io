@@ -1,7 +1,7 @@
 /**
  * How the Bosphore 1819 labels were made. One SVG coordinate system (skill 4.1), edges
  * anchored to box edges (4.2), a token that walks the pipeline behind the nodes (4.6), a
- * caption per step at reading pace (5), hover a node to jump and pause (9.2), and a static
+ * caption per step at reading pace (5), step buttons to jump and pause, and a static
  * poster under reduced motion. Reuses the data-platform primitives so it reads as house style.
  */
 import { useEffect, useState } from 'react';
@@ -46,49 +46,56 @@ const STEPS: { id: StepId; label: string; at: { x: number; y: number }; caption:
     id: 'scan',
     label: 'scan',
     at: { x: N.scan.cx, y: N.scan.cy },
-    caption: 'The scan: 12,509 by 7,749 pixels from Wikimedia Commons, public domain, never copied into the repo.',
+    caption:
+      'The scan: 12,509 by 7,749 pixels from Wikimedia Commons, public domain, never copied into the repo.',
   },
   {
     id: 'tiles',
     label: 'tiles',
     at: { x: N.tiles.cx, y: N.tiles.cy },
-    caption: 'Cut into 54 overlapping tiles, each rendered with a red grid labelled in full-image pixels, so a box can be read off without arithmetic.',
+    caption:
+      'Cut into 54 overlapping tiles, each rendered with a red grid labelled in full-image pixels, so a box can be read off without arithmetic.',
   },
   {
     id: 'agents',
     label: 'OCR',
     at: { x: AGENTS[0].cx, y: 150 },
-    caption: 'Fourteen batches, six Claude Opus 5.5 subagents at a time, four tiles each. Every label becomes one JSON record, uncertain: true whenever it is a guess.',
+    caption:
+      'Fourteen batches, six Claude Opus 5.5 subagents at a time, four tiles each. Every label becomes one JSON record, uncertain: true whenever it is a guess.',
   },
   {
     id: 'merge',
     label: 'merge',
     at: { x: N.merge.cx, y: N.merge.cy },
-    caption: 'Validate against the schema, drop the duplicates the overlaps produce, convert boxes to fractions of the image, write labels.json.',
+    caption:
+      'Validate against the schema, drop the duplicates the overlaps produce, convert boxes to fractions of the image, write labels.json.',
   },
   {
     id: 'overlay',
     label: 'overlay',
     at: { x: N.overlay.cx, y: N.overlay.cy },
-    caption: 'Draw every box back onto the map: green when confident, orange when uncertain, the id written next to it.',
+    caption:
+      'Draw every box back onto the map: green when confident, orange when uncertain, the id written next to it.',
   },
   {
     id: 'review',
     label: 'review',
     at: { x: N.review.cx, y: N.review.cy },
-    caption: 'Twelve reviewer subagents compare each overlay with the clean tile: fix boxes, add misses, correct readings, unify spellings.',
+    caption:
+      'Twelve reviewer subagents compare each overlay with the clean tile: fix boxes, add misses, correct readings, unify spellings.',
   },
   {
     id: 'merge2',
     label: 'merge again',
     at: { x: N.merge.cx, y: N.merge.cy },
-    caption: 'Merge again, then one global pass: same place, same spelling everywhere; consistent Arabic letterforms; no entry missing a gloss.',
+    caption:
+      'Merge again, then one global pass: same place, same spelling everywhere; consistent Arabic letterforms; no entry missing a gloss.',
   },
   {
     id: 'app',
     label: 'app',
     at: { x: N.app.cx, y: N.app.cy },
-    caption: '387 labels, 156 of them flagged uncertain, fetched by the viewer as one 47 KB file.',
+    caption: '387 labels, 164 of them flagged uncertain, fetched by the viewer as one 47 KB file.',
   },
 ];
 
@@ -130,15 +137,20 @@ export default function PipelineFlow() {
   const cur = STEPS[step];
   const on = (k: StepId) => cur.id === k;
 
-  const jump = (node: string) => {
-    setPaused(true);
-    setStep(nodeStep[node]);
-  };
   const resume = () => setPaused(false);
 
   return (
-    <Widget title="From scan to labels.json" kicker={`step ${step + 1} / ${STEPS.length}`} rootRef={viewRef}>
-      <svg viewBox="0 0 760 300" className="block h-auto w-full" role="img" aria-label="The label pipeline: scan, tiles, OCR subagents, merge, overlay, review, merge again, app">
+    <Widget
+      title="From scan to labels.json"
+      kicker={`step ${step + 1} / ${STEPS.length}`}
+      rootRef={viewRef}
+    >
+      <svg
+        viewBox="0 0 760 300"
+        className="block h-auto w-full"
+        role="img"
+        aria-label="The label pipeline: scan, tiles, OCR subagents, merge, overlay, review, merge again, app"
+      >
         <ArrowDefs />
 
         {/* edges, anchored to box edges */}
@@ -157,28 +169,70 @@ export default function PipelineFlow() {
         {/* the travelling token, drawn before the nodes so it passes behind them */}
         <circle cx={pos.x} cy={pos.y} r={7} style={{ fill: 'var(--color-accent)' }} />
 
-        <g onMouseEnter={() => jump('scan')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-          <SvgNode n={N.scan} title="scan" sub="13 MB jpeg" color={INK} state={stateOf('scan', step)} />
+        <g>
+          <SvgNode
+            n={N.scan}
+            title="scan"
+            sub="13 MB jpeg"
+            color={INK}
+            state={stateOf('scan', step)}
+          />
         </g>
-        <g onMouseEnter={() => jump('tiles')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-          <SvgNode n={N.tiles} title="54 tiles" sub="px grid" color={INK} state={stateOf('tiles', step)} />
+        <g>
+          <SvgNode
+            n={N.tiles}
+            title="54 tiles"
+            sub="px grid"
+            color={INK}
+            state={stateOf('tiles', step)}
+          />
         </g>
         {AGENTS.map((a, i) => (
-          <g key={i} onMouseEnter={() => jump('agents')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-            <SvgNode n={a} title={`agent ${i + 1}`} color={AGENT} state={stateOf('agents', step)} titleSize={11} />
+          <g key={i}>
+            <SvgNode
+              n={a}
+              title={`agent ${i + 1}`}
+              color={AGENT}
+              state={stateOf('agents', step)}
+              titleSize={11}
+            />
           </g>
         ))}
-        <g onMouseEnter={() => jump('merge')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-          <SvgNode n={N.merge} title="merge" sub="dedupe" color={INK} state={stateOf('merge', step)} />
+        <g>
+          <SvgNode
+            n={N.merge}
+            title="merge"
+            sub="dedupe"
+            color={INK}
+            state={stateOf('merge', step)}
+          />
         </g>
-        <g onMouseEnter={() => jump('overlay')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-          <SvgNode n={N.overlay} title="overlay" sub="boxes drawn" color={INK} state={stateOf('overlay', step)} />
+        <g>
+          <SvgNode
+            n={N.overlay}
+            title="overlay"
+            sub="boxes drawn"
+            color={INK}
+            state={stateOf('overlay', step)}
+          />
         </g>
-        <g onMouseEnter={() => jump('review')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-          <SvgNode n={N.review} title="review" sub="12 subagents" color={AGENT} state={stateOf('review', step)} />
+        <g>
+          <SvgNode
+            n={N.review}
+            title="review"
+            sub="12 subagents"
+            color={AGENT}
+            state={stateOf('review', step)}
+          />
         </g>
-        <g onMouseEnter={() => jump('app')} onMouseLeave={resume} style={{ cursor: 'pointer' }}>
-          <SvgNode n={N.app} title="labels.json" sub="387 labels" color={INK} state={stateOf('app', step)} />
+        <g>
+          <SvgNode
+            n={N.app}
+            title="labels.json"
+            sub="387 labels"
+            color={INK}
+            state={stateOf('app', step)}
+          />
         </g>
       </svg>
 
