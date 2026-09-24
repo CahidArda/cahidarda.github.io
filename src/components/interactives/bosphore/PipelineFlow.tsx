@@ -95,7 +95,7 @@ const STEPS: { id: StepId; label: string; at: { x: number; y: number }; caption:
     id: 'app',
     label: 'app',
     at: { x: N.app.cx, y: N.app.cy },
-    caption: '387 labels, 156 of them flagged uncertain, fetched by the viewer as one 47 KB file.',
+    caption: '387 labels, 164 of them flagged uncertain, fetched by the viewer as one 47 KB file.',
   },
 ];
 
