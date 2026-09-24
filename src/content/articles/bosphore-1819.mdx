@@ -123,26 +123,7 @@ and no single subagent could see one whole. A last pass checked that Arabic-scri
 forms used the same letterforms throughout and that no entry was missing a gloss
 the interface needs.
 
-## How it worked
-
-Better than I expected, with some lessons.
-
-- **The grid did most of the work.** Once coordinates were written on the tiles,
-  the boxes came back tight enough to draw on the map directly. Reviewers still
-  found one tile where every box was shifted by 30 to 60 pixels, and fixed all
-  twelve records in it. The review pass earned its cost.
-- **Uncertainty flags were used, a lot.** 164 of 387 labels are flagged. Most are
-  tiny italic labels for farms, ruins and streams that no longer have a name. That
-  is the honest state of the data, and the app shows it.
-- **Overlap needs a dedupe rule, not a convention.** Telling subagents to record a
-  cut label only from the tile that shows it whole did not work every time. The
-  merge dedupes by normalised text and box overlap instead, and that did.
-- **Some labels need a different view.** Names spread letter by letter across half
-  the sheet cannot be read tile by tile. Doing them from a low-resolution render
-  of the whole map took ten minutes.
-- **Consistency needs a global pass.** Two subagents reading neighbouring tiles
-  will spell the same Ottoman name two ways. A script that groups labels by their
-  modern name and prints the disagreements caught these in one go.
+## In the end
 
 From the first script to the deployed app took one afternoon. The map had been on
 that café wall for years; now I can read it. Transcribing 387 labels by hand was
