@@ -1,5 +1,5 @@
 ---
-title: 'Bosphore 1819: A 200-Year-Old Map of Istanbul, Deciphered with Opus 5.5'
+title: 'Bosphore 1819: Bringing a 200-Year-Old Map of Istanbul to Life with Opus 5.5'
 description: 'How a map on a café wall turned into an app that reads, maps and translates all 387 labels of an 1819 French map of the Bosphorus, built with Claude Opus 5.5 subagents in an afternoon.'
 date: 2026-09-24
 tags: ['blog']
@@ -105,31 +105,17 @@ Fourteen batches ran six at a time. Each subagent read its tiles, asked for zoom
 renders when it needed them, and wrote one JSON file per tile. A subagent never
 touched anything but its own files, so they could not step on each other.
 
-### Merge, draw it back, review
-
-A merge script validates every record against a schema, drops duplicates (the
-tiles overlap, so a label near an edge is often read twice), converts the boxes
-to fractions of the image, and writes one `labels.json`.
-
-Then an overlay script draws every box back onto the map, green for confident and
-orange for uncertain, with the label id next to it. Twelve reviewer subagents got
-those overlay renders next to the clean tiles and were told to fix boxes that
-missed their text, add labels that had no box, correct wrong readings, and make
-sure the same place is spelt the same way everywhere.
-
-The main agent did the big letter-spaced region names itself from a whole-sheet
-render (MER NOIRE, EUROPE, the title cartouche), because those span many tiles
-and no single subagent could see one whole. A last pass checked that Arabic-script
-forms used the same letterforms throughout and that no entry was missing a gloss
-the interface needs.
-
 ## In the end
 
 From the first script to the deployed app took one afternoon. The map had been on
 that café wall for years; now I can read it. Transcribing 387 labels by hand was
 never going to happen: not the time, and honestly not the patience. With the agents
 doing the reading and me doing the deciding, it was a pleasure from start to finish.
-I love that I get to make things like this now.
+
+There is a lot of material like this map, on walls, in archives, in scanned books,
+that would be far more useful if you could search it and touch it. Turning any of it
+into something interactive has never been easy. It is getting easier, and I love that
+I get to make things like this now.
 
 If you know Istanbul and spot a wrong identification, the data lives in plain JSON
 files and corrections are welcome as pull requests.
