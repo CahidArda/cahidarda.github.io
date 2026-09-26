@@ -178,3 +178,11 @@ Once your agents can reach your tools, the same setup can help outside work:
 Pick one hub for this, whether that's claude.ai, Grok Bot, or something you build yourself.
 Two assistants mean two memories and two sets of notifications, which is the problem this post
 started with.
+
+## Conclusion
+
+Agents made the work faster. The tiring part is the overhead around them: checking, reading,
+retyping, and being reachable all the time. Most of that comes down to settings you can change in
+an afternoon. Turn on notifications, ask for shorter answers, connect your tools, and let only
+the right people reach you. The attention you get back is worth more than another agent running
+in parallel.
