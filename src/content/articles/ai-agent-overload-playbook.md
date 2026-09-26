@@ -40,18 +40,18 @@ in any terminal, add a `Notification` hook to `~/.claude/settings.json`
 ```json
 {
   "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "osascript -e 'display notification \"Claude needs you\" with title \"Claude Code\" sound name \"Glass\"'"
-          }
-        ]
-      }
-    ]
+    "Notification": [{
+      "hooks": [{ "type": "command", "command": "~/.claude/notify.sh" }]
+    }]
   }
 }
+```
+
+with `~/.claude/notify.sh` (run `chmod +x` on it):
+
+```sh
+#!/bin/sh
+osascript -e 'display notification "Claude needs you" with title "Claude"'
 ```
 
 A `Stop` hook works the same way if you also want "done" alerts. Be aware that `Stop` fires at the
@@ -106,8 +106,10 @@ files. Remote MCP servers with OAuth fix most of that. Claude Code stores the to
 Keychain ([MCP docs](https://code.claude.com/docs/en/mcp)):
 
 ```sh
-claude mcp add --scope user --transport http linear https://mcp.linear.app/mcp
-claude mcp add --scope user --transport http slack https://mcp.slack.com/mcp
+claude mcp add --scope user --transport http \
+  linear https://mcp.linear.app/mcp
+claude mcp add --scope user --transport http \
+  slack https://mcp.slack.com/mcp
 ```
 
 GitHub is the exception. Its hosted MCP server doesn't support OAuth in Claude Code
