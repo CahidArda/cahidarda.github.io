@@ -163,8 +163,12 @@ Once your agents can reach your tools, the same setup can help outside work:
   For strictly read-only access, use Google Calendar's
   [secret iCal address](https://support.google.com/calendar/answer/37648) or your own MCP server
   that only requests `calendar.readonly`.
-- **A morning brief.** A daily scheduled task that summarizes today's calendar and anything that
-  needs you, capped at eight lines, pushed to your phone.
+- **A morning brief.** I run mine as a daily Claude Code routine: every morning it reads my
+  calendar and tells me what I have that day. Routines run in the cloud on a schedule, so my
+  laptop can stay closed, and they can use the same connectors as claude.ai
+  ([routines docs](https://code.claude.com/docs/en/routines)). I also keep a few weekly routines
+  for recurring chores. If you'd rather stay in the Claude app, scheduled tasks there do the same
+  and push to your phone when they finish.
 - **Apple Watch data.** Claude's native Apple Health integration is US-only at the time of writing
   ([iOS apps](https://support.claude.com/en/articles/11869619-use-claude-with-ios-apps)). Elsewhere,
   the Health Auto Export app can send workouts and metrics as JSON to your own endpoint
