@@ -1,0 +1,69 @@
+/**
+ * French words that travelled into Turkish and English. Arrows run the direction of borrowing;
+ * the dashed Turkish-English edge is what a speaker of both gets for free. Static.
+ */
+import {
+  ACCENT,
+  ArrowDefs,
+  Caption,
+  Edge,
+  INK,
+  Label,
+  Node,
+  Widget,
+  leftOf,
+  rightOf,
+  topOf,
+  type Box,
+} from './shared';
+
+const N: Record<'fr' | 'tr' | 'en', Box> = {
+  fr: { cx: 280, cy: 48, w: 140, h: 44 },
+  tr: { cx: 110, cy: 200, w: 140, h: 44 },
+  en: { cx: 450, cy: 200, w: 140, h: 44 },
+};
+const frBottom = N.fr.cy + N.fr.h / 2;
+
+export default function LoanwordTriangle() {
+  return (
+    <Widget title="Where the French went" kicker="arrows follow the borrowing">
+      <svg
+        viewBox="0 0 560 250"
+        className="block h-auto w-full"
+        role="img"
+        aria-label="French lent words to Turkish (şimendifer, pardösü, vites) and to English (déjà vu, essay, jettison). A speaker of Turkish and English already shares those roots."
+      >
+        <ArrowDefs />
+        <Edge from={{ x: N.fr.cx - 40, y: frBottom }} to={topOf(N.tr)} on />
+        <Edge from={{ x: N.fr.cx + 40, y: frBottom }} to={topOf(N.en)} on />
+        <Edge from={rightOf(N.tr)} to={leftOf(N.en)} />
+
+        <Label x={150} y={106} anchor="end" muted={false}>
+          şimendifer
+        </Label>
+        <Label x={150} y={122} anchor="end" muted={false}>
+          pardösü · vites
+        </Label>
+        <Label x={402} y={106} anchor="start" muted={false}>
+          déjà vu
+        </Label>
+        <Label x={402} y={122} anchor="start" muted={false}>
+          essay · jettison
+        </Label>
+        <Label x={280} y={188}>
+          shared roots
+        </Label>
+        <Label x={280} y={232}>
+          vocabulary you already own
+        </Label>
+
+        <Node n={N.fr} title="French" color={ACCENT} state="active" titleSize={15} />
+        <Node n={N.tr} title="Turkish" color={INK} titleSize={15} />
+        <Node n={N.en} title="English" color={INK} titleSize={15} />
+      </svg>
+      <Caption>
+        If you speak Turkish and English, you already know a surprising amount of French.
+      </Caption>
+    </Widget>
+  );
+}
