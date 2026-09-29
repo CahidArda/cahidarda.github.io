@@ -20,6 +20,9 @@ a TV show.
   - OpenAI's chief scientist, writing at the GPT-6 Astra release: no lab has solved alignment
     well enough to keep scaling at full speed, and OpenAI will hold back on its own if needed.
     [Zvi's write-up](https://thezvi.substack.com/p/an-alien-mind-jakub-pachocki-warns).
+- **[The Talker Does Not Control The Doer (in Current AIs)](https://www.lesswrong.com/posts/cJX2ssssGoYqnijwi/the-talker-does-not-control-the-doer-in-current-ais)**, _Eliezer Yudkowsky, 13 Sep 2026_
+  - Why the chat can apologize for what the agent did without changing it: the two are trained
+    separately, and the doer chases its own idea of "the Grader". It fits the agents in [August](/articles/the-current-august-2026).
 
 ## New models: Opus 5.5, GPT-6, Sonnet 5.5
 
