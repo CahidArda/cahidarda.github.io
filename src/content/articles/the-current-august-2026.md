@@ -71,3 +71,13 @@ one piece on anger at work.
     immediately becomes a new problem to be managed, not a professional helping you manage
     problems." Get angry and you get routed around, and then you cannot fix the thing you were
     angry about.
+
+## From this site
+
+- **[Trust Your Bots (Terms Apply)](/articles/held-accountable)**, _11 Aug 2026_
+  - AI providers ask us to trust agents with our accounts and real work, while their terms of
+    service put every consequence on the user. Who is responsible when something goes wrong?
+    It reads differently next to the incident reports above.
+- **[How to Write a DeepSeek Harness Plugin](/articles/deepseek-harness-plugin)**, _14 Aug 2026_
+  - A practical guide to the dsh plugin system: patch layers, bundles and profiles, skill
+    discovery, and adding an MCP server with credentials.

@@ -108,3 +108,13 @@ falling to a counterexample found with an AI model.
     Anthropic both endorsed it as companies, and Anthropic tied it to the
     [recursive self-improvement post](https://www.anthropic.com/institute/recursive-self-improvement)
     from [the June issue](/articles/the-current-june-2026).
+
+## From this site
+
+- **[What 25 Years of Robot Automation Research Predicts About AI and Your Job](/articles/robots-vs-ai)**, _5 Jul 2026_
+  - Factory robots are the best natural experiment we have for machines replacing workers. The
+    mechanics carry over to AI, but the target flips: robots hit the least-educated hardest,
+    while AI exposure rises with skill and income.
+- **[The Identity Index: Which LLMs Defend Answers They Never Gave?](/articles/llm-identity-index)**, _7 Jul 2026_
+  - I rewrote a model's own answer in the transcript to say the opposite and asked it to
+    explain itself. Across ten frontier models, 46% of replies defended the planted answer.

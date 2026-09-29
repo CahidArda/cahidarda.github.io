@@ -68,3 +68,18 @@ older classics worth revisiting.
   wondering whether there is any resemblance between AI and the Antichrist. To my surprise,
   the first result when I searched on Google was a Scott Alexander blog post (which I assume
   is satirical) on similarities between Anthropic and the Antichrist.
+
+## From this site
+
+- **[Your New Personal Website Is a Few Prompts Away](/articles/rebuilding-this-site)**, _2 Jun 2026_
+  - How this site was rebuilt without learning the framework it runs on, by focusing on the
+    look and letting the agent handle the rest.
+- **[Vercel Eve: A Guide](/articles/vercel-eve-guide)**, _18 Jun 2026_
+  - Notes from building a small demo agent on Vercel Eve: project layout, the dev TUI, tools and
+    skills, scheduling, channels and deployment.
+- **[Sakana Fugu: Multi-Agent Orchestration Explained in Detail](/articles/sakana-fugu)**, _22 Jun 2026_
+  - A guided tour of the two engines behind Sakana's Fugu, the evolved TRINITY router and the
+    RL-trained Conductor, with interactive diagrams of both.
+- **[Building a Local Data Platform on Kubernetes](/articles/data-platform)**, _25 Jun 2026_
+  - A series on building an end-to-end data platform on one k3d cluster on a laptop: streaming
+    ingest, the right storage shape per access pattern, observability and resilience.
