@@ -31,7 +31,7 @@ export default function LoanwordTriangle() {
         viewBox="0 0 560 250"
         className="block h-auto w-full"
         role="img"
-        aria-label="French lent words to Turkish (şimendifer, abajur, randevu) and to English (rendezvous, chauffeur, coiffure). A speaker of Turkish and English already shares those roots."
+        aria-label="French lent words to Turkish (şimendifer, pardösü, vites) and to English (déjà vu, essay, jettison). A speaker of Turkish and English already shares those roots."
       >
         <ArrowDefs />
         <Edge from={{ x: N.fr.cx - 40, y: frBottom }} to={topOf(N.tr)} on />
@@ -42,13 +42,13 @@ export default function LoanwordTriangle() {
           şimendifer
         </Label>
         <Label x={150} y={122} anchor="end" muted={false}>
-          abajur · randevu
+          pardösü · vites
         </Label>
         <Label x={402} y={106} anchor="start" muted={false}>
-          rendezvous
+          déjà vu
         </Label>
         <Label x={402} y={122} anchor="start" muted={false}>
-          chauffeur · coiffure
+          essay · jettison
         </Label>
         <Label x={280} y={188}>
           shared roots
