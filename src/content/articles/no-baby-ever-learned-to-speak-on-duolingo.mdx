@@ -107,7 +107,26 @@ You give it the name of a song or the URL of any YouTube video:
 - **Songs:** it finds the lyrics in an open-source lyrics database and translates them with AI into your language, in my case French into English.
 - **Any other video:** it pulls the transcript from YouTube and translates it the same way. A French vlog works exactly like a French song.
 
-The video plays on the left. On the right, the French lines scroll along in sync, each with its English translation underneath. Hover over any French word and you see what it means on its own. Think Google Translate meets Duolingo, for videos. There's a quiz at the end, which is the least finished part and the one that makes it feel a bit like Duolingo, minus the obvious answers.
+The video plays on the left. On the right, the French line being spoken shows up in sync, with its English translation underneath, and the next one takes its place as the video moves on. Hover over any French word and you see what it means on its own. Think Google Translate meets Duolingo, for videos. There's a quiz at the end, which is the least finished part and the one that makes it feel a bit like Duolingo, minus the obvious answers.
+
+<figure class="fx-figure">
+  <video
+    autoplay
+    loop
+    muted
+    playsinline
+    preload="metadata"
+    poster="/articles/no-baby-ever-learned-to-speak-on-duolingo/french-video-demo-poster.jpg"
+    src="/articles/no-baby-ever-learned-to-speak-on-duolingo/french-video-demo.mp4"
+    aria-label="The app playing a French cooking video: the chef on the left, the French line he is saying on the right with its English translation, and a hover over essayer de showing to try to."
+    style="width: 100%; border-radius: 4px; border: 1px solid var(--color-line);"
+  >
+    Your browser does not support the video tag.
+  </video>
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    The app on a French cooking video, lines advancing with the chef, and a hover over <em>essayer de</em>. Video: <a href="https://www.youtube.com/watch?v=6ZBDlPA18Mk">La pâte à crêpe facile et sans grumeaux !</a> by Learn With A Champion, <a href="https://creativecommons.org/licenses/by/3.0/">CC BY</a>, via YouTube.
+  </figcaption>
+</figure>
 
 <div class="fx-figure">
   <AppLayout />
