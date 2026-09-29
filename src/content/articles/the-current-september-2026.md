@@ -99,7 +99,7 @@ post-AI world.
     still has to decide whether to drill.
 - **[Naval-History.Net](https://www.naval-history.net/index.htm)**
   - Volunteers transcribed 314 Royal Navy log books from the First World War, so you can follow
-    one ship day by day. The opposite of everything else on this page.
+    one ship day by day. After a month of AI news, a nice reminder of slow human work.
 
 ## Blogs I wrote this month
 
