@@ -31,6 +31,9 @@ a TV show.
     containment "around 85% less often" than Opus 5. I used it for [Bosphore 1819](/articles/bosphore-1819).
 - **[GPT-6 Sol and Luna](https://x.com/OpenAIDevs/status/2102461432684282061)**, _OpenAI Developers, 22 Sep 2026_
   - Astra's smaller siblings, the same day, at half the API price of GPT-5.6.
+- **[DevDay 2026 Recap](https://openai.com/index/devday-2026-recap/)**, _OpenAI, 29 Sep 2026_
+  - A week later, GPT-6.1 Sol and Dots, always-on agents with their own apps and cloud computers.
+    Also: up to 8× faster generation in Codex, and an Agents API in public beta.
 - **[Claude Sonnet 5.5](https://x.com/claudeai/status/2104633115620823187)**, _Claude, 28 Sep 2026_
   - More than 30% faster than Sonnet 5 and up to 30% cheaper.
 - **[Eleven v4 and Eleven v4 Turbo](https://x.com/elevenlabs/status/2104572127617994917)**, _ElevenLabs, 28 Sep 2026_
