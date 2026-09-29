@@ -27,10 +27,22 @@ const PIPE: { n: Box; title: string; sub: string }[] = [
 
 const line = (y: number, fr: string, en: string, dim: boolean) => (
   <g>
-    <text x={352} y={y} style={{ fill: dim ? 'var(--color-muted)' : 'var(--color-ink)', fontFamily: SANS, fontSize: 13 }}>
+    <text
+      x={352}
+      y={y}
+      style={{
+        fill: dim ? 'var(--color-muted)' : 'var(--color-ink)',
+        fontFamily: SANS,
+        fontSize: 13,
+      }}
+    >
       {fr}
     </text>
-    <text x={352} y={y + 17} style={{ fill: 'var(--color-muted)', fontFamily: MONO, fontSize: 10.5, opacity: 0.8 }}>
+    <text
+      x={352}
+      y={y + 17}
+      style={{ fill: 'var(--color-muted)', fontFamily: MONO, fontSize: 10.5, opacity: 0.8 }}
+    >
       {en}
     </text>
   </g>
@@ -46,10 +58,26 @@ export default function AppLayout() {
         aria-label="App layout: a YouTube player on the left, synced French lines with English translations on the right, and a hover gloss on one word. Below, the pipeline: song or URL, lyrics or transcript, AI translation, synced view."
       >
         <ArrowDefs />
-        <rect x={10} y={10} width={620} height={222} style={{ fill: 'var(--color-paper)', stroke: 'var(--color-line-strong)', strokeWidth: 1.5 }} />
+        <rect
+          x={10}
+          y={10}
+          width={620}
+          height={222}
+          style={{
+            fill: 'var(--color-paper)',
+            stroke: 'var(--color-line-strong)',
+            strokeWidth: 1.5,
+          }}
+        />
 
         {/* video */}
-        <rect x={24} y={24} width={304} height={194} style={{ fill: 'var(--color-paper-raised)', stroke: 'var(--color-line)', strokeWidth: 1 }} />
+        <rect
+          x={24}
+          y={24}
+          width={304}
+          height={194}
+          style={{ fill: 'var(--color-paper-raised)', stroke: 'var(--color-line)', strokeWidth: 1 }}
+        />
         <path d="M160,98 L160,144 L198,121 z" style={{ fill: 'var(--color-muted)' }} />
         <Label x={176} y={196}>
           YOUTUBE PLAYER
@@ -57,23 +85,47 @@ export default function AppLayout() {
 
         {/* synced lines */}
         {line(46, 'Il fait beau aujourd’hui', 'The weather is nice today', true)}
-        <rect x={342} y={78} width={276} height={50} style={{ fill: ACCENT, fillOpacity: 0.1, stroke: 'none' }} />
+        <rect
+          x={342}
+          y={78}
+          width={276}
+          height={50}
+          style={{ fill: ACCENT, fillOpacity: 0.1, stroke: 'none' }}
+        />
         <rect x={342} y={78} width={3} height={50} style={{ fill: ACCENT }} />
-        <text x={352} y={98} style={{ fill: 'var(--color-ink)', fontFamily: SANS, fontSize: 15, fontWeight: 600 }}>
-          On se{' '}
-          <tspan style={{ fill: ACCENT, textDecoration: 'underline' }}>retrouve</tspan> au café
+        <text
+          x={352}
+          y={98}
+          style={{ fill: 'var(--color-ink)', fontFamily: SANS, fontSize: 15, fontWeight: 600 }}
+        >
+          On se <tspan style={{ fill: ACCENT, textDecoration: 'underline' }}>retrouve</tspan> au
+          café
         </text>
-        <text x={352} y={117} style={{ fill: 'var(--color-ink-soft)', fontFamily: MONO, fontSize: 10.5 }}>
+        <text
+          x={352}
+          y={117}
+          style={{ fill: 'var(--color-ink-soft)', fontFamily: MONO, fontSize: 10.5 }}
+        >
           We’ll meet up at the café
         </text>
 
         {/* hover gloss */}
         <path d="M436,134 L444,126 L452,134 z" style={{ fill: INK }} />
         <rect x={400} y={134} width={180} height={44} style={{ fill: INK }} />
-        <text x={490} y={151} textAnchor="middle" style={{ fill: 'var(--color-paper)', fontFamily: MONO, fontSize: 12, fontWeight: 600 }}>
+        <text
+          x={490}
+          y={151}
+          textAnchor="middle"
+          style={{ fill: 'var(--color-paper)', fontFamily: MONO, fontSize: 12, fontWeight: 600 }}
+        >
           retrouver
         </text>
-        <text x={490} y={168} textAnchor="middle" style={{ fill: 'var(--color-paper)', fontFamily: MONO, fontSize: 10.5 }}>
+        <text
+          x={490}
+          y={168}
+          textAnchor="middle"
+          style={{ fill: 'var(--color-paper)', fontFamily: MONO, fontSize: 10.5 }}
+        >
           to meet (up) again
         </text>
 
@@ -96,7 +148,9 @@ export default function AppLayout() {
           />
         ))}
       </svg>
-      <Caption>Watch what you would watch anyway. The translation sits next to it, one hover away.</Caption>
+      <Caption>
+        Watch what you would watch anyway. The translation sits next to it, one hover away.
+      </Caption>
     </Widget>
   );
 }

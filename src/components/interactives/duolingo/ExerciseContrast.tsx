@@ -36,7 +36,9 @@ function Card({ kicker, options }: { kicker: string; options: Option[] }) {
             key={o.word}
             className={`border px-3 py-2 ${o.correct ? 'border-accent border-2' : 'border-line-strong'}`}
           >
-            <div className={`font-mono text-sm ${o.correct ? 'text-accent font-semibold' : 'text-ink'}`}>
+            <div
+              className={`font-mono text-sm ${o.correct ? 'text-accent font-semibold' : 'text-ink'}`}
+            >
               {o.word}
             </div>
             <div className="font-mono text-[0.65rem] text-muted">{o.tag}</div>

@@ -61,7 +61,9 @@ export default function LoanwordTriangle() {
         <Node n={N.tr} title="Turkish" color={INK} titleSize={15} />
         <Node n={N.en} title="English" color={INK} titleSize={15} />
       </svg>
-      <Caption>If you speak Turkish and English, you already know a surprising amount of French.</Caption>
+      <Caption>
+        If you speak Turkish and English, you already know a surprising amount of French.
+      </Caption>
     </Widget>
   );
 }

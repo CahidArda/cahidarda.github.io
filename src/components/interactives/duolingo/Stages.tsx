@@ -70,7 +70,9 @@ export default function Stages() {
           );
         })}
       </svg>
-      <Caption>Duolingo-style drills earn their place in step 1. The mistake is staying there for 120 days.</Caption>
+      <Caption>
+        Duolingo-style drills earn their place in step 1. The mistake is staying there for 120 days.
+      </Caption>
     </Widget>
   );
 }

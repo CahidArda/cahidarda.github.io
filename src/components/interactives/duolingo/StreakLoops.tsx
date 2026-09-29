@@ -50,7 +50,10 @@ export default function StreakLoops() {
         <Edge from={bottomOf(S[1])} to={topOf(S[2])} on />
         <Edge from={bottomOf(L[0])} to={topOf(L[1])} on />
         <Edge from={bottomOf(L[1])} to={topOf(L[2])} on />
-        <Curve d={`M${s2.x},${s2.y} C${s2.x - 38},${s2.y} ${s0.x - 38},${s0.y} ${s0.x},${s0.y}`} dashed />
+        <Curve
+          d={`M${s2.x},${s2.y} C${s2.x - 38},${s2.y} ${s0.x - 38},${s0.y} ${s0.x},${s0.y}`}
+          dashed
+        />
         <Curve d={`M${l2.x},${l2.y} C${l2.x + 38},${l2.y} ${l0.x + 38},${l0.y} ${l0.x},${l0.y}`} />
         <Label x={20} y={140} rotate={-90}>
           repeat
