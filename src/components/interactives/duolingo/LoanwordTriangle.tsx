@@ -38,16 +38,16 @@ export default function LoanwordTriangle() {
         <Edge from={{ x: N.fr.cx + 40, y: frBottom }} to={topOf(N.en)} on />
         <Edge from={rightOf(N.tr)} to={leftOf(N.en)} />
 
-        <Label x={175} y={112} anchor="end" muted={false}>
+        <Label x={150} y={106} anchor="end" muted={false}>
           şimendifer
         </Label>
-        <Label x={175} y={128} anchor="end" muted={false}>
+        <Label x={150} y={122} anchor="end" muted={false}>
           abajur · randevu
         </Label>
-        <Label x={385} y={112} anchor="start" muted={false}>
+        <Label x={402} y={106} anchor="start" muted={false}>
           rendezvous
         </Label>
-        <Label x={385} y={128} anchor="start" muted={false}>
+        <Label x={402} y={122} anchor="start" muted={false}>
           chauffeur · coiffure
         </Label>
         <Label x={280} y={188}>
