@@ -1,5 +1,5 @@
 /**
- * Shared primitives for the "Babies Don't Use Duolingo" figures. Reuses the data-platform
+ * Shared primitives for the "No Baby Ever Learned to Speak on Duolingo" figures. Reuses the data-platform
  * frame, edges and geometry helpers so the post reads as house style, plus a node with a
  * readable subtitle size and a curved "repeat" connector for the loop diagrams. All figures
  * are static (no hooks), so they render at build time with no client JS.
