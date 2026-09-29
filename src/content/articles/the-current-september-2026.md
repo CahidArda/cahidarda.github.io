@@ -10,7 +10,7 @@ within weeks. Mathematicians pushed back against AI being aimed at their field. 
 the July incident reports came out, and I spent too much time thinking about lawyers because of
 a TV show.
 
-## Pacing the frontier
+## Both labs ask to slow down
 
 - **[We Must Pace the Frontier](https://darioamodei.com/post/we-must-pace-the-frontier)**, _Dario Amodei, Sep 2026_
   - The employee letter from [July](/articles/the-current-july-2026), now with the CEO's name on
@@ -35,7 +35,7 @@ a TV show.
   - So both leaders now make the same argument. The difference is who they want to pull the
     brake.
 
-## New models, anyway
+## New models: Opus 5.5, GPT-6, Sonnet 5.5
 
 - **[Claude Opus 5.5](https://www.anthropic.com/claude-opus-5-5)**, _Anthropic, 22 Sep 2026_
   - The first release since Anthropic called for pacing the frontier. Anthropic says it
@@ -57,7 +57,7 @@ a TV show.
   - New voice models, which ElevenLabs calls its fastest and most emotive yet, ranked first by
     Artificial Analysis.
 
-## Mathematicians push back
+## AI solves a Millennium Prize problem, mathematicians object
 
 In [July](/articles/the-current-july-2026) the Jacobian conjecture fell to a counterexample
 found with Claude. In September it was a Millennium Prize problem: OpenAI's
@@ -82,7 +82,7 @@ with Levent Alpöge involved again. The replies were more interesting than the r
     compute on a 166-page proof that "probably hasn't yet been read and understood by any
     human."
 
-## Science, and the pushback on it
+## AI does science: a new enzyme and a nine-loop amplitude
 
 - **[Claude discovers a novel enzyme system with CRISPR-like repeats](https://www.anthropic.com/news/claude-discovers-novel-enzyme-system)**, _Anthropic, 23 Sep 2026_
   - Anthropic's new life sciences group had roughly 950 Claude agents mine DNA databases for
@@ -107,7 +107,7 @@ with Levent Alpöge involved again. The replies were more interesting than the r
     my co-authors." Note that Anthropic paid von Hippel for the post.
   - Read this next to [the Evo phage paper](/articles/the-current-august-2026) from August.
 
-## Security, both directions
+## AI agents hacked Hugging Face, humans with AI hacked OpenAI
 
 - **[Swarm traces](https://swarmtraces.org/)**, _Forman, Kharlov, Tom, Ladish et al., 25 Sep 2026_
   - The last chapter of the Hugging Face story from [July](/articles/the-current-july-2026) and
@@ -132,7 +132,7 @@ with Levent Alpöge involved again. The replies were more interesting than the r
     222 Malaysian parliamentary constituencies. Full
     [report PDF](https://www-cdn.anthropic.com/e50be2e51e7695dc4b1366a37a245a597377d3b5/Anthropic-Detecting-and-countering-091026.pdf).
 
-## Work, law and craft
+## No Harvey Specter after AI
 
 Lately I have been watching Suits, and for about half the series I kept thinking an AI could
 already do what these people do: the all-nighters in the file room and the hunt through
@@ -164,7 +164,7 @@ no Harvey Specter in a post-AI world.
     and the results are distinct and not ugly. "So that's the moral - you don't have to make
     posters that look like everyone else's." From June, but I only saved it now.
 
-## Also
+## Ancient tombs and old warships
 
 - **[Exclusive: New evidence for hidden chambers beyond Tutankhamun's tomb](https://www.nature.com/articles/d41586-026-02621-2)**, _Jo Marchant, Nature, 17 Sep 2026_
   - New ground-penetrating radar and the first microgravity survey of the tomb point to a
@@ -177,7 +177,7 @@ no Harvey Specter in a post-AI world.
     transcribed by hand, so you can follow a single ship day by day through Gallipoli or the
     Falklands. The opposite of everything else on this page.
 
-## From this site
+## Blogs I wrote this month
 
 - **[Bosphore 1819: Reviving a 200-Year-Old Map of Istanbul with Opus 5.5](/articles/bosphore-1819)**, _24 Sep 2026_
   - A map on a café wall became an app that reads, maps and translates all 387 labels of an

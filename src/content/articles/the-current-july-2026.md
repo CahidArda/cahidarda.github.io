@@ -109,7 +109,7 @@ falling to a counterexample found with an AI model.
     [recursive self-improvement post](https://www.anthropic.com/institute/recursive-self-improvement)
     from [the June issue](/articles/the-current-june-2026).
 
-## From this site
+## Blogs I wrote this month
 
 - **[What 25 Years of Robot Automation Research Predicts About AI and Your Job](/articles/robots-vs-ai)**, _5 Jul 2026_
   - Factory robots are the best natural experiment we have for machines replacing workers. The

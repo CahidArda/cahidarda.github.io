@@ -72,7 +72,7 @@ one piece on anger at work.
     problems." Get angry and you get routed around, and then you cannot fix the thing you were
     angry about.
 
-## From this site
+## Blogs I wrote this month
 
 - **[Trust Your Bots (Terms Apply)](/articles/held-accountable)**, _11 Aug 2026_
   - AI providers ask us to trust agents with our accounts and real work, while their terms of

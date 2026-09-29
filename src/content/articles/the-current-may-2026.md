@@ -26,7 +26,7 @@ look forward to every time.
   - Encyclical letter of Pope Leo XIV - worth reading whatever your
   priors, for the framing of technology and human dignity.
 
-## From this site
+## Blogs I wrote this month
 
 Nothing new here in May. I spent the month rebuilding the site itself, and the write-up of
 that became the first post of [June](/articles/the-current-june-2026).

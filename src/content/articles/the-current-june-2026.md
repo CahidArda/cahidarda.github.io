@@ -69,7 +69,7 @@ older classics worth revisiting.
   the first result when I searched on Google was a Scott Alexander blog post (which I assume
   is satirical) on similarities between Anthropic and the Antichrist.
 
-## From this site
+## Blogs I wrote this month
 
 - **[Your New Personal Website Is a Few Prompts Away](/articles/rebuilding-this-site)**, _2 Jun 2026_
   - How this site was rebuilt without learning the framework it runs on, by focusing on the
