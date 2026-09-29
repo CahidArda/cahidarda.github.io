@@ -25,3 +25,8 @@ look forward to every time.
 - **[Magnifica Humanitas](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)**, _15 May 2026_
   - Encyclical letter of Pope Leo XIV - worth reading whatever your
   priors, for the framing of technology and human dignity.
+
+## Blogs I wrote this month
+
+Nothing new here in May. I spent the month rebuilding the site itself, and the write-up of
+that became the first post of [June](/articles/the-current-june-2026).
