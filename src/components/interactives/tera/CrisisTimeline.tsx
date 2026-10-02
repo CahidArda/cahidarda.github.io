@@ -178,21 +178,26 @@ export default function CrisisTimeline() {
               style={{ opacity: i === active ? 1 : 0.6 }}
               {...bindActive(i)}
             >
-              <span
-                aria-hidden
-                className="relative z-10 mt-1 shrink-0 rounded-full"
-                style={{
-                  width: 11,
-                  height: 11,
-                  background: i === active ? STAGE[node.stage].color : 'var(--color-paper)',
-                  border: `2px solid ${STAGE[node.stage].color}`,
-                }}
-              />
-              <span className="w-[5.5rem] shrink-0 font-mono text-[0.66rem] leading-tight text-muted">
+              {/* The dot, the date and the title all sit in the same 20px line box, so the
+                  dot centres on the first line of text regardless of the two different font
+                  sizes or whether the date wraps. A hand-tuned margin cannot do this. */}
+              <span className="flex h-5 shrink-0 items-center" style={{ width: 11 }}>
+                <span
+                  aria-hidden
+                  className="relative z-10 rounded-full"
+                  style={{
+                    width: 11,
+                    height: 11,
+                    background: i === active ? STAGE[node.stage].color : 'var(--color-paper)',
+                    border: `2px solid ${STAGE[node.stage].color}`,
+                  }}
+                />
+              </span>
+              <span className="w-[5.5rem] shrink-0 font-mono text-[0.66rem] leading-5 text-muted">
                 {node.date}
               </span>
               <span
-                className="font-mono text-[0.76rem] leading-tight"
+                className="font-mono text-[0.76rem] leading-5"
                 style={{
                   color: i === active ? 'var(--color-ink)' : 'var(--color-ink-soft)',
                   fontWeight: i === active ? 600 : 400,

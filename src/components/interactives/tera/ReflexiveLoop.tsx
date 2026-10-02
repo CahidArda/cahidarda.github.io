@@ -142,17 +142,23 @@ export default function ReflexiveLoop() {
           ['flow', 'ret'],
         ];
 
-  // Anchor to the corner of each box facing the other box, so no line runs under a node.
-  const anchor = (from: keyof typeof NODE, to: keyof typeof NODE) => {
-    const a = NODE[from];
-    const b = NODE[to];
-    const dx = b.cx - a.cx;
-    const dy = b.cy - a.cy;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      return { x: a.cx + (dx > 0 ? a.w / 2 : -a.w / 2), y: a.cy + Math.sign(dy) * (a.h / 4) };
-    }
-    return { x: a.cx + Math.sign(dx) * (a.w / 4), y: a.cy + (dy > 0 ? a.h / 2 : -a.h / 2) };
+  // Where the centre-to-centre line leaves the source box. Scaling the direction vector by
+  // whichever of the two half-extents it hits first lands exactly on the boundary, and the
+  // segment then points at the target's centre, so a diagonal pair meets on the facing
+  // edges instead of near the corners (which is what picking an axis by hand produced).
+  const GAP = 4; // breathing room so the arrowhead does not sit on the border
+  const edgePoint = (a: Box, towards: Box, pad = 0) => {
+    const dx = towards.cx - a.cx;
+    const dy = towards.cy - a.cy;
+    if (dx === 0 && dy === 0) return { x: a.cx, y: a.cy };
+    const len = Math.hypot(dx, dy);
+    const sx = dx === 0 ? Infinity : a.w / 2 / Math.abs(dx);
+    const sy = dy === 0 ? Infinity : a.h / 2 / Math.abs(dy);
+    const s = Math.min(sx, sy);
+    return { x: a.cx + dx * (s + pad / len), y: a.cy + dy * (s + pad / len) };
   };
+  const anchor = (from: keyof typeof NODE, to: keyof typeof NODE) =>
+    edgePoint(NODE[from], NODE[to], GAP);
 
   return (
     <Widget
@@ -249,6 +255,9 @@ export default function ReflexiveLoop() {
       <p className="mt-2 border-t border-line pt-2 font-mono text-[0.68rem] leading-relaxed text-muted">
         Every mark in the forward loop is the last traded price, which is what the valuation rules
         require. Hover a box to stop on that step.
+        <br />
+        Mechanism as described in van der Beck, Bouchaud and Villamaina, &ldquo;Ponzi Funds&rdquo;
+        (2024). Diagram drawn for this post, not reproduced from the paper.
       </p>
     </Widget>
   );

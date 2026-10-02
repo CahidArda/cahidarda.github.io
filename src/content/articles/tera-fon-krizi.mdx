@@ -35,18 +35,23 @@ implies.
 
 The research says a fund can inflate its own reported returns without anyone misreporting
 anything, provided it holds a large enough share of a thinly traded stock. That is a claim about
-what is possible, not about what occurred in Turkey. The diagram below steps through the mechanism
-as the literature describes it.
+what is possible, not about what occurred in Turkey.
+
+The loop below is not mine. It is my drawing of the mechanism set out in van der Beck, Bouchaud and
+Villamaina's *Ponzi Funds* ([arXiv:2405.12768](https://arxiv.org/pdf/2405.12768)), discussed in more
+detail further down. The steps and the claim that they feed back on each other come from that
+paper; splitting it into four boxes is mine, and any clumsiness in the split is too.
 
 <div class="fx-figure">
   <ReflexiveLoop client:visible />
 </div>
 
 Each step is permitted. A fund takes in money. It buys more of what it already holds. Because that
-holding has little free float, the buying moves the price. The fund marks its entire position at
-the new price, which is what the valuation rules require, so its net asset value rises by more than
-the money that arrived, since the new price revalues every share it already held. The NAV becomes a
-published return, and the published return attracts the next investor.
+holding has little free float, meaning few of its shares are actually available to trade, the
+buying moves the price. The fund then marks its entire position at the new price, which is what the
+valuation rules require, so its net asset value, the per-unit figure investors see, rises by more
+than the money that arrived, since the new price revalues every share it already held. That NAV
+becomes a published return, and the published return attracts the next investor.
 
 So the answer to the question I started with is yes, in principle: the returns can inflate without
 anyone misreporting a number. That does not tell you whether it is what happened in any particular
@@ -58,8 +63,10 @@ Reading into this led me to [Charles Kindleberger](https://en.wikipedia.org/wiki
 an economic historian I had not encountered before. His *Manias, Panics, and Crashes* sets out
 financial crises as a recurring sequence rather than a series of unrelated events: structural
 conditions, a *displacement* that sets things moving, euphoria, distress as conditions turn, then
-revulsion. An NBER reconstruction preserves his distinction between underlying conditions and
-trigger, and places the exposure of fraud late, during the cleanup
+revulsion. A later working paper from the National Bureau of Economic Research, a US economics
+research organisation, restates that model and keeps his distinction between the background
+conditions and the event that sets things off, and puts the discovery of fraud near the end, during
+the cleanup
 ([Kindleberger Cycles, NBER WP 28411](https://www.nber.org/system/files/working_papers/w28411/w28411.pdf)).
 
 The timeline below arranges the documented dates by those stages. A framework this general fits
@@ -94,8 +101,8 @@ between the fund and its holdings. Just under 29% of the fund sat in three compa
 Emre Tezmen, Tera's founder and main shareholder, two of which are the group's own listed holding
 companies ([Tera Finansal Yatırımlar](https://terafinansalyatirimlar.com/sayfa-yonetim-kurulu-22)).
 The largest single position, just under a quarter of the fund, was Destek Finans Faktoring, whose
-January 2025 IPO was underwritten by Tera Yatırım Menkul Değerler, and whose largest single
-allocatee at flotation was TLY itself at 15.42% of the offering
+January 2025 IPO was underwritten by Tera Yatırım Menkul Değerler, and and the single largest buyer at
+flotation was TLY itself, taking 15.42% of the offering
 ([halkarz.com](https://halkarz.com/destek-finans-faktoring-a-s/)).
 
 Destek Holding's owner, Altunç Kumova, told prosecutors that his company's rise from about ₺15bn at
@@ -120,7 +127,7 @@ price impact, and find that investors allocate capital without distinguishing be
 closes the loop into a feedback cycle that transfers wealth to early investors and unwinds when the
 price pressure reverts ([arXiv:2405.12768](https://arxiv.org/pdf/2405.12768)). They estimate that
 roughly half of a day's price impact reverts within five to ten days, and attribute about 2% of all
-daily fund flows, rising to 8-12% in the most illiquid decile, to flows chasing a fund's own impact.
+daily fund flows, rising to 8-12% among the tenth of funds holding the least liquid assets, to flows chasing a fund's own impact.
 Their data is American and European, not Turkish.
 
 The title is a borrowing. "Ponzi finance" is
@@ -184,10 +191,11 @@ price-pushed.
 
 [Archegos](https://en.wikipedia.org/wiki/Archegos_Capital_Management) is closer on the price
 mechanism. Bill Hwang's family office grew from about \$10bn of exposure to \$160bn in a year, and
-the SEC alleged he entered swaps to artificially and dramatically drive up prices in names where
-his own position was the marginal buyer
+the SEC alleged he used derivatives to artificially and dramatically drive up prices in stocks
+where his own buying was setting the price
 ([SEC](https://www.sec.gov/newsroom/press-releases/2022-70)). The losses fell differently: Archegos
-left prime brokers with the shortfall, whereas the Turkish funds' losses sit inside retail NAVs.
+left the investment banks that had financed its trades with the shortfall, whereas the Turkish
+funds' losses sit inside the unit values held by retail investors.
 
 There is also a Turkish precedent. In the 1982 *bankerler krizi*, brokers sold bank certificates of
 deposit to the public at a spread and lent the difference to marginal businesses. A November 1981
@@ -201,9 +209,9 @@ Bankası and Ziraat, two large state-linked banks.
 
 ## What happens to the money
 
-The liquidation window was set at three months and extended to six. Assets are sold and proceeds
-distributed pro rata, so what each investor receives depends on what the holdings fetch rather than
-on the last published NAV. On 1 October SPK authorised interim payments of up to ₺1m per investor,
+The liquidation window was set at three months and extended to six. Assets are sold and the proceeds split in
+proportion to what each investor holds, so what they receive depends on what the holdings fetch
+rather than on the last published unit value. On 1 October SPK authorised interim payments of up to ₺1m per investor,
 about \$20,000, against net investment as calculated by MKK, Turkey's central securities
 depository, with money market funds paid first
 ([Hürriyet](https://www.hurriyet.com.tr/gundem/spkdan-tasfiye-edilen-fonlar-icin-karar-ara-odemeler-yapilacak-43325364)).
