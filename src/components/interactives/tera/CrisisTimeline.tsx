@@ -36,7 +36,7 @@ const NODES: Node[] = [
     title: 'Destek Faktoring IPO',
     stage: 'displacement',
     detail:
-      'Destek Finans Faktoring floats 25% of the company at ₺46.98 a share, raising about ₺3.9bn. The underwriter is Tera Yatırım Menkul Değerler. The largest single allocatee is TLY, Tera’s own fund, at 15.42%. This is the stock that later became the fund's largest position.',
+      'Destek Finans Faktoring floats 25% of the company at ₺46.98 a share, raising about ₺3.9bn. The underwriter is Tera Yatırım Menkul Değerler. The largest single allocatee is TLY, Tera’s own fund, at 15.42%. This is the stock that later became the fund’s largest position.',
     href: 'https://halkarz.com/destek-finans-faktoring-a-s/',
   },
   {
@@ -113,7 +113,7 @@ const NODES: Node[] = [
     title: 'Arrests reach the board',
     stage: 'revulsion',
     detail:
-      'Erkan Kilimci, a deputy governor of the central bank from 2016 to 2018 and a Tera board member, is arrested along with ten others. The case is being run through the Istanbul prosecutor's financial-crimes and money-laundering bureau.',
+      'Erkan Kilimci, a deputy governor of the central bank from 2016 to 2018 and a Tera board member, is arrested along with ten others. The case is being run through the Istanbul prosecutor’s financial-crimes and money-laundering bureau.',
     href: 'https://t24.com.tr/gundem/fon-krizi-sorusturmasinda-yeni-gelisme-eski-merkez-bankasi-baskan-yardimcisi-erkan-kilimci-dahil-11-kisi-tutuklandi,1349763',
   },
   {
