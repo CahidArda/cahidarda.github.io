@@ -11,7 +11,7 @@ const STAGE: Record<Stage, { label: string; color: string }> = {
   structural: { label: 'structural conditions', color: 'var(--color-muted)' },
   displacement: { label: 'displacement', color: FLOW },
   euphoria: { label: 'euphoria', color: PRICE },
-  distress: { label: 'distress', color: NAV },
+  distress: { label: 'conditions turn (distress)', color: NAV },
   revulsion: { label: 'revulsion', color: WARN },
 };
 
@@ -48,10 +48,10 @@ const NODES: Node[] = [
   },
   {
     date: '18 Dec 2025',
-    title: 'SPK raises the qualified-investor bar to ₺10m',
+    title: 'Who may buy a hedge fund is narrowed',
     stage: 'distress',
     detail:
-      'The threshold for qualified-investor status goes from ₺1m to ₺10m of financial assets. The threshold had not been indexed to inflation. Money already invested was not affected.',
+      'SPK raises the financial assets needed for qualified-investor status from ₺1m to ₺10m. Bearing on Tera: TLY is a serbest fon, sold only to qualified investors, so this narrows the pool of people who can put new money in. The threshold had not been indexed to inflation. Money already invested is not affected.',
     href: 'https://www.finansopia.com/ekonomi/spkdan-fonlarda-manipulasyon-duzenlemesi/',
   },
   {
@@ -64,18 +64,18 @@ const NODES: Node[] = [
   },
   {
     date: '4 Jun 2026',
-    title: 'Fund-held shares stop counting as free float',
+    title: 'A group’s own funds no longer count as free float',
     stage: 'distress',
     detail:
-      'SPK decision 34/1044 rules that shares held through funds controlled by a company’s dominant shareholder no longer count toward its free float, with MKK calculating daily. MKK calculates the figure daily.',
+      'SPK decision 34/1044 rules that shares held through funds controlled by a company’s dominant shareholder no longer count toward that company’s free float, with MKK recalculating daily. Bearing on Tera: this is the arrangement its disclosures show, with TLY holding large stakes in Tera group companies and in Destek Faktoring, so those holdings stop counting as freely tradable.',
     href: 'https://www.paramedya.com/devami/142075/spkdan-fiili-dolasim-hamlesi-patronun-fonundaki-hisse-artik-serbest-sayilmayacak/',
   },
   {
     date: '28 Aug 2026',
-    title: 'Position caps tied to free float',
+    title: 'Funds capped at 8% of a thinly traded company',
     stage: 'distress',
     detail:
-      'Hedge funds are capped at 8% of a company’s circulating shares where free float is under 25%, scaling down to 2% above 75%. Positions over 5% of a fund’s value cannot together exceed 20% of it. The defaults began eighteen days later.',
+      'Hedge funds are capped at 8% of a company’s circulating shares where free float is under 25%, scaling to 2% above 75%, and positions over 5% of a fund’s value cannot together exceed 20% of it. Bearing on Tera: TLY’s five largest holdings were 73% of the fund, well outside both limits, so complying means selling into the same thin markets. The defaults began eighteen days later.',
     href: 'https://www.bloomberght.com/spkdan-serbest-fonlara-sert-fren-3786791',
   },
   {

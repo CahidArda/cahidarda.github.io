@@ -9,6 +9,8 @@ import ReflexiveLoop from '../../components/interactives/tera/ReflexiveLoop.tsx'
 import CrisisTimeline from '../../components/interactives/tera/CrisisTimeline.tsx';
 import Concentration from '../../components/interactives/tera/Concentration.tsx';
 import MarkVsExit from '../../components/interactives/tera/MarkVsExit.tsx';
+import EvidenceBalance from '../../components/interactives/tera/EvidenceBalance.tsx';
+import CaseCompare from '../../components/interactives/tera/CaseCompare.tsx';
 
 On 17 September 2026 Turkey's capital markets regulator, the
 [Sermaye Piyasası Kurulu](https://en.wikipedia.org/wiki/Capital_Markets_Board_of_Turkey) or Capital
@@ -143,69 +145,39 @@ illiquid funds, where the cost of providing liquidity to those who transact fall
 ## Orchestrated or emergent
 
 Asking whether something could happen by mistake invites the follow-up of whether it did. I cannot
-answer that, and at this stage neither can anyone outside the investigation. What can be set out is
-what points each way.
+answer that, and neither can anyone outside the investigation. What can be set out is what points
+each way.
 
-Toward the mechanism running on its own: no one coordinated 102,616 investors. The loop requires no
-author, being a property of concentrated funds in thin markets, and the *Ponzi Funds* authors find
-it operating at lower amplitude across ordinary American ETFs.
+<div class="fx-figure">
+  <EvidenceBalance client:visible />
+</div>
 
-Toward deliberate conduct: the disclosures above are hard to produce by accident. Selecting stocks
-with low free float, underwriting an IPO and allocating 15.42% of it to your own fund, and holding
-29% of a portfolio in companies chaired by one person are decisions, whatever their purpose. The
-regulatory record is specific too. SPK ruled on 4 June 2026 that shares held through funds
-controlled by a company's dominant shareholder would no longer count toward its free float
-([ParaMedya](https://www.paramedya.com/devami/142075/spkdan-fiili-dolasim-hamlesi-patronun-fonundaki-hisse-artik-serbest-sayilmayacak/)),
-and on 28 August capped hedge fund positions at 8% of circulating shares in low-float companies
-([BloombergHT](https://www.bloomberght.com/spkdan-serbest-fonlara-sert-fren-3786791)). The defaults
-began eighteen days after the second rule. Whether those rules triggered the unwind or merely
-preceded it is not something the public record settles.
-
-Kindleberger's own treatment places swindles inside a mania rather than before it: the boom
-generates the appetite, the appetite generates the fraud, and the panic exposes it. In his chapter
-on frauds and the credit cycle he writes that crashes are often precipitated by the revelation of
-some misfeasance rather than caused by it.
+Kindleberger treats these as sequential rather than competing. He puts swindles inside a mania
+rather than before it: the boom generates the appetite, the appetite generates the fraud, and the
+panic exposes it. In his chapter on frauds and the credit cycle he writes that crashes are often
+precipitated by the revelation of some misfeasance rather than caused by it.
 [John Kenneth Galbraith](https://en.wikipedia.org/wiki/John_Kenneth_Galbraith) made a related
 observation about what he called the bezzle, the stock of undiscovered embezzlement that grows in
 good times, when people are trusting and money is plentiful, and shrinks in bad ones, when audits
 become thorough (*The Great Crash 1929*, Chapter VIII).
 
-On Kindleberger's reading the two are sequential rather than competing: conditions and mechanism
-account for the scale, and a mania is also the environment in which misconduct is least likely to
-be noticed. That is a framework, not a finding about Tera. Which parts of this case fall where is
-what the prosecutions will have to establish.
-
-One consequence is procedural. Manipulation requires intent; a feedback loop does not. That
-asymmetry is a reason regulators reach for structural limits, such as a cap at 8% of free float,
-rather than for findings about what anyone meant.
+That is a framework, not a finding about Tera. One consequence of it is procedural, though:
+manipulation requires intent and a feedback loop does not, which is a reason regulators reach for
+structural limits, such as a cap at 8% of free float, rather than for findings about what anyone
+meant.
 
 ## Earlier cases
 
-The comparison that came up most in coverage was Woodford. The mechanism differs. Neil Woodford's
-fund suspended in June 2019 holding £3.6bn with only 8% of its investments sellable within seven
-days, and the FCA's finding concerned asymmetric liquidation: liquid assets were sold to meet
-redemptions, leaving remaining investors with the illiquid residue
-([FCA](https://www.fca.org.uk/news/press-releases/fca-fines-over-woodford-equity-income-fund)).
-That is an outflow-side failure, and Woodford's unquoted holdings were stale-priced rather than
-price-pushed.
+Three collapses came up repeatedly while reading, and they differ from each other more than the
+coverage suggested.
 
-[Archegos](https://en.wikipedia.org/wiki/Archegos_Capital_Management) is closer on the price
-mechanism. Bill Hwang's family office grew from about \$10bn of exposure to \$160bn in a year, and
-the SEC alleged he used derivatives to artificially and dramatically drive up prices in stocks
-where his own buying was setting the price
-([SEC](https://www.sec.gov/newsroom/press-releases/2022-70)). The losses fell differently: Archegos
-left the investment banks that had financed its trades with the shortfall, whereas the Turkish
-funds' losses sit inside the unit values held by retail investors.
+<div class="fx-figure">
+  <CaseCompare client:visible />
+</div>
 
-There is also a Turkish precedent. In the 1982 *bankerler krizi*, brokers sold bank certificates of
-deposit to the public at a spread and lent the difference to marginal businesses. A November 1981
-regulation banned marketing CDs through brokers, the inflow stopped, Banker Kastelli hit
-illiquidity, and five banks were eventually taken over with their liabilities transferred to
-state-owned banks
-([Atiyas, World Bank WPS 147](https://documents1.worldbank.org/curated/en/245901468760494639/pdf/multi-page.pdf)).
-The sequence in 1982 was a rule change, then failure, then resolution through public banks. In 2026
-the position caps came in August, the defaults in September, and the liquidation is being run by İş
-Bankası and Ziraat, two large state-linked banks.
+The pattern across them is that the mechanism and the victims are separate questions. Archegos is
+the closest on how prices moved and the furthest on who paid; Woodford is the reverse; the 1982
+Turkish case shares neither mechanism, only the ending.
 
 ## What happens to the money
 
