@@ -27,9 +27,9 @@ const VB = { w: 440, h: 300 };
 
 const NODE: Record<string, Box> = {
   flow: { cx: 220, cy: 36, w: 150, h: 46 },
-  stock: { cx: 372, cy: 150, w: 124, h: 50 },
+  stock: { cx: 370, cy: 150, w: 132, h: 50 },
   nav: { cx: 220, cy: 264, w: 150, h: 46 },
-  ret: { cx: 68, cy: 150, w: 124, h: 50 },
+  ret: { cx: 70, cy: 150, w: 132, h: 50 },
 };
 
 type Mode = 'inflate' | 'unwind';
@@ -54,7 +54,7 @@ const INFLATE: Step[] = [
   {
     at: 'nav',
     caption:
-      "The fund marks its whole existing position at the new, higher last-traded price. Its NAV jumps, and the jump is far larger than the money that came in, because the new price revalues every share it already held.",
+      "The fund values its whole existing holding at the new, higher last-traded price. The value of one unit jumps, by far more than the money that came in, because the new price revalues every share it already held.",
   },
   {
     at: 'ret',
@@ -72,7 +72,7 @@ const UNWIND: Step[] = [
   {
     at: 'nav',
     caption:
-      'Redemptions arrive. The fund must pay in cash, so it has to sell. Every unit it redeems at the marked NAV is a claim on a price it has not yet tested.',
+      'Redemptions arrive. The fund must pay in cash, so it has to sell. Every unit it buys back at the published value is a claim on a price it has not yet tested.',
   },
   {
     at: 'stock',
@@ -82,7 +82,7 @@ const UNWIND: Step[] = [
   {
     at: 'flow',
     caption:
-      'The falling NAV is published too. It triggers more redemptions, which force more selling. The loop is running backwards, and whoever is still holding units owns the residue.',
+      'The falling unit value is published too. It triggers more redemptions, which force more selling. The loop is running backwards, and whoever still holds units owns the residue.',
   },
 ];
 
@@ -192,7 +192,7 @@ export default function ReflexiveLoop() {
         className="w-full"
         style={{ maxHeight: 340 }}
         role="img"
-        aria-label="A four-node loop: inflows buy a thin-float stock, the price rises, the fund's net asset value rises, the published return rises, and that attracts the next inflow"
+        aria-label="A four-node loop: inflows buy a thin-float stock, the price rises, the fund's unit value rises, the published return rises, and that attracts the next inflow"
       >
         <ArrowDefs />
 
@@ -219,8 +219,8 @@ export default function ReflexiveLoop() {
         <g onMouseEnter={() => hoverNode(order.indexOf('stock'))} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
           <SvgNode
             n={NODE.stock}
-            title="Thin-float stock"
-            sub={warn ? 'price falls' : 'price rises'}
+            title="The stock"
+            sub={warn ? 'few shares trade' : 'few shares trade'}
             color={PRICE}
             state={stateOf('stock')}
           />
@@ -228,8 +228,8 @@ export default function ReflexiveLoop() {
         <g onMouseEnter={() => hoverNode(order.indexOf('nav'))} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
           <SvgNode
             n={NODE.nav}
-            title="Fund NAV"
-            sub="marked at last price"
+            title="Fund unit value"
+            sub="what one unit is worth"
             color={NAV}
             state={stateOf('nav')}
           />
@@ -237,7 +237,7 @@ export default function ReflexiveLoop() {
         <g onMouseEnter={() => hoverNode(order.indexOf('ret'))} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
           <SvgNode
             n={NODE.ret}
-            title="Published return"
+            title="Reported return"
             sub="on the platform"
             color={NAV}
             state={stateOf('ret')}

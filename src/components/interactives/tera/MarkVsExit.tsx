@@ -40,7 +40,7 @@ export default function MarkVsExit() {
     <Widget title="A mark is not an exit price" kicker="illustrative model, not fund data" rootRef={viewRef}>
       <label className="flex flex-col gap-1.5">
         <span className="font-mono text-[0.7rem] text-ink-soft">
-          share of the stock’s free float the fund owns:{' '}
+          share of the stock’s tradable shares the fund owns:{' '}
           <strong className="text-ink">{Math.round(s * 100)}%</strong>
         </span>
         <input
@@ -77,7 +77,7 @@ export default function MarkVsExit() {
           textAnchor="end"
           style={{ fill: NAV, fontFamily: 'var(--font-mono)', fontSize: 9 }}
         >
-          what the NAV marks
+          what the fund says it is worth
         </text>
 
         {/* the exit: what you actually average on the way out */}

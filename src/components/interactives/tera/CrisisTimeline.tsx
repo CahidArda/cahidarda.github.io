@@ -193,7 +193,7 @@ export default function CrisisTimeline() {
                   }}
                 />
               </span>
-              <span className="w-[5.5rem] shrink-0 font-mono text-[0.66rem] leading-5 text-muted">
+              <span className="w-[6.6rem] shrink-0 whitespace-nowrap font-mono text-[0.66rem] leading-5 text-muted">
                 {node.date}
               </span>
               <span
