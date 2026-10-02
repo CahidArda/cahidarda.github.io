@@ -107,6 +107,14 @@ html {
      pipeline steps that touch it) and the agents (teal, the subagents that read and review). */
   --color-bos-ink: var(--bos-ink);
   --color-bos-agent: var(--bos-agent);
+
+  /* Tera fund-crisis palette - the four things that chase each other round the loop:
+     flow (investor money), price (the thin-float stock), nav (the fund's reported value
+     and published return), and warn (the reversal: default, freeze, liquidation). */
+  --color-tr-flow: var(--tr-flow);
+  --color-tr-price: var(--tr-price);
+  --color-tr-nav: var(--tr-nav);
+  --color-tr-warn: var(--tr-warn);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -860,4 +868,22 @@ html {
 .dark {
   --bos-ink: #d9a46f;
   --bos-agent: #6cb6d1;
+}
+
+/* The Tera fund-crisis cast. Flow = a cool blue for investor money (neutral, it is just
+   savings moving); price = a warehouse gold for the thin-float stock being levitated;
+   nav = a green for the reported value and published return, because that is the number
+   everyone trusted; warn = the site's red family for the reversal. Tuned for light paper
+   and dark ground. */
+:root {
+  --tr-flow: #2f6db0;
+  --tr-price: #a8841c;
+  --tr-nav: #2a7f62;
+  --tr-warn: #c0392b;
+}
+.dark {
+  --tr-flow: #69a0e0;
+  --tr-price: #d6b551;
+  --tr-nav: #4fb391;
+  --tr-warn: #e2675a;
 }

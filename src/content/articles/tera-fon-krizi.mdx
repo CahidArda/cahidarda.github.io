@@ -1,0 +1,222 @@
+---
+title: 'The Loop That Ate 455,758 Savers'
+description: 'In September 2026 Turkey froze 131 investment funds across seven managers. The mechanism was not a secret: inflows bought thin-float stocks, the prices rose, the NAV rose, the published return pulled in the next saver. What orchestration added, and what it did not.'
+date: 2026-10-02
+tags: ['blog']
+---
+
+import ReflexiveLoop from '../../components/interactives/tera/ReflexiveLoop.tsx';
+import CrisisTimeline from '../../components/interactives/tera/CrisisTimeline.tsx';
+import Concentration from '../../components/interactives/tera/Concentration.tsx';
+import MarkVsExit from '../../components/interactives/tera/MarkVsExit.tsx';
+
+On 17 September 2026 Turkey's Sermaye Piyasası Kurulu suspended trading in 131 investment funds
+belonging to seven portfolio management companies and started liquidating them. Six days later it
+published the number of people holding units in those funds: 455,758
+([SPK, via Diken](https://www.diken.com.tr/tasfiye-edilen-131-fon-455-bin-758-kisi-yatirim-yapmis/)).
+
+The question people reach for first is who did this. It is the right question and it has an answer,
+with arrests attached. But it is the second question. The first is how a fund can report a
+five-year return of 762,829% without anybody having to falsify a single number, and the answer to
+that one is not about character at all. It is a loop.
+
+<div class="fx-figure">
+  <ReflexiveLoop client:visible />
+</div>
+
+Run it forward and every step is legal. The fund takes in money. It buys more of what it already
+holds. Because what it holds has very little free float, the buying moves the price. The fund then
+marks its entire position at the new price, which is exactly what the rules require it to do, and
+its net asset value jumps by far more than the money that came in, because the new price revalues
+every share it already owned. That NAV becomes a published return on a platform anyone can see,
+which brings the next saver.
+
+Nobody has to lie for this to work. That is the uncomfortable part.
+
+## The shape of it
+
+Charles Kindleberger spent his career arguing that financial crises are not a grab bag of
+one-off disasters but a repeated shape: structural conditions, a *displacement* that starts things
+moving, euphoria, distress as the conditions turn, and then revulsion. The NBER's reconstruction of
+his model keeps that split between the underlying conditions and the trigger, and puts the exposure
+of fraud late, in the cleanup
+([Kindleberger Cycles, NBER WP 28411](https://www.nber.org/system/files/working_papers/w28411/w28411.pdf)).
+
+The Turkish episode walks it almost too neatly.
+
+<div class="fx-figure">
+  <CrisisTimeline client:visible />
+</div>
+
+The structural condition is the one nobody legislated. Turkish hedge funds, *serbest fonlar*, are
+restricted to qualified investors, and for individuals the test is mostly a financial-asset
+threshold. That threshold was ₺1m. Inflation does not read legislation. A bar set to describe a
+narrow professional class quietly became a bar that a great many ordinary savers could clear, and
+the category stopped meaning what it was written to mean. SPK raised it to ₺10m on 18 December 2025
+([Finansopia](https://www.finansopia.com/ekonomi/spkdan-fonlarda-manipulasyon-duzenlemesi/)), which
+is a regulator conceding that the old number had decayed into decoration.
+
+The displacement is TEFAS. Turkey's fund trading platform sits inside every bank app, and when
+hedge funds became reachable through it, a product built for a professional audience acquired a
+mass-market distribution channel. The thing that changed was not the product. It was who could
+reach it, and how little friction stood in the way.
+
+## What they were actually holding
+
+By the end of August 2026, Tera's flagship fund TLY held roughly ₺244bn for 102,616 investors
+([fon.org.tr](https://fon.org.tr/fon/TLY)). Here is where that money pointed.
+
+<div class="fx-figure">
+  <Concentration client:visible />
+</div>
+
+Concentration on its own is not scandalous. Plenty of funds run concentrated books, and a manager
+who refuses to diversify is making a defensible bet. What is harder to read charitably is the
+*direction* of the concentration. Nearly 29% of the fund sat in three companies chaired by Emre
+Tezmen, Tera's founder and main shareholder, two of them the group's own listed holding companies
+([Tera Finansal Yatırımlar](https://terafinansalyatirimlar.com/sayfa-yonetim-kurulu-22)). The
+largest position of all, at just under a quarter of the fund, was Destek Finans Faktoring, whose
+January 2025 IPO was underwritten by Tera Yatırım Menkul Değerler and whose largest single
+allocatee was TLY itself, at 15.42% of the offering
+([halkarz.com](https://halkarz.com/destek-finans-faktoring-a-s/)).
+
+So the group brought a company to market, its own fund took the biggest slice, and that fund then
+spent eighteen months buying more of it with other people's savings. Destek Holding's owner, Altunç
+Kumova, later told prosecutors that his company's rise from about ₺15bn at flotation to ₺1.3tn was
+<q>anormal bir rakam</q>, an abnormal figure
+([NTV](https://www.ntv.com.tr/turkiye/destek-holding-patronu-savciya-anlatti-hisselerin-yukselisi-hosuma-gidiyordu-1742669)).
+He is right, and he said it from a position that makes the admission costly.
+
+## Why the NAV was never a price
+
+A fund's unit value is computed by marking its holdings at the last traded price. When the fund is
+a small participant in a liquid market, that is a reasonable estimate of what the holdings are
+worth. When the fund is the reason the last price is what it is, the mark becomes a statement about
+one share rather than about all of them.
+
+<div class="fx-figure">
+  <MarkVsExit client:visible />
+</div>
+
+This is not an obscure insight. It has a literature and a name. In *Ponzi Funds*, van der Beck,
+Bouchaud and Villamaina decompose fund returns into a fundamental component and a self-inflated one
+produced by the fund's own price impact, and show that investors allocate capital without being
+able to tell them apart, which closes the loop into a feedback cycle that reallocates wealth to
+early investors and unravels when the price pressure reverts
+([arXiv:2405.12768](https://arxiv.org/pdf/2405.12768)). Their estimates are sobering for anyone who
+assumed this needs extreme conditions: roughly half of a day's price impact reverts within five to
+ten days, and they attribute around 2% of all daily fund flows, rising to 8-12% in the most illiquid
+decile, to flows chasing a fund's own impact.
+
+Their title is a borrowing. "Ponzi finance" is Hyman Minsky's term, the stage where obligations can
+only be met by new financing rather than by the asset's own returns, and Kindleberger built it into
+his model decades before anyone could measure price impact in basis points. The 2024 paper is a
+1970s intuition with a coefficient attached.
+
+The practical consequence is the one 455,758 people are now living through. A unit redeemed at the
+marked NAV is a claim on a price the fund has not tested. The first people out are paid at a number
+the last people out will never see, which is the first-mover advantage the FCA described in its own
+work on illiquid funds years ago, where the cost of providing liquidity to those who transact is
+borne by those who stay
+([FCA Occasional Paper 48](https://www.fca.org.uk/publication/occasional-papers/occasional-paper-48.pdf)).
+
+## Orchestrated or emergent
+
+Here is the question I started with, and I think the framing is wrong in an instructive way.
+
+The case for emergence is strong and should not be waved away. Nobody coordinated 102,616 people.
+They saw a number at the top of a league table and acted on it, which is what the platform was
+built to let them do. The loop has no author: it is a property of concentrated funds in thin
+markets, and the Ponzi Funds paper finds it running, at smaller amplitude, across ordinary American
+ETFs. Most of the money in TLY belonged to people doing something unremarkable in an economy where
+holding cash is a guaranteed loss.
+
+The case for orchestration is also strong, and it is specific rather than atmospheric. A crowd does
+not select stocks with 14% free float. A crowd does not underwrite an IPO and allocate 15.42% of it
+to its own fund. A crowd does not put 29% of a portfolio into companies chaired by one man. SPK's
+own regulatory sequence shows it had diagnosed exactly this: on 4 June 2026 it ruled that shares
+held through funds controlled by a company's dominant shareholder would no longer count toward free
+float
+([ParaMedya](https://www.paramedya.com/devami/142075/spkdan-fiili-dolasim-hamlesi-patronun-fonundaki-hisse-artik-serbest-sayilmayacak/)),
+and on 28 August it capped hedge fund positions at 8% of circulating shares in companies with low
+float
+([BloombergHT](https://www.bloomberght.com/spkdan-serbest-fonlara-sert-fren-3786791)). Eighteen
+days later the defaults began.
+
+Kindleberger's answer is that this is not a dichotomy, and that getting it backwards is the common
+error. He puts the swindles inside the mania rather than before it: the boom creates the appetite,
+the appetite creates the fraud, and the panic is what exposes it. His own phrasing, in the chapter
+on frauds and the credit cycle, is that crashes are often precipitated by the revelation of some
+misfeasance rather than caused by it. John Kenneth Galbraith made the same observation about what
+he called the bezzle, the stock of undiscovered embezzlement that swells in good times, when people
+are relaxed and money is plentiful, and shrinks in bad ones, when the audits get thorough
+(*The Great Crash 1929*, Chapter VIII).
+
+Read that way, the sequence here is legible. The structural conditions made Turkish savers desperate
+for real returns. The displacement handed them a product that could manufacture the appearance of
+one. The loop did the heavy lifting and required no conspiracy. And inside the euphoria, where
+nobody was asking hard questions because the numbers were extraordinary, there was room for
+decisions that look very deliberate indeed. The emergent part built the room. What happened in the
+room is for the prosecutors.
+
+That is the honest formulation, and it is less satisfying than either pure story. It also matters
+legally, because manipulation requires intent and a feedback loop does not, which is precisely why
+regulators prefer structural limits over proving what anyone meant. You cannot indict a loop. You
+can cap it at 8% of free float.
+
+## Where this sits among its ancestors
+
+The comparison reporters reached for was Woodford, and I think it is the wrong one. Neil Woodford's
+fund suspended in June 2019 holding £3.6bn with only 8% of its investments sellable within seven
+days, and the FCA's finding was about asymmetric liquidation: managers sold the liquid assets to
+meet redemptions, leaving the people who stayed with the illiquid residue
+([FCA](https://www.fca.org.uk/news/press-releases/fca-fines-over-woodford-equity-income-fund)).
+That is an outflow-side failure. Woodford's unquoted holdings were stale-priced, not price-pushed.
+Nothing in the FCA's case says his inflows manufactured the gains that attracted further inflows.
+
+The closer mechanical ancestor is Archegos. Bill Hwang's family office grew from about $10bn of
+exposure to $160bn in a year, and the SEC's charge was that he entered swaps to artificially and
+dramatically drive up prices in names where his own position was the marginal buyer
+([SEC](https://www.sec.gov/newsroom/press-releases/2022-70)). That is the same physics. The
+difference is who held the bag: Archegos blew up prime brokers, institutions that are paid to
+manage counterparty risk. Tera's losses landed inside a retail NAV.
+
+The closest Turkish ancestor is older and more uncomfortable. In the 1982 *bankerler krizi*, brokers
+sold bank certificates of deposit to the public at a spread and lent the difference onward to
+marginal businesses. A November 1981 regulation banned marketing CDs through brokers, the inflow
+stopped, Banker Kastelli hit illiquidity, and five banks were eventually taken over with their
+liabilities transferred to state banks
+([Atiyas, World Bank WPS 147](https://documents1.worldbank.org/curated/en/245901468760494639/pdf/multi-page.pdf)).
+A rule change cut the inflow; the structure failed weeks later; the state absorbed the resolution
+through public banks. Forty-four years on, the position caps landed in August, the defaults came in
+September, and the liquidation is being run by İş Bankası and Ziraat. The distribution channel moved
+from bank branches to bank apps. Very little else did.
+
+## What happens to the money
+
+The liquidation window was set at three months and extended to six. Assets get sold, proceeds get
+distributed pro rata, and what each investor receives depends on what the holdings actually fetch,
+not on the last NAV anyone saw. On 1 October SPK authorised interim payments of up to ₺1m per
+investor against net investment as calculated by MKK, money market funds first
+([Hürriyet](https://www.hurriyet.com.tr/gundem/spkdan-tasfiye-edilen-fonlar-icin-karar-ara-odemeler-yapilacak-43325364)).
+Anyone below that cap is whole on paper. Anyone above it waits.
+
+On 30 September, BDDK transferred three investment banks and two factoring companies in the Tera and
+Destek groups to TMSF. The containment argument is in the sizing: those three banks are 0.22% of
+Turkish banking sector assets
+([FinansınGündemi](https://www.finansingundemi.com/haber/tera-destek-ve-hedef-yatirim-bankalari-tmsfye-devredildi/1910039)).
+Systemically this is small. For the household that put its savings into a money market fund because
+money market funds are the boring option, it is not.
+
+That detail is the one I keep returning to. The product that defaulted first at Tera was not the
+762,829% hedge fund. It was a *para piyasası fonu*, the thing people buy instead of a deposit
+account, sitting in the same app, two taps away, carrying a name that promises the opposite of what
+happened.
+
+---
+
+*Charges are charges. Everyone named here is under investigation or awaiting trial, and nothing
+above should be read as a finding that any individual manipulated anything. The mechanism described
+in the first half of this post does not require that anyone did. A verification log for every figure
+and quote, including what I could not confirm and deliberately left out, is in
+[`scratchpad-sources/tera-fon-krizi-SOURCES.md`](https://github.com/cahidarda/cahidarda.github.io/blob/main/scratchpad-sources/tera-fon-krizi-SOURCES.md).*
