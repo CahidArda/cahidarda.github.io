@@ -210,7 +210,7 @@ export default function ReflexiveLoop() {
         <g onMouseEnter={() => hoverNode(order.indexOf('flow'))} onMouseLeave={leaveNode} style={{ cursor: 'pointer' }}>
           <SvgNode
             n={NODE.flow}
-            title={warn ? 'Redemptions' : 'Investor inflows'}
+            title="Investor flows"
             sub={warn ? 'money leaves' : 'money arrives'}
             color={warn ? WARN : FLOW}
             state={stateOf('flow')}
@@ -220,7 +220,7 @@ export default function ReflexiveLoop() {
           <SvgNode
             n={NODE.stock}
             title="The stock"
-            sub={warn ? 'few shares trade' : 'few shares trade'}
+            sub={warn ? 'price falls' : 'price rises'}
             color={PRICE}
             state={stateOf('stock')}
           />
@@ -229,7 +229,7 @@ export default function ReflexiveLoop() {
           <SvgNode
             n={NODE.nav}
             title="Fund unit value"
-            sub="what one unit is worth"
+            sub={warn ? 'marked lower' : 'marked higher'}
             color={NAV}
             state={stateOf('nav')}
           />
@@ -238,7 +238,7 @@ export default function ReflexiveLoop() {
           <SvgNode
             n={NODE.ret}
             title="Reported return"
-            sub="on the platform"
+            sub={warn ? 'falls' : 'rises'}
             color={NAV}
             state={stateOf('ret')}
           />
@@ -255,6 +255,9 @@ export default function ReflexiveLoop() {
       <p className="mt-2 border-t border-line pt-2 font-mono text-[0.68rem] leading-relaxed text-muted">
         Every mark in the forward loop is the last traded price, which is what the valuation rules
         require. Hover a box to stop on that step.
+        <br />
+        Fund unit value is what a single unit of the fund is worth, the figure investors see as
+        its price.
         <br />
         Mechanism as described in van der Beck, Bouchaud and Villamaina, &ldquo;Ponzi Funds&rdquo;
         (2024). Diagram drawn for this post, not reproduced from the paper.
