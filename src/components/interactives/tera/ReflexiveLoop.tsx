@@ -247,8 +247,8 @@ export default function ReflexiveLoop() {
       </p>
 
       <p className="mt-2 border-t border-line pt-2 font-mono text-[0.68rem] leading-relaxed text-muted">
-        Nothing in the forward loop requires anyone to lie. Every mark is the last traded price,
-        which is what a fund is supposed to use. Hover a box to stop on that step.
+        Every mark in the forward loop is the last traded price, which is what the valuation rules
+        require. Hover a box to stop on that step.
       </p>
     </Widget>
   );

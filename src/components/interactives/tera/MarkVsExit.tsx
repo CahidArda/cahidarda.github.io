@@ -137,8 +137,8 @@ export default function MarkVsExit() {
       <p className="mt-1 min-h-[3.2rem] text-sm text-ink-soft">
         At {Math.round(s * 100)}% of the float, a full exit averages{' '}
         <strong style={{ color: WARN }}>{gapPct}% below</strong> the price the fund is marking its
-        position at. The NAV is not wrong. It is just answering a different question: what the last
-        share traded at, rather than what all of them would.
+        position at. The mark records what the last share traded at, not what the whole position
+        would fetch.
       </p>
 
       <p className="mt-2 border-t border-line pt-2 font-mono text-[0.66rem] leading-relaxed text-muted">

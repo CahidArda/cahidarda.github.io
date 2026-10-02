@@ -36,7 +36,7 @@ const NODES: Node[] = [
     title: 'Destek Faktoring IPO',
     stage: 'displacement',
     detail:
-      'Destek Finans Faktoring floats 25% of the company at ₺46.98 a share, raising about ₺3.9bn. The underwriter is Tera Yatırım Menkul Değerler. The largest single allocatee is TLY, Tera’s own fund, at 15.42%. This is the instrument the loop will run on.',
+      'Destek Finans Faktoring floats 25% of the company at ₺46.98 a share, raising about ₺3.9bn. The underwriter is Tera Yatırım Menkul Değerler. The largest single allocatee is TLY, Tera’s own fund, at 15.42%. This is the stock that later became the fund's largest position.',
     href: 'https://halkarz.com/destek-finans-faktoring-a-s/',
   },
   {
@@ -51,7 +51,7 @@ const NODES: Node[] = [
     title: 'SPK raises the qualified-investor bar to ₺10m',
     stage: 'distress',
     detail:
-      'The threshold for qualified-investor status goes from ₺1m to ₺10m of financial assets. The regulator is, in effect, conceding that the old bar had stopped doing its job. The money already inside is not affected.',
+      'The threshold for qualified-investor status goes from ₺1m to ₺10m of financial assets. The threshold had not been indexed to inflation. Money already invested was not affected.',
     href: 'https://www.finansopia.com/ekonomi/spkdan-fonlarda-manipulasyon-duzenlemesi/',
   },
   {
@@ -67,7 +67,7 @@ const NODES: Node[] = [
     title: 'Fund-held shares stop counting as free float',
     stage: 'distress',
     detail:
-      'SPK decision 34/1044 rules that shares held through funds controlled by a company’s dominant shareholder no longer count toward its free float, with MKK calculating daily. The regulator has named the mechanism.',
+      'SPK decision 34/1044 rules that shares held through funds controlled by a company’s dominant shareholder no longer count toward its free float, with MKK calculating daily. MKK calculates the figure daily.',
     href: 'https://www.paramedya.com/devami/142075/spkdan-fiili-dolasim-hamlesi-patronun-fonundaki-hisse-artik-serbest-sayilmayacak/',
   },
   {
@@ -75,7 +75,7 @@ const NODES: Node[] = [
     title: 'Position caps tied to free float',
     stage: 'distress',
     detail:
-      'Hedge funds are capped at 8% of a company’s circulating shares where free float is under 25%, scaling down to 2% above 75%. Positions over 5% of a fund’s value cannot together exceed 20% of it. The inflow side of the loop is now illegal. Everything after this is the loop running backwards.',
+      'Hedge funds are capped at 8% of a company’s circulating shares where free float is under 25%, scaling down to 2% above 75%. Positions over 5% of a fund’s value cannot together exceed 20% of it. The defaults began eighteen days later.',
     href: 'https://www.bloomberght.com/spkdan-serbest-fonlara-sert-fren-3786791',
   },
   {
@@ -83,7 +83,7 @@ const NODES: Node[] = [
     title: 'Pusula defaults',
     stage: 'revulsion',
     detail:
-      'Pusula Portföy announces it cannot meet redemption payments on some funds. Eighteen days after the position caps.',
+      'Pusula Portföy announces it cannot meet redemption payments on some funds. Eighteen days after the 28 August position caps.',
   },
   {
     date: '16 Sep 2026',
@@ -105,7 +105,7 @@ const NODES: Node[] = [
     title: '455,758 investors',
     stage: 'revulsion',
     detail:
-      'SPK publishes the number of people holding units in the frozen funds. Not a professional clientele.',
+      'SPK publishes the number of people holding units in the frozen funds. The funds were sold through TEFAS, which is reachable in the standard bank apps.',
     href: 'https://www.diken.com.tr/tasfiye-edilen-131-fon-455-bin-758-kisi-yatirim-yapmis/',
   },
   {
@@ -113,7 +113,7 @@ const NODES: Node[] = [
     title: 'Arrests reach the board',
     stage: 'revulsion',
     detail:
-      'Erkan Kilimci, a deputy governor of the central bank from 2016 to 2018 and a Tera board member, is arrested along with ten others. Prosecutors are running the case through the financial-crimes and money-laundering bureau.',
+      'Erkan Kilimci, a deputy governor of the central bank from 2016 to 2018 and a Tera board member, is arrested along with ten others. The case is being run through the Istanbul prosecutor's financial-crimes and money-laundering bureau.',
     href: 'https://t24.com.tr/gundem/fon-krizi-sorusturmasinda-yeni-gelisme-eski-merkez-bankasi-baskan-yardimcisi-erkan-kilimci-dahil-11-kisi-tutuklandi,1349763',
   },
   {
@@ -121,7 +121,7 @@ const NODES: Node[] = [
     title: 'Five companies to TMSF',
     stage: 'revulsion',
     detail:
-      'BDDK transfers Tera, Destek and Hedef investment banks plus Destek Finans Faktoring and Tera Finans Faktoring to the deposit insurance fund. The three banks are 0.22% of banking sector assets, which is the containment argument in one number.',
+      'BDDK transfers Tera, Destek and Hedef investment banks plus Destek Finans Faktoring and Tera Finans Faktoring to the deposit insurance fund. The three banks hold 0.22% of Turkish banking sector assets.',
     href: 'https://www.finansingundemi.com/haber/tera-destek-ve-hedef-yatirim-bankalari-tmsfye-devredildi/1910039',
   },
   {
@@ -129,7 +129,7 @@ const NODES: Node[] = [
     title: 'Interim payments, capped at ₺1m',
     stage: 'revulsion',
     detail:
-      'SPK authorises advances against final liquidation proceeds: up to ₺1m per investor against net investment as calculated by MKK, money market funds first. Anyone below the cap is made whole on paper; anyone above waits for the liquidation.',
+      'SPK authorises advances against final liquidation proceeds: up to ₺1m per investor against net investment as calculated by MKK, money market funds first. Investors below the cap receive their net investment; those above wait for the liquidation.',
     href: 'https://www.hurriyet.com.tr/gundem/spkdan-tasfiye-edilen-fonlar-icin-karar-ara-odemeler-yapilacak-43325364',
   },
 ];

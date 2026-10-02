@@ -30,14 +30,14 @@ const HOLDINGS: Holding[] = [
     name: 'Destek Finans Faktoring',
     pct: 24.8,
     link: 'underwrote',
-    note: 'Floated Feb 2025 at ₺46.98 by Tera Yatırım Menkul Değerler. TLY took 15.42% of the offering, the largest single allocation. Its owner later told prosecutors the rise to ₺1.3tn was an abnormal number.',
+    note: 'Floated Feb 2025 at ₺46.98 by Tera Yatırım Menkul Değerler. TLY took 15.42% of the offering, the largest single allocation. Its owner later told prosecutors the rise to ₺1.3tn was an abnormal figure.',
   },
   {
     ticker: 'OZATD',
     name: 'Özata Denizcilik',
     pct: 19.8,
     link: 'none',
-    note: 'No Tera board relationship is disclosed. A fifth of the fund in a single shipping company is a concentration decision on its own terms.',
+    note: 'No Tera board relationship is disclosed in the sources reviewed here.',
   },
   {
     ticker: 'TEHOL',
@@ -51,14 +51,14 @@ const HOLDINGS: Holding[] = [
     name: 'Tera Finansal Yatırımlar Holding',
     pct: 8.28,
     link: 'chair',
-    note: 'A second Tera group holding company, also chaired by Tezmen. The fund is buying its own manager’s listed parent structure.',
+    note: 'A second Tera group holding company, also chaired by Tezmen.',
   },
   {
     ticker: 'PEKGY',
     name: 'Peker GYO',
     pct: 6.29,
     link: 'chair',
-    note: 'A real estate investment trust. Tera’s own corporate page lists Tezmen as its board chair alongside the Tera entities.',
+    note: 'A real estate investment trust. Tera’s corporate page lists Tezmen as its board chair alongside the Tera entities.',
   },
 ];
 
@@ -113,7 +113,7 @@ export default function Concentration() {
             {CHAIR.toFixed(1)}%
           </div>
           <div className="font-mono text-[0.66rem] leading-tight text-ink-soft">
-            in companies chaired by Tera’s own founder
+            in companies chaired by Tera’s founder
           </div>
         </div>
         <div className="border border-line px-3 py-2">
@@ -121,7 +121,7 @@ export default function Concentration() {
             {RELATED.toFixed(1)}%
           </div>
           <div className="font-mono text-[0.66rem] leading-tight text-ink-soft">
-            in names the group chaired or brought to market
+            in names the group chaired or underwrote
           </div>
         </div>
       </div>
