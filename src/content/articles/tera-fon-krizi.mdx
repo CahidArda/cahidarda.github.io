@@ -1,6 +1,6 @@
 ---
 title: "Turkey's 2026 Fund Crisis"
-description: 'In September 2026 Turkey froze and began liquidating 131 investment funds across seven managers. Notes on what happened, on research describing how a concentrated fund can inflate its own returns, and on what is documented versus alleged.'
+description: 'In September 2026 Turkey froze and began liquidating 131 investment funds across seven managers. Notes from reading into one question: could something like this happen by mistake, without anyone planning it?'
 date: 2026-10-02
 tags: ['blog']
 ---
@@ -17,19 +17,25 @@ funds belonging to seven portfolio management companies and began liquidating th
 it put the number of people holding units in those funds at 455,758
 ([SPK, via Diken](https://www.diken.com.tr/tasfiye-edilen-131-fon-455-bin-758-kisi-yatirim-yapmis/)).
 
-I knew nothing about any of this three days ago. These are notes from reading into it, organised
-around one question that turned out to have a research literature behind it: how can a fund report
-a five-year return of 762,829% without anyone having to falsify a number?
+I knew nothing about any of this three days ago. Nearly all the coverage I read was about who
+should be arrested, and what I found myself wondering was something else: could a thing like this
+happen by mistake? Not whether it did here, which I have no way to judge, but whether a fund can
+end up reporting a five-year return of 762,829% without anybody setting out to make that happen.
+
+These are notes from reading into that. It turns out to be a question with a research literature
+behind it, which was not what I expected.
 
 Lira figures below are converted at roughly ₺49 to the dollar, the rate in early October 2026
 ([Trading Economics](https://tradingeconomics.com/turkey/currency)). The lira lost about 18% against
 the dollar over the preceding year, so older lira amounts bought more at the time than that rate
 implies.
 
-## A mechanism that needs no fraud
+## Could it happen by mistake?
 
-The literature describes a feedback loop available to any fund that holds a large share of a
-thinly traded stock. The diagram below steps through it.
+The research says a fund can inflate its own reported returns without anyone misreporting
+anything, provided it holds a large enough share of a thinly traded stock. That is a claim about
+what is possible, not about what occurred in Turkey. The diagram below steps through the mechanism
+as the literature describes it.
 
 <div class="fx-figure">
   <ReflexiveLoop client:visible />
@@ -41,8 +47,9 @@ the new price, which is what the valuation rules require, so its net asset value
 the money that arrived, since the new price revalues every share it already held. The NAV becomes a
 published return, and the published return attracts the next investor.
 
-The relevant feature of this mechanism is that it produces inflated returns without anyone
-misreporting anything.
+So the answer to the question I started with is yes, in principle: the returns can inflate without
+anyone misreporting a number. That does not tell you whether it is what happened in any particular
+case, including this one.
 
 ## The stages Kindleberger described
 
@@ -127,20 +134,24 @@ illiquid funds, where the cost of providing liquidity to those who transact fall
 
 ## Orchestrated or emergent
 
-This was the question I started with, and the research suggests it is not a binary.
+Asking whether something could happen by mistake invites the follow-up of whether it did. I cannot
+answer that, and at this stage neither can anyone outside the investigation. What can be set out is
+what points each way.
 
-On the emergent side: no one coordinated 102,616 investors. The loop requires no author, being a
-property of concentrated funds in thin markets, and the *Ponzi Funds* authors find it operating at
-lower amplitude across ordinary American ETFs.
+Toward the mechanism running on its own: no one coordinated 102,616 investors. The loop requires no
+author, being a property of concentrated funds in thin markets, and the *Ponzi Funds* authors find
+it operating at lower amplitude across ordinary American ETFs.
 
-On the other side, the regulatory record is specific. SPK ruled on 4 June 2026 that shares held
-through funds controlled by a company's dominant shareholder would no longer count toward its free
-float
+Toward deliberate conduct: the disclosures above are hard to produce by accident. Selecting stocks
+with low free float, underwriting an IPO and allocating 15.42% of it to your own fund, and holding
+29% of a portfolio in companies chaired by one person are decisions, whatever their purpose. The
+regulatory record is specific too. SPK ruled on 4 June 2026 that shares held through funds
+controlled by a company's dominant shareholder would no longer count toward its free float
 ([ParaMedya](https://www.paramedya.com/devami/142075/spkdan-fiili-dolasim-hamlesi-patronun-fonundaki-hisse-artik-serbest-sayilmayacak/)),
 and on 28 August capped hedge fund positions at 8% of circulating shares in low-float companies
 ([BloombergHT](https://www.bloomberght.com/spkdan-serbest-fonlara-sert-fren-3786791)). The defaults
-began eighteen days after the second rule. Whether those rules triggered the unwind, or merely
-preceded it, is not something the public record settles.
+began eighteen days after the second rule. Whether those rules triggered the unwind or merely
+preceded it is not something the public record settles.
 
 Kindleberger's own treatment places swindles inside a mania rather than before it: the boom
 generates the appetite, the appetite generates the fraud, and the panic exposes it. In his chapter
@@ -151,10 +162,10 @@ observation about what he called the bezzle, the stock of undiscovered embezzlem
 good times, when people are trusting and money is plentiful, and shrinks in bad ones, when audits
 become thorough (*The Great Crash 1929*, Chapter VIII).
 
-On that reading the two explanations are sequential rather than competing: conditions and mechanism
+On Kindleberger's reading the two are sequential rather than competing: conditions and mechanism
 account for the scale, and a mania is also the environment in which misconduct is least likely to
-be noticed. Which parts of this case fall on which side is what the prosecutions will have to
-establish.
+be noticed. That is a framework, not a finding about Tera. Which parts of this case fall where is
+what the prosecutions will have to establish.
 
 One consequence is procedural. Manipulation requires intent; a feedback loop does not. That
 asymmetry is a reason regulators reach for structural limits, such as a cap at 8% of free float,
