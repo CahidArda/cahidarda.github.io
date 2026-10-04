@@ -1,0 +1,17 @@
+---
+/**
+ * Page-wide square-kufic background (after Emin Barın's Latin murabba kûfî): one mosaic
+ * of words fitted together like bricks, fixed behind the page. Purely decorative and
+ * static; the artwork is /kufic/field.svg used as a mask, tinted with the ink token.
+ */
+interface Props {
+  /** article = quieter, for long reading. */
+  tone?: 'home' | 'article';
+}
+const { tone = 'home' } = Astro.props;
+---
+
+<div class:list={['kf-bg', `kf-${tone}`]} aria-hidden="true">
+  <div class="kf-layer kf-ink"></div>
+  <div class="kf-layer kf-accent"></div>
+</div>

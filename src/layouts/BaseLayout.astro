@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import ProfileSidebar from '../components/ProfileSidebar.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import KuficField from '../components/KuficField.astro';
 import CommandPalette, { type PaletteItem } from '../components/CommandPalette.tsx';
 import { profile } from '../data/profile';
 import { tags, tagKeys, tagHref } from '../data/tags';
@@ -25,6 +26,8 @@ interface Props {
   /** Make the content grid at least one viewport tall, so a full-screen hero
    *  above it can scroll completely out of view (home page). */
   fillViewport?: boolean;
+  /** Square-kufic background tone; article pages pass 'article'. */
+  kufic?: 'home' | 'article';
 }
 
 const {
@@ -35,6 +38,7 @@ const {
   activeNav,
   headings = [],
   fillViewport = false,
+  kufic = 'home',
 } = Astro.props;
 
 const pageTitle = title ? `${title} - ${profile.name}` : `${profile.name} - Software Engineer`;
@@ -130,6 +134,14 @@ const gtagSnippet = `
     />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
+    <!-- PREVIEW ONLY: ?kufic=diag,fade,accent picks the background variant. -->
+    <script is:inline>
+      (() => {
+        const v = new URLSearchParams(location.search).get('kufic');
+        if (v) document.documentElement.dataset.kufic = v.split(',').join(' ');
+      })();
+    </script>
+
     <!-- Set theme before paint to avoid a flash -->
     <script is:inline>
       (() => {
@@ -146,6 +158,7 @@ const gtagSnippet = `
   </head>
 
   <body id="top">
+    <KuficField tone={kufic} />
     <a
       href="#main"
       class="label sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:border focus:border-accent focus:bg-paper focus:px-3 focus:py-2"

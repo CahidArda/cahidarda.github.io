@@ -861,3 +861,82 @@ html {
   --bos-ink: #d9a46f;
   --bos-agent: #6cb6d1;
 }
+
+/* ==========================================================================
+   Square-kufic background (after Emin Barın's Latin murabba kûfî).
+   One mosaic of words fitted together like bricks (src/lib/kufic.ts), served as
+   /kufic/field.svg and used as a mask so it takes the ink colour of either theme.
+   PREVIEW ONLY: hidden unless ?kufic=on|diag|fade|accent (see BaseLayout).
+   ========================================================================== */
+.kf-bg {
+  --kf-cell: 8px;
+  --kf-ink: 0.05;
+  --kf-hot: 0.24;
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.kf-article {
+  --kf-ink: 0.035;
+  --kf-hot: 0.18;
+}
+.dark .kf-bg {
+  --kf-ink: 0.06;
+}
+.dark .kf-article {
+  --kf-ink: 0.045;
+}
+html[data-kufic] .kf-bg {
+  display: block;
+}
+.kf-layer {
+  position: absolute;
+  /* The field is 240 x 239 cells; centre it so either orientation covers the viewport. */
+  left: 50%;
+  top: 50%;
+  width: calc(240 * var(--kf-cell));
+  height: calc(239 * var(--kf-cell));
+  translate: -50% -50%;
+  -webkit-mask: url('/kufic/field.svg') center / 100% 100% no-repeat;
+  mask: url('/kufic/field.svg') center / 100% 100% no-repeat;
+}
+.kf-ink {
+  background-color: var(--color-ink);
+  opacity: var(--kf-ink);
+}
+.kf-accent {
+  display: none;
+  background-color: var(--color-accent);
+  opacity: var(--kf-hot);
+  -webkit-mask-image: url('/kufic/accent.svg');
+  mask-image: url('/kufic/accent.svg');
+}
+html[data-kufic~='accent'] .kf-accent {
+  display: block;
+}
+/* Turned onto the diagonal, like a square-kufic panel set on its corner. */
+html[data-kufic~='diag'] .kf-layer {
+  rotate: 45deg;
+}
+/* Dissolve toward the reading area (upper left), strongest in the far corner. */
+html[data-kufic~='fade'] .kf-bg {
+  -webkit-mask-image: linear-gradient(135deg, transparent 22%, #000 78%);
+  mask-image: linear-gradient(135deg, transparent 22%, #000 78%);
+}
+/* Larger grain: fewer, more legible words. */
+html[data-kufic~='large'] .kf-bg {
+  --kf-cell: 12px;
+}
+@media (max-width: 40rem) {
+  .kf-bg {
+    --kf-cell: 6px;
+  }
+}
+@media print {
+  .kf-bg {
+    display: none !important;
+  }
+}
