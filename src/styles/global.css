@@ -107,6 +107,9 @@ html {
      pipeline steps that touch it) and the agents (teal, the subagents that read and review). */
   --color-bos-ink: var(--bos-ink);
   --color-bos-agent: var(--bos-agent);
+
+  /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
+  --color-dk-ink: var(--dk-ink);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -860,4 +863,12 @@ html {
 .dark {
   --bos-ink: #d9a46f;
   --bos-agent: #6cb6d1;
+}
+
+/* The Dikilitas cast: the print's ink. Tuned for light paper and dark ground. */
+:root {
+  --dk-ink: #2b2420;
+}
+.dark {
+  --dk-ink: #e8dccb;
 }
