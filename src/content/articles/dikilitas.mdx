@@ -1,0 +1,285 @@
+---
+title: 'Dikilitaş: An App to Read the 3,400-Year-Old Obelisk in Istanbul'
+description: 'I could not read a word of the 3,400-year-old obelisk in Sultanahmet, so I built an app that reads it for me, with some clever prompting to make it feel ancient.'
+date: 2026-10-05
+tags: ['blog']
+---
+
+import FlatShade from '../../components/interactives/dikilitas/FlatShade.tsx';
+
+I built a small app called [Dikilitaş](https://obelisk-390.vercel.app/), after the Turkish name of the Obelisk of
+Theodosius in Istanbul. You turn a 3D model of the obelisk, tap a line of
+hieroglyphs, and read what it says. The pedestal is there too, with its reliefs
+and its Latin and Greek inscriptions.
+
+<video
+  controls
+  muted
+  playsInline
+  preload="metadata"
+  src="https://cdn.jsdelivr.net/gh/CahidArda/obelisk-390@main/docs/demo-10s-en.mp4"
+  style="width: 100%; border-radius: 4px;"
+>
+  Your browser does not support the video tag.
+</video>
+
+The code is on GitHub:
+[CahidArda/obelisk-390](https://github.com/CahidArda/obelisk-390).
+
+## Where this came from
+
+I was on a tour of Sultanahmet with a guide. At the
+[German Fountain](https://en.wikipedia.org/wiki/German_Fountain), the octagonal
+fountain Wilhelm II gifted the city after his 1898 visit, our guide stopped and
+read the Ottoman inscriptions to us. The dome is covered in gold mosaic, with the tughra
+of Abdülhamid II and the monogram of Wilhelm II set in medallions, and a band of
+calligraphy runs along the arches.
+
+<figure class="fx-figure">
+  <img
+    src="/articles/dikilitas/german-fountain-dome.jpg"
+    alt="Inside the dome of the German Fountain: gold mosaic, medallions with the tughra of Abdülhamid II and the monogram of Wilhelm II, and a band of Ottoman calligraphy over the arches"
+    loading="lazy"
+    style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+  />
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    The dome of the German Fountain in Sultanahmet. Green medallions carry the tughra of Abdülhamid
+    II, blue ones the crowned W of Wilhelm II. The calligraphy band runs over the arches.
+  </figcaption>
+</figure>
+
+Then we walked a few steps to the obelisk. It has four faces of hieroglyphs, and
+its marble pedestal has a Latin inscription on one side and a Greek one on the
+other. Our guide told us its history, but the texts themselves went unread.
+
+<figure class="fx-figure">
+  <img
+    src="/articles/dikilitas/obelisk-square.jpg"
+    alt="The Obelisk of Theodosius in Sultanahmet Square, with visitors around its base"
+    loading="lazy"
+    style="width: 100%; max-width: 420px; height: auto; margin-inline: auto; display: block; border: 1px solid var(--color-line);"
+  />
+  <figcaption class="mt-3 text-center font-mono text-[0.7rem] leading-relaxed text-muted">
+    The Obelisk of Theodosius in the old Hippodrome, now Sultanahmet Square.
+  </figcaption>
+</figure>
+
+Still, I was standing in front of a
+[3,400-year-old text](https://en.wikipedia.org/wiki/Obelisk_of_Theodosius),
+carved for the temple of Karnak under Thutmose III and moved here by Theodosius I
+in 390, and I could not read a word of it. Wouldn't it be nice if there was an app for that?
+
+If you read my post on [Bosphore 1819](/articles/bosphore-1819), you know where
+this is going. That one started with an old map on a café wall and ended with
+an app that reads every label on it. Same itch, different artifact.
+
+## Prompt one: four photos
+
+I took a photo of each face of the obelisk and handed them to Claude with a
+short description: a minimal app, a 3D model you can turn, translations when
+you hover over the text, and it should work on my phone.
+
+<figure class="fx-figure">
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+    <img
+      src="/articles/dikilitas/side-1.jpg"
+      alt="The obelisk from its first side"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+    <img
+      src="/articles/dikilitas/side-2.jpg"
+      alt="The obelisk from its second side"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+    <img
+      src="/articles/dikilitas/side-3.jpg"
+      alt="The obelisk from its third side"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+    <img
+      src="/articles/dikilitas/side-4.jpg"
+      alt="The obelisk from its fourth side"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+  </div>
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    The four photos I gave Claude, one per face.
+  </figcaption>
+</figure>
+
+Claude came back with an app. It worked: the model turned, the text showed up
+when you hovered, the layout held on mobile. Visually, though, it wasn't where I
+wanted it to be. The obelisk looked like an asset from a cheap Android game, and
+with the dark background, the spotlight and the floating pill buttons, the page
+felt like Gran Turismo: swap the obelisk for an Audi and it would have made more
+sense.
+
+<figure class="fx-figure">
+  <img
+    src="/articles/dikilitas/v1-game.jpg"
+    alt="The first version: a shaded 3D obelisk on a dark background with floating pill buttons"
+    loading="lazy"
+    style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+  />
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    What came back from the first prompt.
+  </figcaption>
+</figure>
+
+## Prompt two: make it feel ancient
+
+The second prompt took the app from 25 percent done to 90 percent done, in my
+eyes. I wanted the page to feel ancient, like something the architect of the
+obelisk could have unrolled in front of the pharaoh.
+
+So I went looking for a feeling, not a spec. I searched for photos of
+hieroglyphs and picked one I liked. Then I added a photo I had taken at the
+[Rahmi M. Koç Museum](https://www.rmk-museum.org.tr/) in Istanbul: a wall of
+framed prints of steam traction engines, each one drawn flat, from the side, in
+clean colour with thin ink lines, a title on top and a small table of
+specifications underneath. I love that museum, and these prints are easy to walk
+past next to the ships, trains and planes, but they are one of the main reasons I
+keep going back. I asked Claude to combine the two.
+
+<figure class="fx-figure">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+    <img
+      src="/articles/dikilitas/hieroglyph-reference.jpg"
+      alt="Close-up of carved hieroglyphs in warm sandstone: a falcon, a reed, an eye"
+      loading="lazy"
+      style="width: 100%; height: 100%; object-fit: cover;"
+    />
+    <img
+      src="/articles/dikilitas/koc-museum-prints.jpg"
+      alt="Framed prints of steam traction engines on a stone wall at the Rahmi M. Koç Museum"
+      loading="lazy"
+      style="width: 100%; height: 100%; object-fit: cover;"
+    />
+  </div>
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    The two references for the second prompt. Left: hieroglyphs I found online. Right: engine prints
+    I photographed at the Rahmi M. Koç Museum.
+  </figcaption>
+</figure>
+
+The prompt itself was short. Roughly: if the model is not extremely realistic, it
+looks like a game artifact; look at these prints, they are flat but they read as
+real; can we have that aesthetic and still turn it? And one more idea: a zoomed
+out view that keeps the print look, and a zoomed in view where the text reads
+like a page you can scroll, which also suits a phone.
+
+This time, what came back was close to what I had in mind.
+
+<figure class="fx-figure">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+    <img
+      src="/articles/dikilitas/v1-game.jpg"
+      alt="Before: a shaded 3D obelisk on a dark background with floating pill buttons"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+    <img
+      src="/articles/dikilitas/v2-plate.jpg"
+      alt="After: a flat, ink-outlined obelisk on cream paper with a reading page beside it"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+  </div>
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    Before and after the second prompt.
+  </figcaption>
+</figure>
+
+The look comes from very little. The obelisk is a real 3D model in
+[three.js](https://threejs.org/), seen through an
+[orthographic](https://en.wikipedia.org/wiki/Orthographic_projection) camera so nothing
+shrinks with distance, the way an engineering drawing has no perspective. There
+is no lighting model at all. Every face gets one flat colour, computed from a
+single fixed light, and an ink outline drawn along its edges. That is the whole
+trick behind the "print" feeling.
+
+<div class="fx-figure">
+  <FlatShade client:visible />
+</div>
+
+Around it sits a cream page with a title block and a small table of
+specifications, borrowed straight from the engine prints: height, material,
+where it was carved, where it was raised. The hieroglyphs on the model are real
+Unicode characters from the
+[Egyptian Hieroglyphs](https://en.wikipedia.org/wiki/Egyptian_Hieroglyphs_%28Unicode_block%29)
+block, set in Google's Noto Sans Egyptian Hieroglyphs and painted onto the faces.
+The reading page uses the same characters, so the column you read on the right
+is the column you see on the stone.
+
+## Then, one thing at a time
+
+From there it was a long list of small asks. Centre the glyphs in their column.
+Make the highlight follow the line I am reading. Keep the model still when the
+card on mobile changes height. Stop the camera from going under the ground. Turn
+the obelisk slowly when the page opens, and stop as soon as I touch it. Four
+languages. Smoother zoom. None of these were hard. They were just mine to notice.
+
+The pedestal took the most rounds. The first drawings were grey pill shapes
+standing in rows. What worked was measuring: each relief was flattened from a
+photograph and every figure placed from it, so no two spectators are the same,
+just like on the stone.
+
+{/* prettier-ignore */}
+<figure class="fx-figure">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+    <img
+      src="/articles/dikilitas/relief-east-photo.jpg"
+      alt="Photograph of the east side of the pedestal relief"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+    <img
+      src="/articles/dikilitas/relief-east-drawing.jpg"
+      alt="The line drawing of the same relief, as it appears in the app"
+      loading="lazy"
+      style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+    />
+  </div>
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    East side of the pedestal: Theodosius holds out the victor's wreath, with dancers and two water organs below. Left: <a href="https://commons.wikimedia.org/wiki/File:Dado_di_teodosio,_390_ca.,_lato_est,_teodosio_dal_palco_imperiale_offre_la_corona_d%27alloro_al_vincitore_dei_giochi,_01.jpg">photograph by Francesco Bini</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, cropped and straightened. Right: the drawing in the app.
+  </figcaption>
+</figure>
+
+<figure class="fx-figure">
+  <img
+    src="/articles/dikilitas/app-open.jpg"
+    alt="The app as it opens: the whole obelisk drawn as a print on the left, the reading page for Face I on the right"
+    loading="lazy"
+    style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+  />
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    The finished app, as it opens.
+  </figcaption>
+</figure>
+
+## The stack
+
+Very light. One HTML file, three.js from a CDN, and fonts from Google Fonts: EB
+Garamond for the text, Noto Serif JP for Japanese, Noto Sans Egyptian Hieroglyphs
+for the glyphs. The pedestal drawings are several hundred lines of canvas code.
+There is no framework, no npm install and no build step. You can serve the folder
+with anything.
+
+It was built and previewed in an [Upstash Box](https://upstash.com/docs/box)
+from one Claude Code session, the same setup as the Bosphore app: the agent
+edited the files in the box, took screenshots with a headless browser to check
+its own work, and pushed to GitHub from there.
+
+## In the end
+
+This one will probably get less attention than the Bosphore map. With the map
+you can look up the street you live on. With this one you can read an obelisk,
+which is a smaller crowd, unless there are ancient Egyptians among my followers.
+
+I am happy with it anyway. Next time I walk past the Hippodrome I can read what
+Thutmose III had carved, and what Theodosius had written underneath about
+getting it to stand up again.
