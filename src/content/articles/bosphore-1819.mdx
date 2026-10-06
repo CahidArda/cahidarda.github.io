@@ -6,22 +6,17 @@ tags: ['blog']
 ---
 
 import PipelineFlow from '../../components/interactives/bosphore/PipelineFlow.tsx';
+import TweetEmbed from '../../components/TweetEmbed.astro';
 
 I built a small app called [Bosphore 1819](https://bosphore-1819.vercel.app/). It
 shows an 1819 French map of the Bosphorus, and every place name on it is listed,
 searchable, and given three ways: the French original as engraved, the Ottoman
 Turkish name in Latin and Arabic script, and the name we use today.
 
-<video
-  controls
-  muted
-  playsInline
-  preload="metadata"
-  src="https://cdn.jsdelivr.net/gh/CahidArda/bosphore-1819@main/docs/demo-10s-en.mp4"
-  style="width: 100%; border-radius: 4px;"
->
-  Your browser does not support the video tag.
-</video>
+<TweetEmbed
+  url="https://twitter.com/cahidarda/status/2103218970115678497"
+  fallback="Bosphore 1819: every label on an 1819 French map of the Bosphorus, searchable, in French, Ottoman Turkish and modern Turkish."
+/>
 
 The code and the data are on GitHub:
 [CahidArda/bosphore-1819](https://github.com/CahidArda/bosphore-1819).
@@ -108,7 +103,7 @@ touched anything but its own files, so they could not step on each other.
 A few side jobs ran in [Upstash Box](https://upstash.com/docs/box) sandboxes, driven
 from one Claude Code session through the
 [Upstash MCP server](https://upstash.com/docs/agent-resources/overview): rendering the
-demo video above with ffmpeg, and editing and previewing this post before opening the
+demo video with ffmpeg, and editing and previewing this post before opening the
 pull request.
 
 ## In the end

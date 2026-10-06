@@ -108,6 +108,9 @@ html {
   --color-bos-ink: var(--bos-ink);
   --color-bos-agent: var(--bos-agent);
 
+  /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
+  --color-dk-ink: var(--dk-ink);
+
   /* Tera fund-crisis palette - the four things that chase each other round the loop:
      flow (investor money), price (the thin-float stock), nav (the fund's reported value
      and published return), and warn (the reversal: default, freeze, liquidation). */
@@ -868,6 +871,14 @@ html {
 .dark {
   --bos-ink: #d9a46f;
   --bos-agent: #6cb6d1;
+}
+
+/* The Dikilitas cast: the print's ink. Tuned for light paper and dark ground. */
+:root {
+  --dk-ink: #2b2420;
+}
+.dark {
+  --dk-ink: #e8dccb;
 }
 
 /* The Tera fund-crisis cast. Flow = a cool blue for investor money (neutral, it is just
