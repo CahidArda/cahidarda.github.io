@@ -110,6 +110,14 @@ html {
 
   /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
   --color-dk-ink: var(--dk-ink);
+
+  /* Tera fund-crisis palette - the four things that chase each other round the loop:
+     flow (investor money), price (the thin-float stock), nav (the fund's reported value
+     and published return), and warn (the reversal: default, freeze, liquidation). */
+  --color-tr-flow: var(--tr-flow);
+  --color-tr-price: var(--tr-price);
+  --color-tr-nav: var(--tr-nav);
+  --color-tr-warn: var(--tr-warn);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -871,4 +879,22 @@ html {
 }
 .dark {
   --dk-ink: #e8dccb;
+}
+
+/* The Tera fund-crisis cast. Flow = a cool blue for investor money (neutral, it is just
+   savings moving); price = a warehouse gold for the thin-float stock being levitated;
+   nav = a green for the reported value and published return, because that is the number
+   everyone trusted; warn = the site's red family for the reversal. Tuned for light paper
+   and dark ground. */
+:root {
+  --tr-flow: #2f6db0;
+  --tr-price: #a8841c;
+  --tr-nav: #2a7f62;
+  --tr-warn: #c0392b;
+}
+.dark {
+  --tr-flow: #69a0e0;
+  --tr-price: #d6b551;
+  --tr-nav: #4fb391;
+  --tr-warn: #e2675a;
 }
