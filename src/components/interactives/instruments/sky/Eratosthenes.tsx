@@ -116,7 +116,7 @@ export default function Eratosthenes() {
           {/* labels */}
           {(() => {
             const sl = polar(cx, cy, R + 12, top - 2.5);
-            const al = polar(cx, cy, R + 12, aAlex + 2.5);
+            const al = polar(cx, cy, R + 10, aAlex + (narrow ? 9 : 6));
             return (
               <>
                 <InkText x={sl.x} y={sl.y} size={13}>Syene</InkText>
