@@ -88,6 +88,7 @@ export function arcPts(cx: number, cy: number, r: number, from: number, to: numb
 /** "0 nautical miles" / "1 nautical mile" / "12 nautical miles" from degrees of latitude. */
 export function nmi(deg: number) {
   const n = Math.round(Math.abs(deg) * 60);
+  if (n === 0) return 'less than a nautical mile';
   return `${n} nautical mile${n === 1 ? '' : 's'}`;
 }
 

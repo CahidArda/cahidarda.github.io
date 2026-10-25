@@ -61,8 +61,8 @@ function Side({ a60, a30, back }: { a60: number; a30: number; back: boolean }) {
           </>
         )}
         {/* arcs and staff */}
-        <path d={arcPath(g.O.x, g.O.y, g.r30, 0, 30)} style={solid('ink', 1.6)} />
-        <path d={arcPath(g.O.x, g.O.y, g.r60, g.a30, g.a30 + 60)} style={solid('ink', 1.6)} />
+        <path d={arcPath(g.O.x, g.O.y, g.r30, g.arc30.from, g.arc30.to)} style={solid('ink', 1.6)} />
+        <path d={arcPath(g.O.x, g.O.y, g.r60, g.arc60.from, g.arc60.to)} style={solid('ink', 1.6)} />
         <line x1={g.O.x} y1={g.O.y} x2={g.staffEnd.x} y2={g.staffEnd.y} style={solid('ink', 2.2)} />
         <line x1={g.O.x} y1={g.O.y} x2={g.sightVane.x} y2={g.sightVane.y} style={{ ...solid('sky', 1), strokeDasharray: '4 3' }} />
         {/* vanes */}
@@ -231,8 +231,10 @@ export default function BackstaffProcedure() {
       caption={
         <>
           Arcs of 30 cm and 75 cm radius; the large arc reads to 2′ (real ones had transversals, down to half an
-          arcminute on a Greenwich example). The shadow counts as lined up within 3′. Same sun, date and simplifications
-          as Plate 3.
+          arcminute on a Greenwich example). The shadow counts as lined up within 3′. Navigators put the shadow’s
+          edge, which marks the rim of the sun, on the slit and then corrected for the sun’s radius (about 16′); the
+          plate lines up the middle of the blur, the sun’s centre, so it needs no correction. Same sun, date and
+          simplifications as Plate 3.
         </>
       }
     />

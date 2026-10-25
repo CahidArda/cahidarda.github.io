@@ -288,6 +288,14 @@ for (let a60 = S.A60_MIN; a60 <= S.A60_MAX; a60 += S.A60_STEP) {
       // the shadow ray through the vane hits O exactly when aligned
       if (Math.abs(a60 + a30 - S.H_SUN) < 1e-9) ok(near(sd.shadowHit.y, sd.O.y, 1e-6), 'backstaff scale: aligned shadow reaches the slit', () => c);
       ok(near(ang(sd.O, sd.shadowVane), a60 + a30, 1e-9), 'backstaff scale: shadow vane at a60 + a30', () => c);
+      // the arcs belong to the instrument: they turn with the staff, and each carries its vane
+      ok(near(sd.arc60.from, a30, 1e-12) && near(sd.arc60.to - sd.arc60.from, 60, 1e-12), 'backstaff frame: 60° arc starts at the staff', () => c);
+      ok(near(sd.arc30.to, a30, 1e-12) && near(sd.arc30.to - sd.arc30.from, 30, 1e-12), 'backstaff frame: 30° arc ends at the staff', () => c);
+      ok(a60 + a30 >= sd.arc60.from - 1e-9 && a60 + a30 <= sd.arc60.to + 1e-9, 'backstaff frame: shadow vane on the 60° arc', () => c);
+      ok(0 >= sd.arc30.from - 1e-9 && 0 <= sd.arc30.to + 1e-9, 'backstaff frame: sight vane on the 30° arc', () => c);
+      // the arcs fit the drawing
+      for (const [r, a] of [[sd.r60, sd.arc60], [sd.r30, sd.arc30]] as const)
+        for (const q of arcPts(sd.O.x, sd.O.y, r, a.from, a.to)) ok(inBox(q, W, sd.H, 2), 'backstaff bounds: arcs', () => `${c} ${JSON.stringify(q)}`);
     }
 }
 

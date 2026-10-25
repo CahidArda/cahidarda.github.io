@@ -184,12 +184,18 @@ export function bsSay(g: ReturnType<typeof bsVane>) {
  * Side diagram (world fixed: the sight line to the horizon is level, the sun behind you at h).
  * O is the horizon vane, the arcs' common centre. Screen angles at O, 0° = towards the eye (right).
  * The sight vane sits on the 30° arc at 0°, the staff at +a30, the shadow vane on the 60° arc at
- * a30 + a60. The shadow ray runs from the shadow vane, away from the sun, towards O.
+ * a30 + a60. Both arcs are part of the instrument: the 60° arc spans [a30, a30 + 60] above the
+ * staff and the 30° arc [a30 − 30, a30] below it, so tilting the staff turns them with it. The shadow ray runs from the shadow vane, away from the sun, towards O.
  */
 export function bsSide(a60: number, a30: number, W: number) {
   const H = viewH(W);
-  const O = { x: Math.max(70, W * 0.2), y: H * 0.66 };
-  const k = Math.min((W - O.x - 40) / R30, (O.y - 30) / (R30 * Math.sin(H_SUN * RAD + 0.2)));
+  const O = { x: Math.max(70, W * 0.2), y: H * 0.58 };
+  // the 30° arc hangs below the staff: at a30 = 0 it reaches 30° below the sight line
+  const k = Math.min(
+    (W - O.x - 40) / R30,
+    (O.y - 30) / (R30 * Math.sin(H_SUN * RAD + 0.2)),
+    (H - O.y - 34) / (R30 * Math.sin(30 * RAD)),
+  );
   const r30 = R30 * k;
   const r60 = R60 * k;
   const at = (r: number, deg: number) => ({ x: O.x + r * Math.cos(deg * RAD), y: O.y - r * Math.sin(deg * RAD) });
@@ -205,5 +211,8 @@ export function bsSide(a60: number, a30: number, W: number) {
   const shadowHit = { x: O.x, y: shadowVane.y + uy * t };
   const sunIn = { x: shadowVane.x - ux * 46, y: shadowVane.y - uy * 46 };
   const horizonEnd = { x: 8, y: O.y };
-  return { W, H, O, k, r30, r60, sightVane, eye, staffEnd, shadowVane, shadowHit, sunIn, horizonEnd, alpha, a30 };
+  /** Both arcs are fixed to the staff: the 60° arc above it, the 30° arc below it, so they turn with it. */
+  const arc60 = { from: a30, to: a30 + 60 };
+  const arc30 = { from: a30 - 30, to: a30 };
+  return { W, H, O, k, r30, r60, sightVane, eye, staffEnd, shadowVane, shadowHit, sunIn, horizonEnd, alpha, a30, arc60, arc30 };
 }
