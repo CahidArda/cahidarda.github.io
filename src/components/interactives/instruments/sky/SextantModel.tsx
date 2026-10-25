@@ -183,7 +183,11 @@ export default function SextantModel() {
   };
   const hitsArm = (e: React.PointerEvent) => {
     const q = ray(e);
-    return !!q && q.rc.intersectObjects(q.pk.parts, true).length > 0;
+    if (!q) return false;
+    q.rc.params.Line = { threshold: 0 };
+    return q.rc
+      .intersectObjects(q.pk.parts, true)
+      .some((h) => (h.object as THREEns.Mesh).isMesh && !h.object.userData.inkHull);
   };
   const dragTo = (e: React.PointerEvent) => {
     const q = ray(e);
