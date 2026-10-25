@@ -5,6 +5,7 @@
  * read the instrument, the date, the figure and its source.
  */
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   C,
   Controls,
@@ -18,18 +19,35 @@ import { ANGLE, ANGLE_TICKS, TIME, TIME_TICKS, fmtAngle, fmtTime, type Rung } fr
 
 type Mode = 'time' | 'angle';
 
-const CFG: Record<
-  Mode,
-  {
-    rungs: Rung[];
-    ticks: { v: number; label: string }[];
-    lo: number;
-    hi: number;
-    fmt: (v: number) => string;
-    unit: string;
-    start: number;
-  }
-> = {
+/**
+ * One ladder. Pass `config` to <PrecisionLadder> to draw a single quantity (no toggle), e.g. a
+ * post's own ladder: <PrecisionLadder n={1} title="…" config={MY_LADDER} />. Each post can keep
+ * its own config + rungs in its own folder (see ladderData.ts for the Rung shape and sourcing).
+ */
+export interface LadderConfig {
+  rungs: Rung[];
+  /** Named y ticks (value in base units, label). */
+  ticks: { v: number; label: string }[];
+  /** log10 of the largest (bottom) and smallest (top) error on the axis: lo is the TOP. */
+  lo: number;
+  hi: number;
+  fmt: (v: number) => string;
+  /** Axis label, e.g. 'error per day'. */
+  unit: string;
+  /** Small text under the big readout, e.g. 'per day'. */
+  per: string;
+  /** Rung selected at first. */
+  start: number;
+  /** x axis: first year, the year where the compressed stretch ends, last year, and the share of
+   *  the width given to the compressed stretch. Defaults: -1500, 1500, 2040, 0.3. */
+  years?: { y0: number; yb: number; y1: number; split: number };
+  xTicks?: { wide: number[]; narrow: number[] };
+  /** Vertical label nudges to avoid collisions (rung index, narrow) → px. */
+  dy?: (i: number, narrow: boolean) => number;
+}
+
+
+const CFG: Record<Mode, LadderConfig> = {
   time: {
     rungs: TIME,
     ticks: TIME_TICKS,
@@ -37,7 +55,9 @@ const CFG: Record<
     hi: 4,
     fmt: fmtTime,
     unit: 'error per day',
+    per: 'per day',
     start: 3,
+    dy: (i, n) => labelDy('time', i, n),
   },
   angle: {
     rungs: ANGLE,
@@ -46,7 +66,9 @@ const CFG: Record<
     hi: 4,
     fmt: fmtAngle,
     unit: 'error in angle',
+    per: 'of arc',
     start: 3,
+    dy: (i, n) => labelDy('angle', i, n),
   },
 };
 
@@ -59,7 +81,21 @@ function yearLabel(y: number) {
   return y < 0 ? `${-y} BCE` : `${y}`;
 }
 
-export default function PrecisionLadder() {
+export const TIME_LADDER = CFG.time;
+export const ANGLE_LADDER = CFG.angle;
+
+export default function PrecisionLadder({
+  config,
+  n = 1,
+  title = 'The precision ladder',
+  caption,
+}: {
+  /** Draw only this ladder (no Time/Angle toggle). */
+  config?: LadderConfig;
+  n?: number;
+  title?: string;
+  caption?: ReactNode;
+} = {}) {
   const [sel, setSel] = useState<Mode>('time');
   const [mode, bindMode] = useHoverPreview(sel);
   const [pick, setPick] = useState<Record<Mode, number>>({
@@ -69,7 +105,10 @@ export default function PrecisionLadder() {
   const [hover, setHover] = useState<number | null>(null);
   const [wrapRef, W] = useMeasuredWidth<HTMLDivElement>(640);
 
-  const cfg = CFG[mode];
+  const single = !!config;
+  const [pickOne, setPickOne] = useState(config?.start ?? 0);
+  const cfg = config ?? CFG[mode];
+  const yrs = cfg.years ?? { y0: Y0, yb: YB, y1: Y1, split: SPLIT };
   const narrow = W < 520;
   const H = narrow ? 340 : 400;
   const m = { l: narrow ? 46 : 58, r: narrow ? 14 : 22, t: 22, b: 34 };
@@ -77,8 +116,8 @@ export default function PrecisionLadder() {
   const ih = H - m.t - m.b;
 
   const x = (yr: number) => {
-    if (yr <= YB) return m.l + ((yr - Y0) / (YB - Y0)) * SPLIT * iw;
-    return m.l + SPLIT * iw + ((yr - YB) / (Y1 - YB)) * (1 - SPLIT) * iw;
+    if (yr <= yrs.yb) return m.l + ((yr - yrs.y0) / (yrs.yb - yrs.y0)) * yrs.split * iw;
+    return m.l + yrs.split * iw + ((yr - yrs.yb) / (yrs.y1 - yrs.yb)) * (1 - yrs.split) * iw;
   };
   // smaller error = higher on the page; the ladder climbs
   const y = (v: number) => m.t + ((Math.log10(v) - cfg.lo) / (cfg.hi - cfg.lo)) * ih;
@@ -86,7 +125,7 @@ export default function PrecisionLadder() {
   const pts = useMemo(
     () => cfg.rungs.map((r) => ({ r, x: x(r.year), y: y(r.value) })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, W, H],
+    [cfg, W, H],
   );
 
   // best-so-far staircase
@@ -105,30 +144,38 @@ export default function PrecisionLadder() {
     return d;
   }, [pts, m.l, iw]);
 
-  const active = hover ?? pick[mode];
+  const active = hover ?? (single ? pickOne : pick[mode]);
   const cur = cfg.rungs[Math.min(active, cfg.rungs.length - 1)];
 
-  const xTicks = narrow
-    ? [-1000, 1500, 1700, 1900, 2000]
-    : [-1000, 500, 1500, 1600, 1700, 1800, 1900, 2000];
+  const xTicks = cfg.xTicks
+    ? narrow
+      ? cfg.xTicks.narrow
+      : cfg.xTicks.wide
+    : narrow
+      ? [-1000, 1500, 1700, 1900, 2000]
+      : [-1000, 500, 1500, 1600, 1700, 1800, 1900, 2000];
 
-  const choose = (i: number) => setPick((p) => ({ ...p, [mode]: i }));
+  const choose = (i: number) =>
+    single ? setPickOne(i) : setPick((p) => ({ ...p, [mode]: i }));
 
   return (
     <Plate
-      n={1}
+      n={n}
       wide
-      title="The precision ladder"
+      title={title}
       kicker="log scale · hover a rung"
       caption={
+        caption ?? (
         <>
           Each rung is the best error an instrument could hold; the red line is the best so far.
           Hollow marks are order-of-magnitude estimates. The years before 1500 are squeezed into the
           dashed stretch on the left.
         </>
+        )
       }
     >
       <Controls>
+        {!single && (
         <Segmented
           label="Quantity"
           options={[
@@ -142,6 +189,7 @@ export default function PrecisionLadder() {
           }}
           preview={bindMode}
         />
+        )}
         <span
           className="font-mono text-[0.68rem] tracking-[0.12em] uppercase"
           style={{ color: C.soft }}
@@ -200,16 +248,16 @@ export default function PrecisionLadder() {
             style={{ stroke: C.ink, strokeWidth: 1, fill: 'none' }}
           />
           <path
-            d={`M ${m.l} ${m.t + ih} H ${x(YB)}`}
+            d={`M ${m.l} ${m.t + ih} H ${x(yrs.yb)}`}
             style={{ stroke: C.ink, strokeWidth: 1, strokeDasharray: '4 3', fill: 'none' }}
           />
           <path
-            d={`M ${x(YB)} ${m.t + ih} H ${m.l + iw}`}
+            d={`M ${x(yrs.yb)} ${m.t + ih} H ${m.l + iw}`}
             style={{ stroke: C.ink, strokeWidth: 1, fill: 'none' }}
           />
           {/* break mark where the scale changes */}
           <path
-            d={`M ${x(YB) - 5} ${m.t + ih + 5} l 4 -10 M ${x(YB) - 1} ${m.t + ih + 5} l 4 -10`}
+            d={`M ${x(yrs.yb) - 5} ${m.t + ih + 5} l 4 -10 M ${x(yrs.yb) - 1} ${m.t + ih + 5} l 4 -10`}
             style={{ stroke: C.ink, strokeWidth: 0.9, fill: 'none' }}
           />
           {xTicks.map((yr) => (
@@ -271,14 +319,14 @@ export default function PrecisionLadder() {
             const labelRight = p.x < m.l + iw * 0.8;
             const s = on ? 5.5 : 4;
             const diamond = `M ${p.x} ${p.y - s} L ${p.x + s} ${p.y} L ${p.x} ${p.y + s} L ${p.x - s} ${p.y} Z`;
-            const dy = labelDy(mode, i, narrow);
+            const dy = cfg.dy ? cfg.dy(i, narrow) : 0;
             return (
               <g
                 key={`${mode}-${i}`}
                 tabIndex={0}
                 role="button"
                 aria-label={`${p.r.name}, ${p.r.era}: ${cfg.fmt(p.r.value)}`}
-                aria-pressed={pick[mode] === i}
+                aria-pressed={(single ? pickOne : pick[mode]) === i}
                 onMouseEnter={() => setHover(i)}
                 onFocus={() => setHover(i)}
                 onBlur={() => setHover(null)}
@@ -352,7 +400,7 @@ export default function PrecisionLadder() {
         >
           {cfg.fmt(cur.value)}
           <div className="text-[0.62rem] tracking-[0.12em] uppercase" style={{ color: C.soft }}>
-            {mode === 'time' ? 'per day' : 'of arc'}
+            {cfg.per}
           </div>
         </div>
         <div
