@@ -23,7 +23,7 @@ import {
   type StepDef,
 } from '../shared';
 import { AMP, PIVOT, initialState, stepMovement, type Pt } from './deadbeat';
-import { escScene } from './escScene';
+import { escSay, escScene } from './escScene';
 import { fmtSec, signed } from './fmt';
 import { DL_MAX, L_MAX, L_MIN, L_STEP, SECONDS_L, errPerDay, isSeconds, period, snapL } from './pendulumGeom';
 import { ARMS, Movement3D } from './PendulumModel';
@@ -71,7 +71,7 @@ function CloseUp({ L, st }: { L: number; st: { phase: number; w: number } }) {
   const z = g.zoom!;
   const zf = (q: Pt) => z.f(q);
   const clip = `cu-${W}`;
-  const say = c.face === 'lock' ? 'Locked: the tooth rests on the locking face; the wheel does not move.' : 'Impulse: the tooth slides along the slanted face and pushes the pallet.';
+  const say = escSay(c.face, W);
   const arms = ARMS.map((arm) => arm.map((q) => rotPt(q, PIVOT, a)));
   return (
     <div ref={ref}>

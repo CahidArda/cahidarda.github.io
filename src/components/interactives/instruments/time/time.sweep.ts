@@ -17,7 +17,7 @@ import * as Q from './quadrantGeom.ts';
 import * as VG from './vergeGeom.ts';
 import * as DB from './deadbeat.ts';
 import * as PG from './pendulumGeom.ts';
-import { escScene } from './escScene.ts';
+import { escSay, escScene } from './escScene.ts';
 import * as SEA from './seaGeom.ts';
 import * as QZ from './quartzGeom.ts';
 import * as AT from './atomicGeom.ts';
@@ -344,6 +344,7 @@ for (const d of DEVICES) ok(d.lo <= d.hi && d.lo >= GAUGE_LO && d.hi <= GAUGE_HI
         }
         const z = g.zoom!;
         ok(z.cx - z.r >= 0 && z.cx + z.r <= W && z.cy + z.r + 16 <= g.H - 12 && (g.narrow ? z.cy - z.r >= g.mainH : z.cx - z.r >= g.mainW), 'escapement view: close-up inside', () => `W=${W} L=${L} ${JSON.stringify({ cx: z.cx, cy: z.cy, r: z.r, H: g.H })}`);
+        for (const f2 of ['lock', 'impulse'] as const) ok([...escSay(f2, W)].length * 11.5 * 0.5 <= W - 8, 'escapement view: status fits', () => `W=${W} ${f2}`);
         // contact point is centred in the close-up
         const cp = z.f(g.contact.point);
         ok(near(cp.x, z.cx, 1e-9) && near(cp.y, z.cy, 1e-9), 'escapement view: close-up centred on the contact', () => `W=${W}`);

@@ -88,3 +88,9 @@ export function escScene(w: number, a: number, L: number, W: number, opts: { zoo
   };
 }
 export type EscScene = ReturnType<typeof escScene>;
+
+/** Status line under the escapement view; the short form fits a 300px phone view. */
+export function escSay(face: 'lock' | 'impulse', W: number) {
+  if (W >= 520) return face === 'lock' ? 'Locked: the tooth rests on the locking face; the wheel does not move.' : 'Impulse: the tooth slides along the slanted face and pushes the pallet.';
+  return face === 'lock' ? 'Locked: the wheel stands dead still.' : 'Impulse: the tooth pushes the pallet.';
+}
