@@ -1,0 +1,17 @@
+[
+  { "plate": 1, "name": "p1-s3", "do": [["set", "day of the year", 355], ["next"], ["set", "true local time", 10.5], ["next"]] },
+  { "plate": 1, "name": "p1-s6-night", "do": [["next", 2], ["seg", "style tilted to 41°"], ["next"], ["set", "true local time", 20.5]] },
+  { "plate": 2, "name": "p2-s2", "do": [["button", "Fill the bowl"], ["next"], ["set", "hours since sunset", 9.5]] },
+  { "plate": 3, "name": "p3-s4", "do": [["set", "date", 30], ["set", "true time (morning)", 10], ["next"], ["set", "tilt the board: altitude h", 70], ["wait", 200]] },
+  { "plate": 3, "name": "p3-s4b", "do": [["set", "tilt the board: altitude h", 28.0], ["next", 2]] },
+  { "plate": 4, "name": "p4-s4", "do": [["button", "Hang the weight"], ["next", 2], ["set", "regulating weights, along the arm", 0.62], ["next"], ["set", "drive, relative to the usual weight", 0.7]], "wait": 1200 },
+  { "plate": 5, "name": "p5-s2", "do": [["set", "pendulum length L", 0.3], ["next"]], "wait": 1100 },
+  { "plate": 5, "name": "p5-s4", "do": [["next"], ["set", "pendulum length L", 0.994], ["next"], ["set", "rod longer by", 1]], "wait": 2500 },
+  { "plate": 6, "name": "p6-s3", "do": [["next"], ["set", "height of the swell", 1.5], ["next"], ["set", "sail to latitude", 30]] },
+  { "plate": 7, "name": "p7-s2", "do": [["button", "Squeeze it"], ["next"]] },
+  { "plate": 8, "name": "p8-s2", "do": [["set", "microwave frequency, from the caesium line", 400], ["next"], ["set", "microwave frequency, from the caesium line", 30]] },
+  { "plate": 8, "name": "p8-s5", "do": [["next"], ["button", "Close the loop"], ["next", 2], ["seg", "2024 optical"]] },
+  { "plate": 9, "name": "p9-s2", "do": [["next"]] },
+  { "plate": 9, "name": "p9-s3", "do": [["next"], ["set", "your clock's error b", 0.000003]] },
+  { "plate": 10, "name": "p10", "do": [] }
+]
