@@ -13,8 +13,7 @@ import LevelPlate from '../../../components/interactives/instruments/earth/Level
 import TriangulationPlate from '../../../components/interactives/instruments/earth/TriangulationPlate.tsx';
 import TheodolitePlate from '../../../components/interactives/instruments/earth/TheodolitePlate.tsx';
 import ArcsecondPlate from '../../../components/interactives/instruments/earth/ArcsecondPlate.tsx';
-import PrecisionLadder from '../../../components/interactives/instruments/PrecisionLadder.tsx';
-import { SURVEY_LADDER } from '../../../components/interactives/instruments/earth/surveyLadder.ts';
+import SurveyLadderPlate from '../../../components/interactives/instruments/earth/SurveyLadderPlate.tsx';
 import plumbLevels from '../../../assets/instruments/miniature-plumb-levels.jpg';
 import sinanPanel from '../../../assets/instruments/sinan-panel.jpg';
 import theodoliteBox from '../../../assets/instruments/theodolite-box.jpg';
@@ -270,13 +269,7 @@ Put all of these on one scale, the error in a measured length per kilometre, and
 climb is not a straight one.
 
 <div class="fx-figure">
-  <PrecisionLadder
-    client:visible
-    n={5}
-    config={SURVEY_LADDER}
-    title="How precisely we could measure distance, from the pyramids to GPS"
-    caption="Error per kilometre of length measured, on a log scale; the red line is the best so far. The pyramid builders levelled a 325 m pavement to a few centimetres per kilometre, while Snellius's triangle chain, 4,000 years later, was off by 35 m per km. Short, careful levelling was good early; long distances only caught up when the angles did. The years before 1500 are squeezed into the dashed stretch."
-  />
+  <SurveyLadderPlate client:visible n={5} />
 </div>
 
 The plumb bob is still in the kit.
