@@ -194,7 +194,7 @@ export default function SextantModel() {
   const readingRef = useRef(reading);
   readingRef.current = reading;
   /** Pointer angle about the pivot, in the instrument's own plane (degrees). */
-  const pointerAngle = (e: React.PointerEvent) => {
+  const pointerAngle = (e: React.PointerEvent, minR = 0.25) => {
     const q = ray(e);
     if (!q) return null;
     const { T } = q.pk;
@@ -205,7 +205,7 @@ export default function SextantModel() {
     const hit = q.rc.ray.intersectPlane(plane, new T.Vector3());
     if (!hit) return null;
     const loc = q.pk.inst.worldToLocal(hit);
-    if (Math.hypot(loc.x, loc.y) < 0.25) return null;
+    if (Math.hypot(loc.x, loc.y) < minR) return null;
     return (Math.atan2(loc.y, loc.x) * 180) / Math.PI;
   };
   const dragTo = (e: React.PointerEvent) => {
@@ -244,10 +244,10 @@ export default function SextantModel() {
         style={{ position: 'relative' }}
         onPointerDownCapture={(e) => {
           if (e.button !== 0 || !hitsArm(e)) return;
+          const ang = pointerAngle(e, 0.5); // the outer half of the arm: a long lever, fine control
+          if (ang === null) return;
           e.stopPropagation();
           e.preventDefault();
-          const ang = pointerAngle(e);
-          if (ang === null) return;
           grabRef.current = { ang, reading: readingRef.current };
           dragRef.current = e.pointerId;
           e.currentTarget.setPointerCapture(e.pointerId);
@@ -260,7 +260,7 @@ export default function SextantModel() {
           }
           if (e.pointerType === 'mouse') {
             const cv = wrapRef.current?.querySelector('canvas');
-            if (cv) cv.style.cursor = hitsArm(e) ? 'pointer' : '';
+            if (cv) cv.style.cursor = hitsArm(e) && pointerAngle(e, 0.5) !== null ? 'pointer' : '';
           }
         }}
         onPointerUpCapture={(e) => {
