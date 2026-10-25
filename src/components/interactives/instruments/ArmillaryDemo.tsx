@@ -20,7 +20,14 @@ function Poster() {
     <svg viewBox={`0 0 ${W} ${H}`}>
       <circle cx={cx} cy={cy} r={R} style={s} />
       <circle cx={cx} cy={cy} r={R - 5} style={s} />
-      <ellipse cx={cx} cy={cy} rx={R} ry={R * 0.32} style={s} transform={`rotate(-41 ${cx} ${cy})`} />
+      <ellipse
+        cx={cx}
+        cy={cy}
+        rx={R}
+        ry={R * 0.32}
+        style={s}
+        transform={`rotate(-41 ${cx} ${cy})`}
+      />
       <ellipse
         cx={cx}
         cy={cy}
@@ -30,7 +37,14 @@ function Poster() {
         transform={`rotate(-17 ${cx} ${cy})`}
       />
       <ellipse cx={cx} cy={cy} rx={R + 8} ry={(R + 8) * 0.26} style={s} />
-      <line x1={cx - 92} y1={cy + 107} x2={cx + 92} y2={cy - 107} style={s} transform={`rotate(-8 ${cx} ${cy})`} />
+      <line
+        x1={cx - 92}
+        y1={cy + 107}
+        x2={cx + 92}
+        y2={cy - 107}
+        style={s}
+        transform={`rotate(-8 ${cx} ${cy})`}
+      />
       <circle cx={cx} cy={cy} r={11} style={s} />
       <path d={`M ${cx} ${cy + R} V ${H - 14} M ${cx - 40} ${H - 14} H ${cx + 40}`} style={s} />
     </svg>
@@ -45,9 +59,8 @@ export default function ArmillaryDemo() {
       title="An armillary sphere, for the road"
       caption={
         <>
-          The sky as nested rings: horizon, meridian, celestial equator, and the ecliptic in
-          red, tilted 23.44° to the equator. The polar axis is set for Istanbul, 41° above the
-          horizon.
+          The sky as nested rings: horizon, meridian, celestial equator, and the ecliptic in red,
+          tilted 23.44° to the equator. The polar axis is set for Istanbul, 41° above the horizon.
         </>
       }
     >

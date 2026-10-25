@@ -32,23 +32,35 @@
  *
  * ── 3D: <BlueprintCanvas> renders three.js meshes as an engraved line drawing ─────────────
  *   three is imported DYNAMICALLY inside the canvas, so a widget that only uses the SVG parts
- *   never downloads it. `build(THREE, ctx)` runs once when WebGL is ready; add objects to
- *   `ctx.root` (the group the reader rotates), call `ctx.inkify(mesh)` to turn a mesh into
- *   paper fill + ink edges (+ optional dashed hidden lines), and return an `update(dt, t, params)`
- *   that moves things. Rendering is on demand: it only draws while on screen, and only when
- *   `animate` is on (and motion is not reduced), the reader is dragging, `params` changed, or
- *   you call `ctx.invalidate()`. Colours follow the theme toggle automatically.
+ *   never downloads it (~180 KB gzip, its own chunk). `build(THREE, ctx)` runs ONCE when WebGL
+ *   is ready (it closes over first-render props: pass live values through `params`). Add
+ *   objects to `ctx.root` (the group the reader rotates, centred on the origin), call
+ *   `ctx.inkify(obj, opts)` to turn meshes into paper fill + ink edges (EdgesGeometry,
+ *   `threshold` deg) + a silhouette outline (`outline` px, for cylinders/tori/spheres) +
+ *   optional dashed `hidden` lines, and return `update(dt, t, params)` (return true to ask for
+ *   another frame). `ctx.lineMaterial(role, {dashed})` / `ctx.fillMaterial(role)` give
+ *   theme-tracking materials for your own rays, threads, pointers. Rendering is on demand: only
+ *   while on screen, and only when `animate` is on (and motion not reduced), the reader drags,
+ *   `params` changes identity, or you call `ctx.invalidate()`. Colours re-read on theme toggle.
+ *   Camera: orthographic, looking down -z, `fit` = half the view height in world units.
+ *   Input: mouse drag = yaw + pitch; touch = horizontal drags only (vertical swipes scroll the
+ *   page; wheel is never captured); arrow keys when focused. The canvas draws its own
+ *   "drag to turn" hint, so do not repeat it in the Plate kicker. Without WebGL the `poster`
+ *   stays (also what SSR and the first paint show), so give every 3D plate a real SVG poster.
  *
- *   const params = { length };            // React state you want inside the scene
- *   <Plate n={2} title="Pendulum and anchor" kicker="drag to turn">
+ *   const params = useMemo(() => ({ length }), [length]);   // live values for update()
+ *   <Plate n={2} title="Pendulum and anchor" caption="Drag the slider to lengthen the rod.">
  *     <BlueprintCanvas aspect={4 / 3} fit={1.4} animate params={params}
  *       poster={<MyPosterSvg />} label="Pendulum clock movement, rotatable"
- *       build={(THREE, ctx) => {
- *         const bob = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.06, 48));
+ *       build={(T, ctx) => {
+ *         const bob = new T.Mesh(new T.CylinderGeometry(0.3, 0.3, 0.06, 48));
  *         bob.rotation.x = Math.PI / 2; ctx.inkify(bob, { hidden: true }); ctx.root.add(bob);
  *         return (dt, t, p) => { bob.position.x = Math.sin(t * 2) * p.length; };
  *       }} />
+ *     <Controls><Slider label="length" value={length} min={0.2} max={1} step={0.01}
+ *       onChange={setLength} format={(v) => `${v.toFixed(2)} m`} /></Controls>
  *   </Plate>
+ *   Worked example: ./ArmillaryDemo.tsx (landing, Plate 2). SVG example: ./PrecisionLadder.tsx.
  *
  * Hooks re-exported from ../dataplat/shared: useReducedMotion, useInView, useHoverPreview.
  */
@@ -531,11 +543,9 @@ export function ArcScale({
   const nums: ReactNode[] = [];
   const eps = 1e-6;
   for (let a = lo; a <= hi + eps; a += minor) {
-    const isMajor = Math.abs(((a - lo) / major) % 1) < eps || Math.abs(((a - lo) / major) % 1) > 1 - eps;
-    const isHalf =
-      !isMajor &&
-      major / minor >= 4 &&
-      Math.abs((((a - lo) / (major / 2)) % 1)) < eps;
+    const isMajor =
+      Math.abs(((a - lo) / major) % 1) < eps || Math.abs(((a - lo) / major) % 1) > 1 - eps;
+    const isHalf = !isMajor && major / minor >= 4 && Math.abs(((a - lo) / (major / 2)) % 1) < eps;
     const L = isMajor ? tick : isHalf ? tick * 0.7 : tick * 0.45;
     const p = polar(cx, cy, r, a);
     const q = polar(cx, cy, r + dir * L, a);
@@ -565,7 +575,10 @@ export function ArcScale({
   return (
     <g>
       {rim && (
-        <path d={arcPath(cx, cy, r, lo, hi)} style={{ fill: 'none', stroke: C[role], strokeWidth: width * 1.2 }} />
+        <path
+          d={arcPath(cx, cy, r, lo, hi)}
+          style={{ fill: 'none', stroke: C[role], strokeWidth: width * 1.2 }}
+        />
       )}
       <path d={ticks.join(' ')} style={{ fill: 'none', stroke: C[role], strokeWidth: width }} />
       {nums}
@@ -646,10 +659,13 @@ export interface BlueprintCtx {
   camera: THREEns.OrthographicCamera;
   /** The group the reader rotates. Add your model here (centred on the origin). */
   root: THREEns.Group;
-  /** Turn a mesh (and its children meshes) into paper fill + ink edges. Returns the edge lines. */
+  /** Turn a mesh (and its children meshes) into paper fill + ink edges (+ silhouette, + hidden lines). */
   inkify: (obj: THREEns.Object3D, opts?: InkifyOptions) => void;
   /** A theme-tracking line material, for your own Line/LineSegments (axes, rays, threads). */
-  lineMaterial: (role?: Role, opts?: { dashed?: boolean; dash?: number; gap?: number; onTop?: boolean }) => THREEns.LineBasicMaterial;
+  lineMaterial: (
+    role?: Role,
+    opts?: { dashed?: boolean; dash?: number; gap?: number; onTop?: boolean },
+  ) => THREEns.LineBasicMaterial;
   /** A theme-tracking flat material for solid fills (e.g. a red-ochre pointer). */
   fillMaterial: (role?: Role) => THREEns.MeshBasicMaterial;
   /** Request one more frame (after you changed something outside update). */
@@ -1034,8 +1050,18 @@ export function PosterPlaceholder({ aspect = 4 / 3 }: { aspect?: number }) {
   const r = Math.min(W, H) * 0.32;
   return (
     <svg viewBox={`0 0 ${W} ${H}`}>
-      <circle cx={W / 2} cy={H / 2} r={r} style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.8 }} />
-      <circle cx={W / 2} cy={H / 2} r={r * 0.62} style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.6, strokeDasharray: '3 3' }} />
+      <circle
+        cx={W / 2}
+        cy={H / 2}
+        r={r}
+        style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.8 }}
+      />
+      <circle
+        cx={W / 2}
+        cy={H / 2}
+        r={r * 0.62}
+        style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.6, strokeDasharray: '3 3' }}
+      />
       <path
         d={`M ${W / 2 - r * 1.15} ${H / 2} H ${W / 2 + r * 1.15} M ${W / 2} ${H / 2 - r * 1.15} V ${H / 2 + r * 1.15}`}
         style={{ stroke: C.faint, strokeWidth: 0.6 }}

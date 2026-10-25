@@ -14,15 +14,7 @@ import {
   useHoverPreview,
   useMeasuredWidth,
 } from './shared';
-import {
-  ANGLE,
-  ANGLE_TICKS,
-  TIME,
-  TIME_TICKS,
-  fmtAngle,
-  fmtTime,
-  type Rung,
-} from './ladderData';
+import { ANGLE, ANGLE_TICKS, TIME, TIME_TICKS, fmtAngle, fmtTime, type Rung } from './ladderData';
 
 type Mode = 'time' | 'angle';
 
@@ -116,7 +108,9 @@ export default function PrecisionLadder() {
   const active = hover ?? pick[mode];
   const cur = cfg.rungs[Math.min(active, cfg.rungs.length - 1)];
 
-  const xTicks = narrow ? [-1000, 1500, 1700, 1900, 2000] : [-1000, 500, 1500, 1600, 1700, 1800, 1900, 2000];
+  const xTicks = narrow
+    ? [-1000, 1500, 1700, 1900, 2000]
+    : [-1000, 500, 1500, 1600, 1700, 1800, 1900, 2000];
 
   const choose = (i: number) => setPick((p) => ({ ...p, [mode]: i }));
 
@@ -129,8 +123,8 @@ export default function PrecisionLadder() {
       caption={
         <>
           Each rung is the best error an instrument could hold; the red line is the best so far.
-          Hollow marks are order-of-magnitude estimates. The years before 1500 are squeezed into
-          the dashed stretch on the left.
+          Hollow marks are order-of-magnitude estimates. The years before 1500 are squeezed into the
+          dashed stretch on the left.
         </>
       }
     >
@@ -348,10 +342,7 @@ export default function PrecisionLadder() {
             {cur.era}
             {cur.oom ? ' · order of magnitude' : ''}
           </div>
-          <div
-            className="font-display text-[1.25rem] leading-snug italic"
-            style={{ color: C.ink }}
-          >
+          <div className="font-display text-[1.25rem] leading-snug italic" style={{ color: C.ink }}>
             {cur.name}
           </div>
         </div>
@@ -360,10 +351,7 @@ export default function PrecisionLadder() {
           style={{ color: C.ink }}
         >
           {cfg.fmt(cur.value)}
-          <div
-            className="text-[0.62rem] tracking-[0.12em] uppercase"
-            style={{ color: C.soft }}
-          >
+          <div className="text-[0.62rem] tracking-[0.12em] uppercase" style={{ color: C.soft }}>
             {mode === 'time' ? 'per day' : 'of arc'}
           </div>
         </div>

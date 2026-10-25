@@ -120,8 +120,7 @@ export const TIME: Rung[] = [
     era: '2024',
     year: 2024,
     value: 8.1e-19 * DAY,
-    figure:
-      'Total systematic uncertainty 8.1 × 10⁻¹⁹: times 86,400 s, about 0.07 ps a day.',
+    figure: 'Total systematic uncertainty 8.1 × 10⁻¹⁹: times 86,400 s, about 0.07 ps a day.',
     src: 'https://arxiv.org/abs/2403.10664',
     srcLabel: 'Aeppli et al. 2024, arXiv:2403.10664',
   },
