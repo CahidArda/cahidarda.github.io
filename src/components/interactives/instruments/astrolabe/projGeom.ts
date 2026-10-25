@@ -37,7 +37,9 @@ export function projScene(W: number, o: { mode: 'star' | 'alm'; dec: number; h: 
   const sideBox = wide ? { x0: 0, y0: 0, w: W * 0.5, h: H - 30 } : { x0: 0, y0: 0, w: W, h: (H - 30) * 0.5 };
   const planBox = wide ? { x0: W * 0.5, y0: 0, w: W * 0.5, h: H - 30 } : { x0: 0, y0: (H - 30) * 0.5, w: W, h: (H - 30) * 0.5 };
   // side view: the sphere (radius 1) and the plate line out to ±RC
-  const ks = Math.min((sideBox.w - 2 * pad) / (2 * RC), (sideBox.h - 2 * pad - 14) / 2.3);
+  const thetas0 = o.mode === 'star' ? [o.dec] : [...almThetas(o.h, o.phi)];
+  const reach = Math.max(RC, ...thetas0.map((t) => Math.abs(crossAt(t))));
+  const ks = Math.min((sideBox.w - 2 * pad) / (2 * reach), (sideBox.h - 2 * pad - 14) / 2.3);
   const sc = { x: sideBox.x0 + sideBox.w / 2, y: sideBox.y0 + pad + 14 + 1.1 * ks };
   const S = (x: number, y: number): XY => ({ x: sc.x + x * ks, y: sc.y - y * ks });
   // plan view: the plate (radius RC) — the plate's v axis drawn VERTICALLY (up = south meridian)
@@ -83,7 +85,8 @@ export function projScene(W: number, o: { mode: 'star' | 'alm'; dec: number; h: 
     Pl,
     south,
     north: S(0, 1),
-    plateLine: [S(-RC, 0), S(RC, 0)] as const,
+    plateLine: [S(-reach, 0), S(reach, 0)] as const,
+    reach,
     pts,
     circle,
     chord,

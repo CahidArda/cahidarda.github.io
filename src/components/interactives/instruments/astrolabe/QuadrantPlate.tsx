@@ -17,8 +17,8 @@ function Board({ step, dec, absH, hMeas }: { step: number; dec: number; absH: nu
   const H = Math.round(Math.max(290, Math.min(400, W * 0.9)));
   const quarter = step >= 1;
   // whole plate (step 0) centred; quarter: apex bottom-left, so it fills the view
-  const k = quarter ? Math.min(W - 40, H - 60) / RC : (Math.min(W, H - 30) / 2 - 10) / RC;
-  const f = quarter ? { cx: 22, cy: H - 38, k } : { cx: W / 2, cy: (H - 30) / 2 + 2, k };
+  const k = quarter ? Math.min(W - 64, H - 74) / RC : (Math.min(W, H - 30) / 2 - 10) / RC;
+  const f = quarter ? { cx: 22, cy: H - 40, k } : { cx: W / 2, cy: (H - 30) / 2 + 2, k };
   const X = (p: { u: number; v: number }) => ({ x: f.cx + p.u * k, y: f.cy - p.v * k });
   const path = (run: { u: number; v: number }[]) => run.map((p, i) => `${i ? 'L' : 'M'} ${X(p).x.toFixed(1)} ${X(p).y.toFixed(1)}`).join(' ');
   const b = bead(dec, absH);
@@ -55,7 +55,15 @@ function Board({ step, dec, absH, hMeas }: { step: number; dec: number; absH: nu
               const q = { u: p.u * 1.04, v: p.v * 1.04 };
               const P1 = X(p);
               const P2 = X(q);
-              return <line key={a} x1={P1.x} y1={P1.y} x2={P2.x} y2={P2.y} style={{ stroke: C.ink, strokeWidth: 0.8 }} />;
+              const L = X({ u: p.u * 1.1, v: p.v * 1.1 });
+              return (
+                <g key={a}>
+                  <line x1={P1.x} y1={P1.y} x2={P2.x} y2={P2.y} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
+                  {a % 30 === 0 && a > 0 && (
+                    <InkText x={L.x} y={L.y} kind="num" anchor="middle" baseline="central" size={10} role="ink">{`${a}°`}</InkText>
+                  )}
+                </g>
+              );
             })}
             {step >= 3 &&
               almucantarRuns(hMeas, PHI).map((run, i) => {

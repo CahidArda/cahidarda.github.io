@@ -44,10 +44,10 @@ function Construction({ mode, dec, h, step }: { mode: Mode; dec: number; h: numb
           </g>
         ))}
         <circle cx={g.south.x} cy={g.south.y} r={3.5} style={{ fill: C.ink }} />
-        <InkText x={g.south.x + 8} y={g.south.y + 4} size={11} role="ink">south pole (the eye)</InkText>
+        <InkText x={g.south.x + 8} y={g.south.y + 12} size={11} role="ink">south pole (the eye)</InkText>
         <InkText x={g.north.x + 7} y={g.north.y - 4} size={11} role="soft">north pole</InkText>
         {mode === 'alm' && <InkText x={g.zenith.x + 6} y={g.zenith.y - 5} size={11} role="soft">zenith</InkText>}
-        <InkText x={g.plateLine[1].x} y={g.plateLine[1].y + 14} anchor="end" size={11} role="soft">the plate (equator plane)</InkText>
+        <InkText x={g.plateLine[0].x} y={g.plateLine[0].y - 6} anchor="start" size={11} role="soft">the plate</InkText>
 
         {/* ── plan view: the plate, face on ── */}
         <InkText x={g.planBox.x0 + 8} y={g.planBox.y0 + 14} kind="label" size={11} role="soft">the plate, face on</InkText>
@@ -71,7 +71,7 @@ function Construction({ mode, dec, h, step }: { mode: Mode; dec: number; h: numb
         {showCircle && g.circle && (
           <circle cx={g.circle.c.x} cy={g.circle.c.y} r={g.circle.r} clipPath="url(#pclip)" style={{ fill: 'none', stroke: C.sky, strokeWidth: 1.8 }} />
         )}
-        {showCross && g.pts.map((p, i) => <circle key={i} cx={p.planPt.x} cy={p.planPt.y} r={3.5} style={{ fill: C.red }} />)}
+        {showCross && g.pts.filter((p) => Math.abs(p.x) <= RC).map((p, i) => <circle key={i} cx={p.planPt.x} cy={p.planPt.y} r={3.5} style={{ fill: C.red }} />)}
         <circle cx={g.pc.x} cy={g.pc.y} r={2.5} style={{ fill: C.ink }} />
         <InkText x={g.pc.x + 6} y={g.pc.y + 12} size={10} role="soft">pole</InkText>
         <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={showCircle ? 'sky' : 'soft'}>{note}</InkText>

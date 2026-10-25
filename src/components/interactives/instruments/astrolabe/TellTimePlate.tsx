@@ -85,13 +85,14 @@ export default function TellTimePlate() {
     rays: i === 1 ? sun.h : null,
     sunLam: i >= 4 ? lam : null,
     almH: i >= 4 ? hMeas : null,
+    plumb: i === 0,
     swing,
   });
   const sunPt = eclipticPoint(lam, lst);
   const view = (i: number) => {
     if (i === 2) return <BackView ali={ali} mark="alt" zoom={2.1} focus={{ u: -1.1, v: 1.1 }} note={`the edge reads ${deg1(ali)} on the altitude scale`} noteRole="sky" />;
     if (i === 3)
-      return <BackView ali={aliForDate(doy)} mark="date" zoom={1.3} note={`${dayLabel(doy)} on the calendar ring: the sun at ${lamText(lam)}`} noteRole="brass" />;
+      return <BackView ali={aliForDate(doy)} mark="date" zoom={1} note={`${dayLabel(doy)} on the calendar ring: the sun at ${lamText(lam)}`} noteRole="brass" />;
     if (i === 5)
       return (
         <FrontView

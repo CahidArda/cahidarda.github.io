@@ -45,6 +45,8 @@ export type ModelParams = {
   sunLam: number | null;
   /** Highlight one almucantar (altitude, degrees) on the plate, in sky blue. null = none. */
   almH: number | null;
+  /** Show the plumb line (world vertical through the ring). */
+  plumb?: boolean;
   /** Bumped to start the hang-and-settle swing. */
   swing: number;
   phi?: number;
@@ -132,9 +134,9 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
   body.rotation.x = Math.PI / 2;
   ctx.inkify(body, { threshold: 30, outline: 1.4 });
   inst.add(body);
-  const frontFace = face(RM, Z.front + 0.0005, false, (c, ink) => drawPrims(c, limbPrims(), { size: TEX, half: RM, bg: 'paper', ink }));
+  const frontFace = face(RM, Z.front + 0.0005, false, (c, ink) => drawPrims(c, limbPrims(), { size: TEX, half: RM, bg: 'paper', ink, lineScale: TEX / 560 }));
   inst.add(frontFace);
-  const backFace = face(RM, Z.back - 0.0005, true, (c, ink) => drawPrims(c, backPrims(), { size: TEX, half: RM, bg: 'paper', ink }));
+  const backFace = face(RM, Z.back - 0.0005, true, (c, ink) => drawPrims(c, backPrims(), { size: TEX, half: RM, bg: 'paper', ink, lineScale: TEX / 560 }));
   inst.add(backFace);
 
   // throne (kursī) and ring
@@ -160,7 +162,7 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
 
   // plate (tympan) for φ
   const plate = new T.Group();
-  const plateFace = face(RC, 0.0, false, (c, ink) => drawPrims(c, platePrims(phi), { size: TEX, half: RC, bg: 'paper', ink }));
+  const plateFace = face(RC, 0.0, false, (c, ink) => drawPrims(c, platePrims(phi), { size: TEX, half: RC, bg: 'paper', ink, lineScale: TEX / 520 }));
   const plateDisc = new T.Mesh(new T.CylinderGeometry(RC, RC, 0.012, 128));
   plateDisc.rotation.x = Math.PI / 2;
   plateDisc.position.z = -0.0065;
@@ -168,9 +170,9 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
   plate.add(plateDisc, plateFace);
   inst.add(plate);
   // a highlighted almucantar (the measured altitude), redrawn when it changes
-  const almLine = new T.Line(new T.BufferGeometry(), ctx.lineMaterial('sky'));
+  const almLine = new T.Line(new T.BufferGeometry(), ctx.lineMaterial('sky', { onTop: true }));
   almLine.position.z = 0.002;
-  almLine.renderOrder = 3;
+  almLine.renderOrder = 6;
   plate.add(almLine);
   let almFor: number | null = null;
 
@@ -179,7 +181,7 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
   const reteFace = face(RC, 0.0, false, (c, ink) => drawPrims(c, retePrims(0, { signs: true }), { size: TEX, half: RC, bg: null, ink, lineScale: TEX / 520 }), true);
   rete.add(reteFace);
   // the sun's place: a brass bead on the ecliptic (moves with the rete)
-  const sunMark = new T.Mesh(new T.CircleGeometry(0.035, 24), ctx.fillMaterial('brass'));
+  const sunMark = new T.Mesh(new T.CircleGeometry(0.055, 24), ctx.fillMaterial('brass'));
   sunMark.position.z = 0.004;
   rete.add(sunMark);
   inst.add(rete);
@@ -233,6 +235,14 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
     inst.add(l);
   }
 
+  // the plumb line: fixed in the world (not in the swinging group), through the ring
+  const plumb = new T.Line(
+    new T.BufferGeometry().setFromPoints([new T.Vector3(0, ringY - 0.3, 0.2), new T.Vector3(0, ringY - 0.3 - (RM + 0.53) - RM - 0.25, 0.2)]),
+    ctx.lineMaterial('red', { dashed: true, dash: 0.06, gap: 0.04, onTop: true }),
+  );
+  plumb.computeLineDistances();
+  plumb.renderOrder = 7;
+  ctx.root.add(plumb);
   paint(false);
   onThemeChange(() => requestAnimationFrame(() => paint())); // canvas faces re-read the ink on a theme flip
 
@@ -304,6 +314,7 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
         r.visible = true;
       });
     } else rays.forEach((r) => (r.visible = false));
+    plumb.visible = !!p.plumb;
     // hang and settle
     if (p.swing !== lastSwing) {
       lastSwing = p.swing;
@@ -319,7 +330,7 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
 }
 
 export function AstrolabeModel({ p, label, aspect = 1, fit = 2.35 }: { p: ModelParams; label: string; aspect?: number; fit?: number }) {
-  const params = useMemo(() => p, [p.face, p.parts, p.lst, p.ali, p.ruleH, p.rays, p.sunLam, p.almH, p.swing, p.phi]); // eslint-disable-line react-hooks/exhaustive-deps
+  const params = useMemo(() => p, [p.face, p.parts, p.lst, p.ali, p.ruleH, p.rays, p.sunLam, p.almH, p.swing, p.phi, p.plumb]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <BlueprintCanvas<ModelParams>
       aspect={aspect}

@@ -331,7 +331,7 @@ export function backPrims(): Prim[] {
   for (let i = 0; i < 12; i++) {
     const psi = backPsi(i * 30 + 15);
     const rt = B.zodIn + (B.zodOut - B.zodIn) * 0.62;
-    out.push({ k: 'text', at: at(rt, psi), text: SIGN_NAMES[i], size: 0.06, role: 'soft', anchor: 'middle', rot: psi - 90, id: `sign${i}` });
+    out.push({ k: 'text', at: at(rt, psi), text: SIGN_NAMES[i], size: 0.075, role: 'ink', anchor: 'middle', rot: psi - 90, id: `sign${i}` });
   }
   // calendar ring: each date at the sun's longitude for that date (so the ring is uneven)
   for (let m = 0; m < 12; m++) {
@@ -346,7 +346,7 @@ export function backPrims(): Prim[] {
     }
     const mid = backPsi(sunLambda(doyOf(m, 16)));
     const rt = B.calIn + (B.calOut - B.calIn) * 0.45;
-    out.push({ k: 'text', at: at(rt, mid), text: MONTH[m], size: 0.06, role: 'soft', anchor: 'middle', rot: mid - 90, id: `mon${m}` });
+    out.push({ k: 'text', at: at(rt, mid), text: MONTH[m], size: 0.075, role: 'ink', anchor: 'middle', rot: mid - 90, id: `mon${m}` });
   }
   return out;
 }
