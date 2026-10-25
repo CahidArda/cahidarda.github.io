@@ -55,7 +55,7 @@ function BeamView({ n }: { n: number }) {
     <div ref={ref}>
       <svg viewBox={`0 0 ${W} ${g.H}`} width="100%" style={{ display: 'block' }} role="img" aria-label="The beam across the strait, marked in half wavelengths">
         <InkText x={14} y={18} kind="label" size={11} role="soft">plan, A to C, to scale</InkText>
-        <rect x={g.A} y={g.y - 22} width={g.Cx - g.A} height={44} style={{ fill: C.sky, opacity: 0.12 }} />
+        <rect x={g.A} y={g.y - 22} width={Math.max(0, g.Cx - g.A)} height={44} style={{ fill: C.sky, opacity: 0.12 }} />
         <line x1={g.A} y1={g.y} x2={g.Cx} y2={g.y} style={solid('red', 1.2)} />
         {g.marks.map((x, i) => (
           <line key={i} x1={x} y1={g.y - (i % 10 === 0 ? 9 : 4)} x2={x} y2={g.y + (i % 10 === 0 ? 9 : 4)} style={solid('ink', i % 10 === 0 ? 1 : 0.6)} />
@@ -124,7 +124,7 @@ export default function EdmSteps() {
   ];
   return (
     <StepPlate
-      n={12}
+      n={11}
       wide
       title="The width of the strait, by light"
       steps={steps}
@@ -176,8 +176,8 @@ export default function EdmSteps() {
       }
       caption={
         <>
-          The phase method as in Bergstrand’s Geodimeter and modern total stations; the two frequencies here are illustrative
-          ({F_COARSE / 1000} kHz, {F_FINE / 1e6} MHz). Phase dial read to {PHASE_STEP}°, which is 2 cm of distance. Speed of light in
+          The phase method as in Bergstrand’s Geodimeter and modern total stations. The fine {F_FINE / 1e6} MHz is the Geodimeter’s
+          typical frequency; the coarse {F_COARSE / 1000} kHz is illustrative. Phase dial read to {PHASE_STEP}°, which is 2 cm of distance. Speed of light in
           standard air; the 1 ppm per °C rule of thumb sets the last line.
         </>
       }

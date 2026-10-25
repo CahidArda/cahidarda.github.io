@@ -91,7 +91,7 @@ function SightView({ shim, band }: { shim: number; band: boolean }) {
           <rect x={g.staffX - 9} y={g.band.y0} width={18} height={g.band.y1 - g.band.y0} style={{ fill: C.red, opacity: 0.18 }} />
         )}
         {/* the bench, small */}
-        <rect x={g.X(0)} y={g.levelY - 3} width={g.legX - g.X(0) + 6} height={5} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
+        <rect x={g.X(0)} y={g.levelY - 3} width={Math.max(0, g.legX - g.X(0) + 6)} height={5} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
         <line x1={g.legX} y1={g.levelY} x2={g.legBed.x} y2={g.legBed.y} style={solid('ink', 1.6)} />
         <line x1={g.X(0) + 3} y1={g.levelY} x2={g.X(0) + 3} y2={g.bed0.y} style={solid('ink', 1.6)} />
         {/* the sight along the top */}

@@ -21,7 +21,7 @@ function ChainView({ lay, laid, poles }: { lay: Lay; laid: number; poles: boolea
     <div ref={ref}>
       <svg viewBox={`0 0 ${W} ${g.H}`} width="100%" style={{ display: 'block' }} role="img" aria-label={`${laid} chains laid from M toward A`}>
         <HatchDefs id={id} gap={6} role="faint" />
-        <InkText x={14} y={18} kind="label" size={11} role="soft">{`M to A, heights ×${g.VE}`}</InkText>
+        <InkText x={W - 14} y={18} anchor="end" kind="label" size={11} role="soft">{`M to A, heights ×${g.VE}`}</InkText>
         <path d={`${path(g.ground)} L ${g.A.x} ${g.H - 20} L ${g.M.x} ${g.H - 20} Z`} style={{ fill: `url(#${id})`, stroke: 'none' }} />
         <path d={path(g.ground)} style={solid('ink', 1.1)} />
         {poles &&

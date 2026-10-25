@@ -73,7 +73,7 @@ export function SiteRef({
         <InkText x={L.section.x} y={L.section.y} anchor="end" kind="label" size={L.section.size} role="soft">
           {L.section.text}
         </InkText>
-        <rect x={g.nearShoreX} y={g.sea} width={g.farShoreX - g.nearShoreX} height={g.secBottom - g.sea} style={{ fill: C.sky, opacity: 0.16 }} />
+        <rect x={g.nearShoreX} y={g.sea} width={Math.max(0, g.farShoreX - g.nearShoreX)} height={g.secBottom - g.sea} style={{ fill: C.sky, opacity: 0.16 }} />
         <line x1={g.nearShoreX} y1={g.sea} x2={g.farShoreX} y2={g.sea} style={solid('sky', on.has('strait') ? 1.4 : 0.9)} />
         <path d={`${path(g.nearGround)} L ${g.nearShoreX} ${g.secBottom} L ${g.pad.l} ${g.secBottom} Z`} style={{ fill: `url(#${id})`, stroke: 'none' }} />
         <path d={`${path(g.farGround)} L ${W - g.pad.r} ${g.secBottom} L ${g.farShoreX} ${g.secBottom} Z`} style={{ fill: `url(#${id})`, stroke: 'none' }} />
@@ -98,12 +98,12 @@ export function SiteRef({
         <InkText x={L.plan.x} y={L.plan.y} anchor="end" kind="label" size={L.plan.size} role="soft">
           {L.plan.text}
         </InkText>
-        <rect x={g.nearShoreX} y={g.planTop} width={g.farShoreX - g.nearShoreX} height={g.planH} style={{ fill: C.sky, opacity: 0.12 }} />
-        <rect x={g.pad.l} y={g.planTop} width={g.nearShoreX - g.pad.l} height={g.planH} style={{ fill: `url(#${id})`, opacity: 0.55 }} />
-        <rect x={g.farShoreX} y={g.planTop} width={W - g.pad.r - g.farShoreX} height={g.planH} style={{ fill: `url(#${id})`, opacity: 0.55 }} />
+        <rect x={g.nearShoreX} y={g.planTop} width={Math.max(0, g.farShoreX - g.nearShoreX)} height={g.planH} style={{ fill: C.sky, opacity: 0.12 }} />
+        <rect x={g.pad.l} y={g.planTop} width={Math.max(0, g.nearShoreX - g.pad.l)} height={g.planH} style={{ fill: `url(#${id})`, opacity: 0.55 }} />
+        <rect x={g.farShoreX} y={g.planTop} width={Math.max(0, W - g.pad.r - g.farShoreX)} height={g.planH} style={{ fill: `url(#${id})`, opacity: 0.55 }} />
         <line x1={g.nearShoreX} y1={g.planTop} x2={g.nearShoreX} y2={g.planTop + g.planH} style={solid('ink', 1.1)} />
         <line x1={g.farShoreX} y1={g.planTop} x2={g.farShoreX} y2={g.planTop + g.planH} style={solid('ink', 1.1)} />
-        <rect x={g.pad.l} y={g.planTop} width={W - g.pad.l - g.pad.r} height={g.planH} style={solid('faint', 0.6)} />
+        <rect x={g.pad.l} y={g.planTop} width={Math.max(0, W - g.pad.l - g.pad.r)} height={g.planH} style={solid('faint', 0.6)} />
         <path d={path(g.road)} style={{ ...solid(on.has('road') ? 'red' : 'soft', on.has('road') ? 1.8 : 0.9), strokeDasharray: on.has('road') ? undefined : '3 2' }} />
         {on.has('line') && <line x1={n.pM.x} y1={n.pM.y} x2={n.pA.x} y2={n.pA.y} style={solid('red', 1.6)} />}
         {on.has('strait') && <line x1={n.pA.x} y1={n.pA.y} x2={n.pC.x} y2={n.pC.y} style={solid('red', 1.6)} />}

@@ -7,30 +7,13 @@
  */
 import { useState } from 'react';
 import { C, Eq, InkText, Plate, Slider, Sym, V, Working, polar, useMeasuredWidth } from '../shared';
-
-export const WHEEL_FT = 4;
-export const TEETH = 400;
-export const VITRUVIUS_REV = 12.5;
-export const REV = Math.PI * WHEEL_FT;
-export const MILE_FT = 5000;
-export function hodometer(ft: number) {
-  const revs = ft / REV;
-  const teeth = Math.floor(revs);
-  const pebbles = Math.floor(teeth / TEETH);
-  const counted = pebbles * MILE_FT; // what the bowl says
-  const wheelDeg = (revs % 1) * 360;
-  const drumDeg = ((teeth % TEETH) / TEETH) * 360;
-  return { revs, teeth, pebbles, counted, wheelDeg, drumDeg };
-}
+import { MILE_FT, REV, TEETH, hodoLayout, hodometer } from './hodoGeom';
 
 export default function HodometerPlate() {
   const [ft, setFt] = useState(15_100);
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(560);
   const h = hodometer(ft);
-  const H = 220;
-  const wc = { x: Math.min(110, W * 0.26), y: 120, r: Math.min(80, W * 0.2) };
-  const dc = { x: wc.x + wc.r + Math.min(90, W * 0.22), y: 70, r: 44 };
-  const bowl = { x: dc.x + Math.min(110, W * 0.26), y: 160 };
+  const { H, wc, dc, bowl } = hodoLayout(W);
   const spoke = (a: number) => polar(wc.x, wc.y, wc.r - 4, 90 - h.wheelDeg + a);
   const mark = polar(dc.x, dc.y, dc.r - 6, 90 - h.drumDeg);
   return (
@@ -68,7 +51,7 @@ export default function HodometerPlate() {
           <V role="red">{`${h.pebbles}`}</V> pebbles = <V role="red">{`${h.counted.toLocaleString('en')} ft`}</V> counted; driven <V>{`${ft.toLocaleString('en')} ft`}</V>
         </Eq>
         <Eq>
-          a drum’s mile: 400 × <V>{`${REV.toFixed(2)} ft`}</V> = <V>{`${(TEETH * REV).toFixed(0)} ft`}</V>, not 5,000 (Vitruvius took 12½ ft a turn)
+          a drum’s mile: 400 × <V>{`${REV.toFixed(2)} ft`}</V> = <V>{`${Math.round(TEETH * REV).toLocaleString('en')} ft`}</V>, not 5,000 (Vitruvius took 12½ ft a turn)
         </Eq>
       </Working>
     </Plate>

@@ -19,7 +19,6 @@ import ChainSteps from '../../../components/interactives/instruments/earth/Chain
 import MapSteps from '../../../components/interactives/instruments/earth/MapSteps.tsx';
 import StraitSteps from '../../../components/interactives/instruments/earth/StraitSteps.tsx';
 import HeightSteps from '../../../components/interactives/instruments/earth/HeightSteps.tsx';
-import ArcsecondPlate from '../../../components/interactives/instruments/earth/ArcsecondPlate.tsx';
 import BarSteps from '../../../components/interactives/instruments/earth/BarSteps.tsx';
 import EdmSteps from '../../../components/interactives/instruments/earth/EdmSteps.tsx';
 import GpsPlate from '../../../components/interactives/instruments/earth/GpsPlate.tsx';
@@ -152,8 +151,8 @@ road.
 
 A wheel measures the surface, bumps and all. For land, England settled on Edmund Gunter's chain
 of 1620: 66 feet in 100 links, with brass tags every ten, and ten square chains to the acre
-([Gunter's chain](https://en.wikipedia.org/wiki/Gunter%27s_chain)). On a slope it was held level
-and the low end dropped with a plumb line.
+([Gunter's chain](https://en.wikipedia.org/wiki/Gunter%27s_chain)). On a slope it was held level,
+one end raised, so it measured the horizontal distance.
 
 <div class="fx-figure fx-wide">
   <ChainSteps client:visible />
@@ -219,28 +218,17 @@ Each new side becomes the baseline of the next triangle. Willebrord Snellius cha
 across Holland in 1615 and got his distance about 3.5% too short
 ([Triangulation](https://en.wikipedia.org/wiki/Triangulation_%28surveying%29)). By 1787 Jesse
 Ramsden's great theodolite read horizontal angles to within one arcsecond
-([Ramsden](https://en.wikipedia.org/wiki/Ramsden_surveying_instruments)). That still matters,
-because an angle error grows with distance, and over long sights the Earth itself curves away.
-
-<EqTip note="The miss is how far sideways a sight line ends up at distance d if its angle is off by ε. The drop is how far the Earth's surface falls below a level line after distance d. R is the Earth's radius, about 6,371 km.">
-
-$$
-\text{miss} = d\tan\varepsilon \qquad \text{drop} \approx \frac{d^2}{2R}
-$$
-
-</EqTip>
-
-<div class="fx-figure">
-  <ArcsecondPlate client:visible />
-</div>
+([Ramsden](https://en.wikipedia.org/wiki/Ramsden_surveying_instruments)). That matters
+because an angle error grows with distance: one arcsecond is 78 cm sideways at 160 km. Over
+that distance the Earth's surface also falls about 2 km below a level line ($d^2/2R$).
 
 The Great Trigonometrical Survey of India carried triangles up the subcontinent from a baseline
 near Madras laid in 1802 ([GTS](https://en.wikipedia.org/wiki/Great_Trigonometrical_Survey)).
 In 1856 it announced that Peak XV was 29,002 ft, measured from stations more than 100 miles
 away, after correcting for curvature, refraction and the pull of the mountains on the plumb line
-([GPS World](https://www.gpsworld.com/peak-xv-the-framework-that-measured-mount-everest/)). The
+([GPS World](https://www.gpsworld.com/peak-xv-the-framework-that-measured-mount-everest)). The
 2020 Nepal-China figure is 8,848.86 m, or 29,032 ft
-([AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements/)).
+([AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements)).
 Brass circles and log tables were off by about 0.1%.
 
 The theodolite in the exhibition still sits in its wooden box. Its label is from J. Verdoux,
@@ -338,7 +326,7 @@ straight one. The pyramid builders levelled better than Snellius triangulated, f
 years later.
 
 <div class="fx-figure">
-  <SurveyLadderPlate client:visible n={14} />
+  <SurveyLadderPlate client:visible n={13} />
 </div>
 
 The plumb bob is still in the kit.
@@ -380,21 +368,22 @@ stand on the Earth to a centimetre.
   [Ramsden surveying instruments](https://en.wikipedia.org/wiki/Ramsden_surveying_instruments)
   (Wikipedia).
 - [Great Trigonometrical Survey](https://en.wikipedia.org/wiki/Great_Trigonometrical_Survey)
-  (Wikipedia) and [Peak XV](https://www.gpsworld.com/peak-xv-the-framework-that-measured-mount-everest/)
+  (Wikipedia) and [Peak XV](https://www.gpsworld.com/peak-xv-the-framework-that-measured-mount-everest)
   (GPS World); the 2020 height from
-  [AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements/).
+  [AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements).
 - Colby and Drummond's bars: [Our Irish Heritage](https://www.ouririshheritage.org/?p=31608);
   J. Herschel, *Familiar Lectures on Scientific Subjects* (1867),
   [p. 185](https://geology.19thcenturyscience.org/books/1867-Herschel-Lectures/PDFpages/185.pdf);
   Lough Foyle base: [Geograph](https://www.geograph.org.uk/snippet/1448). The still point on the
-  tongue is derived from a brass to iron expansion ratio of about 3 to 2.
+  tongue is derived from the two metals' expansion ratio of about 3 to 2
+  ([Coordinates](https://mycoordinates.org/?p=1365)), not taken from a drawing of the bars.
 - Bergstrand and the Geodimeter: [Smithsonian NMAH](https://americanhistory.si.edu/collections/object/nmah_748815);
   the phase method: [Penn State GEOG 862](https://e-education.psu.edu/geog862/node/1749).
 - [Leica TS13 datasheet](https://cm.leica-geosystems.com/-/media/files/leicageosystems/products/datasheets/leica-ts13-lr-ds.ashx),
   [Trimble SPS855 specification](https://spaces.awi.de/download/attachments/183566393/Trimble_SPS855_specification.pdf?api=v2),
   [USGS 3DEP quality levels](https://www.usgs.gov/3d-elevation-program/topographic-data-quality-levels-qls).
 - The site in the plates is a composite: the Süleymaniye minaret (76 m with finial,
-  [ancient-history-sites](https://www.ancient-history-sites.com/sites/suleymaniye-mosque/)) and
+  [ancient-history-sites](https://www.ancient-history-sites.com/sites/suleymaniye-mosque)) and
   the Bosphorus at its narrowest (about 700 m, [Openwaterpedia](https://openwaterpedia.com/wiki/Bosphorus)),
   with an illustrative hill, road and quays.
 - Tünel's opening: [lepetitjournal](https://lepetitjournal.com/istanbul/le-tunel-distanbul-ou-le-plus-petit-metro-du-monde-340929).

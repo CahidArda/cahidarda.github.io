@@ -33,7 +33,7 @@ function BaseView({ t, comp }: { t: number; comp: boolean }) {
         <InkText x={g.pad} y={g.y - 12} size={11}>A</InkText>
         <line x1={g.readEnd} y1={g.y + 8} x2={g.readEnd} y2={g.y + 26} style={solid('red', 1.6)} />
         <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={comp || Math.abs(g.err) < 1e-4 ? 'soft' : 'red'}>
-          {comp ? 'compensated bars: the count is right at any temperature' : `${BARS} bars at ${t} °C read ${plainRead(t).toFixed(3)} m`}
+          {comp ? 'compensated bars: the count is right at any temperature' : `${BARS} bars at ${t < 0 ? '−' : ''}${Math.abs(t)} °C read ${plainRead(t).toFixed(3)} m`}
         </InkText>
       </svg>
     </div>
@@ -66,7 +66,7 @@ function CompView({ t, dotX, showDot }: { t: number; dotX: number; showDot: bool
             <line key={i} x1={x} y1={g.ends[0].probe.y - 10} x2={x} y2={g.ends[0].probe.y + 10} style={{ ...solid('faint', 0.9), strokeDasharray: '2 2' }} />
           ))}
         <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={showDot && still ? 'red' : 'soft'}>
-          {showDot ? (still ? 'this point stays put: the dot goes here' : `this point moves ${um(g.probeMove)} at each end`) : `${t} °C: brass grows more than iron, so the tongues tilt`}
+          {showDot ? (still ? 'this point stays put: the dot goes here' : `this point moves ${um(g.probeMove)} at each end`) : t === T0 ? `${t} °C, the bars’ standard: nothing moves yet` : `${t < 0 ? '−' : ''}${Math.abs(t)} °C: brass ${t > T0 ? 'grows' : 'shrinks'} more than iron, so the tongues tilt`}
         </InkText>
       </svg>
     </div>
@@ -102,7 +102,7 @@ export default function BarSteps() {
       text: (
         <>
           Colby and Drummond’s answer (1820s): a brass bar and an iron bar side by side, fixed at the middle, with steel tongues
-          across the ends. Brass grows more, so the tongues tilt.
+          across the ends. Brass grows and shrinks more, so the tongues tilt.
         </>
       ),
     },
@@ -128,7 +128,7 @@ export default function BarSteps() {
   ];
   return (
     <StepPlate
-      n={11}
+      n={10}
       wide
       title="Baseline bars that ignore the weather"
       steps={steps}
@@ -139,7 +139,7 @@ export default function BarSteps() {
       reference={(i) => (
         <SiteRef
           hi={['baseline', 'strait']}
-          best={i >= 1 && i < 4 ? `plain bars, ${t} °C: strait reads ${(SITE.WIDTH - wErr).toFixed(3)} m` : 'known: the strait 700 m, the minaret 76 m'}
+          best={i >= 1 && i < 4 ? `plain bars, ${t < 0 ? '−' : ''}${Math.abs(t)} °C: strait reads ${(SITE.WIDTH - wErr).toFixed(3)} m` : 'known: the strait 700 m, the minaret 76 m'}
           label="The site, with the baseline and the width of the strait highlighted"
         />
       )}

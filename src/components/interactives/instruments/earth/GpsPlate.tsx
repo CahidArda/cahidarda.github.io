@@ -29,7 +29,7 @@ export default function GpsPlate() {
   const mm = (m: number) => `${(m * 1000).toFixed(1)} mm`;
   return (
     <Plate
-      n={13}
+      n={12}
       title="Positions from satellites, with a base station"
       caption={
         <>

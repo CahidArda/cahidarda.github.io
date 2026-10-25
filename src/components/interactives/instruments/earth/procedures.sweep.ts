@@ -38,6 +38,7 @@ import { CHAIN_M, chainCount, chainEnds, chainScene, linksScene } from './chainG
 import { M_PER_IN, READ_STEP, ROAD_IN, chartScene, dialScene, readOk } from './mapGeom.ts';
 import { ALPHA as A_TRUE, BASE, BETA as B_TRUE, EL_FAR, EL_NEAR, MIN_STEP, ON_TOL, PA, PB, PC, TOWER, diff, eyepiece, heightFrom, readingTo, snap, split, toDeg, widthFrom } from './theoGeom.ts';
 import { ALPHA, BASELINE, L0, T, T0, X_STAR, baseScene, compLen, compScene, plainErr, plainRead, tongueMove } from './barGeom.ts';
+import { MILE_FT, REV, TEETH, hodoLayout, hodometer } from './hodoGeom.ts';
 import { D_TRUE, F_COARSE, F_FINE, N_TRUE, PHASE_STEP, PHI_COARSE, PHI_FINE, coarseD, distance, halfLambda, phaseOk, phaseScene } from './edmGeom.ts';
 
 const WIDTHS = [326, 340, 360, 420, 520, 560, 640];
@@ -346,6 +347,30 @@ for (const W of WIDTHS)
 
 /* ── GPS ── */
 ok(near(0.008 + 1e-6 * 700, 0.0087), 'gps: 8 mm + 1 ppm at 700 m', () => '');
+
+/* ── hodometer (reviewer) ── */
+for (const W of WIDTHS) {
+  const { H, wc, dc, bowl } = hodoLayout(W);
+  ok(wc.x - wc.r >= 0 && dc.x + dc.r <= W && bowl.x - 34 >= 0 && bowl.x + 34 <= W, 'hodo: wheel, drum and bowl inside', () => `W=${W}`);
+  const lab = textBox('bowl', bowl.x, bowl.y + 26, `bowl: ${hodometer(30_000).pebbles} pebbles`, 11, 'middle');
+  ok(inside(lab, W, H), 'hodo: bowl label inside', () => `W=${W} ${JSON.stringify(lab)}`);
+  ok(dc.x - dc.r > wc.x + wc.r && bowl.x - 34 > dc.x - dc.r, 'hodo: parts in order, no overlap', () => `W=${W}`);
+}
+for (const ft of range(0, 30_000, 50)) {
+  const h = hodometer(ft);
+  ok(h.pebbles === Math.floor(Math.floor(ft / REV) / TEETH), 'hodo: pebbles = whole drum turns', () => `${ft}`);
+  ok(h.counted <= ft + 1e-9 || h.pebbles === 0 || h.counted - ft < MILE_FT, 'hodo: counted is whole miles', () => `${ft}`);
+}
+
+/* ── no negative widths in the full-width bands (reviewer: console showed width=-13) ── */
+for (const W of [...WIDTHS, 200, 260, 300]) {
+  const g = siteScene(W);
+  ok(g.farShoreX - g.nearShoreX > 0 && g.nearShoreX - g.pad.l > 0 && W - g.pad.r - g.farShoreX > 0, 'site: bands have positive width', () => `W=${W}`);
+  const m = chartScene(W, 0.5);
+  ok(W - 14 - m.shoreX > 0, 'map: water band has positive width', () => `W=${W}`);
+  const gr = gromaScene(W, 90, 0, 0);
+  ok(gr.farX - gr.A.x > 0, 'groma: strait band has positive width', () => `W=${W}`);
+}
 
 void FAR_X;
 report();

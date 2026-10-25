@@ -20,7 +20,7 @@ function ChartView({ f, showWheel }: { f: number; showWheel: boolean }) {
     <div ref={ref}>
       <svg viewBox={`0 0 ${W} ${g.H}`} width="100%" style={{ display: 'block' }} role="img" aria-label="Chart of the site at 1:5,000 with the road from the minaret to the quay">
         <InkText x={14} y={16} kind="label" size={11} role="soft">{`chart, 1:${SCALE.toLocaleString('en')}`}</InkText>
-        <rect x={g.shoreX} y={20} width={W - 14 - g.shoreX} height={g.H - 52} style={{ fill: C.sky, opacity: 0.12 }} />
+        <rect x={g.shoreX} y={20} width={Math.max(0, W - 14 - g.shoreX)} height={g.H - 52} style={{ fill: C.sky, opacity: 0.12 }} />
         <line x1={g.shoreX} y1={20} x2={g.shoreX} y2={g.H - 32} style={solid('ink', 1.1)} />
         <path d={path(g.road)} style={{ ...solid('soft', 3.5), strokeLinecap: 'round' }} />
         <path d={path(g.road)} style={{ fill: 'none', stroke: C.paper, strokeWidth: 2 }} />
