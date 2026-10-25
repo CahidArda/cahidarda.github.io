@@ -1,8 +1,9 @@
 /**
  * Plate 1: the sine quadrant (rubʿ al-mujayyab, rubu tahtası), drawn after the 1848 study
- * sheet: a quarter circle filled with a 60 × 60 grid, a graduated rim, and one red line (the
- * plumb thread). Drag the thread (or use the slider) to the sun's altitude; the drawing shows
- * where 60·sin h is read off the grid, and the panel follows the muvakkit from sin h to the hour.
+ * sheet. Drag the thread to the sun's altitude; the board then works the hour out the way a
+ * muvakkit did, in parts of 60: read 60·sin h, shift it by the date term (subtract when the
+ * sun is north of the equator, add when south), divide by the date's divisor with the thread
+ * and bead (similar triangles), and read the hour angle off the rim. Geometry: ./quadrantGeom.
  */
 import { useRef, useState } from 'react';
 import type { PointerEvent as RPointerEvent } from 'react';
@@ -10,56 +11,44 @@ import {
   ArcScale,
   C,
   Controls,
+  Eq,
   InkText,
   Plate,
   Segmented,
   Slider,
+  Sym,
+  V,
+  Working,
   arcPath,
   polar,
   useHoverPreview,
 } from '../shared';
-import {
-  PHI,
-  cosd,
-  dayLabel,
-  declination,
-  hm,
-  hourAngle,
-  noonAltitude,
-  sind,
-} from './astro';
+import { dayLabel, hm } from './astro';
+import { AX, AY, BAND, H, R, ROW, U, W, maxAltitude, quadrant, quadrantLabels, threadAt } from './quadrantGeom';
 
-const W = 440;
-const H = 440;
-const BAND = 22; // width of the numbered bands along the two straight edges
-const AX = 30 + BAND; // apex (centre of the quarter circle)
-const AY = 22 + BAND;
-const R = 350; // radius of the gridded quarter
-const U = R / 60; // one "part"
-
-/** Board coordinates: thread at altitude h hangs at angle (h − 90°) in maths convention. */
-const threadEnd = (h: number, r = R) => polar(AX, AY, r, h - 90);
+const p60 = (v: number) => (60 * v).toFixed(1);
 
 export default function SineQuadrant() {
-  const [h, setH] = useState(30);
-  const [day, setDay] = useState(80); // 21 Mar
+  const [hRaw, setHRaw] = useState(30);
+  const [day, setDayRaw] = useState(80); // 21 Mar
   const [selHalf, setHalf] = useState<'am' | 'pm'>('am');
   const [half, bindHalf] = useHoverPreview(selHalf);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const drag = useRef(false);
 
-  const dec = declination(day);
-  const hMax = noonAltitude(dec);
-  const hEff = Math.min(h, hMax);
-  const tooHigh = h > hMax + 0.05;
-
-  const x60 = 60 * sind(hEff);
-  const a = sind(PHI) * sind(dec);
-  const b = cosd(PHI) * cosd(dec);
-  const cosH = (sind(hEff) - a) / b;
-  const Hdeg = hourAngle(hEff, dec) ?? 0;
-  const fromNoon = Hdeg / 15;
+  const hMax = maxAltitude(day);
+  // the slider, the thread and the numbers all use the same clamped value
+  const setH = (v: number) => setHRaw(Math.max(0, Math.min(hMax, v)));
+  const setDay = (d: number) => {
+    setDayRaw(d);
+    setHRaw((v) => Math.min(v, maxAltitude(d)));
+  };
+  const q = quadrant(hRaw, day);
+  const h = q.h;
+  const atNoon = h >= hMax - 0.05;
+  const fromNoon = q.Hdeg / 15;
   const clock = half === 'am' ? 12 - fromNoon : 12 + fromNoon;
+  const lab = quadrantLabels(q);
 
   const setFromPointer = (e: RPointerEvent<SVGElement>) => {
     const svg = svgRef.current;
@@ -70,15 +59,9 @@ export default function SineQuadrant() {
     const ctm = svg.getScreenCTM();
     if (!ctm) return;
     const p = pt.matrixTransform(ctm.inverse());
-    const ang = (Math.atan2(p.x - AX, p.y - AY) * 180) / Math.PI; // from the down edge
-    setH(Math.round(Math.max(0, Math.min(90, ang)) * 2) / 2);
+    const ang = (Math.atan2(p.x - AX, p.y - AY) * 180) / Math.PI; // from the left edge
+    setH(Math.round(Math.max(0, Math.min(90, ang)) * 10) / 10);
   };
-
-  const tip = threadEnd(hEff);
-  const bead = threadEnd(hEff, R * 0.62);
-  const xRead = AX + x60 * U;
-  const yRead = AY + 60 * cosd(hEff) * U;
-  const xOffset = AX + 60 * a * U;
 
   // grid lines clipped to the quarter circle
   const grid: { d: string; major: boolean }[] = [];
@@ -89,18 +72,25 @@ export default function SineQuadrant() {
     grid.push({ d: `M ${AX + t} ${AY} V ${AY + len} M ${AX} ${AY + t} H ${AX + len}`, major });
   }
 
+  const tip = q.tip;
+  const { bead, divTip, shift } = q;
+  const sub = q.a >= 0;
+
   return (
     <Plate
       n={1}
       label="Levha"
       id="plate-quadrant"
-      title="The sine quadrant"
-      kicker="drag the red thread"
+      title="Telling the time with a sine quadrant"
+      kicker="drag the blue thread"
       caption={
         <>
-          Drawn after the 1848 study sheet. The thread hangs from the apex while the top edge is
-          aimed at the sun, so the angle it makes with the left edge is the sun&apos;s altitude.
-          Where it crosses the rim, the vertical grid line runs up to 60·sin h on the top scale.
+          Drawn after the 1848 study sheet; all numbers are in parts of 60, as on the board. Aim
+          the top edge at the sun and the thread hangs at the sun&apos;s altitude h. Its rim point
+          sits under 60·sin h on the top scale. Shift that by the date term (brass: subtract when
+          the sun is north of the equator, add when it is south), then set the thread again so
+          the bead, placed at the divisor, lies on the shifted line: the rim now gives cos H, and
+          the rim arc gives 90° − H.
         </>
       }
     >
@@ -110,7 +100,7 @@ export default function SineQuadrant() {
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           role="img"
-          aria-label={`Sine quadrant with the thread at ${hEff.toFixed(1)} degrees`}
+          aria-label={`Sine quadrant with the thread at ${h.toFixed(1)} degrees, giving ${hm(clock)} local solar time`}
           style={{ display: 'block', maxWidth: 460, margin: '0 auto', userSelect: 'none' }}
         >
           {/* outer border bands with numbers (top and left edges) */}
@@ -145,87 +135,76 @@ export default function SineQuadrant() {
               style={{ fill: 'none', stroke: g.major ? C.soft : C.faint, strokeWidth: g.major ? 0.55 : 0.35 }}
             />
           ))}
-          {/* the two sine semicircles with diameters on the edges */}
-          <path d={`M ${AX} ${AY} A ${R / 2} ${R / 2} 0 0 0 ${AX + R} ${AY}`} style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.7 }} />
-          <path d={`M ${AX} ${AY} A ${R / 2} ${R / 2} 0 0 1 ${AX} ${AY + R}`} style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.7 }} />
-          {/* edges of the quarter */}
-          <path
-            d={`M ${AX + R} ${AY} H ${AX} V ${AY + R}`}
-            style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1 }}
-          />
-          {/* graduated rim */}
+          <path d={`M ${AX} ${AY} A ${R / 2} ${R / 2} 0 0 0 ${AX + R} ${AY}`} style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.7 }} />
+          <path d={`M ${AX} ${AY} A ${R / 2} ${R / 2} 0 0 1 ${AX} ${AY + R}`} style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.7 }} />
+          <path d={`M ${AX + R} ${AY} H ${AX} V ${AY + R}`} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1 }} />
           <path d={arcPath(AX, AY, R, -90, 0)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1 }} />
-          <ArcScale
-            cx={AX}
-            cy={AY}
-            r={R + 2}
-            from={-90}
-            to={0}
-            major={10}
-            minor={1}
-            labelEvery={10}
-            value={(v) => v + 90}
-            tick={8}
-            size={9.5}
-            rim={false}
-          />
+          <ArcScale cx={AX} cy={AY} r={R + 2} from={-90} to={0} major={10} minor={1} labelEvery={10} value={(v) => v + 90} tick={8} size={9.5} rim={false} />
           <path d={arcPath(AX, AY, R + 26, -90, 0)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.8 }} />
 
-          {/* reading: from where the thread meets the rim, straight up to the top scale */}
-          <path
-            d={`M ${tip.x} ${tip.y} V ${AY}`}
-            style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1, strokeDasharray: '4 2.5' }}
-          />
-          <path
-            d={`M ${tip.x} ${tip.y} H ${AX}`}
-            style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.8, strokeDasharray: '2 3' }}
-          />
-          <circle cx={xRead} cy={AY} r={3.2} style={{ fill: C.ink }} />
-          <InkText x={xRead} y={AY + 15} kind="num" anchor={xRead > AX + R - 40 ? 'end' : 'middle'} size={11.5}>
-            {x60.toFixed(1)}
+          {/* step 1: from the thread's rim point straight up to 60·sin h */}
+          <path d={`M ${tip.x} ${tip.y} V ${AY}`} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1, strokeDasharray: '4 2.5' }} />
+          <circle cx={q.xRead} cy={ROW.sin} r={3.2} style={{ fill: C.ink }} />
+          <InkText x={lab.sin.x} y={lab.sin.y} kind="num" anchor="middle" size={lab.sin.size}>
+            {lab.sin.s}
           </InkText>
-          <InkText x={AX + 8} y={yRead - 6} kind="num" size={10} role="soft">
-            {(60 * cosd(hEff)).toFixed(1)} = 60·cos h
-          </InkText>
-          {/* the muvakkit's offset for this date: 60·sin φ·sin δ along the same scale */}
-          {Math.abs(a) > 0.005 && (
+
+          {/* step 2: the date term, shifted along a row of the grid (brass) */}
+          {Math.abs(q.a) > 0.002 && (
             <g>
-              <path d={`M ${xOffset} ${AY - 3} V ${AY + 34}`} style={{ stroke: C.brass, strokeWidth: 1 }} />
-              <InkText x={xOffset + (a > 0 ? 4 : 4)} y={AY + 44} size={10.5} role="brass">
-                sin φ sin δ
+              <path
+                d={`M ${shift[0]} ${ROW.date} H ${shift[1]}`}
+                style={{ fill: 'none', stroke: C.brass, strokeWidth: 2 }}
+              />
+              {shift.map((x, i) => (
+                <line key={i} x1={x} x2={x} y1={ROW.date - 5} y2={ROW.date + 5} style={{ stroke: C.brass, strokeWidth: 1.2 }} />
+              ))}
+              <InkText x={lab.date.x} y={lab.date.y} kind="num" anchor="middle" size={lab.date.size} role="brass">
+                {lab.date.s}
               </InkText>
             </g>
           )}
+          {/* the difference, carried down to the bead */}
+          <path d={`M ${q.xAbs} ${ROW.date} V ${bead.y}`} style={{ fill: 'none', stroke: C.brass, strokeWidth: 1, strokeDasharray: '2 2.5' }} />
+
+          {/* step 3: the dividing thread through the bead (red), and its reading */}
+          <line x1={AX} y1={AY} x2={divTip.x} y2={divTip.y} style={{ stroke: C.red, strokeWidth: 1.1, strokeDasharray: '6 3' }} />
+          <path d={`M ${divTip.x} ${divTip.y} V ${AY}`} style={{ fill: 'none', stroke: C.red, strokeWidth: 1, strokeDasharray: '4 2.5' }} />
+          <circle cx={q.xCos} cy={ROW.cos} r={3.2} style={{ fill: C.red }} />
+          <InkText x={lab.cos.x} y={lab.cos.y} kind="num" anchor="middle" size={lab.cos.size} role="red">
+            {lab.cos.s}
+          </InkText>
+          <circle cx={bead.x} cy={bead.y} r={4} style={{ fill: C.paper, stroke: C.soft, strokeWidth: 1.4 }} />
+          <circle cx={divTip.x} cy={divTip.y} r={3.4} style={{ fill: C.red }} />
 
           {/* the thread */}
-          <line x1={AX} y1={AY} x2={tip.x} y2={tip.y} style={{ stroke: C.red, strokeWidth: 1.6 }} />
-          <circle cx={bead.x} cy={bead.y} r={3.6} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.3 }} />
+          <line x1={AX} y1={AY} x2={tip.x} y2={tip.y} style={{ stroke: C.sky, strokeWidth: 1.8 }} />
           <circle cx={AX} cy={AY} r={3} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
           {(() => {
-            const bob = threadEnd(hEff, R + 40);
+            const bob = threadAt(h, R + 40);
             return (
               <g>
-                <line x1={tip.x} y1={tip.y} x2={bob.x} y2={bob.y} style={{ stroke: C.red, strokeWidth: 1.2 }} />
+                <line x1={tip.x} y1={tip.y} x2={bob.x} y2={bob.y} style={{ stroke: C.sky, strokeWidth: 1.3 }} />
                 <path
                   d={`M ${bob.x} ${bob.y} m -4 0 l 4 12 l 4 -12 z`}
-                  transform={`rotate(${-hEff} ${bob.x} ${bob.y})`}
-                  style={{ fill: C.paper, stroke: C.red, strokeWidth: 1 }}
+                  transform={`rotate(${-h} ${bob.x} ${bob.y})`}
+                  style={{ fill: C.paper, stroke: C.sky, strokeWidth: 1 }}
                 />
               </g>
             );
           })()}
-          {/* angle label at the apex */}
-          <path d={arcPath(AX, AY, 70, -90, hEff - 90)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.8 }} />
-          <InkText x={polar(AX, AY, 70, hEff - 90).x + 9} y={polar(AX, AY, 70, hEff - 90).y + 2} kind="num" anchor="start" baseline="central" size={11}>
-            {`h = ${hEff.toFixed(1)}°`}
+          {/* the altitude angle at the apex */}
+          <path d={arcPath(AX, AY, 62, -90, h - 90)} style={{ fill: 'none', stroke: C.sky, strokeWidth: 1.1 }} />
+          <InkText x={polar(AX, AY, 70, Math.min(h, 80) / 2 - 90).x + 2} y={polar(AX, AY, 70, Math.min(h, 80) / 2 - 90).y + 4} kind="num" anchor="start" size={11} role="sky">
+            h
           </InkText>
 
           {/* hit area for dragging (touch: only here, so the page still scrolls elsewhere) */}
           <line
             x1={AX}
             y1={AY}
-            x2={threadEnd(hEff, R + 50).x}
-            y2={threadEnd(hEff, R + 50).y}
+            x2={threadAt(h, R + 50).x}
+            y2={threadAt(h, R + 50).y}
             style={{ stroke: 'transparent', strokeWidth: 30, cursor: 'grab', touchAction: 'none' }}
             onPointerDown={(e) => {
               drag.current = true;
@@ -237,54 +216,50 @@ export default function SineQuadrant() {
             onPointerCancel={() => (drag.current = false)}
           />
 
-          {/* inset: how the board is held */}
-          <Inset h={hEff} />
+          <Inset h={h} />
         </svg>
 
-        <ol className="sq-steps">
-          <li>
-            <span className="sq-k">thread</span>
-            <span>
-              Aim the top edge at the sun. The thread sits at <b>{hEff.toFixed(1)}°</b>, and the
-              grid gives <b>{x60.toFixed(1)}</b> parts of 60: sin h = <b>{(x60 / 60).toFixed(3)}</b>.
-            </span>
-          </li>
-          <li>
-            <span className="sq-k">date</span>
-            <span>
-              On {dayLabel(day)} the sun&apos;s declination is δ = {dec.toFixed(1)}°. For 41° the
-              board already carries sin φ sin δ = <b>{a.toFixed(3)}</b>
-              {Math.abs(a) > 0.005 ? ' (the brass mark)' : ''}.
-            </span>
-          </li>
-          <li>
-            <span className="sq-k">divide</span>
-            <span>
-              Subtract, then scale by cos φ cos δ = {b.toFixed(3)} with a pair of similar triangles:
-              cos H = <b>{cosH.toFixed(3)}</b>.
-            </span>
-          </li>
-          <li>
-            <span className="sq-k">hour</span>
-            <span>
-              Read cos H back off the rim: H = <b>{Hdeg.toFixed(1)}°</b>, and at 15° an hour that is{' '}
-              <b>
-                {Math.floor(fromNoon)} h {Math.round((fromNoon % 1) * 60)} min
-              </b>{' '}
-              from noon. The time is <b className="sq-time">{hm(clock)}</b> local solar time.
-            </span>
-          </li>
-          {tooHigh && (
-            <li className="sq-warn">
-              The sun never climbs above {hMax.toFixed(1)}° at Istanbul on {dayLabel(day)}, so the
-              thread stops at noon.
-            </li>
-          )}
-        </ol>
+        <div className="sq-work">
+          <Working label="The muvakkit's working, in parts of 60">
+            <Eq>
+              <Sym role="sky">h</Sym> = <V role="sky">{h.toFixed(1)}°</V>, so 60·sin <Sym role="sky">h</Sym> = <V>{p60(q.sinh)}</V>
+            </Eq>
+            <Eq>
+              cos <Sym role="red">H</Sym> = (sin <Sym role="sky">h</Sym> − <Sym role="brass">sin φ sin δ</Sym>) ÷ <Sym role="soft">cos φ cos δ</Sym>
+            </Eq>
+            <Eq>
+              <V role="red">{p60(q.cosH)}</V> = (<V>{p60(q.sinh)}</V> − <V role="brass">{sub ? p60(q.a) : `(${p60(q.a)})`}</V>) ÷{' '}
+              <V role="soft">{p60(q.b)}</V> × 60
+            </Eq>
+            <Eq>
+              <Sym role="red">H</Sym> = <V role="red">{q.Hdeg.toFixed(1)}°</V> ={' '}
+              <V role="red">
+                {Math.floor(fromNoon)} h {String(Math.round((fromNoon % 1) * 60)).padStart(2, '0')} min
+              </V>{' '}
+              from noon
+            </Eq>
+          </Working>
+          <p className="sq-note">
+            On {dayLabel(day)} the sun is {Math.abs(q.dec).toFixed(1)}° {q.dec >= 0 ? 'north' : 'south'} of the
+            equator, so the board {sub ? 'subtracts' : 'adds'} the date term. The time is{' '}
+            <b>{hm(clock)}</b> local solar time{half === 'am' ? ', morning' : ', afternoon'}.
+            {q.diff < 0 && ' The sun is lower than it stands at six o\'clock, so cos H is negative and H passes 90°.'}
+            {atNoon && ` ${hMax.toFixed(1)}° is the noon altitude on this date; the sun climbs no higher.`}
+          </p>
+        </div>
       </div>
 
       <Controls>
-        <Slider label="altitude" value={h} min={0} max={90} step={0.5} onChange={setH} format={(v) => `${v.toFixed(1)}°`} width="8rem" />
+        <Slider
+          label="sun's altitude h"
+          value={h}
+          min={0}
+          max={hMax}
+          step={0.1}
+          onChange={setH}
+          format={(v) => `${v.toFixed(1)}°${v >= hMax - 0.05 ? ' (noon)' : ''}`}
+          width="8rem"
+        />
         <Slider label="date" value={day} min={1} max={365} step={1} onChange={setDay} format={dayLabel} width="8rem" />
         <Segmented
           label="Morning or afternoon"
@@ -324,7 +299,7 @@ function Inset({ h }: { h: number }) {
         d={`M ${ox} ${oy} L ${B.x} ${B.y} A ${s} ${s} 0 0 1 ${D.x} ${D.y} Z`}
         style={{ fill: C.paper, stroke: C.ink, strokeWidth: 0.9 }}
       />
-      <line x1={ox} y1={oy} x2={ox} y2={oy + s + 4} style={{ stroke: C.red, strokeWidth: 1.1 }} />
+      <line x1={ox} y1={oy} x2={ox} y2={oy + s + 4} style={{ stroke: C.sky, strokeWidth: 1.1 }} />
       <line
         x1={B.x}
         y1={B.y}
@@ -343,11 +318,7 @@ function Inset({ h }: { h: number }) {
 const CSS = `
 .sq-split { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 @media (min-width: 46rem) { .sq-split { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; } }
-.sq-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; counter-reset: sq; }
-.sq-steps li { display: grid; grid-template-columns: 4.2rem 1fr; gap: 0.6rem; font-family: var(--font-display); font-size: 0.98rem; line-height: 1.4; color: var(--in-ink-soft); border-bottom: 1px dotted var(--in-ink-faint); padding-bottom: 0.45rem; }
-.sq-steps li b { font-family: var(--font-mono); font-weight: 400; font-size: 0.86rem; color: var(--in-ink); font-variant-numeric: tabular-nums; }
-.sq-steps .sq-k { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--in-ink-soft); padding-top: 0.25rem; }
-.sq-steps li::before { content: none; }
-.sq-steps .sq-time { color: var(--in-red); font-size: 1rem; }
-.sq-steps .sq-warn { display: block; font-style: italic; color: var(--in-red); }
+.sq-work .in-working { margin-top: 0; }
+.sq-note { margin: 0.7rem 0 0; font-family: var(--font-display); font-style: italic; font-size: 0.98rem; line-height: 1.45; color: var(--in-ink-soft); }
+.sq-note b { font-family: var(--font-mono); font-style: normal; font-weight: 400; color: var(--in-red); }
 `;

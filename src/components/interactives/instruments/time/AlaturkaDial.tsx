@@ -1,5 +1,5 @@
 /**
- * Plate 3: two clocks in Istanbul. Alafranga counts from midnight, so noon is always 12.
+ * Plate 3: two clocks in Istanbul. Geometry in ./alaturkaGeom (swept by a script). Alafranga counts from midnight, so noon is always 12.
  * Alaturka (ezanî) counts from sunset, so sunset is always 12 and noon wanders through the
  * year. A strip below plots the alaturka reading of true noon over the year.
  */
@@ -7,20 +7,19 @@ import { useMemo, useState } from 'react';
 import {
   C,
   Controls,
+  Eq,
   InkText,
   Plate,
   Slider,
+  Sym,
+  V,
+  Working,
   polar,
   useMeasuredWidth,
+  type Role,
 } from '../shared';
 import { dayLabel, declination, halfDay, hm } from './astro';
-
-const sunsetOf = (n: number) => 12 + halfDay(declination(n)) / 15; // local solar time
-const sunriseOf = (n: number) => 12 - halfDay(declination(n)) / 15;
-/** Reading of a 12-hour alaturka dial (0..12, where 0 shows as 12): hours since sunset. */
-const alaturka = (t: number, n: number) => (((t - sunsetOf(n)) % 12) + 12) % 12;
-const hm12 = (v: number) => hm(v < 1 ? v + 12 : v);
-const hm12f = (v: number) => hm12(v % 12);
+import { alaturka, dialAngle, hm12, hm12f, sinceSunset, sunriseOf, sunsetOf } from './alaturkaGeom';
 
 function Dial({
   cx,
@@ -30,6 +29,7 @@ function Dial({
   title,
   sub,
   marks,
+  handRole = 'ink',
 }: {
   cx: number;
   cy: number;
@@ -37,9 +37,10 @@ function Dial({
   hours: number;
   title: string;
   sub: string;
-  marks: { at: number; label: string; red?: boolean }[];
+  marks: { at: number; label: string; role: Role }[];
+  handRole?: Role;
 }) {
-  const ang = (h: number) => 90 - ((h % 12) / 12) * 360; // maths convention, 12 at top
+  const ang = dialAngle;
   const hand = polar(cx, cy, r * 0.62, ang(hours));
   const mHand = polar(cx, cy, r * 0.86, 90 - ((hours % 1) * 360));
   return (
@@ -70,16 +71,16 @@ function Dial({
         const t = polar(cx, cy, r + 30, a);
         return (
           <g key={m.label}>
-            <line x1={p.x} y1={p.y} x2={q.x} y2={q.y} style={{ stroke: m.red ? C.red : C.soft, strokeWidth: 1.3 }} />
-            <InkText x={t.x} y={t.y} anchor="middle" baseline="central" size={11} role={m.red ? 'red' : 'soft'}>
+            <line x1={p.x} y1={p.y} x2={q.x} y2={q.y} style={{ stroke: C[m.role], strokeWidth: 1.6 }} />
+            <InkText x={t.x} y={t.y} anchor="middle" baseline="central" size={11} role={m.role}>
               {m.label}
             </InkText>
           </g>
         );
       })}
-      <line x1={cx} y1={cy} x2={hand.x} y2={hand.y} style={{ stroke: C.ink, strokeWidth: 3, strokeLinecap: 'round' }} />
-      <line x1={cx} y1={cy} x2={mHand.x} y2={mHand.y} style={{ stroke: C.ink, strokeWidth: 1.4, strokeLinecap: 'round' }} />
-      <circle cx={cx} cy={cy} r={3.5} style={{ fill: C.ink }} />
+      <line x1={cx} y1={cy} x2={hand.x} y2={hand.y} style={{ stroke: C[handRole], strokeWidth: 3, strokeLinecap: 'round' }} />
+      <line x1={cx} y1={cy} x2={mHand.x} y2={mHand.y} style={{ stroke: C[handRole], strokeWidth: 1.4, strokeLinecap: 'round' }} />
+      <circle cx={cx} cy={cy} r={3.5} style={{ fill: C[handRole] }} />
       <InkText x={cx} y={cy + r + 52} kind="title" anchor="middle" size={15}>
         {title}
       </InkText>
@@ -126,8 +127,8 @@ function YearStrip({ day }: { day: number }) {
           </InkText>
         ))}
         <path d={d} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.3 }} />
-        <line x1={x(day)} x2={x(day)} y1={m.t} y2={m.t + ih} style={{ stroke: C.red, strokeWidth: 0.9 }} />
-        <circle cx={x(day)} cy={y(v)} r={4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.5 }} />
+        <line x1={x(day)} x2={x(day)} y1={m.t} y2={m.t + ih} style={{ stroke: C.soft, strokeWidth: 0.9, strokeDasharray: '3 3' }} />
+        <circle cx={x(day)} cy={y(v)} r={4} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.5 }} />
         <InkText x={m.l + iw} y={m.t - 1} anchor="end" size={11.5} role="soft">
           noon on the alaturka clock, through the year
         </InkText>
@@ -148,11 +149,15 @@ export default function AlaturkaDial() {
   const sunrise = sunriseOf(day);
   const at = alaturka(t, day);
   const reset = (sunsetOf(Math.min(day + 1, 365)) - sunset) * 60;
+  const H0 = halfDay(declination(day));
+  const dec = declination(day);
+  const wrap = t < sunset; // before sunset: count from yesterday's sunset (+24 h)
+  const since = sinceSunset(t, day);
   return (
     <Plate
       n={3}
       id="plate-alaturka"
-      title="Alafranga and alaturka"
+      title="Clocks that counted from sunset"
       caption={
         <>
           Local solar time in Istanbul (41° N), sun&apos;s centre on the horizon, no refraction or
@@ -177,8 +182,8 @@ export default function AlaturkaDial() {
             title="Alafranga"
             sub="the day starts at midnight"
             marks={[
-              { at: 12, label: 'noon' },
-              { at: sunset, label: 'sunset', red: true },
+              { at: 12, label: 'noon', role: 'soft' },
+              { at: sunset, label: 'sunset', role: 'brass' },
             ]}
           />
           <g transform={narrow ? `translate(0 ${Hh - 20})` : 'translate(280 0)'}>
@@ -189,9 +194,10 @@ export default function AlaturkaDial() {
               hours={at}
               title="Alaturka"
               sub="the day starts at sunset"
+              handRole="red"
               marks={[
-                { at: alaturka(12, day), label: 'noon', red: true },
-                { at: 12, label: 'sunset' },
+                { at: alaturka(12, day), label: 'noon', role: 'soft' },
+                { at: 12, label: 'sunset', role: 'brass' },
               ]}
             />
           </g>
@@ -200,13 +206,34 @@ export default function AlaturkaDial() {
       <YearStrip day={day} />
       <Controls>
         <Slider label="date" value={day} min={1} max={365} step={1} onChange={setDay} format={dayLabel} width="8rem" />
-        <Slider label="solar time" value={t} min={0} max={23.95} step={1 / 12} onChange={setT} format={(v) => hm(v)} width="8rem" />
+        <Slider label="time since midnight (sun time)" value={t} min={0} max={23.95} step={1 / 12} onChange={setT} format={(v) => hm(v)} width="8rem" />
       </Controls>
+      <Working label="Converting to alaturka time">
+        <Eq>
+          <Sym role="brass">sunset</Sym> = 12:00 + <Sym>H₀</Sym> ÷ 15°, cos <Sym>H₀</Sym> = −tan φ tan δ
+        </Eq>
+        <Eq>
+          <V role="brass">{hm(sunset)}</V> = 12:00 + <V>{H0.toFixed(1)}°</V> ÷ 15°{' '}
+          <span className="al-small">(φ = 41°, δ = {dec.toFixed(1)}°)</span>
+        </Eq>
+        <Eq>
+          <Sym role="red">alaturka</Sym> = <Sym>time</Sym> − <Sym role="brass">last sunset</Sym>
+        </Eq>
+        <Eq>
+          <V role="red">{hm(since)}</V> = <V>{hm(t)}</V>
+          {wrap ? <> + <V>24:00</V></> : null} − <V role="brass">{hm(sunset)}</V>
+          {since >= 12 ? (
+            <>
+              , shown as <V role="red">{hm12(at)}</V> on a 12-hour dial
+            </>
+          ) : null}
+        </Eq>
+      </Working>
       <p className="al-note">
-        Sunrise {hm(sunrise)}, sunset {hm(sunset)}. Noon reads <b>{hm12(alaturka(12, day))}</b> alaturka.
-        Tonight&apos;s reset: {Math.abs(reset) < 0.05 ? 'almost nothing' : `${Math.abs(reset).toFixed(1)} min ${reset > 0 ? 'back' : 'forward'}`}.
+        Sunrise {hm(sunrise)}. Noon reads {hm12(alaturka(12, day))} alaturka on this date. Tonight&apos;s
+        reset: {Math.abs(reset) < 0.05 ? 'almost nothing' : `${Math.abs(reset).toFixed(1)} min ${reset > 0 ? 'back' : 'forward'}`}.
       </p>
-      <style>{`.al-note{margin:.6rem 0 0;font-family:var(--font-display);font-style:italic;font-size:.98rem;color:var(--in-ink-soft)}.al-note b{font-family:var(--font-mono);font-style:normal;font-weight:400;color:var(--in-red)}`}</style>
+      <style>{`.al-note{margin:.6rem 0 0;font-family:var(--font-display);font-style:italic;font-size:.98rem;color:var(--in-ink-soft)}.al-small{font-size:.85em;color:var(--in-ink-soft)}`}</style>
     </Plate>
   );
 }

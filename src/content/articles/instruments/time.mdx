@@ -1,6 +1,6 @@
 ---
-title: 'From Shadow to Cesium: How We Learned to Measure Time'
-description: 'Sundials, water clocks, a quadrant that reads the hour off the sun, pendulums, chronometers and atomic clocks: how keeping time went from a shadow on a wall to a nanosecond.'
+title: 'How Clocks Got Accurate: From Sundials to Atomic Clocks'
+description: 'How timekeeping went from sundials and water clocks to pendulum clocks, marine chronometers and atomic clocks, and why each one replaced the last.'
 date: 2026-10-25
 tags: ['blog']
 series: instruments
@@ -49,7 +49,7 @@ and about a metre of glass. This post is the ladder between them, and the rungs 
   </figure>
 </div>
 
-## A stick and its shadow
+## Sundials
 
 The oldest sundial we have is Egyptian, from the reign of Thutmose III around 1500 BCE: an
 L-shaped stone with hour marks, turned round at noon to face the other way
@@ -62,7 +62,7 @@ arithmetic, a daytime hour stretches from about 45 minutes in December to 75 in 
 
 The wall: no sun, no time. Clouds and nights are a problem for a shadow.
 
-## Water that keeps falling
+## Water clocks
 
 A water clock works in the dark. The oldest complete one, from the reign of Amenhotep III
 (c. 1390 to 1350 BCE), is a stone bowl with a hole near the bottom and twelve columns of marks
@@ -80,7 +80,7 @@ The wall: water changes with temperature, holes clog, and the clock still has to
 the sky. Nobody has a good figure for how well these kept time; a quarter of an hour a day is
 the usual order of magnitude.
 
-## Reading the hour off the sun
+## The sine quadrant: the hour from the sun's height
 
 Which brings us to the boards. A sine quadrant (*rubʿ al-mujayyab*, in Turkish *rubu tahtası*)
 is a quarter circle with a 60 by 60 grid on its face and a thread hanging from the corner. It
@@ -104,7 +104,10 @@ $$
 </EqTip>
 
 Every term is a sine or a cosine, and the grid does products and quotients with similar
-triangles. Drag the thread:
+triangles. Solved for $H$, the date term $\sin\varphi \sin\delta$ is subtracted from $\sin h$ in
+summer, when the sun is north of the equator. In winter $\delta$ is negative, so the same rule
+adds it. The board only holds positive lengths, so the plate draws the shift to the left or to
+the right. Drag the thread:
 
 <div class="fx-figure">
   <SineQuadrant client:visible />
@@ -132,7 +135,7 @@ Someone wrote on it, in Ottoman, roughly "quadrant drawing, but faulty" (museum 
 The wall: the quadrant gives a reading, not a running clock. Between readings you still need
 something that ticks.
 
-## Gears, and a stutter
+## Mechanical clocks
 
 Mechanical clocks appear in Europe in the late 13th century. Their heart was the verge and
 foliot: a crown-shaped wheel pushed by a weight, and a bar with two weights that swings one way,
@@ -147,7 +150,7 @@ five seconds" ([Muslim Heritage](https://muslimheritage.com/instruments-istanbul
 The wall: a foliot has no rhythm of its own. It swings as fast as the weight pushes it, so
 anything that changes the push changes the time.
 
-## The pendulum
+## Pendulum clocks
 
 A pendulum does have a rhythm of its own. Galileo put isochronism (the swing takes the same time
 whatever its size, if the swing is small) in writing in 1602
@@ -197,7 +200,7 @@ moved Turkey to a day starting at midnight, in force from 2 January 1926
 The wall: a pendulum needs a floor that stays still. Put it on a rolling ship and it stops being
 a clock.
 
-## A clock that goes to sea
+## Marine chronometers and longitude
 
 At sea, time is longitude. The Earth "turns through one degree of longitude every four minutes"
 ([Royal Museums Greenwich](https://www.rmg.co.uk/stories/time/what-longitude)), so a ship that
@@ -211,7 +214,7 @@ was only 5 seconds slow" ([Linda Hall Library](https://www.lindahall.org/about/n
 
 The wall: a balance wheel and a spring are still metal, and metal creeps with heat and age.
 
-## Crystals and atoms
+## Quartz and atomic clocks
 
 In 1927 Warren Marrison and J. W. Horton at Bell Labs built a clock around a vibrating quartz
 crystal ([Wikipedia](https://en.wikipedia.org/wiki/Warren_Marrison)). In 1969 Seiko put one on
@@ -230,7 +233,7 @@ reported an aluminium ion clock better still
 The wall, for once, is on our side: very little needs time this good. One thing that does is in
 your pocket.
 
-## Time is position
+## GPS: position from timing
 
 Your phone finds itself by timing radio signals from satellites. Light travels about 30 cm in a
 nanosecond, so the distance to a satellite is a clock reading in disguise:
@@ -255,12 +258,12 @@ effect is that "a GPS satellite clock will gain about 38 microseconds per day"
 grows into range errors of up to about 11 km between daily corrections. So the clocks are set to
 tick slow on the ground, at 10.22999999543 MHz instead of 10.23 MHz, and run right in orbit.
 
-## The other half
+## Next: measuring the sun's angle
 
 Notice what the longitude trick needed. A clock that keeps home time, yes, but also a measurement
 of local noon: the sun's highest point, read off the sky with an angle. Harrison solved one half.
 The other half is an instrument that measures angles on a rolling deck, and that is the
-[next post](/articles/instruments/sky).
+next post: [How to Find Your Latitude](/articles/instruments/sky).
 
 ## Sources
 
@@ -273,6 +276,9 @@ The other half is an instrument that measures angles on a rolling deck, and that
   Water clock accuracy is an order-of-magnitude estimate.
 - Sine quadrant: [Sine quadrant](https://en.wikipedia.org/wiki/Sine_quadrant) (Wikipedia);
   [The Astrolabe Project, Deconstructing the Sine Quadrant](https://www.astrolabeproject.com/category/sine-quadrant/);
+  the medieval time-from-altitude formula, of Indian origin: David A. King,
+  [An Instrument of Mass Calculation](https://www.ub.edu/arab/suhayl/volums/volum8/paper%203.pdf)
+  (Suhayl 8, 2008, p. 109). The plate's numbers are my arithmetic from the formula above;
   muvakkithanes: [Belleten](https://belleten.gov.tr/eng/full-text/215/tur). The 1753, 1860 and
   1848 objects, and Mustafa Şem'i's clock: the exhibition labels.
 - Mechanical clocks: [Verge escapement](https://en.wikipedia.org/wiki/Verge_escapement) and

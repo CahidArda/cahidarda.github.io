@@ -32,7 +32,7 @@ const HOG = 'https://arxiv.org/pdf/1707.01020';
 export const TIME: Rung[] = [
   {
     name: 'Shadow clock and water clock',
-    short: 'sundial, clepsydra',
+    short: 'sundial, water clock',
     era: 'c. 1500 BCE',
     year: -1500,
     value: 900,
@@ -44,7 +44,7 @@ export const TIME: Rung[] = [
   },
   {
     name: 'Verge-and-foliot clock',
-    short: 'verge',
+    short: 'verge clock',
     era: 'c. 1300',
     year: 1300,
     value: 15 * 60,
@@ -54,7 +54,7 @@ export const TIME: Rung[] = [
   },
   {
     name: 'Pendulum clock (Huygens)',
-    short: 'pendulum',
+    short: 'pendulum clock',
     era: '1656',
     year: 1656,
     value: 15,
@@ -64,7 +64,7 @@ export const TIME: Rung[] = [
   },
   {
     name: "Harrison's H4 chronometer",
-    short: 'H4',
+    short: 'Harrison H4',
     era: '1761',
     year: 1761,
     value: 5 / 61,
@@ -74,7 +74,7 @@ export const TIME: Rung[] = [
   },
   {
     name: 'Shortt-Synchronome free-pendulum clock',
-    short: 'Shortt',
+    short: 'Shortt clock',
     era: '1920s',
     year: 1925,
     value: 1 / YEAR,
@@ -84,7 +84,7 @@ export const TIME: Rung[] = [
   },
   {
     name: 'Quartz clock',
-    short: 'quartz',
+    short: 'quartz clock',
     era: '1930s',
     year: 1935,
     value: 30 / (300 * YEAR),
@@ -95,7 +95,7 @@ export const TIME: Rung[] = [
   },
   {
     name: 'Caesium clock (Essen and Parry)',
-    short: 'caesium',
+    short: 'caesium clock',
     era: '1955',
     year: 1955,
     value: 1 / (300 * YEAR),
@@ -116,7 +116,7 @@ export const TIME: Rung[] = [
   },
   {
     name: 'Strontium optical lattice clock (JILA)',
-    short: 'optical',
+    short: 'optical clock',
     era: '2024',
     year: 2024,
     value: 8.1e-19 * DAY,
@@ -202,7 +202,7 @@ export const ANGLE: Rung[] = [
   },
   {
     name: 'Hipparcos satellite',
-    short: 'Hipparcos',
+    short: 'Hipparcos satellite',
     era: '1997',
     year: 1997,
     value: 0.001,
@@ -212,7 +212,7 @@ export const ANGLE: Rung[] = [
   },
   {
     name: 'Gaia satellite (bright stars)',
-    short: 'Gaia',
+    short: 'Gaia satellite',
     era: '2013 to 2025',
     year: 2020,
     value: 10e-6,

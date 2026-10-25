@@ -13,6 +13,10 @@ import {
   InkText,
   Plate,
   Slider,
+  Eq,
+  Sym,
+  V,
+  Working,
   useMeasuredWidth,
   type BlueprintCtx,
   type THREE,
@@ -24,7 +28,7 @@ import {
   PIVOT,
   R_ROOT,
   palletsAt,
-  solveWheel,
+  stepMovement,
   wheelOutline,
   type Pt,
 } from './escapement';
@@ -123,7 +127,7 @@ function Poster() {
         <polygon key={i} points={poly(a)} style={{ ...ink, fill: C.paper }} />
       ))}
       {pals.map((p, i) => (
-        <polygon key={i} points={poly(p)} style={{ ...ink, stroke: C.red, fill: C.paper }} />
+        <polygon key={i} points={poly(p)} style={{ ...ink, fill: C.paper }} />
       ))}
       <circle cx={ox} cy={oy - PIVOT[1] * s} r={9} style={{ ...ink, fill: C.paper }} />
       <line
@@ -131,10 +135,21 @@ function Poster() {
         y1={oy - PIVOT[1] * s}
         x2={ox}
         y2={oy - (bobY + BOB_R) * s}
-        style={{ ...ink, strokeWidth: 1.4 }}
+        style={{ ...ink, stroke: C.brass, strokeWidth: 1.4 }}
       />
-      <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s} style={{ ...ink, fill: C.paper }} />
-      <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s * 0.55} style={{ ...ink, strokeWidth: 0.6 }} />
+      <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s} style={{ ...ink, stroke: C.brass, fill: C.paper }} />
+      <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s * 0.55} style={{ ...ink, stroke: C.brass, strokeWidth: 0.6 }} />
+      {(() => {
+        const rA = (L + BOB_R + 0.12) * s;
+        const cy0 = oy - PIVOT[1] * s;
+        const t = AMP * 1.6;
+        return (
+          <path
+            d={`M ${ox - Math.sin(t) * rA} ${cy0 + Math.cos(t) * rA} A ${rA} ${rA} 0 0 0 ${ox + Math.sin(t) * rA} ${cy0 + Math.cos(t) * rA}`}
+            style={{ fill: 'none', stroke: C.red, strokeWidth: 1 }}
+          />
+        );
+      })()}
       {/* drive cord and weight, behind the wheel */}
       <line x1={ox + 0.56 * s} y1={oy} x2={ox + 0.56 * s} y2={oy + 1.5 * s} style={{ ...ink, strokeWidth: 0.8 }} />
       <rect
@@ -191,11 +206,11 @@ function PeriodCurve({ L }: { L: number }) {
             {l}
           </InkText>
         ))}
-        <InkText x={m.l + iw} y={m.t + ih + 27} kind="note" anchor="end" size={11.5} role="soft" halo={false}>
-          rod length, metres
+        <InkText x={m.l + iw} y={m.t + ih + 27} kind="note" anchor="end" size={11.5} role="brass" halo={false}>
+          length L, metres
         </InkText>
-        <InkText x={m.l + 4} y={m.t + 2} kind="note" size={11.5} role="soft" baseline="hanging" halo={false}>
-          period, seconds
+        <InkText x={m.l + 4} y={m.t + 2} kind="note" size={11.5} role="red" baseline="hanging" halo={false}>
+          period T, seconds
         </InkText>
         <path
           d={`M ${m.l} ${m.t} V ${m.t + ih} H ${m.l + iw}`}
@@ -212,10 +227,16 @@ function PeriodCurve({ L }: { L: number }) {
         </InkText>
         {/* current */}
         <path
-          d={`M ${x(L)} ${m.t + ih} V ${y(T)} H ${m.l}`}
-          style={{ stroke: C.red, strokeWidth: 1, fill: 'none' }}
+          d={`M ${x(L)} ${m.t + ih} V ${y(T)}`}
+          style={{ stroke: C.brass, strokeWidth: 1.4, fill: 'none' }}
+        />
+        <path
+          d={`M ${x(L)} ${y(T)} H ${m.l}`}
+          style={{ stroke: C.red, strokeWidth: 1.4, fill: 'none' }}
         />
         <circle cx={x(L)} cy={y(T)} r={4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.5 }} />
+        <circle cx={x(L)} cy={m.t + ih} r={2.6} style={{ fill: C.brass }} />
+        <circle cx={m.l} cy={y(T)} r={2.6} style={{ fill: C.red }} />
       </svg>
     </div>
   );
@@ -236,13 +257,14 @@ export default function PendulumClock() {
       n={2}
       wide
       id="plate-pendulum"
-      title="Pendulum and anchor"
+      title="How the rod length sets the tick"
       caption={
         <>
-          The falling weight always pushes the escape wheel clockwise. The red pallets let it
-          move half a tooth per swing: a tooth lands on a pallet, is shoved back a little (the
-          recoil), then slips off and the next tooth drops onto the other pallet. The rod is drawn
-          shorter than scale; the swing runs at its true period.
+          The falling weight always pushes the escape wheel clockwise. The two pallets of the
+          anchor let it move half a tooth per swing: a tooth lands on a pallet, is shoved back a
+          little (the recoil), then slips off and the next tooth drops onto the other pallet. The
+          3D pendulum (brass) is squeezed so a 4 m one still fits; the chart is to scale, and the
+          bob runs along the red arc at the true period T.
         </>
       }
     >
@@ -263,13 +285,17 @@ export default function PendulumClock() {
         </div>
         <div className="tm-side">
           <PeriodCurve L={L} />
+          <Working label="Period of the pendulum">
+            <Eq>
+              <Sym role="red">T</Sym> = 2π √(<Sym role="brass">L</Sym> ÷ <Sym>g</Sym>)
+            </Eq>
+            <Eq>
+              <V role="red">{T.toFixed(2)} s</V> = 2π √(<V role="brass">{L.toFixed(3)} m</V> ÷ <V>9.81 m/s²</V>)
+            </Eq>
+          </Working>
           <dl className="tm-facts">
             <div>
-              <dt>period</dt>
-              <dd>{T.toFixed(2)} s</dd>
-            </div>
-            <div>
-              <dt>ticks a minute</dt>
+              <dt>ticks a minute (one per half swing)</dt>
               <dd>{(120 / T).toFixed(1)}</dd>
             </div>
             <div>
@@ -286,7 +312,7 @@ export default function PendulumClock() {
       </div>
       <Controls>
         <Slider
-          label="rod length"
+          label="pendulum length L"
           value={L}
           min={L_MIN}
           max={L_MAX}
@@ -400,7 +426,7 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   });
   PALLETS.forEach((p) => {
     const m = new T.Mesh(extrude(shapeFrom(local(p)), 0.09, 0));
-    ctx.inkify(m, { threshold: 20, outline: 0, edge: 'red' });
+    ctx.inkify(m, { threshold: 20, outline: 0 });
     anchor.add(m);
   });
   const hub = cyl(0.12, 0.08, 0.01);
@@ -416,19 +442,27 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   model.add(pend);
   const rodGeo = new T.BoxGeometry(0.05, 1, 0.025);
   const rod = new T.Mesh(rodGeo);
-  ctx.inkify(rod, { threshold: 30, outline: 0 });
+  ctx.inkify(rod, { threshold: 30, outline: 0, edge: 'brass' });
   pend.add(rod);
   const bob = cyl(BOB_R, 0.07, 0, 0, 0, 64);
-  ctx.inkify(bob, { threshold: 40, outline: 1.1 });
+  ctx.inkify(bob, { threshold: 40, outline: 1.1, edge: 'brass' });
   pend.add(bob);
   const bobRing = cyl(BOB_R * 0.55, 0.08, 0, 0, 0, 48);
-  ctx.inkify(bobRing, { threshold: 40, outline: 0.6 });
+  ctx.inkify(bobRing, { threshold: 40, outline: 0.6, edge: 'brass' });
   bob.add(bobRing);
   bobRing.position.set(0, 0, 0);
   bobRing.rotation.set(0, 0, 0);
   const nut = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.1, 16));
-  ctx.inkify(nut, { threshold: 60, outline: 0.7 });
+  ctx.inkify(nut, { threshold: 60, outline: 0.7, edge: 'brass' });
   pend.add(nut);
+  // the bob's path, in red: one period is there and back along this arc
+  const ARC_N = 24;
+  const arcGeo = new T.BufferGeometry().setFromPoints(
+    Array.from({ length: ARC_N + 1 }, () => new T.Vector3()),
+  );
+  const swingArc = new T.Line(arcGeo, ctx.lineMaterial('red'));
+  swingArc.position.set(PIVOT[0], PIVOT[1], -0.62);
+  model.add(swingArc);
   const crutchTop = cyl(0.09, 0.05, 0);
   ctx.inkify(crutchTop, { threshold: 60, outline: 0.8 });
   pend.add(crutchTop);
@@ -449,8 +483,7 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   ctx.inkify(susp, { threshold: 30, outline: 0 });
   model.add(susp);
 
-  let w = 0;
-  let phase = Math.PI / 2;
+  let st = { phase: Math.PI / 2, w: 0 };
   let lastL = -1;
   const setLength = (L: number) => {
     const Lw = rodWorld(L);
@@ -458,6 +491,14 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
     rod.position.y = -(Lw - BOB_R * 0.6) / 2;
     bob.position.y = -Lw;
     nut.position.y = -Lw - BOB_R - 0.03;
+    const ap = arcGeo.attributes.position;
+    const rA = Lw + BOB_R + 0.12;
+    for (let i = 0; i <= ARC_N; i++) {
+      const t = AMP * 1.6 * (2 * (i / ARC_N) - 1);
+      ap.setXYZ(i, Math.sin(t) * rA, -Math.cos(t) * rA, 0);
+    }
+    ap.needsUpdate = true;
+    arcGeo.computeBoundingSphere();
     const top = PIVOT[1] + 0.45;
     const bottom = PIVOT[1] - Lw - BOB_R - 0.1;
     const k = Math.min(1, (2 * FIT * 0.93) / (top - bottom));
@@ -471,12 +512,14 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
       lastL = p.L;
     }
     if (ctx.reduced) {
-      phase = Math.PI * 0.3;
+      st = { phase: Math.PI * 0.3, w: st.w };
+      st = stepMovement(st, 0, period(p.L));
     } else {
-      phase += (2 * Math.PI * dt) / period(p.L);
+      // cap dt (tab switches) and substep, so the escapement is right at any frame rate
+      st = stepMovement(st, Math.min(dt, 0.1), period(p.L));
     }
-    const a = AMP * Math.sin(phase);
-    w = solveWheel(w, a, Math.max(0.004, dt * 2.2));
+    const w = st.w;
+    const a = AMP * Math.sin(st.phase);
     anchor.rotation.z = a;
     pend.rotation.z = a;
     wheel.rotation.z = -w;

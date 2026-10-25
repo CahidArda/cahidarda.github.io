@@ -126,3 +126,29 @@ export function solveWheel(w: number, a: number, maxStep = 0.05): number {
   }
   return w;
 }
+
+/** Largest anchor rotation the contact solver handles in one go (radians). Bigger moves skip
+ *  past a tooth (the wheel then stalls or runs backwards), so `stepMovement` substeps. */
+const MAX_DA = (0.12 * Math.PI) / 180;
+
+/**
+ * Advance the movement by `dt` seconds: pendulum phase and wheel angle, substepped so the
+ * anchor never moves more than MAX_DA between two solver calls. Correct at any frame rate
+ * and any period (checked by scripts: one tooth per period, from 0.1 m to 4 m, 20 to 144 fps).
+ */
+export function stepMovement(
+  s: { phase: number; w: number },
+  dt: number,
+  period: number,
+): { phase: number; w: number } {
+  const dPhase = (2 * Math.PI * dt) / period;
+  const maxDa = AMP * Math.abs(dPhase); // upper bound of |Δa| for this frame
+  const n = Math.max(1, Math.min(200, Math.ceil(maxDa / MAX_DA)));
+  let { phase, w } = s;
+  const sub = dt / n;
+  for (let i = 0; i < n; i++) {
+    phase += dPhase / n;
+    w = solveWheel(w, AMP * Math.sin(phase), Math.max(0.004 / n, sub * 2.2));
+  }
+  return { phase, w };
+}

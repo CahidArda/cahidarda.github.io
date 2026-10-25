@@ -4,21 +4,18 @@
  * the speed of light. Log slider over the clock error; presets for the rungs of the post.
  */
 import { useState } from 'react';
-import { C, Controls, InkText, Plate, Segmented, useHoverPreview, useMeasuredWidth } from '../shared';
+import { C, Controls, Eq, InkText, Plate, Segmented, Sym, V, Working, useHoverPreview, useMeasuredWidth } from '../shared';
 
-const C_LIGHT = 299_792_458; // m/s, exact by definition of the metre
-const EARTH_EQ = 40_075_017 / 86_400; // m/s: equator circumference over a solar day ≈ 463.8
+import { C_LIGHT, D0, D1, EARTH_EQ, LMAX, LMIN, ROWS, distanceLayout, dropSegments, rowBlock } from './distanceGeom';
 
 const PRESETS = [
-  { id: 'verge', s: 900, label: 'verge, a day', note: 'A good verge clock: about 15 minutes a day.' },
-  { id: 'h4', s: 5, label: 'H4, 81 days', note: 'Harrison’s H4 after the voyage to Jamaica: 5 seconds slow.' },
-  { id: 'quartz', s: 5 / 30, label: 'quartz, a day', note: 'The 1969 Seiko Astron: 5 seconds a month, about 0.17 s a day.' },
-  { id: 'gps', s: 1e-9, label: '1 ns', note: 'One nanosecond: what GPS clocks have to care about.' },
+  { id: 'verge', s: 900, label: 'verge clock, 1 day', note: 'A good verge clock: about 15 minutes a day.' },
+  { id: 'h4', s: 5, label: 'Harrison H4, 81 days', note: 'Harrison’s H4 after the voyage to Jamaica: 5 seconds slow.' },
+  { id: 'quartz', s: 5 / 30, label: 'quartz watch, 1 day', note: 'The 1969 Seiko Astron: 5 seconds a month, about 0.17 s a day.' },
+  { id: 'gps', s: 1e-9, label: 'GPS, 1 ns', note: 'One nanosecond: what GPS clocks have to care about.' },
 ] as const;
 type PresetId = (typeof PRESETS)[number]['id'];
 
-const LMIN = -9.5;
-const LMAX = 3.3;
 
 function fmtTime(s: number) {
   if (s >= 60) return `${(s / 60).toFixed(s >= 600 ? 0 : 1)} min`;
@@ -32,7 +29,9 @@ function fmtDist(m: number) {
   if (m >= 1e3) return `${(m / 1e3).toPrecision(3)} km`;
   if (m >= 1) return `${m.toPrecision(3)} m`;
   if (m >= 1e-2) return `${(m * 100).toPrecision(2)} cm`;
-  return `${(m * 1000).toPrecision(2)} mm`;
+  if (m >= 1e-3) return `${(m * 1000).toPrecision(2)} mm`;
+  if (m >= 1e-6) return `${(m * 1e6).toPrecision(2)} µm`;
+  return `${(m * 1e9).toPrecision(2)} nm`;
 }
 
 export default function ClockToDistance() {
@@ -45,13 +44,10 @@ export default function ClockToDistance() {
   const radio = s * C_LIGHT;
 
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(560);
-  const narrow = W < 460;
   const H = 168;
-  const m = { l: 14, r: 14 };
-  const iw = W - m.l - m.r;
-  const D0 = -3;
-  const D1 = 12;
-  const x = (d: number) => m.l + ((Math.log10(Math.max(d, 1e-3)) - D0) / (D1 - D0)) * iw;
+  const off0 = (d: number) => d < 10 ** D0;
+  const { narrow, m, iw, x, row } = distanceLayout(s, W);
+  void D1;
   const ticks = [
     { v: 1e-2, l: '1 cm' },
     { v: 1, l: '1 m' },
@@ -60,23 +56,30 @@ export default function ClockToDistance() {
     { v: 1e9, l: '10⁶ km' },
     { v: 1e12, l: '10⁹ km' },
   ];
-  const yShip = 46;
-  const yRadio = 112;
-  const axisY = 146;
+  const yShip = ROWS.ship;
+  const yRadio = ROWS.radio;
+  const axisY = ROWS.axis;
 
-  const bar = (y: number, d: number, role: 'red' | 'ink', label: string) => {
-    const xe = x(d);
-    const right = xe > m.l + iw * 0.62;
+  const radioRow = row(ROWS.radio, s * C_LIGHT, 'range, by a radio signal', fmtDist(s * C_LIGHT), x(s * EARTH_EQ));
+  const bar = (y: number, d: number, role: 'red' | 'sky', label: string, avoid?: number) => {
+    // shorter than the axis shows: pinned to the left end and marked
+    const { xe, off, tx, anchor } = row(y, d, label, off0(d) ? `${fmtDist(d)}, below the scale` : fmtDist(d), avoid);
     return (
       <g>
         <line x1={m.l} x2={xe} y1={y} y2={y} style={{ stroke: C[role], strokeWidth: 2 }} />
-        <line x1={xe} x2={xe} y1={y - 7} y2={axisY} style={{ stroke: C[role], strokeWidth: 0.7, strokeDasharray: '3 3' }} />
-        <circle cx={xe} cy={y} r={3.5} style={{ fill: C.paper, stroke: C[role], strokeWidth: 1.5 }} />
-        <InkText x={right ? xe - 8 : xe + 8} y={y - 10} anchor={right ? 'end' : 'start'} size={narrow ? 11.5 : 12.5}>
+        {dropSegments(xe, y - 7, axisY, role === 'red' ? rowBlock(radioRow) : undefined).map(([a, b]) => (
+          <line key={a} x1={xe} x2={xe} y1={a} y2={b} style={{ stroke: C[role], strokeWidth: 0.7, strokeDasharray: '3 3' }} />
+        ))}
+        {off ? (
+          <path d={`M ${xe + 7} ${y - 5} L ${xe} ${y} L ${xe + 7} ${y + 5}`} style={{ fill: 'none', stroke: C[role], strokeWidth: 1.5 }} />
+        ) : (
+          <circle cx={xe} cy={y} r={3.5} style={{ fill: C.paper, stroke: C[role], strokeWidth: 1.5 }} />
+        )}
+        <InkText x={tx} y={y - 10} anchor={anchor} size={narrow ? 11.5 : 12.5}>
           {label}
         </InkText>
-        <InkText x={right ? xe - 8 : xe + 8} y={y + 14} anchor={right ? 'end' : 'start'} kind="num" size={narrow ? 12 : 13} role={role}>
-          {fmtDist(d)}
+        <InkText x={tx} y={y + 14} anchor={anchor} kind="num" size={narrow ? 12 : 13} role={role}>
+          {off ? `${fmtDist(d)}, below the scale` : fmtDist(d)}
         </InkText>
       </g>
     );
@@ -86,18 +89,20 @@ export default function ClockToDistance() {
     <Plate
       n={4}
       id="plate-distance"
-      title="A clock error is a distance"
+      title="How clock error becomes position error"
       caption={
         <>
           The same clock error, turned into distance by two speeds: the Earth&apos;s surface turning
-          under the sun (at the equator) for a navigator finding longitude, and light for a GPS
-          receiver. Log scale: each tick is a factor of a thousand.
+          under the sun (40,075 km a day at the equator, less at higher latitudes) for a navigator
+          finding longitude, and light for a GPS receiver. Log scale: each tick is a factor of a
+          thousand.
         </>
       }
     >
       <Controls>
+        <span className="in-field">clock error of</span>
         <Segmented
-          label="Presets"
+          label="Example clock errors"
           options={PRESETS.map((p) => ({ value: p.id, label: p.label }))}
           value={selP as PresetId}
           onChange={(v) => {
@@ -121,12 +126,12 @@ export default function ClockToDistance() {
             </g>
           ))}
           {bar(yShip, ship, 'red', 'longitude, by the clock')}
-          {bar(yRadio, radio, 'ink', 'range, by a radio signal')}
+          {bar(yRadio, radio, 'sky', 'range, by a radio signal', x(ship))}
         </svg>
       </div>
       <div className="cd-row">
         <label className="in-field" htmlFor="cd-err">
-          clock error
+          clock error Δt
         </label>
         <input
           id="cd-err"
@@ -144,6 +149,20 @@ export default function ClockToDistance() {
         />
         <span className="in-readout">{fmtTime(s)}</span>
       </div>
+      <Working label="Clock error times speed">
+        <Eq>
+          <Sym role="red">longitude error</Sym> = <Sym>Δt</Sym> × <Sym>Earth&apos;s turn at the equator</Sym>
+        </Eq>
+        <Eq>
+          <V role="red">{fmtDist(ship)}</V> = <V>{fmtTime(s)}</V> × <V>463.8 m/s</V>
+        </Eq>
+        <Eq>
+          <Sym role="sky">range error</Sym> = <Sym>Δt</Sym> × <Sym>c</Sym>
+        </Eq>
+        <Eq>
+          <V role="sky">{fmtDist(radio)}</V> = <V>{fmtTime(s)}</V> × <V>299,792,458 m/s</V>
+        </Eq>
+      </Working>
       <p className="cd-note">{(PRESETS.find((p) => p.id === hoverP) ?? { note: ' ' }).note}</p>
       <style>{`.cd-row{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;margin-top:.6rem}.cd-note{margin:.4rem 0 0;min-height:1.5em;font-family:var(--font-display);font-style:italic;font-size:.98rem;color:var(--in-ink-soft)}`}</style>
     </Plate>
