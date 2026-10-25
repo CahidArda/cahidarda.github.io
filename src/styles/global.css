@@ -1056,6 +1056,36 @@ html {
   text-transform: uppercase;
   color: var(--in-ink-soft);
 }
+/* Instruments: worked equations (shared.tsx Working/Eq/Sym/V) */
+.in-working {
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 2px solid var(--in-ink-faint);
+  display: grid;
+  gap: 0.25rem;
+}
+.in-eq {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--in-ink-soft);
+}
+.in-sym {
+  font-style: italic;
+}
+.in-v {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Dragging on a plate must not select its labels (the selection highlight read as a bug). */
+.in-plate svg,
+.in-plate canvas,
+.in-plate .in-controls {
+  -webkit-user-select: none;
+  user-select: none;
+}
 .in-readout {
   font-family: var(--font-mono);
   font-size: 0.85rem;

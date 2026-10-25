@@ -20,6 +20,9 @@
  *   <Controls> row; <Segmented options value onChange preview?>; <Slider label value min max
  *     step onChange format?>; <Readout>. `preview` = the bind fn from useHoverPreview.
  *
+ * ── Worked equations: <Working><Eq>…<Sym role>α</Sym>…<V role>15.45°</V>…</Eq></Working>
+ *   Formula plus the live numbers, each coloured like its element in the drawing (see below).
+ *
  * ── SVG drawing primitives (one coordinate system per drawing; units = viewBox units) ────
  *   <HatchDefs id? gap? angle? role?/>   pattern for sections: fill={`url(#${id})`} via style
  *   <DimLine x1 y1 x2 y2 label offset? ends='arrow'|'tick' role? size?/>
@@ -296,6 +299,47 @@ export function Readout({ label, children }: { label: string; children: ReactNod
   return (
     <span className="in-field">
       {label} <span className="in-readout">{children}</span>
+    </span>
+  );
+}
+
+/* ───────────────────────── worked equations ───────────────────────── */
+
+/**
+ * Worked equations: show the formula WITH the live numbers substituted, and colour each
+ * quantity with the same role as the line, angle or point it belongs to in the drawing, so
+ * the reader can match them at a glance (angle α drawn in sky → α and 15.45° in sky).
+ *
+ *   <Working>
+ *     <Eq><Sym role="red">h</Sym> = <Sym role="ink">b</Sym> · sin <Sym role="sky">α</Sym> …</Eq>
+ *     <Eq><V role="red">76.0 m</V> = <V>75 m</V> · sin <V role="sky">15.45°</V> …</Eq>
+ *   </Working>
+ *
+ * <Sym> = a symbol (serif italic), <V> = a live value (mono, tabular). Default role: ink.
+ * Keep one line for the symbolic form and one for the substituted form; a third line for an
+ * error range is fine. Lines wrap at narrow widths, so keep each under ~45 characters.
+ */
+export function Working({ children, label }: { children: ReactNode; label?: string }) {
+  return (
+    <div className="in-working" aria-label={label ?? 'Worked equation'}>
+      {children}
+    </div>
+  );
+}
+export function Eq({ children }: { children: ReactNode }) {
+  return <div className="in-eq">{children}</div>;
+}
+export function Sym({ children, role = 'ink' }: { children: ReactNode; role?: Role }) {
+  return (
+    <span className="in-sym" style={{ color: C[role] }}>
+      {children}
+    </span>
+  );
+}
+export function V({ children, role = 'ink' }: { children: ReactNode; role?: Role }) {
+  return (
+    <span className="in-v" style={{ color: C[role] }}>
+      {children}
     </span>
   );
 }
