@@ -65,6 +65,45 @@
  *   </Plate>
  *   Worked example: ./ArmillaryDemo.tsx (landing, Plate 2). SVG example: ./PrecisionLadder.tsx.
  *
+ * ── Step-by-step plates: <StepPlate> ──────────────────────────────────────────────────────
+ *   A procedure: numbered steps ("Point at the sun", "Read the arc", "Put it into the
+ *   equation"), one action per step, beside a STABLE REFERENCE drawing of what is being
+ *   measured (same layout every step, the current step's quantity highlighted) and a
+ *   persistent EQUATION panel whose numbers fill in as steps complete. Controlled: you own
+ *   `step` and every value; StepPlate draws the rail, the text, the slots and Back/Next.
+ *
+ *   <StepPlate
+ *     n={5} title="Latitude by a noon sight" wide          // Plate props (no children)
+ *     steps={[                                              // StepDef[]
+ *       { id: 'noon', title: 'Wait for noon', text: <>…</>, controls: <Slider …/>,
+ *         gated: true, done: atNoon, hint: 'Drag the time to noon' },
+ *       { id: 'read', title: 'Read the arc', text: <>…</> },  // free step: Next always on
+ *     ]}
+ *     step={step} onStep={setStep}                          // controlled current step
+ *     view={(i) => <Eyepiece step={i} …/>}                  // instrument view for step i
+ *     reference={(i) => <EarthSection highlight={i} …/>}    // SAME layout for every i
+ *     viewLabel="Through the sextant" referenceLabel="What you are measuring"
+ *     equation={<Working>…<Known when={readDone} role="sky">36°43′</Known>…</Working>}
+ *     settings={<Slider label="date" …/>}                   // optional plate-level controls
+ *     onSkip={() => fillEverything()}                      // optional "skip to result"
+ *     caption={<>…</>} />
+ *
+ *   - Rail: numbered buttons with states current / done / pending. A step can be visited when
+ *     every GATED step before it is `done`; Next is enabled when the current step is free or
+ *     done (else the `hint` shows beside it). Hovering a visitable rail step PREVIEWS it
+ *     (useHoverPreview: text, view and reference switch, controls are hidden); click commits.
+ *     Keyboard: Tab to the rail, ←/→/Home/End move between steps; Back/Next are buttons.
+ *   - `view(i)`/`reference(i)` are called with the displayed step (committed or previewed).
+ *     Both get the same column width; size SVGs with useMeasuredWidth inside them.
+ *   - Equation: build it with Working/Eq/Sym/V; wrap each live number in
+ *     <Known when={…} role ph?> so it reads a faint "?" (or `ph`) until its step is done.
+ *   - Layout (container query on the plate body): two columns (view | reference, controls and
+ *     nav under the view, equation under the reference) when the plate body is at least 700px;
+ *     one column below that (each view stays at least ~340px wide) (rail compact: numbers only), order rail, text, view, controls,
+ *     nav, reference, equation. No transitions under prefers-reduced-motion.
+ *   - Use `wide` for procedure plates: two views need the room.
+ *   Worked example: ./sky/NoonSightProcedure.tsx (geometry in ./sky/noonProcGeom.ts).
+ *
  * Hooks re-exported from ../dataplat/shared: useReducedMotion, useInView, useHoverPreview.
  */
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -1119,4 +1158,202 @@ export function useEvent<A extends unknown[], R>(fn: (...a: A) => R) {
   const ref = useRef(fn);
   ref.current = fn;
   return useCallback((...a: A) => ref.current(...a), []);
+}
+
+/* ─────────────────────────────── step-by-step plates ─────────────────────────────── */
+
+export type StepDef = {
+  id: string;
+  /** Short imperative title for the rail, e.g. "Point at the sun". */
+  title: string;
+  /** One or two sentences: what to do in this step and why. */
+  text: ReactNode;
+  /** The step's own control(s) (sliders, buttons). Hidden while another step is previewed. */
+  controls?: ReactNode;
+  /** Gated: Next stays off until `done` (the reader did the action). Default: free. */
+  gated?: boolean;
+  /** The step's action is complete (its quantity is known). */
+  done?: boolean;
+  /** Shown beside a disabled Next, e.g. "Bring the sun's edge onto the horizon". */
+  hint?: string;
+};
+
+/** A live value in a StepPlate equation: the value once `when`, a faint placeholder before. */
+export function Known({
+  when,
+  role = 'ink',
+  ph = '?',
+  children,
+}: {
+  when: boolean;
+  role?: Role;
+  ph?: ReactNode;
+  children: ReactNode;
+}) {
+  return when ? (
+    <V role={role}>{children}</V>
+  ) : (
+    <span className="in-v in-unknown" style={{ color: C.faint }} aria-label="not known yet">
+      {ph}
+    </span>
+  );
+}
+
+export function StepPlate({
+  steps,
+  step,
+  onStep,
+  view,
+  reference,
+  viewLabel = 'The instrument',
+  referenceLabel = 'What is being measured',
+  equation,
+  settings,
+  onSkip,
+  skipLabel = 'Skip to the result',
+  ...plate
+}: {
+  steps: StepDef[];
+  /** Current (committed) step index. */
+  step: number;
+  onStep: (i: number) => void;
+  /** Instrument view for step i (the committed or the previewed step). */
+  view: (i: number) => ReactNode;
+  /** The stable reference drawing; same layout for every i, highlight step i's quantity. */
+  reference: (i: number) => ReactNode;
+  viewLabel?: string;
+  referenceLabel?: string;
+  /** Persistent equation panel (Working/Eq/Sym/Known). */
+  equation: ReactNode;
+  /** Plate-level controls that are not a step (date, place). */
+  settings?: ReactNode;
+  /** Fill every step's result; StepPlate then jumps to the last step. */
+  onSkip?: () => void;
+  skipLabel?: string;
+} & Omit<Parameters<typeof Plate>[0], 'children'>) {
+  const n = steps.length;
+  const cur = Math.max(0, Math.min(n - 1, step));
+  // a step can be visited when every gated step before it is done
+  const reach = (() => {
+    let r = 0;
+    while (r < n - 1 && (!steps[r].gated || steps[r].done)) r++;
+    return r;
+  })();
+  const [visited, setVisited] = useState(cur);
+  useEffect(() => setVisited((v) => Math.max(v, cur)), [cur]);
+  const [shown, bind] = useHoverPreview<number>(cur);
+  const show = shown <= reach ? shown : cur;
+  const previewing = show !== cur;
+  const s = steps[show];
+  const canNext = cur < n - 1 && (!steps[cur].gated || !!steps[cur].done);
+  const railRef = useRef<HTMLOListElement | null>(null);
+  const go = (i: number) => onStep(Math.max(0, Math.min(reach, i)));
+
+  const onRailKey = (e: React.KeyboardEvent, i: number) => {
+    let j = i;
+    if (e.key === 'ArrowRight') j = i + 1;
+    else if (e.key === 'ArrowLeft') j = i - 1;
+    else if (e.key === 'Home') j = 0;
+    else if (e.key === 'End') j = reach;
+    else return;
+    e.preventDefault();
+    j = Math.max(0, Math.min(reach, j));
+    go(j);
+    railRef.current?.querySelectorAll('button')[j]?.focus();
+  };
+
+  return (
+    <Plate {...plate}>
+      <div className="in-step">
+        {settings && <div className="in-step-settings in-controls">{settings}</div>}
+        <ol className="in-step-rail" ref={railRef} aria-label="Steps" style={{ ['--n' as string]: n }}>
+          {steps.map((st, i) => {
+            const state =
+              i === cur
+                ? 'current'
+                : i <= visited && i <= reach && (!st.gated || st.done)
+                  ? 'done'
+                  : 'pending';
+            const can = i <= reach;
+            return (
+              <li key={st.id} data-state={state} data-preview={previewing && i === show ? '' : undefined}>
+                <button
+                  type="button"
+                  disabled={!can}
+                  aria-current={i === cur ? 'step' : undefined}
+                  aria-label={`Step ${i + 1}: ${st.title}${state === 'done' ? ' (done)' : ''}`}
+                  tabIndex={i === cur ? 0 : -1}
+                  onClick={() => go(i)}
+                  onKeyDown={(e) => onRailKey(e, i)}
+                  {...(can ? bind(i) : {})}
+                >
+                  <span className="in-step-no">{state === 'done' ? '✓' : i + 1}</span>
+                  <span className="in-step-title">{st.title}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        <div className="in-step-body">
+          <div className="in-step-text" aria-live="polite">
+            <div className="in-step-kicker">
+              Step {show + 1} of {n}
+              <span className="in-step-kicker-title"> · {s.title}</span>
+              {previewing && <span className="in-step-pv"> (preview)</span>}
+            </div>
+            <div className="in-step-say">{s.text}</div>
+          </div>
+          <div className="in-step-view" aria-label={viewLabel} role="group">
+            <div className="in-step-label">{viewLabel}</div>
+            <div className="in-step-anim" key={show}>
+              {view(show)}
+            </div>
+          </div>
+          <div className="in-step-ref" aria-label={referenceLabel} role="group">
+            <div className="in-step-label">{referenceLabel}</div>
+            {reference(show)}
+          </div>
+          <div className="in-step-ctrl">
+            {previewing ? (
+              <div className="in-step-pvnote">Click step {show + 1} to go there.</div>
+            ) : (
+              s.controls && <div className="in-controls">{s.controls}</div>
+            )}
+          </div>
+          <div className="in-step-nav">
+            <button type="button" className="in-btn" disabled={cur === 0} onClick={() => go(cur - 1)}>
+              ← Back
+            </button>
+            {cur < n - 1 ? (
+              <button
+                type="button"
+                className="in-btn in-btn-next"
+                disabled={!canNext}
+                onClick={() => go(cur + 1)}
+              >
+                Next →
+              </button>
+            ) : null}
+            {!canNext && cur < n - 1 && steps[cur].hint && (
+              <span className="in-step-hint">{steps[cur].hint}</span>
+            )}
+            {onSkip && cur < n - 1 && (
+              <button
+                type="button"
+                className="in-btn in-btn-skip"
+                onClick={() => {
+                  onSkip();
+                  setVisited(n - 1);
+                  onStep(n - 1);
+                }}
+              >
+                {skipLabel}
+              </button>
+            )}
+          </div>
+          <div className="in-step-eq">{equation}</div>
+        </div>
+      </div>
+    </Plate>
+  );
 }
