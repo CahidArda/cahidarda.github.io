@@ -1,11 +1,11 @@
 [
   { "plate": 1, "name": "p1-s1", "do": [["set", "day of the year", 355]] },
-  { "plate": 1, "name": "p1-s3", "do": [["next"], ["set", "true local time", 9.25], ["next"]] },
+  { "plate": 1, "name": "p1-s3", "do": [["next"], ["set", "true local time", 9.5], ["next"]] },
   { "plate": 1, "name": "p1-s4-jun", "do": [["next"], ["set", "day of the year", 172], ["set", "true local time", 15]] },
   { "plate": 1, "name": "p1-s5-equal", "do": [["next"], ["seg", "style tilted"], ["set", "true local time", 7]] },
   { "plate": 1, "name": "p1-s6-night", "do": [["next"], ["set", "true local time", 20.5]] },
   { "plate": 2, "name": "p2-s1", "do": [] },
-  { "plate": 2, "name": "p2-s2", "do": [["button", "Fill the bowl"], ["next"], ["set", "hours since sunset", 3]] },
+  { "plate": 2, "name": "p2-s2", "do": [["button", "Fill the bowl"], ["next"], ["set", "hours since sunset", 3.5]] },
   { "plate": 2, "name": "p2-s3", "do": [["next"], ["seg", "sloping walls"], ["set", "hours since sunset", 9]] },
   { "plate": 2, "name": "p2-s4", "do": [["next"], ["seg", "constant head"]] },
   { "plate": 2, "name": "p2-s5", "do": [["next"], ["set", "hole narrowed by", 0.3], ["set", "hours since sunset", 12]] },
