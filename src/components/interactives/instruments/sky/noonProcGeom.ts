@@ -23,6 +23,7 @@
 import { sunPosition, DOY_PRESET, YEAR } from './noonGeom.ts';
 import { FIELD_R, ON_TOL, sextantView } from './sextantView.ts';
 import { armAngle } from './sextantGeom.ts';
+import { latRef, viewH, type Pt } from './latRefGeom.ts';
 
 export { DOY_PRESET, FIELD_R, ON_TOL, armAngle };
 
@@ -176,201 +177,14 @@ export function hhmm(h: number) {
   return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 }
 
-/* ───────────────────────────── layout helpers ───────────────────────────── */
+/* ───────────────────────────── layout helpers and the reference (shared: ./latRefGeom.ts) ───────────────────────────── */
 
-export type Pt = { x: number; y: number };
-export type Seg = { id: string; a: Pt; b: Pt };
-export type Label = {
-  id: string;
-  text: string;
-  x: number;
-  y: number;
-  anchor: 'start' | 'middle' | 'end';
-  size: number;
-  /** false if no candidate position was free (the sweep fails on it). */
-  placed: boolean;
-};
-export type Box = { x0: number; y0: number; x1: number; y1: number };
+export { P, labelBox, segHitsBox, arcPts, viewH } from './latRefGeom.ts';
+export type { Pt, Seg, Label, Box } from './latRefGeom.ts';
 
-export const P = (cx: number, cy: number, r: number, deg: number): Pt => ({
-  x: cx + r * Math.cos(deg * RAD),
-  y: cy - r * Math.sin(deg * RAD),
-});
-/** Text box estimate (central baseline): serif ≈ 0.55 em per glyph, a little generous. */
-export function labelBox(l: Pick<Label, 'x' | 'y' | 'text' | 'size' | 'anchor'>): Box {
-  const w = [...l.text].length * l.size * 0.56;
-  const x0 = l.anchor === 'start' ? l.x : l.anchor === 'middle' ? l.x - w / 2 : l.x - w;
-  return { x0, y0: l.y - l.size * 0.55, x1: x0 + w, y1: l.y + l.size * 0.55 };
-}
-const boxesOverlap = (a: Box, b: Box, pad = 1) =>
-  a.x0 < b.x1 + pad && b.x0 < a.x1 + pad && a.y0 < b.y1 + pad && b.y0 < a.y1 + pad;
-export function segHitsBox(a: Pt, b: Pt, bx: Box, pad = 0) {
-  const n = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 0.5) + 1;
-  for (let i = 0; i <= n; i++) {
-    const x = a.x + ((b.x - a.x) * i) / n;
-    const y = a.y + ((b.y - a.y) * i) / n;
-    if (x > bx.x0 - pad && x < bx.x1 + pad && y > bx.y0 - pad && y < bx.y1 + pad) return true;
-  }
-  return false;
-}
-const inBounds = (b: Box, W: number, H: number, m = 2) =>
-  b.x0 >= m && b.y0 >= m && b.x1 <= W - m && b.y1 <= H - m;
-
-/** Greedy label placement: first candidate inside the drawing, off every line, off every label. */
-function placer(W: number, H: number, segs: Seg[], arcs: Pt[][] = [], soft: string[] = []) {
-  const placed: Label[] = [];
-  const free = (l: Omit<Label, 'placed'>) => {
-    const b = labelBox(l);
-    if (!inBounds(b, W, H)) return false;
-    // small word labels may cross the faint decorative rays (`soft`): their paper halo cuts them
-    const hard = l.size >= 14 ? segs : segs.filter((s) => !soft.includes(s.id));
-    if (hard.some((s) => segHitsBox(s.a, s.b, b, 1))) return false;
-    if (arcs.some((pts) => pts.some((p, i) => i > 0 && segHitsBox(pts[i - 1], p, b, 0.5))))
-      return false;
-    return !placed.some((o) => boxesOverlap(labelBox(o), b, 6));
-  };
-  const put = (cands: Omit<Label, 'placed'>[]) => {
-    const hit = cands.find(free);
-    const l = { ...(hit ?? cands[0]), placed: !!hit };
-    placed.push(l);
-    return l;
-  };
-  return { put, placed };
-}
-/** Points along an arc (for label/arc collision checks), same convention as arcPath. */
-export function arcPts(cx: number, cy: number, r: number, from: number, to: number, n = 24) {
-  return Array.from({ length: n + 1 }, (_, i) => P(cx, cy, r, from + ((to - from) * i) / n));
-}
-
-/** One drawing size for both views, from the measured column width. */
-export const viewH = (W: number) => Math.round(Math.max(290, Math.min(400, W * 0.86)));
-
-/* ───────────────────────────── reference: the Earth cut along your meridian ───────────────────────────── */
-
+/** The stable reference for a noon sight: the post's one Earth section, sun mode. */
 export function refScene(s: Sight, W: number) {
-  const H = viewH(W);
-  const phi = s.place.lat;
-  const dec = s.dec;
-  // the zenith line (1.32 Re from the centre) must fit above and below, with the sun's side open
-  const Re = Math.min((H / 2 - 12) / 1.32, (W - 40) / 2.55);
-  const cx = Re * 1.32 + 10;
-  const cy = H / 2;
-  const zLen = Re * 0.32;
-  const L = Re * 0.62;
-  const obs = P(cx, cy, Re, phi);
-  const zen = P(cx, cy, Re + zLen, phi);
-  const horDir = s.bearing === 'S' ? phi - 90 : phi + 90; // horizon towards the sun
-  const horSun = P(obs.x, obs.y, L, horDir);
-  const horFar = P(obs.x, obs.y, L * 0.7, horDir + 180);
-  // a ray back towards the sun from p, clipped to the drawing (4 units in)
-  const toSun = (p: Pt) => {
-    const ux = Math.cos(dec * RAD);
-    const uy = -Math.sin(dec * RAD);
-    let t = (W - 4 - p.x) / ux;
-    if (uy < 0) t = Math.min(t, (4 - p.y) / uy);
-    if (uy > 0) t = Math.min(t, (H - 4 - p.y) / uy);
-    return { x: p.x + ux * t, y: p.y + uy * t };
-  };
-  const sunFrom = toSun(obs);
-  // other parallel rays across the beam, ending where they meet the Earth
-  const rays = [-0.62, 0.62].map((o) => {
-    const n = { x: Math.sin(dec * RAD), y: Math.cos(dec * RAD) }; // screen normal of the beam
-    const off = o * Re;
-    const along = Math.sqrt(Math.max(Re * Re - off * off, 0));
-    const hit = { x: cx + n.x * off + Math.cos(dec * RAD) * along, y: cy + n.y * off - Math.sin(dec * RAD) * along };
-    return { a: toSun(hit), b: hit, o };
-  });
-  const sub = P(cx, cy, Re, dec); // where the sun is overhead
-  const phiArcR = Re * 0.4;
-  const decArcR = Re * 0.68;
-  const hArcR = L * 0.55;
-  // h arc: from the horizon (sun side) to the sun, the short way
-  const hFrom = s.bearing === 'S' ? horDir : dec;
-  const hTo = s.bearing === 'S' ? dec : horDir;
-  const drawnH = Math.abs(hTo - hFrom);
-  const drawnPhi = Math.atan2(-(obs.y - cy), obs.x - cx) / RAD;
-  const drawnDec = Math.atan2(-(sunFrom.y - obs.y), sunFrom.x - obs.x) / RAD;
-
-  const segs: Seg[] = [
-    { id: 'equator', a: { x: cx - Re - 8, y: cy }, b: { x: cx + Re + 14, y: cy } },
-    { id: 'axis', a: { x: cx, y: cy - Re - 8 }, b: { x: cx, y: cy + Re + 8 } },
-    { id: 'zenith', a: { x: cx, y: cy }, b: zen },
-    { id: 'decline', a: { x: cx, y: cy }, b: sub },
-    { id: 'horizon', a: horFar, b: horSun },
-    { id: 'sunray', a: sunFrom, b: obs },
-    ...rays.map((r, i) => ({ id: `ray${i}`, a: r.a, b: r.b })),
-  ];
-  const arcs = [
-    arcPts(cx, cy, phiArcR, 0, phi),
-    arcPts(cx, cy, decArcR, 0, dec),
-    arcPts(obs.x, obs.y, hArcR, hFrom, hTo),
-    arcPts(cx, cy, Re, 0, 360, 96),
-  ];
-  const pl = placer(W, H, segs, arcs, ['ray0', 'ray1']);
-  const S = 15;
-  const s11 = 11;
-  const lab = (id: string, text: string, p: Pt, size: number, anchor: Label['anchor'] = 'middle') => ({ id, text, x: p.x, y: p.y, size, anchor });
-  /** Candidates on rings around p: preferred angles first, then every 20°. Anchor by side. */
-  const ring = (id: string, text: string, p: Pt, size: number, rs: number[], pref: number[]) => {
-    const out: ReturnType<typeof lab>[] = [];
-    const angs = [...pref, ...Array.from({ length: 18 }, (_, i) => i * 20)];
-    for (const r of rs)
-      for (const a of angs) {
-        const q = P(p.x, p.y, r, a);
-        const c = Math.cos(a * RAD);
-        out.push(lab(id, text, q, size, size >= S ? 'middle' : c > 0.35 ? 'start' : c < -0.35 ? 'end' : 'middle'));
-      }
-    return out;
-  };
-  /** Angle-label candidates along an arc about (x0, y0): inside, on and outside the arc. */
-  const along = (id: string, text: string, x0: number, y0: number, r: number, from: number, to: number) => {
-    const out: ReturnType<typeof lab>[] = [];
-    const span = to - from;
-    const fr = [0.5, 0.35, 0.65, 0.2, 0.8];
-    for (const dr of [11, -11, 20, -18, 30, -28, -40])
-      for (const f of fr) out.push(lab(id, text, P(x0, y0, r + dr, from + span * f), S));
-    // a tiny angle: just outside its ends
-    for (const dr of [0, 10, -10]) for (const e of [-12, 12, -20, 20]) out.push(lab(id, text, P(x0, y0, r + dr, (e < 0 ? Math.min(from, to) : Math.max(from, to)) + e), S));
-    return out;
-  };
-  /** A centre angle measured from the equator: keep its label on the value's side of it. */
-  const sameSide = (cands: ReturnType<typeof lab>[], v: number, r: number) => {
-    // a tiny angle: also try just off the equator, beside the arc's end, on the value's side
-    const sg = v >= 0 ? -1 : 1;
-    const extra: ReturnType<typeof lab>[] = [];
-    for (const dy of [10, 14, 20, 26, 32]) for (const dx of [0, 8, -8, 16, -16, 26, -26, 36, -36, 48]) extra.push(lab(cands[0].id, cands[0].text, { x: cx + r + dx, y: cy + sg * dy }, S));
-    return [...cands, ...extra].filter((c) => (v >= 0 ? c.y <= cy - 4 : c.y >= cy + 4));
-  };
-  // most constrained first
-  pl.put(along('h', 'h', obs.x, obs.y, hArcR, hFrom, hTo));
-  pl.put(sameSide(along('dec', 'δ', cx, cy, decArcR, 0, dec), dec, decArcR));
-  pl.put(sameSide(along('phi', 'φ', cx, cy, phiArcR, 0, phi), phi, phiArcR));
-  pl.put(ring('you', 'you', obs, s11, [14, 22, 30], [phi + 180, phi + 150, phi + 210]));
-  pl.put(ring('zenith', 'zenith', zen, s11, [8, 14, 22, 32], [phi, phi + 30, phi - 30]));
-  pl.put(ring('horizon', 'horizon', horSun, s11, [8, 14, 22, 32], [horDir - 60, horDir + 60, horDir]));
-  pl.put([
-    lab('pole', 'N pole', { x: cx + 5, y: cy - Re - 10 }, s11, 'start'),
-    lab('pole', 'N pole', { x: cx - 5, y: cy - Re - 10 }, s11, 'end'),
-    ...ring('pole', 'N pole', { x: cx, y: cy - Re - 4 }, s11, [10, 18, 28], [150, 30]),
-  ]);
-  pl.put([
-    lab('equator', 'equator', { x: cx - Re + 8, y: cy - 8 }, s11, 'start'),
-    lab('equator', 'equator', { x: cx - Re + 8, y: cy + 9 }, s11, 'start'),
-    lab('equator', 'equator', { x: cx + Re + 4, y: cy + 9 }, s11, 'start'),
-    lab('equator', 'equator', { x: cx + Re + 4, y: cy - 8 }, s11, 'start'),
-  ]);
-  pl.put([
-    lab('sun', 'sunlight', { x: W - 6, y: 12 }, s11, 'end'),
-    lab('sun', 'sunlight', { x: W - 6, y: H - 10 }, s11, 'end'),
-    lab('sun', 'sunlight', { x: W - 6, y: cy - Re - 10 }, s11, 'end'),
-    lab('sun', 'sunlight', { x: W - 6, y: cy + Re + 10 }, s11, 'end'),
-    ...[0.25, 0.75, 0.5, 0.1, 0.9].map((f) => lab('sun', 'sunlight', { x: W - 6, y: 12 + (H - 22) * f }, s11, 'end')),
-  ]);
-  const labels = Object.fromEntries(pl.placed.map((l) => [l.id, l])) as Record<string, Label>;
-  return {
-    W, H, Re, cx, cy, zLen, L, obs, zen, horDir, horSun, horFar, sunFrom, rays, sub,
-    phiArcR, decArcR, hArcR, hFrom, hTo, drawnH, drawnPhi, drawnDec, segs, labels, phi, dec,
-  };
+  return latRef({ phi: s.place.lat, src: { kind: 'sun', dec: s.dec }, visible: s.visible }, W);
 }
 
 /* ───────────────────────────── step 1: the sky to the south (or north) ───────────────────────────── */

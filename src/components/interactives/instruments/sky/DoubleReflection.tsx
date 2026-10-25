@@ -50,7 +50,7 @@ export default function DoubleReflection() {
 
   return (
     <Plate
-      n={3}
+      n={7}
       title="Two mirrors double the angle"
       kicker="drag the index mirror"
       caption={

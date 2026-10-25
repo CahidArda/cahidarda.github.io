@@ -27,7 +27,7 @@ export default function SunDeclination() {
 
   return (
     <Plate
-      n={4}
+      n={9}
       title="Why the sun's height changes through the year"
       kicker="drag the date"
       caption={

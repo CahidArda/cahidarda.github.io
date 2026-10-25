@@ -7,7 +7,7 @@ import PrecisionLadder, { ANGLE_LADDER } from '../PrecisionLadder';
 export default function AngleLadder() {
   return (
     <PrecisionLadder
-      n={6}
+      n={11}
       config={ANGLE_LADDER}
       title="How precisely we could measure angles, from the gnomon to Gaia"
       caption={
