@@ -35,7 +35,7 @@ const L_MIN = 0.1;
 const L_MAX = 4;
 const period = (L: number) => 2 * Math.PI * Math.sqrt(L / G);
 /** Drawn rod length (world units, wheel tip radius = 1). Compressed so 0.1 m and 4 m both fit. */
-const rodWorld = (L: number) => 2.25 + 2.15 * Math.sqrt((L - L_MIN) / (L_MAX - L_MIN));
+const rodWorld = (L: number) => 1.95 + 1.55 * Math.sqrt((L - L_MIN) / (L_MAX - L_MIN));
 const BOB_R = 0.3;
 
 /* ───────────────────────── geometry helpers (anchor body) ───────────────────────── */
@@ -228,7 +228,7 @@ export default function PendulumClock() {
       title="Pendulum and anchor"
       caption={
         <>
-          The weight (not drawn) always pushes the escape wheel clockwise. The red pallets let it
+          The falling weight always pushes the escape wheel clockwise. The red pallets let it
           move half a tooth per swing: a tooth lands on a pallet, is shoved back a little (the
           recoil), then slips off and the next tooth drops onto the other pallet. The rod is drawn
           shorter than scale; the swing runs at its true period.
@@ -239,7 +239,7 @@ export default function PendulumClock() {
         <div className="tm-canvas">
           <BlueprintCanvas<Params>
             aspect={3 / 4}
-            fit={2.75}
+            fit={2.2}
             animate
             yaw={-0.42}
             pitch={0.12}
@@ -354,6 +354,29 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   ctx.inkify(collet, { threshold: 60, outline: 0.9 });
   wheel.add(collet);
 
+  /* the drive: a barrel on the wheel arbor, a cord, a weight that sinks as the wheel turns */
+  const BARREL_R = 0.42;
+  const BARREL_Z = -0.38;
+  const barrel = cyl(BARREL_R, 0.16, BARREL_Z, 0, 0, 48);
+  ctx.inkify(barrel, { threshold: 50, outline: 0.9 });
+  wheel.add(barrel);
+  const weight = new T.Group();
+  model.add(weight);
+  const wt = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.5, 32));
+  ctx.inkify(wt, { threshold: 50, outline: 1 });
+  weight.add(wt);
+  const hook = new T.Mesh(new T.TorusGeometry(0.05, 0.012, 6, 20));
+  hook.position.y = 0.3;
+  ctx.inkify(hook, { threshold: 60, outline: 0.6 });
+  weight.add(hook);
+  const cordGeo = new T.BufferGeometry().setFromPoints([
+    new T.Vector3(BARREL_R, 0, BARREL_Z),
+    new T.Vector3(BARREL_R, -1, BARREL_Z),
+  ]);
+  const cord = new T.Line(cordGeo, ctx.lineMaterial('ink'));
+  model.add(cord);
+  const WEIGHT_TOP = -0.75;
+
   /* anchor: hub, two curved arms, two pallets (red working faces), on an arbor */
   const anchor = new T.Group();
   anchor.position.set(PIVOT[0], PIVOT[1], 0);
@@ -444,5 +467,13 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
     anchor.rotation.z = a;
     pend.rotation.z = a;
     wheel.rotation.z = -w;
+    // cord unwinds as the wheel turns clockwise; loop the drop so the weight never leaves
+    const drop = (((BARREL_R * w) % 1.0) + 1.0) % 1.0;
+    const wy = WEIGHT_TOP - drop - 0.35;
+    weight.position.set(BARREL_R, wy, BARREL_Z);
+    const pos = cordGeo.attributes.position;
+    pos.setY(1, wy + 0.35);
+    pos.needsUpdate = true;
+    cordGeo.computeBoundingSphere();
   };
 }
