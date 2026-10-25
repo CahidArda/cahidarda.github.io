@@ -118,8 +118,9 @@ function Eyepiece({ reading, gRef }: { reading: number; gRef: React.Ref<SVGGElem
         <g ref={gRef}>
           {/* horizon: seen directly through the clear half, and faintly in the mirror half */}
           <rect x={-R} y={0} width={R} height={R * 2} style={{ fill: C.sky, opacity: 0.22 }} />
-          <line x1={-R} y1={0} x2={0} y2={0} style={{ stroke: C.ink, strokeWidth: 1.2 }} />
-          <circle cx={R * 0.45} cy={shown} r={4.5} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.6 }} />
+          <line x1={-R} y1={0} x2={0} y2={0} style={{ stroke: C.ink, strokeWidth: 1.4 }} />
+          <line x1={0} y1={0} x2={R} y2={0} style={{ stroke: C.ink, strokeWidth: 0.7, strokeDasharray: '3 3', opacity: 0.6 }} />
+          <circle cx={R * 0.45} cy={shown} r={5} style={{ fill: C.red, stroke: C.paper, strokeWidth: 1 }} />
         </g>
       </g>
       {Math.abs(off) > R - 6 && (
@@ -281,7 +282,7 @@ export default function SextantModel() {
           poster={<Poster />}
           build={(T, ctx) => {
             const world = new T.Group();
-            world.position.set(0.3, 0.12, 0);
+            world.position.set(0.3, 0.2, 0);
             ctx.root.add(world);
             const inst = new T.Group(); // everything that rolls with the ship
             world.add(inst);
