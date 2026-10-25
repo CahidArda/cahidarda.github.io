@@ -52,7 +52,7 @@ export default function AssemblePlate() {
       title: 'The mater',
       text: (
         <>
-          A brass disc with a raised rim, the limb, divided into 24 hours (and 360°). It hangs from a throne and a ring, so it always hangs plumb.
+          A brass disc with a raised rim, the limb, divided into 24 hours of 15° each. It hangs from a throne and a ring, so it always hangs plumb.
           {name(0)}
         </>
       ),
