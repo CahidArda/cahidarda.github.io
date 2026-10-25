@@ -355,14 +355,14 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   wheel.add(collet);
 
   /* the drive: a barrel on the wheel arbor, a cord, a weight that sinks as the wheel turns */
-  const BARREL_R = 0.42;
+  const BARREL_R = 0.56;
   const BARREL_Z = -0.38;
   const barrel = cyl(BARREL_R, 0.16, BARREL_Z, 0, 0, 48);
   ctx.inkify(barrel, { threshold: 50, outline: 0.9 });
   wheel.add(barrel);
   const weight = new T.Group();
   model.add(weight);
-  const wt = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 0.5, 32));
+  const wt = new T.Mesh(new T.CylinderGeometry(0.085, 0.085, 0.5, 32));
   ctx.inkify(wt, { threshold: 50, outline: 1 });
   weight.add(wt);
   const hook = new T.Mesh(new T.TorusGeometry(0.05, 0.012, 6, 20));
