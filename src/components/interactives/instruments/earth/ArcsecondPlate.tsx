@@ -18,6 +18,7 @@ import {
 } from '../shared';
 
 const ARC = Math.PI / 180 / 3600;
+const Y_LABELS = ['1 µm', '100 µm', '1 cm', '1 m', '100 m', '10 km'];
 const R = 6_371_000;
 type Eps = 0.2 | 1 | 200;
 const EPS: { value: Eps; label: string; who: string }[] = [
@@ -137,7 +138,7 @@ export default function ArcsecondPlate() {
             <g key={`y${le}`}>
               <line x1={m.l} y1={y(le)} x2={m.l + iw} y2={y(le)} style={{ stroke: C.faint, strokeWidth: 0.5 }} />
               <InkText x={m.l - 6} y={y(le)} kind="num" anchor="end" baseline="central" size={10} role="soft" halo={false}>
-                {fmtLen(10 ** le)}
+                {Y_LABELS[(le - Y0) / 2]}
               </InkText>
             </g>
           ))}

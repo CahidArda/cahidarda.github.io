@@ -160,7 +160,14 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
         y2={gy}
         style={{ stroke: C.faint, strokeWidth: 0.8, strokeDasharray: '4 4' }}
       />
-      <InkText x={cx + beamHalf + 6} y={gy + 14} anchor="end" size={11} role="soft">
+      {/* label sits above the dashed line on the side where the beam dips below it */}
+      <InkText
+        x={theta >= 0 ? cx - beamHalf - 6 : cx + beamHalf + 6}
+        y={gy - 7}
+        anchor={theta >= 0 ? 'start' : 'end'}
+        size={11}
+        role="soft"
+      >
         true level
       </InkText>
       {/* the beam (a stone course in section) */}
