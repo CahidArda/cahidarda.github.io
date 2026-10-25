@@ -151,7 +151,7 @@ export default function TheodolitePlate() {
       <BlueprintCanvas<Params>
         key={narrow ? 'n' : 'w'}
         aspect={narrow ? 1 : 3 / 2}
-        fit={1.18}
+        fit={1.3}
         yaw={-0.75}
         pitch={0.3}
         params={params}
@@ -170,7 +170,7 @@ export default function TheodolitePlate() {
             return m;
           };
           const root = ctx.root;
-          root.position.y = 0.3;
+          root.position.y = 0.36;
 
           /* tripod */
           const headY = -0.6;
