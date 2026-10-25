@@ -124,7 +124,6 @@ export default function PendulumPlate() {
   const [inRef, inView] = useInView<HTMLElement>();
   const reduced = useReducedMotion();
   const st = useMovement(L, inView && !reduced && step === 1);
-  const T = period(L);
   const dLAt = (i: number) => (i === 3 ? dL : 0);
   const err = errPerDay(L, dLAt(step));
   const tTrue = 15;

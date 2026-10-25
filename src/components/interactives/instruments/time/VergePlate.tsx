@@ -31,7 +31,6 @@ import {
   KEEP_TOL,
   R_MAX,
   R_MIN,
-  R_SET,
   R_STEP,
   T_SET,
   crownTeeth,
