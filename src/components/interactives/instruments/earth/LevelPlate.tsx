@@ -105,7 +105,7 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
   const Hs = narrow ? 300 : 330;
   const cx = W / 2;
   const gy = Hs - 70;
-  const Hf = 190 * k + (narrow ? 20 : 0);
+  const Hf = 215 * k + (narrow ? 25 : 0);
   const L = 118 * k;
   const h = Hf * 0.55; // apex to crossbar
   const t = theta * RAD;
@@ -199,16 +199,30 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
           y1={mark.y}
           x2={P(off, Hf - h).x}
           y2={P(off, Hf - h).y}
-          offset={theta > 0 ? 22 : -22}
-          label="x"
-          size={11}
+          offset={theta > 0 ? 26 : -26}
         />
       )}
+      {Math.abs(theta) >= 0.6 &&
+        (() => {
+          const q = P(off / 2, Hf - h + (theta > 0 ? -38 : 38));
+          return (
+            <InkText x={q.x} y={q.y} anchor="middle" baseline="central" size={14}>
+              x
+            </InkText>
+          );
+        })()}
       {/* apex-to-crossbar dimension */}
       {(() => {
-        const a = P(L * 0.95 + 6, Hf);
-        const b = P(L * 0.95 + 6, Hf - h);
-        return <DimLine x1={b.x} y1={b.y} x2={a.x} y2={a.y} label="h" size={11} ends="tick" />;
+        const a = P(-L * 0.75 - 26, Hf);
+        const b = P(-L * 0.75 - 26, Hf - h);
+        return (
+          <g>
+            <DimLine x1={b.x} y1={b.y} x2={a.x} y2={a.y} />
+            <InkText x={(a.x + b.x) / 2 - 8} y={(a.y + b.y) / 2} anchor="end" baseline="central" size={14}>
+              h
+            </InkText>
+          </g>
+        );
       })()}
       <InkText x={apex.x + 10} y={apex.y - 8} size={12}>
         apex
@@ -240,7 +254,6 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
   const S = Math.min(W * 0.4, 250);
   const xL = W / 2 - S;
   const xR = W / 2 + S;
-  const kx = (2 * S) / SPAN; // px per metre, horizontal
   const ky = (Hs - 110) / 2.1; // px per metre, vertical (exaggerated)
   const gL = Hs - 48;
   const gR = gL + DROP * ky;

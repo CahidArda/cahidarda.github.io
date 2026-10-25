@@ -146,7 +146,7 @@ export default function TheodolitePlate() {
     >
       <BlueprintCanvas<Params>
         aspect={3 / 2}
-        fit={1.02}
+        fit={1.18}
         yaw={-0.75}
         pitch={0.3}
         params={params}
@@ -165,14 +165,14 @@ export default function TheodolitePlate() {
             return m;
           };
           const root = ctx.root;
-          root.position.y = 0.42;
+          root.position.y = 0.3;
 
           /* tripod */
           const headY = -0.6;
           const head = cyl(0.3, 0.06, 6);
           head.position.y = headY;
           root.add(ink(head, { threshold: 30 }));
-          const footY = -1.95;
+          const footY = -1.42;
           const up = new T.Vector3(0, 1, 0);
           for (let i = 0; i < 3; i++) {
             const a = (i * 120 + 30) * RAD;
@@ -186,7 +186,7 @@ export default function TheodolitePlate() {
             root.add(ink(leg, { outline: 0.8 }));
           }
           // plumb bob under the head, over the station mark
-          const bobTop = -1.3;
+          const bobTop = -1.22;
           const thread = new T.BufferGeometry().setFromPoints([
             new T.Vector3(0, headY - 0.03, 0),
             new T.Vector3(0, bobTop, 0),
@@ -197,17 +197,17 @@ export default function TheodolitePlate() {
           bob.position.y = bobTop - 0.055;
           root.add(ink(bob, { threshold: 40 }));
           const mark = new T.BufferGeometry().setFromPoints([
-            new T.Vector3(-0.12, footY + 0.6, 0),
-            new T.Vector3(0.12, footY + 0.6, 0),
-            new T.Vector3(0, footY + 0.6, -0.12),
-            new T.Vector3(0, footY + 0.6, 0.12),
+            new T.Vector3(-0.12, footY, 0),
+            new T.Vector3(0.12, footY, 0),
+            new T.Vector3(0, footY, -0.12),
+            new T.Vector3(0, footY, 0.12),
           ]);
           const markL = new T.LineSegments(mark, ctx.lineMaterial('soft'));
           markL.position.y = 0;
           root.add(markL);
           const ring = new T.Mesh(new T.RingGeometry(0.05, 0.055, 32));
           ring.rotation.x = -Math.PI / 2;
-          ring.position.y = footY + 0.6;
+          ring.position.y = footY;
           ctx.inkify(ring, { fill: 'soft', outline: 0, threshold: 80 });
           root.add(ring);
 

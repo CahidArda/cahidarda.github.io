@@ -100,11 +100,11 @@ function Station({ x, y, name }: { x: number; y: number; name: string }) {
 
 function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps: number }) {
   const narrow = W < 520;
-  const Hs = narrow ? 260 : 300;
-  const g = Hs - 44;
-  const dA = dB + b;
   const right = W - (narrow ? 40 : 70);
   const k = (right - 24) / 300; // px per metre, same both ways
+  const Hs = Math.round(H_TRUE * k + (narrow ? 130 : 150));
+  const g = Hs - 62;
+  const dA = dB + b;
   const fx = right;
   const ax = fx - dA * k;
   const bx = fx - dB * k;
@@ -174,7 +174,8 @@ function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps:
       )}
       <Minaret x={fx} g={g} Hpx={H_TRUE * k} />
       <DimLine x1={fx} y1={g} x2={fx} y2={top.y} offset={-(narrow ? 20 : 26)} label={`${h.toFixed(1)} m`} size={11} />
-      <DimLine x1={ax} y1={g + 26} x2={bx} y2={g + 26} label={`b = ${b} m`} size={11} ends="tick" />
+      <DimLine x1={ax} y1={g + 40} x2={bx} y2={g + 40} ends="tick" />
+      <InkText x={(ax + bx) / 2} y={g + 56} anchor="middle" kind="num" size={11}>{`b = ${b} m`}</InkText>
       <Station x={ax} y={g} name="A" />
       <Station x={bx} y={g} name="B" />
       {eps > 0 && (
@@ -188,9 +189,9 @@ function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps:
 
 function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
   const narrow = W < 520;
-  const Hs = narrow ? 300 : 320;
-  const k = (Hs - 110) / W_TRUE;
-  const nearY = Hs - 52;
+  const Hs = narrow ? 310 : 330;
+  const k = (Hs - 120) / W_TRUE;
+  const nearY = Hs - 62;
   const farY = nearY - W_TRUE * k;
   const ax = narrow ? 70 : W * 0.28;
   const bx = ax + b * k;
@@ -267,7 +268,8 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
         C
       </InkText>
       <DimLine x1={ax} y1={nearY} x2={ax} y2={farY} offset={narrow ? 26 : 34} label={`${w.toFixed(0)} m`} size={11} />
-      <DimLine x1={ax} y1={nearY + 24} x2={bx} y2={nearY + 24} label={`b = ${b} m`} size={11} ends="tick" />
+      <DimLine x1={ax} y1={nearY + 26} x2={bx} y2={nearY + 26} ends="tick" />
+      <InkText x={(ax + bx) / 2} y={nearY + 42} anchor="middle" kind="num" size={11}>{`b = ${b} m`}</InkText>
       <circle cx={ax} cy={nearY} r={2.6} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.2 }} />
       <circle cx={bx} cy={nearY} r={2.6} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.2 }} />
       <InkText x={ax - 8} y={nearY + 4} anchor="end" kind="title" size={13}>
