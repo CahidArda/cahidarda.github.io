@@ -31,7 +31,7 @@ function trace(reading: number, roll: number) {
   const nIw = rot(nI, roll);
   const nHw = rot(NH, roll);
   const Hw = rot(H, roll);
-  const start = { x: s.x * 1.25, y: s.y * 1.25 };
+  const start = { x: s.x * 1.08, y: s.y * 1.08 };
   const d2 = reflect(d1, nIw);
   // O + a d2 = Hw + b t, t = mirror direction
   const t = { x: -nHw.y, y: nHw.x };
