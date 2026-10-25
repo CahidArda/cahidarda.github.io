@@ -8,6 +8,7 @@ import { AMP, PALLETS, PIVOT, R_ROOT, contactInfo, palletsAt, wheelOutline, type
 import { rodWorld } from './pendulumGeom.ts';
 
 export const BOB_R = 0.3;
+export { rodWorld };
 
 /** Anchor body: a hub at the pivot, two arms to the pallets (drawn only; never in contact). */
 const add = (a: Pt, b: Pt): Pt => [a[0] + b[0], a[1] + b[1]];
@@ -32,15 +33,18 @@ export function escScene(w: number, a: number, L: number, W: number, opts: { zoo
   const zoomOn = opts.zoom ?? true;
   // world extent: wheel (r 1) to the anchor top, then the pendulum below the pivot
   const rod = rodWorld(L);
-  const top = PIVOT[1] + 0.35;
-  const bottom = PIVOT[1] - rod - BOB_R - 0.15;
-  const mainW = zoomOn && !narrow ? W * 0.56 : W;
-  const mainH = narrow && zoomOn ? 300 : 390;
-  const rZoom = narrow ? Math.min(W / 2 - 16, 100) : 0;
-  const H = narrow && zoomOn ? mainH + 24 + 2 * rZoom + 44 : 420;
-  const s = Math.min((mainW - 20) / 3.0, (mainH - 10) / (top - bottom));
+  // the drawing frames the wheel and the anchor (x ±1.2, y −1.1 .. pivot + 0.3); the rod runs
+  // on down past the frame, so the escapement is drawn as large as the view allows
+  const top = PIVOT[1] + 0.3;
+  const bottom = -1.15;
+  const halfX = 1.25;
+  const mainW = zoomOn && !narrow ? W * 0.58 : W;
+  const s = Math.min((mainW - 16) / (2 * halfX), 300 / (top - bottom));
+  const mainH = (top - bottom) * s + 12;
+  const rZoom = narrow ? Math.min(W / 2 - 16, 96) : Math.min((W - mainW) / 2 - 10, 110);
+  const H = narrow && zoomOn ? mainH + 24 + 2 * rZoom + 44 : Math.max(mainH, 2 * rZoom + 40) + 30;
   const ox = mainW / 2;
-  const oy = 10 + top * s;
+  const oy = 6 + top * s;
   const P = (p: Pt) => ({ x: ox + p[0] * s, y: oy - p[1] * s });
   const tilt = opts.tilt ?? 0;
   const pals = palletsAt(a);
@@ -54,9 +58,9 @@ export function escScene(w: number, a: number, L: number, W: number, opts: { zoo
   const Z = 9;
   let zoom: null | { cx: number; cy: number; r: number; f: (p: Pt) => { x: number; y: number }; c: Pt } = null;
   if (zoomOn) {
-    const r = narrow ? rZoom : Math.min(W - mainW - 24, 150) / 2 + 20;
+    const r = rZoom;
     const cx = narrow ? W / 2 : mainW + (W - mainW) / 2;
-    const cy = narrow ? mainH + 24 + r : H / 2 - 6;
+    const cy = narrow ? mainH + 24 + r : Math.min(mainH, H - 30) / 2 + 4;
     const k = s * Z;
     const cp = c.point;
     zoom = { cx, cy, r, c: cp, f: (p: Pt) => ({ x: cx + (p[0] - cp[0]) * k, y: cy - (p[1] - cp[1]) * k }) };
@@ -64,6 +68,8 @@ export function escScene(w: number, a: number, L: number, W: number, opts: { zoo
   return {
     W,
     H,
+    mainW,
+    mainH,
     s,
     P,
     narrow,

@@ -4,7 +4,7 @@
  * View: a horizontal dial at 41° N seen from above, hour lines computed from the sun's real
  * path (./sundialGeom.ts). Reference: the shared TimeRef (true time vs the dial).
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   C,
   Eq,
@@ -114,6 +114,10 @@ export default function SundialPlate() {
   const [cloud, setCloud] = useState(false);
   const [moved, setMoved] = useState(false);
   const [dayMoved, setDayMoved] = useState(false);
+  const [tilted, setTilted] = useState(false);
+  useEffect(() => {
+    if (selMode === 'equal') setTilted(true);
+  }, [selMode]);
 
   const s = sundial(mode, day, t);
   const sUn = sundial('unequal', day, t);
@@ -203,7 +207,7 @@ export default function SundialPlate() {
         </>
       ),
       gated: true,
-      done: selMode === 'equal',
+      done: tilted,
       hint: 'Switch to the tilted style',
     },
     {

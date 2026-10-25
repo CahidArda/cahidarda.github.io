@@ -51,7 +51,7 @@ function Crystal({ step, t, stages, squeezed, temp }: { step: number; t: number;
   const ringing = step >= 1;
   const amp = ringing ? 5 : squeezed ? 3 : 0;
   const d = ringing ? amp * Math.sin(2 * Math.PI * (F0 / SHOW_SLOW) * t) : amp;
-  const cx = W / 2;
+  const cx = W - 52;
   // the fork: two tines rising from a base, bending apart and together
   const tine = (s: 1 | -1) => `M ${cx + s * 14} 92 C ${cx + s * 14} 60, ${cx + s * (14 + d * 0.5)} 40, ${cx + s * (14 + d)} 18`;
   const pulse = (k: number) => (k <= stages ? Math.sin(2 * Math.PI * (F0 / SHOW_SLOW / 2 ** k) * t) > 0 : false);
@@ -65,12 +65,13 @@ function Crystal({ step, t, stages, squeezed, temp }: { step: number; t: number;
         <path d={tine(1)} style={ink('paper', 3.4)} />
         {(squeezed || ringing) && (
           <>
-            <InkText x={cx - 34} y={50} anchor="end" kind="num" size={14} role="red">+</InkText>
-            <InkText x={cx + 34} y={50} kind="num" size={14} role="red">−</InkText>
+            <InkText x={cx - 30} y={60} anchor="end" kind="num" size={14} role="red">+</InkText>
+            <InkText x={cx + 30} y={60} kind="num" size={14} role="red">−</InkText>
           </>
         )}
         <InkText x={12} y={18} size={11.5} role="soft">quartz tuning fork, about 4 mm long</InkText>
-        <InkText x={12} y={34} size={10.5} role="soft">{ringing ? `ringing at ${hzText(F0 + hzShift(temp))} (shown 4096× slower)` : squeezed ? 'squeezed: a voltage appears' : 'at rest'}</InkText>
+        <InkText x={12} y={36} size={10.5} role="soft">{ringing ? `ringing, ${hzText(F0 + hzShift(temp))}` : squeezed ? 'squeezed: a voltage appears' : 'at rest'}</InkText>
+        {ringing && <InkText x={12} y={52} size={10.5} role="soft">drawn 4096 times slower</InkText>}
         {ch.items.map((b) => {
           const on = b.k <= stages && step >= 2;
           return (

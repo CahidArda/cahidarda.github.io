@@ -51,7 +51,7 @@ export default function TimeRef(inp: RefInput) {
           {g.sun.up ? (
             <circle cx={g.sun.x} cy={g.sun.y} r={6} style={{ fill: C.brass, stroke: C.paper, strokeWidth: 1 }} />
           ) : (
-            <circle cx={g.sun.x} cy={g.horizonY + 6} r={4} style={{ fill: 'none', stroke: C.brass, strokeWidth: 1, strokeDasharray: '2 2' }} />
+            <circle cx={g.sun.x} cy={g.horizonY} r={4} style={{ fill: 'none', stroke: C.brass, strokeWidth: 1, strokeDasharray: '2 2' }} />
           )}
           {T('sun', 'soft')}
         </g>

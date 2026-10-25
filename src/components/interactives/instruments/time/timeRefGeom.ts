@@ -127,11 +127,17 @@ export function refScene(inp: RefInput, W: number) {
   L.push({ id: 'gaugeHead', x: x0, y: 204, text: 'error per day, better to the right', size: 11.5, anchor: 'start', kind: 'note' });
   // sun label: beside the sun, inside the plate
   {
-    const s = sun.up ? `sun ${alt.toFixed(0)}° high` : 'sun below the horizon';
-    const w = labelW({ text: s, size: 11, kind: 'note' });
-    const right = sun.x + 10 + w <= x1;
-    const y = Math.max(skyTop + 2, Math.min(horizonY - 8, sun.y - 8));
-    L.push({ id: 'sun', x: right ? sun.x + 10 : sun.x - 10, y, text: s, size: 11, anchor: right ? 'start' : 'end', kind: 'note' });
+    if (sun.up) {
+      const s = `sun ${alt.toFixed(0)}° high`;
+      const w = labelW({ text: s, size: 11, kind: 'note' });
+      const right = sun.x + 10 + w <= x1;
+      const y = Math.max(skyTop + 2, Math.min(horizonY - 8, sun.y - 8));
+      L.push({ id: 'sun', x: right ? sun.x + 10 : sun.x - 10, y, text: s, size: 11, anchor: right ? 'start' : 'end', kind: 'note' });
+    } else {
+      // night: say so in the top corner on the sun's side, clear of the day's path
+      const left = sun.x < (x0 + x1) / 2;
+      L.push({ id: 'sun', x: left ? x0 : x1, y: skyTop + 4, text: 'night: the sun is below the horizon', size: 11, anchor: left ? 'start' : 'end', kind: 'note' });
+    }
   }
   // true / device labels over the axis
   const trueTxt = `true ${hm(inp.t)}`;

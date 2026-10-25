@@ -76,12 +76,18 @@ function CloseUp({ L, st }: { L: number; st: { phase: number; w: number } }) {
   return (
     <div ref={ref}>
       <svg viewBox={`0 0 ${W} ${g.H}`} width="100%" style={{ display: 'block' }} role="img" aria-label={`Deadbeat escapement, ${say}`}>
-        {/* main elevation */}
-        <path d={`M ${g.pivot.x + Math.sin(g.arc.a0) * g.arc.r} ${g.pivot.y + Math.cos(g.arc.a0) * g.arc.r} A ${g.arc.r} ${g.arc.r} 0 0 0 ${g.pivot.x + Math.sin(g.arc.a1) * g.arc.r} ${g.pivot.y + Math.cos(g.arc.a1) * g.arc.r}`} style={ink('red', 1)} />
-        <line x1={g.pivot.x} y1={g.pivot.y} x2={g.bob.x} y2={g.bob.y} style={ink('brass', 1.4)} />
-        <circle cx={g.bob.x} cy={g.bob.y} r={g.bobR} style={{ ...ink('brass', 1), fill: C.paper }} />
+        {/* main elevation: wheel and anchor; the pendulum rod runs down out of the frame */}
+        <defs>
+          <clipPath id={`${clip}-m`}>
+            <rect x={0} y={0} width={g.mainW} height={g.mainH} />
+          </clipPath>
+        </defs>
+        <g clipPath={`url(#${clip}-m)`}>
+          <line x1={g.pivot.x} y1={g.pivot.y} x2={g.bob.x} y2={g.bob.y} style={ink('brass', 1.6)} />
+        </g>
         <polygon points={pts(g.wheel)} style={{ ...ink('ink', 0.9), fill: C.paper }} />
         <circle cx={g.centre.x} cy={g.centre.y} r={g.hubR * g.s} style={ink('ink', 0.7)} />
+        <circle cx={g.centre.x} cy={g.centre.y} r={3} style={{ fill: C.ink }} />
         {arms.map((arm, i) => (
           <polygon key={i} points={pts(arm)} style={{ ...ink('ink', 0.9), fill: C.paper }} />
         ))}
@@ -105,6 +111,9 @@ function CloseUp({ L, st }: { L: number; st: { phase: number; w: number } }) {
           ))}
           <circle cx={z.cx} cy={z.cy} r={3} style={{ fill: C.red }} />
         </g>
+        <InkText x={g.mainW / 2} y={g.mainH - 2} anchor="middle" size={10.5} role="brass">
+          to the pendulum
+        </InkText>
         <InkText x={z.cx} y={z.cy + z.r + 14} anchor="middle" size={10.5} role="soft">
           {`× ${g.Z}, at the contact`}
         </InkText>
@@ -121,6 +130,10 @@ export default function PendulumPlate() {
   const [L, setL] = useState(0.5);
   const [moved, setMoved] = useState(false);
   const [dL, setDL] = useState(0);
+  const [found, setFound] = useState(false);
+  useEffect(() => {
+    if (isSeconds(L)) setFound(true);
+  }, [L]);
   const [inRef, inView] = useInView<HTMLElement>();
   const reduced = useReducedMotion();
   const st = useMovement(L, inView && !reduced && step === 1);
@@ -169,7 +182,7 @@ export default function PendulumPlate() {
       ),
       controls: lengthSlider,
       gated: true,
-      done: isSeconds(L),
+      done: found,
       hint: 'Find a 2 s period',
     },
     {

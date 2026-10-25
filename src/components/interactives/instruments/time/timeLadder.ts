@@ -26,7 +26,18 @@ const DY: Record<number, number> = { 0: -12, 1: 6, 3: -7, 4: 3, 6: -3 };
 
 export const CLOCK_LADDER: LadderConfig = {
   ...TIME_LADDER,
-  rungs: TIME_LADDER.rungs.map((r) => ({ ...r, short: SHORT[r.short] ?? r.short })),
+  rungs: TIME_LADDER.rungs.map((r) =>
+    r.short === 'H4'
+      ? {
+          ...r,
+          short: SHORT.H4,
+          value: 5 / (81 + 5 / 24),
+          figure: '5 seconds slow after 81 days and 5 hours at sea, its rate allowed for: about 0.06 s a day.',
+          src: 'https://en.wikipedia.org/wiki/John_Harrison',
+          srcLabel: 'Wikipedia: John Harrison',
+        }
+      : { ...r, short: SHORT[r.short] ?? r.short },
+  ),
   unit: 'seconds gained or lost per day',
   dy: (i, narrow) => (DY[i] ?? 0) * (narrow ? 0.8 : 1),
   // the Shortt clock (1925) sits just below-left of quartz (1935): both labels go left,

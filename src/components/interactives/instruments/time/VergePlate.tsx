@@ -123,11 +123,13 @@ function Movement({ r, drive, t, hung }: { r: number; drive: number; t: number; 
         <line x1={mid} x2={mid} y1={rowTop - 4} y2={rowBot + 4} style={ink('ink', 2)} />
         <line x1={pTop.x1} y1={pTop.y1} x2={pTop.x2} y2={pTop.y2} style={{ ...ink('red', 3), strokeLinecap: 'round' }} />
         <line x1={pBot.x1} y1={pBot.y1} x2={pBot.x2} y2={pBot.y2} style={{ ...ink('red', 3), strokeLinecap: 'round' }} />
-        <InkText x={sx1} y={rowBot + 18} anchor="end" size={10.5} role="soft">
-          {hung ? `one tooth per swing, ${T.toFixed(2)} s` : 'no weight: nothing moves'}
-        </InkText>
+        {hung && (
+          <InkText x={sx1} y={rowBot + 18} anchor="end" size={10.5} role="soft">
+            {`one tooth per swing, ${T.toFixed(2)} s`}
+          </InkText>
+        )}
         <InkText x={W / 2} y={H - 6} anchor="middle" size={11.5} role={Math.abs(err) <= KEEP_TOL ? 'ink' : 'red'}>
-          {!hung ? 'Hang the weight.' : Math.abs(err) <= KEEP_TOL ? 'Within 15 minutes a day: as good as a foliot gets.' : `${err > 0 ? 'Gains' : 'Loses'} ${fmtSec(Math.abs(err))} a day.`}
+          {!hung ? 'No weight: nothing moves.' : Math.abs(err) <= KEEP_TOL ? 'Within 15 minutes a day: as good as a foliot gets.' : `${err > 0 ? 'Gains' : 'Loses'} ${fmtSec(Math.abs(err))} a day.`}
         </InkText>
       </svg>
     </div>
@@ -145,7 +147,11 @@ export default function VergePlate() {
   const driveAt = (i: number) => (i >= 3 ? drive : 1);
   const T = period(r, driveAt(step));
   const err = errPerDay(r, driveAt(step));
-  const kept = Math.abs(errPerDay(r, 1)) <= KEEP_TOL;
+  const keptNow = Math.abs(errPerDay(r, 1)) <= KEEP_TOL;
+  const [kept, setKept] = useState(false);
+  useEffect(() => {
+    if (keptNow) setKept(true);
+  }, [keptNow]);
   const tTrue = 15; // the reference: an afternoon, the clock set at noon
   const since = tTrue - 12;
 

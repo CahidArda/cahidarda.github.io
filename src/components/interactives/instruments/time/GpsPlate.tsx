@@ -4,7 +4,7 @@
  * View: the ground around you, seen from above, a few km across; each satellite's range is a
  * line at right angles to its direction (it is 20,200 km away). Geometry: ./gpsGeom.ts.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   C as Col,
   Eq,
@@ -93,7 +93,11 @@ export default function GpsPlate() {
   });
   const s = stateAt(step);
   const f = fix(s);
-  const solved = Math.abs(b - bHat) * C <= MEET_TOL;
+  const solvedNow = Math.abs(b - bHat) * C <= MEET_TOL;
+  const [solved, setSolved] = useState(false);
+  useEffect(() => {
+    if (solvedNow) setSolved(true);
+  }, [solvedNow]);
   const posErr = f.at ? Math.hypot(f.at.x, f.at.y) : null;
 
   const steps: StepDef[] = [

@@ -336,13 +336,14 @@ for (const d of DEVICES) ok(d.lo <= d.hi && d.lo >= GAUGE_LO && d.hi <= GAUGE_HI
         s = { phase: n.phase, w: n.w };
         const a = DB.AMP * Math.sin(s.phase);
         const g = escScene(s.w, a, L, W);
-        for (const p of [g.pivot, g.centre, { x: g.bob.x, y: g.bob.y + g.bobR }]) ok(p.x >= 0 && p.x <= W && p.y >= 0 && p.y <= g.H - 20, 'escapement view: inside', () => `W=${W} L=${L}`);
+        for (const p of [g.pivot, g.centre]) ok(p.x >= 0 && p.x <= g.mainW && p.y >= 0 && p.y <= g.mainH, 'escapement view: inside', () => `W=${W} L=${L}`);
+        for (const pal of g.pals) for (const q of pal) { const p = g.P(q); ok(p.x >= 0 && p.x <= g.mainW && p.y >= 0 && p.y <= g.mainH, 'escapement view: pallets inside', () => `W=${W}`); }
         for (const q of g.wheel) {
           const p = g.P(q);
-          ok(p.x >= 0 && p.x <= W && p.y >= 0, 'escapement view: wheel inside', () => `W=${W}`);
+          ok(p.x >= 0 && p.x <= g.mainW && p.y >= 0 && p.y <= g.mainH, 'escapement view: wheel inside', () => `W=${W}`);
         }
         const z = g.zoom!;
-        ok(z.cx - z.r >= 0 && z.cx + z.r <= W && z.cy + z.r + 16 <= g.H - 12, 'escapement view: close-up inside', () => `W=${W} L=${L} ${JSON.stringify({ cx: z.cx, cy: z.cy, r: z.r, H: g.H })}`);
+        ok(z.cx - z.r >= 0 && z.cx + z.r <= W && z.cy + z.r + 16 <= g.H - 12 && (g.narrow ? z.cy - z.r >= g.mainH : z.cx - z.r >= g.mainW), 'escapement view: close-up inside', () => `W=${W} L=${L} ${JSON.stringify({ cx: z.cx, cy: z.cy, r: z.r, H: g.H })}`);
         // contact point is centred in the close-up
         const cp = z.f(g.contact.point);
         ok(near(cp.x, z.cx, 1e-9) && near(cp.y, z.cy, 1e-9), 'escapement view: close-up centred on the contact', () => `W=${W}`);

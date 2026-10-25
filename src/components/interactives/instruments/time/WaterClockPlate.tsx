@@ -4,7 +4,7 @@
  * View: the vessel with an evenly spaced hour scale (what the reader reads) and the true hour
  * marks (brass), beside a chart of level against time. Physics: ./waterGeom.ts.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   C,
   Eq,
@@ -132,6 +132,13 @@ export default function WaterClockPlate() {
   const [selV, setV] = useState<Vessel>('cyl');
   const [vv, bindV] = useHoverPreview<Vessel>(selV);
   const [clog, setClog] = useState(0);
+  // a step stays done once its action was taken, even if a later step changes the same control
+  const [triedSlope, setTriedSlope] = useState(false);
+  const [triedHead, setTriedHead] = useState(false);
+  useEffect(() => {
+    if (selV === 'slope') setTriedSlope(true);
+    if (selV === 'head') setTriedHead(true);
+  }, [selV]);
   const vesselAt = (i: number): Vessel => (i <= 1 ? 'cyl' : i === 2 ? (vv === 'head' ? 'slope' : vv) : i === 3 ? (vv === 'cyl' ? 'head' : vv) : vv);
   const clogAt = (i: number) => (i === 4 ? clog : 0);
   const wAt = (i: number) => waterClock(vesselAt(i), t, clogAt(i));
@@ -191,7 +198,7 @@ export default function WaterClockPlate() {
       ),
       controls: vesselSeg(['cyl', 'slope']),
       gated: true,
-      done: selV === 'slope',
+      done: triedSlope,
       hint: 'Choose the sloping walls',
     },
     {
@@ -210,7 +217,7 @@ export default function WaterClockPlate() {
         </>
       ),
       gated: true,
-      done: selV === 'head',
+      done: triedHead,
       hint: 'Choose the constant head',
     },
     {
