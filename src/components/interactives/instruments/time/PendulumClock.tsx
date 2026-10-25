@@ -135,6 +135,15 @@ function Poster() {
       />
       <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s} style={{ ...ink, fill: C.paper }} />
       <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s * 0.55} style={{ ...ink, strokeWidth: 0.6 }} />
+      {/* drive cord and weight, behind the wheel */}
+      <line x1={ox + 0.56 * s} y1={oy} x2={ox + 0.56 * s} y2={oy + 1.5 * s} style={{ ...ink, strokeWidth: 0.8 }} />
+      <rect
+        x={ox + (0.56 - 0.085) * s}
+        y={oy + 1.5 * s}
+        width={0.17 * s}
+        height={0.5 * s}
+        style={{ ...ink, fill: C.paper }}
+      />
     </svg>
   );
 }
