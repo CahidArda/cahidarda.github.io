@@ -240,16 +240,29 @@ export default function PrecisionLadder() {
               </InkText>
             </g>
           ))}
-          {/* "better" arrow, bottom right (empty in both modes: late and imprecise) */}
-          <g>
-            <path
-              d={`M ${m.l + iw - 4} ${m.t + ih - 8} V ${m.t + ih - 40} M ${m.l + iw - 7.5} ${m.t + ih - 33} L ${m.l + iw - 4} ${m.t + ih - 40} L ${m.l + iw - 0.5} ${m.t + ih - 33}`}
-              style={{ stroke: C.soft, strokeWidth: 0.8, fill: 'none' }}
-            />
-            <InkText x={m.l + iw - 11} y={m.t + ih - 30} anchor="end" size={12} role="soft">
-              more precise
-            </InkText>
-          </g>
+          {/* "better" arrow, in an empty corner: bottom right on wide plates, top left on
+              narrow ones (where the late rungs crowd the right edge) */}
+          {narrow ? (
+            <g>
+              <path
+                d={`M ${m.l + 10} ${m.t + 34} V ${m.t + 2} M ${m.l + 6.5} ${m.t + 9} L ${m.l + 10} ${m.t + 2} L ${m.l + 13.5} ${m.t + 9}`}
+                style={{ stroke: C.soft, strokeWidth: 0.8, fill: 'none' }}
+              />
+              <InkText x={m.l + 17} y={m.t + 12} size={12} role="soft">
+                more precise
+              </InkText>
+            </g>
+          ) : (
+            <g>
+              <path
+                d={`M ${m.l + iw - 4} ${m.t + ih - 8} V ${m.t + ih - 40} M ${m.l + iw - 7.5} ${m.t + ih - 33} L ${m.l + iw - 4} ${m.t + ih - 40} L ${m.l + iw - 0.5} ${m.t + ih - 33}`}
+                style={{ stroke: C.soft, strokeWidth: 0.8, fill: 'none' }}
+              />
+              <InkText x={m.l + iw - 11} y={m.t + ih - 30} anchor="end" size={12} role="soft">
+                more precise
+              </InkText>
+            </g>
+          )}
 
           {/* the ladder: best-so-far */}
           <path
