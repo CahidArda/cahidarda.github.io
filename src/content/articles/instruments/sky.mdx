@@ -5,7 +5,225 @@ date: 2026-10-25
 tags: ['blog']
 series: instruments
 seriesOrder: 2
-draft: true
 ---
 
-Draft. This post is being written.
+import { Image } from 'astro:assets';
+import EqTip from '../../../components/EqTip.astro';
+import Eratosthenes from '../../../components/interactives/instruments/sky/Eratosthenes.tsx';
+import SextantModel from '../../../components/interactives/instruments/sky/SextantModel.tsx';
+import DoubleReflection from '../../../components/interactives/instruments/sky/DoubleReflection.tsx';
+import NoonSight from '../../../components/interactives/instruments/sky/NoonSight.tsx';
+import sextant from '../../../assets/instruments/sextant.jpg';
+
+On one table in the exhibition there was a dark green sextant, a theodolite box, and a panel
+about an Ottoman engineer called Feyzi Efendi. In 1805 he wrote a treatise on measuring
+altitudes with a sextant, and according to the panel he did it because of "his interest in a
+box" he had found in the palace treasury.
+
+<div class="fx-figure">
+  <figure class="in-photo" style="margin:0">
+    <Image
+      style="width:100%;height:auto;border:1px solid var(--color-line-strong)"
+      src={sextant}
+      alt="A dark, crackle-painted marine sextant with a micrometer drum and a short telescope, on a wooden table in front of a museum panel about Feyzi Efendi"
+      widths={[480, 800, 1200]}
+      sizes="(min-width: 62rem) 52rem, 100vw"
+    />
+    <figcaption style="font-family:var(--font-display);font-style:italic;font-size:0.95rem;color:var(--color-muted);margin-top:0.5rem">
+      The sextant on the table (No. 6595, maker unknown). The micrometer drum by the eyepiece
+      makes it a 20th-century instrument, so this is not Feyzi's box, but it works the same way.
+    </figcaption>
+  </figure>
+</div>
+
+A sextant measures one thing: the angle between two directions, usually the sun and the
+horizon. That sounds modest. With it, and a book of tables, a sailor could find how far north
+of the equator he was to about a mile. This post is the chain of instruments that led to that
+box, and what came after it.
+
+## A shadow and a walk
+
+Around 240 BC Eratosthenes, librarian at Alexandria, heard that at noon on midsummer day the sun
+shone straight down a well at Syene, far up the Nile. At the same moment in Alexandria, a
+bowl-shaped sundial still cast a shadow. Cleomedes, writing later, says "the arc in the bowl is
+found to be one-fiftieth of its proper circle" ([Cleomedes, tr. Heath](https://roger-pearse.com/weblog/2017/04/15/cleomedes-how-big-is-the-earth)).
+That is 7.2°.
+
+The sun is so far away that its rays arrive parallel, so the shadow angle in the bowl is the
+same as the angle between the two cities seen from the centre of the Earth. Pace out the
+distance, scale it up to a full circle, done.
+
+<EqTip note="C is the circumference of the Earth, θ the shadow angle in degrees, and d the distance between the two cities. 360/θ says how many such slices fit in a full circle.">
+
+$$
+C = \frac{360^\circ}{\theta}\, d
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <Eratosthenes client:visible />
+</div>
+
+With 5,000 stades between the cities, Cleomedes gives "the complete great circle measures
+250,000 stades". How good was that? Nobody knows the length of his stadion, and "the exact value
+of the stadion remains a subject of debate to this day" ([Wikipedia](https://en.wikipedia.org/wiki/Earth%27s_circumference)).
+Depending on the guess, he was off by anything from under 1% to 15%. The angle itself held up
+better: the modern latitudes of Alexandria and Aswan differ by about 7.1°.
+
+The wall: a shadow is fuzzy at the edges, and a bowl on the ground is only as good as your eye
+on its rim.
+
+## Bigger circles
+
+The fix for a fuzzy reading was size. Ptolemy's star catalogue (around AD 138) is good to about
+25 arcminutes, and Ulugh Beg's in Samarkand (1437) to about 20′ ([Høg 2017](https://arxiv.org/pdf/1707.01020)).
+Ulugh Beg's observatory had a meridian sextant with a radius of about 36 metres
+([Wikipedia](https://en.wikipedia.org/wiki/Ulugh_Beg)).
+
+Istanbul had its turn too. From 1577 Taqi al-Din ran an observatory at Tophane, with a mural
+quadrant of 6 m radius and a mechanical clock for timing the stars, for which he wrote "we
+divided every minute into five seconds" ([Muslim Heritage](https://muslimheritage.com/taqi-al-din-bio-essay/)).
+On 22 January 1580 an imperial decree had it torn down, instruments and all
+([TDV İslâm Ansiklopedisi](https://islamansiklopedisi.org.tr/takiyyuddin-er-rasid)). At almost the
+same time, on an island off Denmark, Tycho Brahe was building Uraniborg, whose instruments
+reached an accuracy approaching one arcminute ([Wikipedia](https://en.wikipedia.org/wiki/Tycho_Brahe)).
+
+The wall: a six-metre quadrant bolted to a wall is no use on a ship, which is where knowing your
+latitude matters most.
+
+## Two directions at once
+
+At sea the instruments shrank and the errors grew. A good observer with a mariner's astrolabe
+managed about 10′ on land and much worse on a moving deck, and 1° of error is 60 nautical miles
+([de Hilster 2014](https://www.dehilster.info/docs/MarinersMirror_Hilster_Mariners_Astrolabe%2C2014.pdf)).
+The cross-staff measured the angle between sun and horizon by sliding a crosspiece along a stick,
+which meant staring at the sun; "a piece of smoked glass was frequently used" to stop the user
+blinding himself ([NPS](https://home.nps.gov/fora/learn/education/navigation-and-related-instruments-in-16th-century-england.htm)).
+John Davis's backstaff of the 1590s let you turn your back on the sun and read its shadow
+instead ([Wikipedia](https://en.wikipedia.org/wiki/Backstaff)).
+
+All of them share a problem. You have to look at two things, the sun and the horizon, through two
+sights, while the deck moves under you. The Linda Hall Library calls taking an altitude "a
+nearly impossible one on board a rolling ship" ([Linda Hall Library](https://www.lindahall.org/about/news/scientist-of-the-day/john-hadley)).
+
+## Two mirrors
+
+On 13 May 1731 John Hadley's "new instrument for taking angles" was read to the Royal Society
+([Royal Society](https://makingscience.royalsociety.org/items/rbo_17_72/description-of-a-new-instrument-for-taking-angles-by-john-hadley)).
+Thomas Godfrey, a Philadelphia glazier, built the same thing independently at about the same
+time ([Wikipedia](https://en.wikipedia.org/wiki/Octant_%28instrument%29)). Hadley's octant had a 45° arc; in 1757 John Bird made the first sextant, with a 60° arc,
+because navigators wanted to measure angles beyond 90° ([Wikipedia](https://en.wikipedia.org/wiki/Reflecting_instrument)).
+
+The trick is two mirrors. The horizon mirror is fixed, and only half of it is silvered: through
+the clear half you see the horizon, in the silvered half you see whatever the index mirror sends
+you. The index mirror rides on the pivoting arm. Swing the arm until the sun, bounced twice, sits
+on the horizon, and read the arc.
+
+<div class="fx-figure fx-wide">
+  <SextantModel client:visible />
+</div>
+
+Two things in that drawing are odd. The arc is a sixth of a circle but is numbered to 120. And
+when the instrument rolls, the sun stays on the horizon in the eyepiece. Both come from the same
+fact about two mirrors.
+
+<EqTip note="θ is the angle between the two mirrors (how far the index arm has turned from zero). D is how much the light leaving the second mirror is bent away from the light arriving at the first. It does not depend on the angle the light came in at.">
+
+$$
+D = 2\theta
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <DoubleReflection client:visible />
+</div>
+
+Each reflection turns a ray by twice its angle to the mirror. Done twice, the parts that depend on
+where the light came from cancel, and only the angle between the mirrors is left. Tilt the whole
+instrument and both mirrors tilt together, so the angle between them, and the bend in the light,
+stay put. In the eyepiece "the relative position of the two images will remain steady"
+([Wikipedia](https://en.wikipedia.org/wiki/Sextant)). A good sextant with a vernier reads to a
+tenth of an arcminute, roughly the width of a 2 cm coin seen from 700 metres.
+
+## Feyzi's box
+
+Feyzi Efendi was trained in the Enderun, the palace school, and the Turkish panel says he found
+the instrument kept in a box and named sextant ("sextant adı verilen bu gözlem aleti"). His
+*Muhâdarât-ı Feyzi* of 1805 explains how to measure altitude with it "with the aid of
+logarithm" (exhibition panel). My guess is that this is about the arithmetic: turning an angle
+into a position is trigonometry, and logarithms turn its multiplications into additions. The historian Feza Günergun's chapter on it calls the
+sextant an *alla franca* instrument, a European-style one ([Günergun 2019](https://avesis.istanbul.edu.tr/yayin/84263c24-57f0-45b0-bf7e-486d3895ff5c/scientific-instruments-between-east-and-west)).
+His own was probably brass, read with a vernier, not the micrometer drum on the one in my photo,
+which came later.
+
+## Where am I
+
+What do you do with the angle? The simplest case is noon. The sun crosses your meridian, you
+bring it down to the horizon and read its highest altitude h. The almanac gives the sun's
+declination δ for that date: how far north or south of the equator it stands. Then latitude is
+one line.
+
+<EqTip note="φ is your latitude, h the sun's altitude above the horizon at noon, and δ the sun's declination for the date (positive when the sun is north of the equator). This form is for an observer north of the sun, who sees it due south at noon.">
+
+$$
+\varphi = 90^\circ - h + \delta
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <NoonSight client:visible />
+</div>
+
+On 25 October 2026 the sun is about 12°10′ south of the equator, and at noon in Istanbul it
+stands about 36°49′ above the horizon. Put those in and you get 41°01′ N, which is Istanbul. I
+computed the declination with the US Naval Observatory's short formula, good to about an
+arcminute ([USNO](https://aa.usno.navy.mil/faq/sun_approx)). A real navigator would also correct
+for the height of his eye, refraction and the sun's radius, a few arcminutes in all.
+
+Longitude is the hard half. The Earth turns 15° an hour, so longitude is a difference in time:
+four minutes wrong is a whole degree wrong. The sextant can still help, by measuring the Moon's
+distance from a star and using the Moon as a clock in the sky ([Wikipedia](https://en.wikipedia.org/wiki/Lunar_distance_%28navigation%29)),
+but the real answer was a good clock, which is the end of [the first post](/articles/instruments/time).
+
+## Past the horizon
+
+Aircraft have no reliable sea horizon, so bubble sextants used a spirit level instead, and got
+worse: about 2′ on land in skilled hands, 5 to 10 miles in flight ([Bowditch, ch. 14](https://thenauticalalmanac.com/2019_Bowditch-_American_Practical_Navigator/Volume-_1/05-%20Part%203-%20Celestial%20Navigation/Chapter%2014-%20Instruments%20For%20Celestial%20Navigation.pdf)).
+Spacecraft dropped the horizon altogether. A star tracker is a small camera that matches the star
+pattern it sees against a catalogue; a CubeSat-sized one points to about 30 arcseconds
+([AAC Clyde ST200](https://www.aac-clyde.space/wp-content/uploads/2021/11/ST200.pdf)).
+
+The catalogues got better too. Hipparcos (1989 to 1993) measured 118,218 stars at the
+milliarcsecond level ([ESA](https://cosmos.esa.int/web/hipparcos/the-mission)). Gaia, which
+stopped observing in January 2025, went "down to microarcsecond precision"
+([Sky & Telescope](https://skyandtelescope.org/astronomy-news/galaxy-mapping-satellite-ends-science-operations/)).
+Twenty microarcseconds is the size of a 4 cm coin on the Moon, seen from here. Eratosthenes'
+bowl was good to perhaps a tenth of a degree. That is a factor of about twenty million, all of it
+in the same quantity: an angle between two directions.
+
+## Next: pointing it at the ground
+
+Everything here looked up. The [next post](/articles/instruments/earth) turns the same angles
+around and points them at the ground: a theodolite is a sextant's cousin on a tripod, and with a
+measured baseline and two angles it can tell you how tall a minaret is, how wide the Bosphorus
+is, and eventually how big a country is.
+
+## Sources
+
+- Cleomedes, *On the Heavens* I.10, Heath translation, via [Roger Pearse](https://roger-pearse.com/weblog/2017/04/15/cleomedes-how-big-is-the-earth), for 1/50 of a circle, 5,000 and 250,000 stades.
+- [Earth's circumference](https://en.wikipedia.org/wiki/Earth%27s_circumference) (Wikipedia), for the stadion debate and the range of errors (under 1% to 15%).
+- Erik Høg, [Astrometric accuracy during the past 2000 years](https://arxiv.org/pdf/1707.01020) (2017), for Ptolemy (25′) and Ulugh Beg (20′).
+- [Ulugh Beg](https://en.wikipedia.org/wiki/Ulugh_Beg) (Wikipedia), for the 36 m Fakhri sextant.
+- [Taqi al-Din, bio-essay](https://muslimheritage.com/taqi-al-din-bio-essay/) and [Instruments of the Istanbul observatory](https://muslimheritage.com/instruments-istanbul-observatory/) (Muslim Heritage), for the 6 m mural quadrant and the clock quote; [Takiyyüddin er-Râsıd](https://islamansiklopedisi.org.tr/takiyyuddin-er-rasid) (TDV İslâm Ansiklopedisi), for 1577 and the decree of 22 January 1580.
+- [Tycho Brahe](https://en.wikipedia.org/wiki/Tycho_Brahe) (Wikipedia), for Uraniborg and an accuracy near one arcminute.
+- Peter de Hilster, [The mariner's astrolabe](https://www.dehilster.info/docs/MarinersMirror_Hilster_Mariners_Astrolabe%2C2014.pdf), *Mariner's Mirror* (2014), for its accuracy; [NPS, Navigation in 16th-century England](https://home.nps.gov/fora/learn/education/navigation-and-related-instruments-in-16th-century-england.htm), for the cross-staff and 60 miles per degree; [Backstaff](https://en.wikipedia.org/wiki/Backstaff) (Wikipedia).
+- [Hadley's paper](https://makingscience.royalsociety.org/items/rbo_17_72/description-of-a-new-instrument-for-taking-angles-by-john-hadley) (Royal Society), [John Hadley](https://www.lindahall.org/about/news/scientist-of-the-day/john-hadley) (Linda Hall Library), and [Reflecting instrument](https://en.wikipedia.org/wiki/Reflecting_instrument) (Wikipedia), for 1731, Godfrey, Campbell and Bird's 1757 sextant.
+- [Sextant](https://en.wikipedia.org/wiki/Sextant) (Wikipedia), for the steady images and the 0.1′ vernier; Bowditch, [*American Practical Navigator*, ch. 14](https://thenauticalalmanac.com/2019_Bowditch-_American_Practical_Navigator/Volume-_1/05-%20Part%203-%20Celestial%20Navigation/Chapter%2014-%20Instruments%20For%20Celestial%20Navigation.pdf), for the double-reflection rule and bubble sextants.
+- Exhibition panel "Osmanlılar Seyirde: Mühendis Feyzi Efendi" (my photo), for Feyzi and the quotes; Feza Günergun, [Measuring Altitudes with an Alla Franca Instrument](https://avesis.istanbul.edu.tr/yayin/84263c24-57f0-45b0-bf7e-486d3895ff5c/scientific-instruments-between-east-and-west), in *Scientific Instruments between East and West* (Brill, 2019).
+- [Meridian altitude](https://en.wikipedia.org/wiki/Meridian_altitude) (Wikipedia), for the noon-sight rule; USNO, [Approximate solar coordinates](https://aa.usno.navy.mil/faq/sun_approx), for the declination formula used in Plates 2 and 4.
+- [Lunar distance](https://en.wikipedia.org/wiki/Lunar_distance_%28navigation%29) (Wikipedia).
+- [AAC Clyde ST200 datasheet](https://www.aac-clyde.space/wp-content/uploads/2021/11/ST200.pdf); [Hipparcos mission](https://cosmos.esa.int/web/hipparcos/the-mission) (ESA); [Gaia ends science operations](https://skyandtelescope.org/astronomy-news/galaxy-mapping-satellite-ends-science-operations/) (Sky & Telescope).
+- The coin-on-the-Moon and coin-at-700-metres comparisons, and the factor of twenty million, are my own arithmetic.
