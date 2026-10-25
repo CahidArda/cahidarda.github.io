@@ -559,7 +559,7 @@ export function cordLayout(W: number, far: number) {
   // the enlarged-tip detail sits right of the triangle, under the cord, above the status line
   const r = narrow ? 26 : 40;
   // right of the triangle, just inside the far pole, between the cord and the ground
-  const dx = xR - r - (narrow ? 16 : 22);
+  const dx = xR - r - (narrow ? 40 : 46); // clear of the far pole's ticks and numerals
   const cordY = a.y + ((b.y - a.y) * (dx - xL)) / (xR - xL);
   const yMin = cordY + r + 12;
   const yMax = Math.min(groundAt(dx - r - 10), groundAt(dx)) - r - 24;
@@ -577,6 +577,8 @@ export function cordLayout(W: number, far: number) {
     textBox('far pole', xR, poleTop(gR) - 8, 'far pole', 12, 'middle'),
     textBox('status', status.x, status.y, statusText, narrow ? 12 : 13, 'middle', 'alphabetic', 0.48),
     textBox('detail', dc.x, dc.y + r + 14, 'the tip, enlarged', 11, 'middle', 'alphabetic', 0.48),
+    { name: 'far pole scale', x0: xR - 4, x1: xR + 32, y0: poleTop(gR), y1: gR },
+    { name: 'near pole scale', x0: xL - 34, x1: xL + 4, y0: poleTop(gL), y1: gL },
   ];
   return {
     W,

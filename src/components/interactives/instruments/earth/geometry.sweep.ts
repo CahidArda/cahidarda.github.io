@@ -249,10 +249,12 @@ for (const W of WIDTHS)
       [G.tip, G.h1],
     ];
     ok(tri.every(([p, q]) => segDist(c, p, q) > r + 3), 'cord: detail circle clear of the triangle', () => ctx);
+    const circ: Box = { name: 'detail circle', x0: c.x - r, x1: c.x + r, y0: c.y - r, y1: c.y + r };
+    ok(!overlap(circ, G.boxes.find((b) => b.name === 'far pole scale')!), 'cord: detail circle on the far pole scale', () => ctx);
     ok(segDist(c, G.a, G.b) > r + 3, 'cord: detail circle clear of the cord', () => ctx);
     ok(c.x + r < G.xR - 8, 'cord: detail circle clear of the far pole', () => ctx);
     ok(c.y - r > Math.max(G.a.y, G.b.y) + 4, 'cord: detail circle below the cord', () => ctx);
-    for (const bx of G.boxes) {
+    for (const bx of G.boxes.filter((b) => !/scale/.test(b.name))) {
       const gy = Math.min(G.groundAt(Math.max(G.xL, Math.min(G.xR, bx.x0))), G.groundAt(Math.max(G.xL, Math.min(G.xR, bx.x1))));
       ok(bx.y1 < gy - 2, `cord: '${bx.name}' above the ground`, () => `${ctx} ${fmtB(bx)} ground ${gy.toFixed(0)}`);
     }
