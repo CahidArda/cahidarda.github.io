@@ -7,7 +7,7 @@ export const D0 = -3;
 export const D1 = 12;
 export const ROWS = { ship: 46, radio: 112, axis: 146 };
 
-export function distanceLayout(s: number, W: number) {
+export function distanceLayout(W: number) {
   const narrow = W < 460;
   const m = { l: 14, r: 14 };
   const iw = W - m.l - m.r;

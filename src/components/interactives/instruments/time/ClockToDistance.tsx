@@ -46,7 +46,7 @@ export default function ClockToDistance() {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(560);
   const H = 168;
   const off0 = (d: number) => d < 10 ** D0;
-  const { narrow, m, iw, x, row } = distanceLayout(s, W);
+  const { narrow, m, iw, x, row } = distanceLayout(W);
   void D1;
   const ticks = [
     { v: 1e-2, l: '1 cm' },
