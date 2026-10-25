@@ -1,0 +1,248 @@
+---
+title: 'How the Astrolabe Works: The Usturlap, a Sky You Can Hold'
+description: 'How the astrolabe flattens the turning sky onto a brass plate, how to tell the time with one step by step, and why quadrants and clocks replaced it.'
+date: 2026-10-26
+tags: ['blog']
+wideLayout: true
+series: instruments
+seriesOrder: 3
+draft: false
+---
+
+import { Image } from 'astro:assets';
+import EqTip from '../../../components/EqTip.astro';
+import ArmillaryPlate from '../../../components/interactives/instruments/astrolabe/ArmillaryPlate.tsx';
+import ProjectionPlate from '../../../components/interactives/instruments/astrolabe/ProjectionPlate.tsx';
+import AssemblePlate from '../../../components/interactives/instruments/astrolabe/AssemblePlate.tsx';
+import TellTimePlate from '../../../components/interactives/instruments/astrolabe/TellTimePlate.tsx';
+import PlatesPlate from '../../../components/interactives/instruments/astrolabe/PlatesPlate.tsx';
+import QuadrantPlate from '../../../components/interactives/instruments/astrolabe/QuadrantPlate.tsx';
+import ClockPlate from '../../../components/interactives/instruments/astrolabe/ClockPlate.tsx';
+import rubuBoards from '../../../assets/instruments/rubu-boards.jpg';
+import qiblanuma from '../../../assets/instruments/qiblanuma-quadrant.jpg';
+
+The case in Istanbul with the two wooden quadrants also had a small table of brass: two pocket
+compasses, a quadrant on a stand with two plumb lines, and the corner of a *kıblenüma*, a dial for
+finding the direction of Mecca. These were a timekeeper's tools. An article on the Ottoman
+*muvakkithane*, the timekeeper's room beside a mosque, lists them together: "rub'u tahtası,
+usturlab, kıblenüma gibi aletler" ([Zorlu, Belleten 2014](https://belleten.gov.tr/eng/full-text/215/tur)).
+
+There was no usturlab in that case, so this post is about it.
+
+<div class="fx-figure">
+  <figure class="in-photos">
+    <Image
+      src={qiblanuma}
+      alt="A museum table with two brass pocket compasses and a brass quadrant on a three-legged stand with two plumb bobs hanging from it"
+      widths={[480, 800]}
+      sizes="(min-width: 62rem) 26rem, 50vw"
+    />
+    <Image
+      src={rubuBoards}
+      alt="Two wooden quarter-circle boards in a case: a red lacquered one with gilt grid lines, and a yellow one with a thread and a small brass plumb bob"
+      widths={[480, 800]}
+      sizes="(min-width: 62rem) 26rem, 50vw"
+    />
+    <figcaption>
+      Left: two 19th-century brass compasses, south marked at about 35 degrees, which the label
+      says shows they were used south of Istanbul to find the direction of the Kaaba, and a
+      19th-century brass quadrant on a stand for measuring the altitude of stars. The brass
+      qiblanuma whose corner shows at the top (19th to 20th century) "has the names of Tehran,
+      Isfahan, and Samarkand" (museum label). Right: sine quadrants from 1753 and 1860, both made
+      for the 41st parallel.
+    </figcaption>
+  </figure>
+</div>
+
+## The word: star-taker
+
+*Astrolabe* comes from the Greek *astrolabos*, "star-taking", from *astron* (star) and
+*lambanein* (to take) ([Etymonline](https://www.etymonline.com/word/astrolabe)). Arabic borrowed
+it as *asṭurlāb* or *usṭurlāb*, and also translated it: *ākhidh al-nujūm*, "taker of the stars"
+([King 1981, via Wikipedia](https://en.wikipedia.org/wiki/Astrolabe)). Persian and Ottoman
+Turkish kept the Arabic spelling, اسطرلاب. Mustafa ibn Ali, timekeeper of the Selim I mosque,
+called his 1544 handbook *Risālat al-asṭurlāb al-Selīmī*
+([BEA](https://islamsci.mcgill.ca/RASI/BEA/Ali_al-Muwaqqit_BEA.htm)). Modern Turkish says
+*usturlap*, with the final b hardened to p as Turkish does at the end of a word. Latin made it
+*astrolabium*, Old French *astrelabe* (around 1160), and English had it by the 14th century. In
+1391 Chaucer wrote a treatise on it for his son: "Lyte Lowys my sone"
+([Fordham](https://sourcebooks.web.fordham.edu/halsall/source/chaucer-astro.asp)).
+
+There is also a story that the word is Arabic. Read *asṭur* as "lines" and *Lāb* as a son of the
+prophet Idrīs, who invented the thing, and you get "the lines of Lāb". The 10th-century
+scholar al-Qummī mentioned it and al-Khwārizmī rejected it ([King 1981, via
+Wikipedia](https://en.wikipedia.org/wiki/Astrolabe)). It still travelled: a French astrologer
+in the 1490s wrote that astrolabe means "comme les lignes de Lab"
+([DFSM](https://dfsm.elan-numerique.fr/entry/pdf/4156)). It loses because the Greek word and the
+Greek treatises on the instrument are centuries older than any Arabic one, and the Arabic
+*ākhidh al-nujūm* is a translation of that Greek word. (Hamza al-Isfahani tried a Persian origin
+too, and al-Bīrūnī criticised him for it.)
+
+## The problem: the sky turns
+
+A timekeeper needs the hour, and the only clock is the sky. The sun rises in the east, climbs,
+crosses the meridian at noon and sets, on a path that changes every day of the year. So does
+every star. Measuring the sun's height is easy. Turning that height into an hour is spherical
+trigonometry, the relation between your latitude φ, the sun's declination δ (how far north or
+south of the celestial equator it is today), its altitude h and its hour angle H:
+
+<EqTip note="h: the sun's altitude above the horizon. φ: your latitude (41° in Istanbul). δ: the sun's declination for the date. H: its hour angle, the turn of the sky since noon, 15° per hour.">
+
+$$
+\sin h = \sin\varphi\,\sin\delta + \cos\varphi\,\cos\delta\,\cos H
+$$
+
+</EqTip>
+
+Doing that by hand, every few hours, every day, with tables of sines, is slow. The first answer was
+to build a model of the sky and turn it.
+
+## A model of the sky: the armillary sphere
+
+An armillary sphere is the sky made of rings: a horizon and a meridian that stay fixed, and inside
+them a sphere with the equator, the ecliptic (the sun's yearly path) and a polar axis. It is the
+old instrument; Hipparchus probably used one, and Ptolemy's *Almagest* describes one
+([Wikipedia](https://en.wikipedia.org/wiki/Astrolabe)). Tilt the axis to your latitude, put the
+sun on the ecliptic for the date, and turn the sphere until the sun is as high as you measured.
+The equator ring then tells you the hour.
+
+<div class="fx-figure fx-wide">
+  <ArmillaryPlate client:visible />
+</div>
+
+It works, but it is the sky in three dimensions: big, bulky, every circle a separate ring, and the
+rings hide each other. Could the sky be flat?
+
+## Flattening the sky: stereographic projection
+
+There is a way to draw a sphere on a plane that keeps every circle a circle. Put your eye at the
+south celestial pole and project each point of the sky onto the plane of the equator. A star at
+declination δ lands at a distance
+
+<EqTip note="r: distance from the centre of the plate (the north celestial pole), in units of the equator's radius. δ: the star's declination. A star on the equator lands at r = 1; the north pole at the centre.">
+
+$$
+r = \tan\!\left(\frac{90^\circ - \delta}{2}\right)
+$$
+
+</EqTip>
+
+from the centre, and as the sky turns it turns round the centre. Circles of equal altitude over a
+given place also land as circles, just off-centre. The geometry is Greek: Hipparchus probably knew
+it ([Pingree, Encyclopaedia Iranica](https://www.iranicaonline.org/?p=6120)). The earliest
+certain instrument is late antique: Theon of Alexandria wrote on it in the 4th century, and John
+Philoponus's treatise from about 550 is the oldest that survives
+([Wikipedia](https://en.wikipedia.org/wiki/Astrolabe)).
+
+<div class="fx-figure fx-wide">
+  <ProjectionPlate client:visible />
+</div>
+
+The catch is in the last step. The stars' circles are the same for everyone; the horizon and the
+height circles depend on where you stand. One drawing cannot hold both, unless they can move
+against each other.
+
+## The astrolabe: a plate for the place, a spider for the sky
+
+That is the planispheric astrolabe. The height circles go on a fixed plate cut for one latitude.
+The sky goes on a pierced disc laid over it, the rete, which the Arabic texts call the spider
+(*ʿankabūt*, Turkish *örümcek*) and Chaucer calls the "riet ... shapen in manere of a net". Turn
+the rete and the sky turns over your horizon. Al-Fazārī, in the 8th century, "was said to have
+been the first Muslim to construct a plane astrolabe"
+([Plofker, BEA](https://islamsci.mcgill.ca/RASI/BEA/Fazari_BEA.htm)), and the oldest dated one
+that survives was made by Nasṭūlus in 927/28
+([BEA](https://islamsci.mcgill.ca/RASI/BEA/Nastulus_BEA.pdf)).
+
+<div class="fx-figure fx-wide">
+  <AssemblePlate client:visible />
+</div>
+
+## Telling the time with it
+
+Now use it. You need one measurement, the sun's altitude, taken with the alidade on the back, and
+the date. The rest is turning and reading. Al-Ṣūfī wrote a treatise on the astrolabe with over a
+thousand uses ([Wikipedia](https://en.wikipedia.org/wiki/Abd_al-Rahman_al-Sufi)); this is the one
+a *muvakkit* did every day.
+
+<div class="fx-figure fx-wide">
+  <TellTimePlate client:visible />
+</div>
+
+The same moves answer other questions. Put the sun's point on the eastern horizon and the rule
+gives sunrise; at 41° N the day runs from about 9 hours in December to 15 in June. Sight a star
+at night instead of the sun and you get the time in the dark. A shadow square on the back turns
+the alidade into a height-measurer for minarets, and many astrolabes carry gazetteers for the
+direction of Mecca ([MHS Oxford](https://www.mhs.ox.ac.uk/astrolabe/catalogue/Glossary/glossary.html)).
+The sailor's "mariner's astrolabe" is a different object that kept only the degree ring and the
+alidade, for latitude at sea (it is in the [latitude post](/articles/instruments/sky)).
+
+## The plate only works where it was cut
+
+The plate in the plate above is for 41° N. Carry it to Cairo and the sun's measured height lands
+on the wrong circle. Makers' answer was more plates: an Ottoman astrolabe by ʿAbdī, dated 1713/4,
+has four, for 21° to 42° ([MHS Oxford](https://www.mhs.ox.ac.uk/astrolabe/catalogue/browseReport/Astrolabe_ID=132.html)).
+The cleverer answer came from al-Andalus. In the 11th century al-Zarqālī projected the sky onto the
+meridian plane instead, where every horizon is a straight line through the centre, so one plate
+serves every latitude: the *saphea Azarchelis*
+([MHS Oxford](https://www.mhs.ox.ac.uk/astrolabe/catalogue/Glossary/mainGlossary/Glossary_ID=55.html)).
+
+<div class="fx-figure fx-wide">
+  <PlatesPlate client:visible />
+</div>
+
+Istanbul had both kinds. Taqī al-Dīn's observatory, finished in 1577 and destroyed in 1580,
+listed the astrolabe and the universal astrolabe among its instruments
+([Wikipedia](https://en.wikipedia.org/wiki/Constantinople_observatory_of_Taqi_ad-Din)).
+
+## Half an astrolabe on a board: the quadrants
+
+Universal or not, an astrolabe was brass, expensive, and coarse at hand size. The Met's note on a
+1654 Persian one: "not precise enough for astronomical observations ... but served well for telling
+time" ([Met](https://www.metmuseum.org/toah/works-of-art/63.166a-j)). A muvakkit needed only one
+city and the daytime sun. Fold the plate in half (the morning half mirrors the afternoon), fold it
+again, replace the rete with a thread and a bead, and you have the almucantar quadrant, "an
+astrolabe folded back twice on itself" ([Museo Galileo](https://catalogue.museogalileo.it/multimedia/QuadrantBis.html)).
+
+<div class="fx-figure fx-wide">
+  <QuadrantPlate client:visible />
+</div>
+
+The sine quadrant went one step further and replaced the drawn circles with a 60 by 60 grid that
+computes the same equation; it stayed in use into the 19th century
+([Wikipedia](https://en.wikipedia.org/wiki/Quadrant_(instrument))). Mustafa ibn Ali shows the
+shift: his astrolabe treatise is his longest work, but his quadrant handbook of 1529 is the one
+that survives in about 100 copies
+([BEA](https://islamsci.mcgill.ca/RASI/BEA/Ali_al-Muwaqqit_BEA.htm)). The two boards in the photo
+are of that kind, and the [time post](/articles/instruments/time) works one step by step.
+
+## The astrolabe goes into the clock
+
+The last turn of the story is that a machine took over the turning. Abī Bakr of Isfahan built a
+geared astrolabe in 1235, and Richard of Wallingford put a rotating star map in his clock around
+1330 ([Wikipedia](https://en.wikipedia.org/wiki/Astrolabe)). When Prague's astronomical clock
+entered the record on 9 October 1410, its astrolabe dial "comprised the entire clock"
+([Linda Hall Library](https://www.lindahall.org/about/news/scientist-of-the-day/prague-astronomical-clock/)).
+The gearing has to know one thing the reader of a hand astrolabe never notices: the stars turn
+once in 23 h 56 min, the sun once in 24 h.
+
+<div class="fx-figure">
+  <ClockPlate client:visible />
+</div>
+
+Once clocks kept equal hours, the muvakkit's job slowly became setting and repairing them. The
+[time post](/articles/instruments/time) picks up the clock from there, and the
+[next post](/articles/instruments/earth) turns the same angles to the ground.
+
+## Sources
+
+- [Astrolabe](https://en.wikipedia.org/wiki/Astrolabe) (Wikipedia), citing D. A. King, "The Origin of the Astrolabe According to the Medieval Islamic Sources" (1981), for *ākhidh al-nujūm*, the "lines of Lāb", al-Qummī, al-Khwārizmī and Hamza al-Isfahani; also for Theon, Philoponus, the armillary sphere, the 1235 geared astrolabe and Wallingford.
+- [Etymonline, astrolabe](https://www.etymonline.com/word/astrolabe); [DFSM, astrelabe](https://dfsm.elan-numerique.fr/entry/pdf/4156), for the Old French forms and Simon de Phares; [Encyclopaedia Iranica, Astrolabe](https://www.iranicaonline.org/?p=6120) (Pingree), for the projection and the Arabic part names; [TDV İslâm Ansiklopedisi, USTURLAP](https://cdn2.islamansiklopedisi.org.tr/dosya/42/C42013611.pdf), for the Turkish part names.
+- Chaucer, *A Treatise on the Astrolabe* (1391), [Middle English text at Fordham](https://sourcebooks.web.fordham.edu/halsall/source/chaucer-astro.asp).
+- [Mustafa ibn Ali al-Muwaqqit](https://islamsci.mcgill.ca/RASI/BEA/Ali_al-Muwaqqit_BEA.htm), [al-Fazārī](https://islamsci.mcgill.ca/RASI/BEA/Fazari_BEA.htm) and [Nasṭūlus](https://islamsci.mcgill.ca/RASI/BEA/Nastulus_BEA.pdf), *Biographical Encyclopedia of Astronomers*.
+- Tülay Zorlu, [Belleten 78 (2014)](https://belleten.gov.tr/eng/full-text/215/tur), for the muvakkithane's instruments.
+- [MHS Oxford astrolabe glossary](https://www.mhs.ox.ac.uk/astrolabe/catalogue/Glossary/glossary.html), [al-Zarqālī](https://www.mhs.ox.ac.uk/astrolabe/catalogue/Glossary/mainGlossary/Glossary_ID=55.html) and [ʿAbdī's astrolabe](https://www.mhs.ox.ac.uk/astrolabe/catalogue/browseReport/Astrolabe_ID=132.html).
+- [Constantinople observatory of Taqi ad-Din](https://en.wikipedia.org/wiki/Constantinople_observatory_of_Taqi_ad-Din) (Wikipedia).
+- [Met 63.166](https://www.metmuseum.org/toah/works-of-art/63.166a-j); [Museo Galileo, the quadrant](https://catalogue.museogalileo.it/multimedia/QuadrantBis.html); [Quadrant (instrument)](https://en.wikipedia.org/wiki/Quadrant_(instrument)) (Wikipedia); [Abd al-Rahman al-Sufi](https://en.wikipedia.org/wiki/Abd_al-Rahman_al-Sufi) (Wikipedia).
+- [Prague astronomical clock](https://www.lindahall.org/about/news/scientist-of-the-day/prague-astronomical-clock/) (Linda Hall Library).
+- USNO, [approximate solar coordinates](https://aa.usno.navy.mil/faq/sun_approx) (the sun's place, the equation of time, ε = 23.44°) and [sidereal time](https://aa.usno.navy.mil/faq/GAST) (the 1.0027379 rate), used in every plate. The plate's circles are the standard stereographic formulas, checked numerically.
+- Museum labels in the Istanbul exhibition (my photos), for the compasses, the quadrant on a stand, the qiblanuma and the two boards.
