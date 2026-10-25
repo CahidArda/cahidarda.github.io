@@ -23,7 +23,7 @@ export const ASTRON_PER_DAY = 5 / 30;
 
 /** Divider chain layout: STAGES+1 boxes (the crystal, then each halving) in rows. */
 export function chainLayout(W: number) {
-  const cols = W < 420 ? 4 : 8;
+  const cols = W < 560 ? 4 : 8;
   const gap = 6;
   const bw = (W - 24 - gap * (cols - 1)) / cols;
   const bh = 34;

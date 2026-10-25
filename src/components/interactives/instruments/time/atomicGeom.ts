@@ -14,8 +14,8 @@ export const F_CS = 9_192_631_770;
 export const GAMMA = 150; // Hz, illustrative half-width
 export const DET_MIN = -1000;
 export const DET_MAX = 1000;
-/** "On the peak" within this many Hz (a third of the half-width: 90% of the atoms flip). */
-export const PEAK_TOL = 50;
+/** "On the peak" within this many Hz (under a third of the half-width: over 90% flip). */
+export const PEAK_TOL = 45;
 export const flipFraction = (det: number) => 1 / (1 + (det / GAMMA) ** 2);
 /** A free-running quartz (no lock) is off by this many Hz at 9.19 GHz: 1 part in 10⁷, the
  *  order of a good 1950s quartz oscillator (illustrative). */

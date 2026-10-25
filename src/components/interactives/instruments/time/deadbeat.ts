@@ -377,7 +377,7 @@ export function contactInfo(w: number, a: number) {
       point = tip;
       const rho = Math.hypot(tl[0] - PIVOT[0], tl[1] - PIVOT[1]);
       const lockRho = c.pallet === 0 ? g.rho2 : g.rho1;
-      face = Math.abs(rho - lockRho) < 2e-4 ? 'lock' : 'impulse';
+      face = Math.abs(rho - lockRho) < 1e-5 ? 'lock' : 'impulse';
     }
   }
   return { pallet: c.pallet as 0 | 1, face, gap: c.gap, tipGap: best, tooth, point };

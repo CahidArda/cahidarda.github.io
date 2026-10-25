@@ -135,16 +135,14 @@ export function refScene(inp: RefInput, W: number) {
   }
   // true / device labels over the axis
   const trueTxt = `true ${hm(inp.t)}`;
-  const readTxt = inp.read === null ? (inp.noRead ?? 'no reading') : `device ${hm(inp.read)}`;
+  const readTxt = inp.read === null ? '' : `device ${hm(inp.read)}`;
   const tw = labelW({ text: trueTxt, size: 11, kind: 'num' });
   const rw = labelW({ text: readTxt, size: 11, kind: 'num' });
   const yTop = axisY - 14;
   if (readX === null) {
-    // true on its side, the "no reading" note on the other
+    // only the true time on the line; the missing reading is said on the gap line
     const left = trueX - 6 - tw >= x0;
     L.push({ id: 'true', x: left ? trueX - 6 : trueX + 6, y: yTop, text: trueTxt, size: 11, anchor: left ? 'end' : 'start', kind: 'num' });
-    const nx = left ? Math.min(x1 - rw, trueX + 6) : Math.max(x0, trueX - 6 - rw);
-    L.push({ id: 'read', x: nx, y: yTop, text: readTxt, size: 11, anchor: 'start', kind: 'num' });
   } else {
     const readFirst = readX < trueX;
     // keep both on the line: left label ends at its tick, right label starts at its tick
@@ -173,7 +171,7 @@ export function refScene(inp: RefInput, W: number) {
   }
   // the gap line under the axis
   let gapTxt = '';
-  if (inp.gapSec === null) gapTxt = inp.read === null ? 'the device gives no time now' : '';
+  if (inp.gapSec === null) gapTxt = inp.read === null ? `no reading: ${inp.noRead ?? 'the device gives no time now'}` : '';
   else if (inp.gapSec === 0) gapTxt = 'device and true time agree';
   else {
     gapTxt = `off by ${fmtSec(inp.gapSec)}`;

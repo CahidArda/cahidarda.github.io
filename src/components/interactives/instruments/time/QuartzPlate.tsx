@@ -76,7 +76,7 @@ function Crystal({ step, t, stages, squeezed, temp }: { step: number; t: number;
           return (
             <g key={b.k} style={{ opacity: on || b.k === 0 ? 1 : 0.35 }}>
               <rect x={b.x} y={b.y} width={b.w} height={b.h} style={{ ...ink(b.k === STAGES && on ? 'red' : 'ink', b.k === STAGES && on ? 1.6 : 0.9), fill: pulse(b.k) && (on || (b.k === 0 && ringing)) ? C.deep : C.paper }} />
-              <InkText x={b.x + b.w / 2} y={b.y + b.h / 2 + 4} kind="num" anchor="middle" size={W < 420 ? 9.5 : 10} role={b.k === STAGES && on ? 'red' : 'ink'} halo={false}>
+              <InkText x={b.x + b.w / 2} y={b.y + b.h / 2 + 4} kind="num" anchor="middle" size={W < 560 ? 9.5 : 10} role={b.k === STAGES && on ? 'red' : 'ink'} halo={false}>
                 {hzText(b.f)}
               </InkText>
             </g>

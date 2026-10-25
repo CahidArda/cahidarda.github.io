@@ -35,8 +35,9 @@ export function escScene(w: number, a: number, L: number, W: number, opts: { zoo
   const top = PIVOT[1] + 0.35;
   const bottom = PIVOT[1] - rod - BOB_R - 0.15;
   const mainW = zoomOn && !narrow ? W * 0.56 : W;
-  const H = narrow && zoomOn ? 520 : 420;
-  const mainH = narrow && zoomOn ? 300 : H - 30;
+  const mainH = narrow && zoomOn ? 300 : 390;
+  const rZoom = narrow ? Math.min(W / 2 - 16, 100) : 0;
+  const H = narrow && zoomOn ? mainH + 24 + 2 * rZoom + 44 : 420;
   const s = Math.min((mainW - 20) / 3.0, (mainH - 10) / (top - bottom));
   const ox = mainW / 2;
   const oy = 10 + top * s;
@@ -53,7 +54,7 @@ export function escScene(w: number, a: number, L: number, W: number, opts: { zoo
   const Z = 9;
   let zoom: null | { cx: number; cy: number; r: number; f: (p: Pt) => { x: number; y: number }; c: Pt } = null;
   if (zoomOn) {
-    const r = narrow ? Math.min(W / 2 - 16, 100) : Math.min(W - mainW - 24, 150) / 2 + 20;
+    const r = narrow ? rZoom : Math.min(W - mainW - 24, 150) / 2 + 20;
     const cx = narrow ? W / 2 : mainW + (W - mainW) / 2;
     const cy = narrow ? mainH + 24 + r : H / 2 - 6;
     const k = s * Z;
