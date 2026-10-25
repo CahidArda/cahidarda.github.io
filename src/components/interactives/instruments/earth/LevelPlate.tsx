@@ -7,7 +7,7 @@
  * The bob swings and settles (damped pendulum) after each change; reduced motion snaps it.
  */
 import { useEffect, useRef, useState } from 'react';
-import { AFRAME_H_CM, CORD, RAD, aframeLayout, cordLayout, hitParam } from './geometry';
+import { AFRAME_H_CM, CORD, RAD, aframeLayout, cordLayout, hitParam, swingKick, swingStep } from './geometry';
 import {
   C,
   Controls,
@@ -43,16 +43,16 @@ function useSwing(tilt: number, reduced: boolean) {
       setPhi(0);
       return;
     }
-    // the apex moves with the frame, the bob lags behind: a kick opposite to the tilt
-    s.w += -d * 0.9;
+    // the apex jumps sideways with the frame and the bob lags behind it (see swingKick)
+    s.w = swingKick(s.w, d);
     if (s.raf) return;
     let prev = 0;
     const step = (now: number) => {
       const dt = prev ? Math.min((now - prev) / 1000, 0.05) : 0.016;
       prev = now;
-      const k = 26; // g / l for a drawing-sized pendulum
-      s.w += (-k * Math.sin(s.phi) - 2.2 * s.w) * dt;
-      s.phi += s.w * dt;
+      const n = swingStep(s.phi, s.w, dt);
+      s.phi = n.phi;
+      s.w = n.w;
       setPhi(s.phi);
       if (Math.abs(s.phi) < 0.0004 && Math.abs(s.w) < 0.002) {
         s.phi = 0;
@@ -181,7 +181,7 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
 
 /* ── cord mode: the havayi terazi between two poles ── */
 
-const { SPAN, NEAR, DROP } = CORD;
+const { NEAR, DROP } = CORD;
 
 function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
   const G = cordLayout(W, far);
@@ -290,7 +290,9 @@ export default function LevelPlate() {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(640);
   const reduced = useReducedMotion();
   const phiA = useSwing(mode === 'aframe' ? theta * RAD : 0, reduced);
-  const phiC = useSwing(mode === 'cord' ? Math.atan2(far - NEAR - DROP, SPAN) * 4 : 0, reduced);
+  // On the cord the hook point only moves up and down as the far end slides, which does not
+  // set a pendulum swinging, so the string simply hangs straight down.
+  const phiC = 0;
   const tanT = Math.tan(theta * RAD);
   const xmm = AFRAME_H_CM * 10 * Math.abs(tanT);
   const seked = Math.abs(tanT) < 1e-3 ? null : 7 / Math.abs(tanT);

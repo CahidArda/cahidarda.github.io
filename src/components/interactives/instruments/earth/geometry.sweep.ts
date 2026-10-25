@@ -16,6 +16,8 @@ import {
   cordLayout,
   hitParam,
   heightFrom,
+  swingKick,
+  swingStep,
   minaretLayout,
   overlap,
   scopeClearance,
@@ -219,6 +221,37 @@ for (const W of WIDTHS)
       const bb = G.boxes.find((b) => b.name === n);
       if (bb) ok(!segHitsBox(G.apex, { x: G.apex.x, y: G.gy }, bb, 0.5), `aframe: '${n}' label on the string`, () => `${ctx} ${fmtB(bb)}`);
     }
+  }
+
+/* ── A-frame swing: step the animation and check the motion against the frame ── */
+for (const W of [360, 640])
+  for (const [from, to] of [
+    [0, 4],
+    [4, 0],
+    [-10, 10],
+    [10, -10],
+    [2, 2.5],
+    [-3, -6],
+  ]) {
+    const ctx = `W=${W} θ ${from}→${to}`;
+    const A0 = aframeLayout(W, from);
+    const A1 = aframeLayout(W, to);
+    const apexShift = A1.apex.x - A0.apex.x;
+    let st = { phi: 0, w: swingKick(0, (to - from) * RAD) };
+    const strLen = A1.Hf - 34 * A1.s;
+    let maxPhi = 0;
+    let firstSide = 0;
+    for (let i = 0; i < 400; i++) {
+      st = swingStep(st.phi, st.w, 1 / 60);
+      if (!firstSide && Math.abs(st.phi) > 1e-4) firstSide = Math.sign(st.phi);
+      maxPhi = Math.max(maxPhi, Math.abs(st.phi));
+    }
+    // the bob first swings to the side opposite the apex's jump (it lags behind)
+    ok(firstSide === -Math.sign(apexShift), 'aframe swing: bob lags opposite the apex jump', () => `${ctx} apex Δx=${apexShift.toFixed(1)} first φ sign=${firstSide}`);
+    // and settles: after ~6.7 s it is back on the vertical
+    ok(Math.abs(st.phi) < 2e-3, 'aframe swing: settles on the vertical', () => `${ctx} φ=${st.phi}`);
+    // the swing never carries the bob outside the legs' span
+    ok(strLen * Math.sin(maxPhi) < A1.L * 0.9, 'aframe swing: stays inside the frame', () => `${ctx} ${strLen * Math.sin(maxPhi)} vs ${A1.L}`);
   }
 
 /* ── Havayi terazi on a cord ── */

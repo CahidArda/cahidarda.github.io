@@ -489,6 +489,21 @@ export function aframeLayout(W: number, thetaDeg: number) {
   };
 }
 
+/**
+ * The bob's swing after the frame tilts by dTilt (radians, + = counter-clockwise on screen).
+ * The apex sits Hf above the pivot, so it jumps sideways by −Hf·sin(dTilt): left for a CCW
+ * tilt. The bob stays behind, so relative to the apex it starts on the OTHER side: φ > 0
+ * (bob to the right of the apex, screen) for dTilt > 0. Modelled as an angular-velocity kick.
+ */
+export const SWING = { kick: 0.9, k: 26, damp: 2.2 };
+export function swingKick(w: number, dTilt: number) {
+  return w + dTilt * SWING.kick;
+}
+export function swingStep(phi: number, w: number, dt: number) {
+  const w2 = w + (-SWING.k * Math.sin(phi) - SWING.damp * w) * dt;
+  return { phi: phi + w2 * dt, w: w2 };
+}
+
 /** Intersection of the string (p + s·d) with segment a→b, as a parameter on a→b. */
 export function hitParam(p: Pt, d: Pt, a: Pt, b: Pt) {
   const ex = b.x - a.x;
