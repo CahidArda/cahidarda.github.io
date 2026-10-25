@@ -58,6 +58,8 @@ function segDist(c: Pt, p: Pt, q: Pt) {
 function noCollisions(boxes: Box[], tag: string, ctx: string, pad = 1) {
   for (let i = 0; i < boxes.length; i++)
     for (let j = i + 1; j < boxes.length; j++)
+      if (/bracket/.test(boxes[i].name) && /bracket/.test(boxes[j].name)) continue; // the two ends of one bracket
+      else
       ok(!overlap(boxes[i], boxes[j], pad), `${tag}: '${boxes[i].name}' vs '${boxes[j].name}'`, () => ctx);
 }
 const fmtB = (b: Box) => `[${b.x0.toFixed(0)},${b.y0.toFixed(0)} – ${b.x1.toFixed(0)},${b.y1.toFixed(0)}]`;
@@ -91,8 +93,8 @@ for (const W of WIDTHS)
         // stations inside the drawing
         ok(L.ax >= 10 && L.bx <= L.fx - 10, 'minaret: stations inside', () => `${ctx} ax=${L.ax}`);
         // label boxes inside and not colliding
-        for (const bx of L.boxes) ok(inside(bx, W, L.Hs), `minaret: '${bx.name}' inside drawing`, () => `${ctx} ${fmtB(bx)} W=${W} H=${L.Hs}`);
-        const shown = L.boxes.filter((bb) => em > 0 || bb.name !== 'range label');
+        for (const bx of L.boxes.filter((bb) => em > 0 || !/bracket/.test(bb.name))) ok(inside(bx, W, L.Hs), `minaret: '${bx.name}' inside drawing`, () => `${ctx} ${fmtB(bx)} W=${W} H=${L.Hs}`);
+        const shown = L.boxes.filter((bb) => em > 0 || !/range label|bracket/.test(bb.name));
         noCollisions(shown, 'minaret overlap', ctx);
         // α, β labels clear of the other sight line and of the minaret
         const mw = Math.max(4, L.h * L.k * 0.07) * 1.05 + 2;
@@ -150,8 +152,8 @@ for (const W of WIDTHS)
       ok(near(Math.atan2(L.nearY - L.C.y, L.bx - L.C.x), L.be, 1e-9), 'strait: drawn β = computed β', () => ctx);
       ok(near(L.C.y, L.farY, 1e-9), 'strait: C on the far shore', () => ctx);
       ok(L.bx <= W - 12, 'strait: B inside drawing', () => `${ctx} bx=${L.bx}`);
-      for (const bx of L.boxes) ok(inside(bx, W, L.Hs), `strait: '${bx.name}' inside drawing`, () => `${ctx} ${fmtB(bx)}`);
-      const shown = L.boxes.filter((bb) => em > 0 || bb.name !== 'range label');
+      for (const bx of L.boxes.filter((bb) => em > 0 || !/bracket/.test(bb.name))) ok(inside(bx, W, L.Hs), `strait: '${bx.name}' inside drawing`, () => `${ctx} ${fmtB(bx)}`);
+      const shown = L.boxes.filter((bb) => em > 0 || !/range label|bracket/.test(bb.name));
       noCollisions(shown, 'strait overlap', ctx);
       const beta = L.boxes.find((bb) => bb.name === 'β')!;
       ok(!segHitsBox({ x: L.bx, y: L.nearY }, L.C, beta, 1.5), "strait: 'β' label on B's sight line", () => ctx);
@@ -263,6 +265,7 @@ for (const W of WIDTHS)
   }
 
 /* ── Arcsecond chart ── */
+let chartLeaders = 0;
 for (const W of WIDTHS)
   for (const eps of [0.2, 1, 200])
     for (let ld = 0; ld <= 6.0001; ld += 0.01) {
@@ -272,7 +275,7 @@ for (const W of WIDTHS)
       if (L.missOn) {
         const back = CHART.Y0 + (1 - (L.ey - L.m.t) / L.ih) * (CHART.Y1 - CHART.Y0);
         ok(near(10 ** back, L.miss, 1e-9), 'chart: miss marker at d·tan ε', () => ctx);
-        const lb = textBox('miss', L.missLabel.x, L.missLabel.y, '999.9 mm', 13, L.missLabel.anchor, 'alphabetic', 0.62);
+        const lb = textBox('miss', L.missLabel.x, L.missLabel.y, L.missText, 13, L.missLabel.anchor, 'alphabetic', 0.62);
         ok(inside(lb, W, L.H), 'chart: miss label inside', () => `${ctx} ${fmtB(lb)}`);
         const ax1 = textBox('sideways miss', L.m.l + 4, L.m.t + 12, 'sideways miss', 11, 'start', 'alphabetic', 0.48);
         ok(!overlap(lb, ax1), 'chart: miss label vs axis title', () => ctx);
@@ -282,9 +285,12 @@ for (const W of WIDTHS)
         }
         const mm: Box = { name: 'miss marker', x0: L.ex - 5, x1: L.ex + 5, y0: L.ey - 5, y1: L.ey + 5 };
         ok(!overlap(lb, mm), 'chart: miss label on its own marker', () => ctx);
+        ok(!L.plotted.some(([p, q]) => segHits(p, q, lb, 0)), 'chart: miss label on a plotted line', () => `${ctx} ${fmtB(lb)}`);
+        if (L.missLabel.leader) chartLeaders++;
         if (L.curveLabel) {
           const cl = textBox('curve', L.curveLabel.x, L.curveLabel.y, 'Earth’s curve, d²/2R', 11, 'end', 'alphabetic', 0.5);
           ok(!overlap(lb, cl), 'chart: miss label on the curve label', () => `${ctx} ${fmtB(lb)}`);
+          ok(!L.epsLines.some(([p, q]) => segHits(p, q, cl, 0)), 'chart: curve label on an error line', () => ctx);
         }
       }
       if (L.dropOn) {
@@ -394,6 +400,7 @@ for (const [W, narrow] of [
 
 /* ── report ── */
 console.log(`${checks} checks`);
+console.log(`chart: ${chartLeaders} positions use the corner label with a leader`);
 console.log(`minaret: ${minRanges} bounded error ranges, ${minUnbounded} unbounded`);
 console.log(`theodolite: telescope clears the plate for tilt ${vLo}° to ${vHi}° (slider −30° to 60°)`);
 if (fails.size) {

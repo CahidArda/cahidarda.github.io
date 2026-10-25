@@ -170,8 +170,8 @@ export function minaretLayout(W: number, dB: number, b: number, epsRad: number) 
   const hiYraw = reg.bounded ? g - reg.hi * k : -Infinity;
   const clippedTop = hiYraw < yTopLimit;
   const hiY = Math.max(yTopLimit, hiYraw);
-  const dimOff = narrow ? 14 : 22; // h dimension, right of the minaret
-  const brOff = narrow ? 27 : 42; // range bracket, further right
+  const dimOff = narrow ? 13 : 22; // h dimension, right of the minaret
+  const brOff = narrow ? 25 : 42; // range bracket, further right
   const range = { x: fx + brOff, y1: loY, y2: hiY, clippedTop };
   const rangeText = !reg.bounded
     ? `${reg.lo.toFixed(0)} m to no limit`
@@ -180,7 +180,7 @@ export function minaretLayout(W: number, dB: number, b: number, epsRad: number) 
   const rlHalf = ([...rangeText].length * rlSize * 0.52) / 2 + 3;
   // centred on the bracket, unless that would push it out of the drawing
   const rangeLabel = {
-    x: fx + brOff + (narrow ? 9 : 12),
+    x: fx + brOff + (narrow ? 12 : 14),
     y: Math.min(Math.max((loY + hiY) / 2, rlHalf), g - rlHalf),
     text: rangeText,
     size: rlSize,
@@ -260,6 +260,8 @@ export function minaretLayout(W: number, dB: number, b: number, epsRad: number) 
     textBox('b label', baseLabel.x, baseLabel.y, baseLabel.text, 11, 'middle', 'alphabetic', 0.62),
     vTextBox('h label', fx + dimOff, (g + tip.y) / 2, hLabelText, 11, 0.62),
     vTextBox('range label', rangeLabel.x, rangeLabel.y, rangeText, rangeLabel.size, 0.52),
+    { name: 'bracket low tick', x0: range.x - 5, x1: range.x + 5, y0: loY - 1, y1: loY + 1 },
+    { name: 'bracket high tick', x0: range.x - 5, x1: range.x + 5, y0: hiY - 1, y1: hiY + 1 },
   ];
   return {
     W,
@@ -320,12 +322,19 @@ export function straitLayout(W: number, b: number, epsRad: number) {
   const clippedTop = hiYraw < yTopLimit;
   const hiY = Math.max(yTopLimit, hiYraw);
   const dimOff = narrow ? 18 : 24; // w dimension, left of A's line
-  const brOff = narrow ? 34 : 46; // range bracket, further left
+  const brOff = narrow ? 32 : 46; // range bracket, further left
   const range = { x: ax - brOff, y1: loY, y2: hiY, clippedTop };
   const rangeText = !reg.bounded
     ? `${reg.lo.toFixed(0)} m to no limit`
     : `${reg.lo.toFixed(0)} to ${reg.hi.toFixed(0)} m`;
-  const rangeLabel = { x: ax - brOff - (narrow ? 9 : 12), y: (loY + hiY) / 2, text: rangeText, size: narrow ? 10 : 11 };
+  const rlSize = narrow ? 10 : 11;
+  const rlHalf = ([...rangeText].length * rlSize * 0.52) / 2 + 3;
+  const rangeLabel = {
+    x: ax - brOff - 14,
+    y: Math.min(Math.max((loY + hiY) / 2, rlHalf), nearY - rlHalf),
+    text: rangeText,
+    size: rlSize,
+  };
   const rB = narrow ? 24 : 28;
   const beLabel = {
     x: bx + (rB + 9) * Math.cos(Math.PI - be / 2),
@@ -341,6 +350,8 @@ export function straitLayout(W: number, b: number, epsRad: number) {
     textBox('b label', baseLabel.x, baseLabel.y, baseLabel.text, 11, 'middle', 'alphabetic', 0.62),
     vTextBox('w label', ax - dimOff, (nearY + C.y) / 2, wText, 11, 0.62),
     vTextBox('range label', rangeLabel.x, rangeLabel.y, rangeText, rangeLabel.size, 0.52),
+    { name: 'bracket low tick', x0: range.x - 5, x1: range.x + 5, y0: loY - 1, y1: loY + 1 },
+    { name: 'bracket high tick', x0: range.x - 5, x1: range.x + 5, y0: hiY - 1, y1: hiY + 1 },
     textBox('Europe', W - 10, farY - 12, 'Europe', 12, 'end'),
     textBox('Asia', W - 10, nearY + 24, 'Asia', 12, 'end'),
   ];
@@ -607,6 +618,15 @@ export function cordLayout(W: number, far: number) {
 /* ─────────────────────────── arcsecond chart ─────────────────────────── */
 
 export const ARCSEC = Math.PI / 180 / 3600;
+export function fmtLen(m: number) {
+  if (!Number.isFinite(m)) return '∞';
+  if (m >= 1000) return `${(m / 1000).toFixed(m >= 10_000 ? 0 : 1)} km`;
+  if (m >= 1) return `${m.toFixed(m >= 100 ? 0 : 2)} m`;
+  if (m >= 0.01) return `${(m * 100).toFixed(1)} cm`;
+  if (m >= 0.001) return `${(m * 1000).toFixed(1)} mm`;
+  if (m >= 1e-6) return `${(m * 1e6).toFixed(m >= 1e-5 ? 0 : 1)} µm`;
+  return `${(m * 1e9).toFixed(0)} nm`;
+}
 export const EARTH_R = 6_371_000;
 export const CHART = { X0: 0, X1: 6, Y0: -6, Y1: 4 }; // log10 metres
 
@@ -632,18 +652,74 @@ export function chartLayout(W: number, logD: number, epsArcsec: number) {
   const ey = y(missLe);
   const cy = y(dropLe);
   const right = logD > 4.6;
-  // miss label: above its marker, unless that is the top edge or the drop marker sits just
-  // above it; then below (and if the bottom edge is near too, beside on the far side)
-  const dropAbove = dropOn && cy < ey && ey - cy < 26;
-  let ly = ey - 10;
-  if (ey < m.t + 30 || dropAbove) ly = ey + 18;
-  if (ly > m.t + ih - 4) ly = ey - 10;
-  const missLabel = { x: ex + (right ? -9 : 9), y: ly, anchor: right ? ('end' as const) : ('start' as const) };
+  // The plotted lines, in screen space: the three error lines (slope 1) and the curve.
+  const epsLines = [0.2, 1, 200].map((e) => {
+    const c = Math.log10(Math.tan(e * ARCSEC));
+    return [
+      { x: x(X0), y: y(c + X0) },
+      { x: x(X1), y: y(c + X1) },
+    ] as [Pt, Pt];
+  });
+  const curveSegs: [Pt, Pt][] = [];
+  for (let ld = X0; ld < X1; ld += 0.25) {
+    const f = (l: number) => ({ x: x(l), y: y(2 * l - Math.log10(2 * EARTH_R)) });
+    curveSegs.push([f(ld), f(ld + 0.25)]);
+  }
+  const plotted = [...epsLines, ...curveSegs];
+  const missText = fmtLen(miss);
+  const inPlot = (b: Box) => b.x0 >= m.l + 2 && b.x1 <= m.l + iw - 2 && b.y0 >= m.t + 2 && b.y1 <= m.t + ih - 2;
+  const axisTitle = textBox('sideways miss', m.l + 4, m.t + 12, 'sideways miss', 11, 'start', 'alphabetic', 0.48);
+  // candidates: above-left and below-right of the marker sit off a rising line
+  const cands: { x: number; y: number; anchor: 'start' | 'end' }[] = [
+    { x: ex - 9, y: ey - 9, anchor: 'end' as const },
+    { x: ex + 9, y: ey + 18, anchor: 'start' as const },
+    { x: ex - 12, y: ey - 22, anchor: 'end' as const },
+    { x: ex + 12, y: ey + 32, anchor: 'start' as const },
+    { x: ex + 9, y: ey - 9, anchor: 'start' as const },
+    { x: ex - 9, y: ey + 18, anchor: 'end' as const },
+  ];
+  // further out, in steps, on both sides (near the edges or among crowded lines)
+  for (const dy of [36, 50, 64, 78, 92, 106])
+    for (const dx of [9, 40])
+      cands.push(
+        { x: ex + dx, y: ey - dy, anchor: 'start' },
+        { x: ex - dx, y: ey - dy, anchor: 'end' },
+        { x: ex + dx, y: ey + dy, anchor: 'start' },
+        { x: ex - dx, y: ey + dy, anchor: 'end' },
+      );
+  const marks: Box[] = [
+    { name: 'miss marker', x0: ex - 5, x1: ex + 5, y0: ey - 5, y1: ey + 5 },
+    ...(dropOn ? [{ name: 'drop marker', x0: ex - 4, x1: ex + 4, y0: cy - 4, y1: cy + 4 }] : []),
+  ];
+  const labelBox = (c: { x: number; y: number; anchor: 'start' | 'end' }) =>
+    textBox('miss', c.x, c.y, missText, 13, c.anchor, 'alphabetic', 0.62);
+  const clear = (c: (typeof cands)[number]) => {
+    const b = labelBox(c);
+    return (
+      inPlot(b) &&
+      !overlap(b, axisTitle) &&
+      !marks.some((mk) => overlap(b, mk)) &&
+      !plotted.some(([p, q]) => segHitsBox(p, q, b, 1))
+    );
+  };
+  // the label must be inside the plot; among the clear ones take the first
+  // last resort: the empty lower-right corner of the plot (below every line), with a leader
+  const corner = { x: m.l + iw - 6, y: m.t + ih - 22, anchor: 'end' as const };
+  const found = cands.find(clear);
+  const missLabel = found ? { ...found, leader: false } : { ...corner, leader: true };
+  void right;
   // the curve's own label rides on the curve, away from the moving marker
-  const cAt = logD > 3.9 ? 3.3 : 4.9;
-  const curveLabel = narrow ? null : { x: x(cAt), y: y(2 * cAt - Math.log10(2 * EARTH_R)) - 10 };
+  const mlb = labelBox(missLabel);
+  const curveLabel = narrow
+    ? null
+    : [4.9, 3.3, 5.5, 2.6]
+        .map((c) => ({ x: x(c), y: y(2 * c - Math.log10(2 * EARTH_R)) - 10 }))
+        .find((c) => {
+          const b = textBox('curve', c.x, c.y, 'Earth’s curve, d²/2R', 11, 'end', 'alphabetic', 0.5);
+          return !overlap(b, mlb, 2) && Math.abs(c.x - ex) > 8 && !epsLines.some(([p, q]) => segHitsBox(p, q, b, 0));
+        }) ?? null;
   const crossover = 2 * EARTH_R * Math.tan(epsArcsec * ARCSEC); // where d·tanε = d²/2R
-  return { W, H, narrow, m, iw, ih, x, y, d, miss, drop, ex, ey, cy, missOn, dropOn, dropWhere, missWhere, missLabel, curveLabel, crossover };
+  return { W, H, narrow, m, iw, ih, x, y, d, miss, drop, ex, ey, cy, missOn, dropOn, dropWhere, missWhere, missLabel, missText, curveLabel, plotted, epsLines, crossover };
 }
 
 /* ─────────────────────────── theodolite ─────────────────────────── */

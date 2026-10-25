@@ -19,7 +19,9 @@ import {
   useHoverPreview,
   useMeasuredWidth,
 } from '../shared';
-import { ARCSEC as ARC, CHART, EARTH_R as R, chartLayout } from './geometry';
+import { ARCSEC as ARC, CHART, EARTH_R as R, chartLayout, fmtLen } from './geometry';
+
+export { fmtLen };
 
 const Y_LABELS = ['1 µm', '100 µm', '1 cm', '1 m', '100 m', '10 km'];
 type Eps = 0.2 | 1 | 200;
@@ -36,15 +38,6 @@ const MARKS = [
 ];
 const fmtEpsV = (e: number) => `${e}″`;
 
-export function fmtLen(m: number) {
-  if (!Number.isFinite(m)) return '∞';
-  if (m >= 1000) return `${(m / 1000).toFixed(m >= 10_000 ? 0 : 1)} km`;
-  if (m >= 1) return `${m.toFixed(m >= 100 ? 0 : 2)} m`;
-  if (m >= 0.01) return `${(m * 100).toFixed(1)} cm`;
-  if (m >= 0.001) return `${(m * 1000).toFixed(1)} mm`;
-  if (m >= 1e-6) return `${(m * 1e6).toFixed(m >= 1e-5 ? 0 : 1)} µm`;
-  return `${(m * 1e9).toFixed(0)} nm`;
-}
 
 export default function ArcsecondPlate() {
   const [sel, setSel] = useState<Eps>(1);
@@ -179,6 +172,9 @@ export default function ArcsecondPlate() {
           <line x1={ex} y1={m.t} x2={ex} y2={m.t + ih} style={{ stroke: C.ink, strokeWidth: 0.8, strokeDasharray: '2 3' }} />
           {L.dropOn && <circle cx={ex} cy={cy} r={3.2} style={{ fill: C.paper, stroke: C.sky, strokeWidth: 1.5 }} />}
           {L.missOn && <circle cx={ex} cy={ey} r={4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.8 }} />}
+          {L.missOn && L.missLabel.leader && (
+            <line x1={ex} y1={ey} x2={L.missLabel.x - 4} y2={L.missLabel.y - 4} style={{ stroke: C.red, strokeWidth: 0.6, strokeDasharray: '2 2' }} />
+          )}
           {L.missOn && <InkText
             x={L.missLabel.x}
             y={L.missLabel.y}
