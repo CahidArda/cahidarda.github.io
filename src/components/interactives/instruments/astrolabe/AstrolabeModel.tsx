@@ -234,11 +234,11 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
   }
 
   paint();
-  const unTheme = onThemeChange(() => requestAnimationFrame(paint));
+  onThemeChange(() => requestAnimationFrame(paint)); // canvas faces re-read the ink on a theme flip
 
   // eased state
   let faceY = first.face * Math.PI;
-  const placed = [1, 1, 1, 1, 1].map((_, i) => (i < first.parts ? 0 : 1)); // 0 = in place, 1 = out
+  const placed: number[] = [1, 1, 1, 1, 1].map((_, i) => (i < first.parts ? 0 : 1)); // 0 = in place, 1 = out
   let swingT = 99;
   let lastSwing = first.swing;
   const out = (k: number) => 0.9 + k * 0.25;

@@ -62,12 +62,14 @@ export function runs(cam: ReturnType<typeof camera>, f: (t: number) => { w: numb
       continue;
     }
     const p = cam.proj(f(t));
-    if (!cur || cur.front !== p.front) {
-      const prev: Pt | undefined = cur?.pts[cur.pts.length - 1];
-      cur = { pts: prev ? [prev] : [], front: p.front };
-      out.push(cur);
+    const c: Run | null = cur;
+    if (!c || c.front !== p.front) {
+      const prev: Pt | undefined = c ? c.pts[c.pts.length - 1] : undefined;
+      const n: Run = { pts: prev ? [prev] : [], front: p.front };
+      out.push(n);
+      cur = n;
     }
-    cur.pts.push({ x: p.x, y: p.y });
+    (cur as Run).pts.push({ x: p.x, y: p.y });
   }
   return out.filter((r) => r.pts.length > 1);
 }
@@ -85,7 +87,7 @@ export type DomeOpts = {
 export function dome(W: number, o: DomeOpts) {
   const phi = o.phi ?? PHI;
   const cam = camera(W);
-  const { R, cx, cy } = cam;
+  const { cx, cy } = cam;
   const horizon = runs(cam, (A) => localAltAz(0, A), -180, 180, 180);
   const meridian = runs(cam, (h) => localAltAz(h, 0), 0, 180, 120); // S → zenith → N
   const equator = runs(cam, (H) => local(0, H, phi), -180, 180, 180, (H) => altitude(0, H, phi) >= -0.01);
@@ -153,14 +155,43 @@ export function dome(W: number, o: DomeOpts) {
   const pl = out(pole, 0);
   put('pole', { x: pl.x + 8, y: pl.y + 3 }, 'pole', 11, 'start');
   put('you', { x: cx + 8, y: cy + 15 }, 'you', 11, 'start');
+  // the sun's and h's labels: first candidate that stays inside and clear of the others
+  const clear = (l: Label) => {
+    const bx = labelBox(l);
+    if (bx.x0 < 2 || bx.y0 < 2 || bx.x1 > W - 2 || bx.y1 > cam.H - 2) return false;
+    return labels.every((o) => {
+      const ob = labelBox(o);
+      return !(bx.x0 < ob.x1 + 3 && ob.x0 < bx.x1 + 3 && bx.y0 < ob.y1 + 3 && ob.y0 < bx.y1 + 3);
+    });
+  };
+  const putFirst = (id: string, text: string, size: number, cands: { x: number; y: number; anchor: Label['anchor'] }[]) => {
+    const all = cands.map((c) => ({ id, text, size, placed: true, ...c }));
+    const hit = all.find(clear);
+    labels.push(hit ?? { ...all[0], placed: false });
+  };
   if (sun && sun.h > -2) {
     const right = sun.x >= cx;
-    put('sun', { x: sun.x + (right ? 10 : -10), y: sun.y - 8 }, 'sun', 12, right ? 'start' : 'end');
+    const a = right ? 'start' : 'end';
+    const b = right ? 'end' : 'start';
+    const d = right ? 1 : -1;
+    putFirst('sun', 'sun', 12, [
+      { x: sun.x + d * 10, y: sun.y - 8, anchor: a },
+      { x: sun.x + d * 10, y: sun.y + 14, anchor: a },
+      { x: sun.x - d * 10, y: sun.y - 8, anchor: b },
+      { x: sun.x, y: sun.y - 12, anchor: 'middle' },
+      { x: sun.x - d * 10, y: sun.y + 14, anchor: b },
+    ]);
   }
   if (hArc.length && sun && hFoot) {
-    const mid = hArc[0].pts[Math.floor(hArc[0].pts.length / 2)];
+    const pts = hArc.flatMap((r) => r.pts);
     const right = sun.x >= cx;
-    put('h', { x: mid.x + (right ? 9 : -9), y: mid.y + 4 }, 'h', 13, right ? 'start' : 'end');
+    const d = right ? 1 : -1;
+    const cands: { x: number; y: number; anchor: Label['anchor'] }[] = [];
+    for (const f of [0.5, 0.35, 0.65, 0.2, 0.8]) {
+      const m = pts[Math.min(pts.length - 1, Math.floor(pts.length * f))];
+      cands.push({ x: m.x + d * 9, y: m.y + 4, anchor: right ? 'start' : 'end' }, { x: m.x - d * 9, y: m.y + 4, anchor: right ? 'end' : 'start' });
+    }
+    putFirst('h', 'h', 13, cands);
   }
   return { ...cam, horizon, meridian, equator, day, dayUp, pole, ctr, zen, N, S, E, Wp, sun, hArc, hFoot, hourArc, alm, star, starPt, labels };
 }

@@ -15,7 +15,6 @@ type Mode = 'star' | 'alm';
 function Construction({ mode, dec, h, step }: { mode: Mode; dec: number; h: number; step: number }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
   const g = projScene(W, { mode, dec, h, phi: PHI });
-  const s = g.S;
   const showRay = step >= 1;
   const showCross = step >= 2;
   const showCircle = step >= 2;
