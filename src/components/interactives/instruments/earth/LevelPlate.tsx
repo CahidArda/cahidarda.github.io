@@ -101,7 +101,7 @@ function Bob({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
 
 function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
   const narrow = W < 520;
-  const k = Math.min(1, W / 600);
+  const k = Math.min(1, W / 470);
   const Hs = narrow ? 300 : 330;
   const cx = W / 2;
   const gy = Hs - 70;
@@ -204,7 +204,7 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
       )}
       {Math.abs(theta) >= 0.6 &&
         (() => {
-          const q = P(off / 2, Hf - h + (theta > 0 ? -38 : 38));
+          const q = P(off / 2, Hf - h + (theta > 0 ? 44 : -46));
           return (
             <InkText x={q.x} y={q.y} anchor="middle" baseline="central" size={14}>
               x
@@ -363,6 +363,27 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
       />
       <line x1={top.x} y1={top.y} x2={bob.x} y2={bob.y} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
       <Bob x={bob.x} y={bob.y - 2} s={0.7} />
+      {/* detail circle: the tip and the string at five times size */}
+      {(() => {
+        const r = narrow ? 34 : 40;
+        const dx = W / 2 + S * 0.64;
+        const cordY = a.y + ((b.y - a.y) * (dx - xL)) / (xR - xL);
+        const dc = { x: dx, y: cordY + r + 18 };
+        const missPx = Math.max(-r * 0.8, Math.min(r * 0.8, -Math.tan(tiltDrawn) * th * 5));
+        return (
+          <g>
+            <circle cx={tip.x} cy={tip.y} r={9} style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.7, strokeDasharray: '2 2' }} />
+            <line x1={tip.x + 9} y1={tip.y - 3} x2={dc.x - r} y2={dc.y + 6} style={{ stroke: C.soft, strokeWidth: 0.6, strokeDasharray: '2 2' }} />
+            <circle cx={dc.x} cy={dc.y} r={r} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 0.9 }} />
+            <line x1={dc.x - r * 0.75} y1={dc.y + 4} x2={dc.x + r * 0.75} y2={dc.y + 4} style={{ stroke: C.brass, strokeWidth: 6 }} />
+            <line x1={dc.x} y1={dc.y - 2} x2={dc.x} y2={dc.y + 12} style={{ stroke: C.red, strokeWidth: 1.6 }} />
+            <line x1={dc.x + missPx} y1={dc.y - r + 4} x2={dc.x + missPx} y2={dc.y + r - 4} style={{ stroke: C.ink, strokeWidth: 1 }} />
+            <InkText x={dc.x} y={dc.y + r + 14} anchor="middle" size={11} role="soft">
+              tip, five times size
+            </InkText>
+          </g>
+        );
+      })()}
       {/* labels */}
       <InkText x={xL - 6} y={gL - 2.05 * ky - 8} anchor="middle" size={12} role="soft">
         near pole

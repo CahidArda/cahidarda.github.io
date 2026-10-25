@@ -264,7 +264,7 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
         β
       </InkText>
       <circle cx={ax} cy={farY} r={3} style={{ fill: C.ink }} />
-      <InkText x={ax + 8} y={farY - 8} kind="title" size={13}>
+      <InkText x={ax - 8} y={farY + 16} anchor="end" kind="title" size={13}>
         C
       </InkText>
       <DimLine x1={ax} y1={nearY} x2={ax} y2={farY} offset={narrow ? 26 : 34} label={`${w.toFixed(0)} m`} size={11} />
@@ -279,7 +279,7 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
         B
       </InkText>
       {eps > 0 && (
-        <InkText x={ax + 16} y={Math.max(20, yOf(hi) + (narrow ? 14 : 4))} size={12} role="red">
+        <InkText x={ax + 18} y={Math.max(20, yOf(hi) + 16)} size={12} role="red">
           {Number.isFinite(sp.hi) ? `${lo.toFixed(0)} to ${hi.toFixed(0)} m` : 'anywhere past the hills'}
         </InkText>
       )}
