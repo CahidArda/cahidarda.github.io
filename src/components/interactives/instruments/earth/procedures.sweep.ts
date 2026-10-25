@@ -137,6 +137,8 @@ for (const u of ['cubit', 'arsin'] as UnitId[])
         if (laid >= m.n) ok(Math.abs(g.pointer - g.endZ) <= (g.zk * m.real) / m.u.sub / 2 + 1e-9, 'rods: correct reading points at the end mark', () => `${ctx} W=${W}`);
         for (const r of g.zRods) ok(r.x0 >= g.pad - 1e-9 && r.x1 <= W - g.pad + 1e-9, 'rods: zoom rods inside', () => `${ctx} W=${W}`);
         for (const d of g.divs) ok(d.x >= 0 && d.x <= W, 'rods: divisions inside', () => `${ctx} W=${W}`);
+        const labs = g.divs.filter((d) => d.label);
+        for (let q = 1; q < labs.length; q++) ok(labs[q].x - labs[q - 1].x > 2 * 10 * 0.6 + 2, 'rods: division labels apart', () => `${ctx} W=${W}`);
       }
   }
 ok(near(UNITS.arsin.len / UNITS.cubit.len, 1.4433, 1e-3), 'rods: arşın ≈ 1.44 cubits', () => '');
@@ -275,6 +277,7 @@ for (const W of WIDTHS)
       ok(dv <= 0 || t.y < g.cy, 'theo: higher target appears above', () => `${dv}`);
       ok(!t.inside || Math.hypot(t.x - g.cx, t.y - g.cy) <= g.R, 'theo: inside flag', () => '');
       ok(g.cx - g.R - 5 >= 0 && g.cx + g.R + 5 <= W, 'theo: eyepiece inside', () => `W=${W}`);
+      ok(g.cy + g.R + 5 + 4 < g.H - 6 - 12, 'theo: status line below the eyepiece', () => `W=${W}`);
     }
 ok(EL_FAR < 60 && EL_NEAR < 59 + 59.9 / 60, 'theo: elevations reachable by the sliders', () => `${EL_NEAR}`);
 void MIN_STEP;

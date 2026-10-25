@@ -65,7 +65,7 @@ export function dm(v: number) {
 export const FOV = 1.0; // deg
 export type Target = { name: string; h: number; v: number; kind: 'pole' | 'tip' };
 export function eyepiece(W: number, h: number, v: number, targets: Target[]) {
-  const H = 170;
+  const H = 186;
   const R = Math.min(70, W / 2 - 30);
   const cx = W / 2;
   const cy = 84;

@@ -59,9 +59,9 @@ export function rodScene(W: number, unit: UnitId, errMm: number, laid: number, r
     const j = Math.min(shown, i + block);
     blocks.push({ x0: pad + i * real * k, x1: pad + j * real * k, odd: (i / block) % 2 === 1 });
   }
-  // zoom window: 4.4 rods before the end mark to 1.3 rods after it
-  const zx0w = SPAN - 4.4 * real;
-  const zx1w = SPAN + 1.3 * real;
+  // zoom window: the end of the last whole rod and the extra rod laid past the end mark
+  const zx0w = n * real - 0.45 * real;
+  const zx1w = n * real + 1.12 * real;
   const zk = (W - 2 * pad) / (zx1w - zx0w);
   const zX = (xw: number) => pad + (xw - zx0w) * zk;
   const zy = 128;

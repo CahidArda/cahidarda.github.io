@@ -22,7 +22,7 @@ function GromaView({ psi, poleY, sway, showPole }: { psi: number; poleY: number;
         <rect x={g.A.x} y={14} width={g.farX - g.A.x} height={g.H - 40} style={{ fill: C.sky, opacity: 0.1 }} />
         <line x1={g.A.x} y1={14} x2={g.A.x} y2={g.H - 26} style={solid('ink', 1.1)} />
         <line x1={g.farX} y1={14} x2={g.farX} y2={g.H - 26} style={solid('ink', 1.1)} />
-        <InkText x={g.A.x - 6} y={26} anchor="end" size={11} role="soft">near quay</InkText>
+        <InkText x={g.A.x + 6} y={26} size={11} role="soft">near quay</InkText>
         <InkText x={g.farX - 6} y={26} anchor="end" size={11} role="soft">far quay</InkText>
         {/* pair 1: toward B */}
         <line x1={g.A.x} y1={g.A.y} x2={g.sight1.x} y2={g.sight1.y} style={{ ...solid(lineB ? 'sky' : 'soft', 1), strokeDasharray: '5 3' }} />
