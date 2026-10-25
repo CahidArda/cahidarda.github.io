@@ -132,6 +132,14 @@ for (const pl of places) {
         const b = labelBox(l);
         ok(b.x0 >= 0 && b.y0 >= 0 && b.x1 <= W && b.y1 <= g.H, `bounds: label ${id}`, () => c);
       }
+      const ls = Object.values(g.labels).map((l) => ({ id: l.id, b: labelBox(l) }));
+      for (let i = 0; i < ls.length; i++)
+        for (let j = i + 1; j < ls.length; j++) {
+          const A = ls[i].b;
+          const B = ls[j].b;
+          const apart = A.x1 + 5 <= B.x0 || B.x1 + 5 <= A.x0 || A.y1 + 5 <= B.y0 || B.y1 + 5 <= A.y0;
+          ok(apart, `labels: ${ls[i].id}/${ls[j].id} at least 5 apart`, () => c);
+        }
       // the reference is a function of the sight and width only: same object for every step
       ok(JSON.stringify(refScene(s, W)) === JSON.stringify(g), 'world: reference stable', () => c);
 

@@ -227,7 +227,7 @@ function placer(W: number, H: number, segs: Seg[], arcs: Pt[][] = [], soft: stri
     if (hard.some((s) => segHitsBox(s.a, s.b, b, 1))) return false;
     if (arcs.some((pts) => pts.some((p, i) => i > 0 && segHitsBox(pts[i - 1], p, b, 0.5))))
       return false;
-    return !placed.some((o) => boxesOverlap(labelBox(o), b, 2));
+    return !placed.some((o) => boxesOverlap(labelBox(o), b, 6));
   };
   const put = (cands: Omit<Label, 'placed'>[]) => {
     const hit = cands.find(free);
