@@ -1,6 +1,6 @@
 ---
-title: 'Catching the Sun in a Mirror: How We Learned to Measure the Sky'
-description: 'From a shadow stick in Egypt to the sextant and the star tracker: how people learned to measure angles in the sky, and why a mirror doubled the arc.'
+title: 'How to Find Your Latitude: From Shadows to Sextants'
+description: 'How people measured the angle of the sun to find how far north of the equator they were, from a shadow in Egypt to the sextant and the star tracker.'
 date: 2026-10-25
 tags: ['blog']
 series: instruments
@@ -13,6 +13,8 @@ import Eratosthenes from '../../../components/interactives/instruments/sky/Erato
 import SextantModel from '../../../components/interactives/instruments/sky/SextantModel.tsx';
 import DoubleReflection from '../../../components/interactives/instruments/sky/DoubleReflection.tsx';
 import NoonSight from '../../../components/interactives/instruments/sky/NoonSight.tsx';
+import SunDeclination from '../../../components/interactives/instruments/sky/SunDeclination.tsx';
+import AngleLadder from '../../../components/interactives/instruments/sky/AngleLadder.tsx';
 import sextant from '../../../assets/instruments/sextant.jpg';
 
 On one table in the exhibition there was a dark green sextant, a theodolite box, and a panel
@@ -41,7 +43,7 @@ horizon. That sounds modest. With it, and a book of tables, a sailor could find 
 of the equator he was to about a mile. This post is the chain of instruments that led to that
 box, and what came after it.
 
-## A shadow and a walk
+## Eratosthenes: a shadow and a distance
 
 Around 240 BC Eratosthenes, librarian at Alexandria, heard that at noon on midsummer day the sun
 shone straight down a well at Syene, far up the Nile. At the same moment in Alexandria, a
@@ -65,16 +67,17 @@ $$
   <Eratosthenes client:visible />
 </div>
 
-With 5,000 stades between the cities, Cleomedes gives "the complete great circle measures
+With 5,000 stadia between the cities, Cleomedes gives "the complete great circle measures
 250,000 stades". How good was that? Nobody knows the length of his stadion, and "the exact value
 of the stadion remains a subject of debate to this day" ([Wikipedia](https://en.wikipedia.org/wiki/Earth%27s_circumference)).
-Depending on the guess, he was off by anything from under 1% to 15%. The angle itself held up
+Depending on the guess (a short stadion of 155 to 160 m, the Olympic stade of 176.4 m, or the
+Italian stade of 184.8 m), he was off by anything from under 1% to 15%. The angle itself held up
 better: the modern latitudes of Alexandria and Aswan differ by about 7.1°.
 
 The wall: a shadow is fuzzy at the edges, and a bowl on the ground is only as good as your eye
 on its rim.
 
-## Bigger circles
+## Bigger instruments, smaller errors
 
 The fix for a fuzzy reading was size. Ptolemy's star catalogue (around AD 138) is good to about
 25 arcminutes, and Ulugh Beg's in Samarkand (1437) to about 20′ ([Høg 2017](https://arxiv.org/pdf/1707.01020)).
@@ -92,7 +95,7 @@ reached an accuracy approaching one arcminute ([Wikipedia](https://en.wikipedia.
 The wall: a six-metre quadrant bolted to a wall is no use on a ship, which is where knowing your
 latitude matters most.
 
-## Two directions at once
+## Measuring at sea
 
 At sea the instruments shrank and the errors grew. A good observer with a mariner's astrolabe
 managed about 10′ on land and much worse on a moving deck, and 1° of error is 60 nautical miles
@@ -107,7 +110,7 @@ All of them share a problem. You have to look at two things, the sun and the hor
 sights, while the deck moves under you. The Linda Hall Library calls taking an altitude "a
 nearly impossible one on board a rolling ship" ([Linda Hall Library](https://www.lindahall.org/about/news/scientist-of-the-day/john-hadley)).
 
-## Two mirrors
+## The sextant: two mirrors
 
 On 13 May 1731 John Hadley's "new instrument for taking angles" was read to the Royal Society
 ([Royal Society](https://makingscience.royalsociety.org/items/rbo_17_72/description-of-a-new-instrument-for-taking-angles-by-john-hadley)).
@@ -147,7 +150,7 @@ stay put. In the eyepiece "the relative position of the two images will remain s
 ([Wikipedia](https://en.wikipedia.org/wiki/Sextant)). A good sextant with a vernier reads to a
 tenth of an arcminute, roughly the width of a 2 cm coin seen from 700 metres.
 
-## Feyzi's box
+## Feyzi Efendi and the sextant
 
 Feyzi Efendi was trained in the Enderun, the palace school, and the Turkish panel says he found
 the instrument kept in a box and named sextant ("sextant adı verilen bu gözlem aleti"). His
@@ -158,12 +161,22 @@ sextant an *alla franca* instrument, a European-style one ([Günergun 2019](http
 His own was probably brass, read with a vernier, not the micrometer drum on the one in my photo,
 which came later.
 
-## Where am I
+## Latitude from the noon sun
 
 What do you do with the angle? The simplest case is noon. The sun crosses your meridian, you
 bring it down to the horizon and read its highest altitude h. The almanac gives the sun's
-declination δ for that date: how far north or south of the equator it stands. Then latitude is
-one line.
+declination δ for that date: how far north or south of the equator it stands.
+
+Why does δ change at all? Because the Earth's axis is tilted, the sun's yearly path across the sky
+(the ecliptic) is tilted about 23.44° to the celestial equator. The sun spends half the year
+north of the equator and half south of it, which is also why a noon sun is high in June and low
+in December.
+
+<div class="fx-figure">
+  <SunDeclination client:visible />
+</div>
+
+With δ from the almanac, latitude is one line.
 
 <EqTip note="φ is your latitude, h the sun's altitude above the horizon at noon, and δ the sun's declination for the date (positive when the sun is north of the equator). This form is for an observer north of the sun, who sees it due south at noon.">
 
@@ -188,7 +201,7 @@ four minutes wrong is a whole degree wrong. The sextant can still help, by measu
 distance from a star and using the Moon as a clock in the sky ([Wikipedia](https://en.wikipedia.org/wiki/Lunar_distance_%28navigation%29)),
 but the real answer was a good clock, which is the end of [the first post](/articles/instruments/time).
 
-## Past the horizon
+## After the sextant: bubbles and star trackers
 
 Aircraft have no reliable sea horizon, so bubble sextants used a spirit level instead, and got
 worse: about 2′ on land in skilled hands, 5 to 10 miles in flight ([Bowditch, ch. 14](https://thenauticalalmanac.com/2019_Bowditch-_American_Practical_Navigator/Volume-_1/05-%20Part%203-%20Celestial%20Navigation/Chapter%2014-%20Instruments%20For%20Celestial%20Navigation.pdf)).
@@ -204,7 +217,11 @@ Twenty microarcseconds is the size of a 4 cm coin on the Moon, seen from here. E
 bowl was good to perhaps a tenth of a degree. That is a factor of about twenty million, all of it
 in the same quantity: an angle between two directions.
 
-## Next: pointing it at the ground
+<div class="fx-figure fx-wide">
+  <AngleLadder client:visible />
+</div>
+
+## Next: measuring the ground
 
 Everything here looked up. The [next post](/articles/instruments/earth) turns the same angles
 around and points them at the ground: a theodolite is a sextant's cousin on a tripod, and with a
@@ -223,7 +240,8 @@ is, and eventually how big a country is.
 - [Hadley's paper](https://makingscience.royalsociety.org/items/rbo_17_72/description-of-a-new-instrument-for-taking-angles-by-john-hadley) (Royal Society), [John Hadley](https://www.lindahall.org/about/news/scientist-of-the-day/john-hadley) (Linda Hall Library), and [Reflecting instrument](https://en.wikipedia.org/wiki/Reflecting_instrument) (Wikipedia), for 1731, Godfrey, Campbell and Bird's 1757 sextant.
 - [Sextant](https://en.wikipedia.org/wiki/Sextant) (Wikipedia), for the steady images and the 0.1′ vernier; Bowditch, [*American Practical Navigator*, ch. 14](https://thenauticalalmanac.com/2019_Bowditch-_American_Practical_Navigator/Volume-_1/05-%20Part%203-%20Celestial%20Navigation/Chapter%2014-%20Instruments%20For%20Celestial%20Navigation.pdf), for the double-reflection rule and bubble sextants.
 - Exhibition panel "Osmanlılar Seyirde: Mühendis Feyzi Efendi" (my photo), for Feyzi and the quotes; Feza Günergun, [Measuring Altitudes with an Alla Franca Instrument](https://avesis.istanbul.edu.tr/yayin/84263c24-57f0-45b0-bf7e-486d3895ff5c/scientific-instruments-between-east-and-west), in *Scientific Instruments between East and West* (Brill, 2019).
-- [Meridian altitude](https://en.wikipedia.org/wiki/Meridian_altitude) (Wikipedia), for the noon-sight rule; USNO, [Approximate solar coordinates](https://aa.usno.navy.mil/faq/sun_approx), for the declination formula used in Plates 2 and 4.
+- [Meridian altitude](https://en.wikipedia.org/wiki/Meridian_altitude) (Wikipedia), for the noon-sight rule; USNO, [Approximate solar coordinates](https://aa.usno.navy.mil/faq/sun_approx), for the declination formula and the 23.44° tilt of the ecliptic (its ε = 23.439°) used in Plates 2, 4 and 5.
+- Plate 6 (the angle ladder) cites a source for each rung; most are from Høg 2017, above.
 - [Lunar distance](https://en.wikipedia.org/wiki/Lunar_distance_%28navigation%29) (Wikipedia).
 - [AAC Clyde ST200 datasheet](https://www.aac-clyde.space/wp-content/uploads/2021/11/ST200.pdf); [Hipparcos mission](https://cosmos.esa.int/web/hipparcos/the-mission) (ESA); [Gaia ends science operations](https://skyandtelescope.org/astronomy-news/galaxy-mapping-satellite-ends-science-operations/) (Sky & Telescope).
 - The coin-on-the-Moon and coin-at-700-metres comparisons, and the factor of twenty million, are my own arithmetic.
