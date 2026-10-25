@@ -117,7 +117,7 @@ function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps:
   const hi = Math.min(sp.hi, 400);
   const clampY = (m: number) => Math.max(8, g - m * k);
   return (
-    <svg viewBox={`0 0 ${W} ${Hs}`} width={W} height={Hs} style={{ display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="tri-hatch" gap={6} />
       <rect x={0} y={g} width={W} height={Hs - g} style={{ fill: 'url(#tri-hatch)' }} />
       <line x1={0} y1={g} x2={W} y2={g} style={{ stroke: C.ink, strokeWidth: 1.1 }} />
@@ -221,7 +221,7 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
     }
   }
   return (
-    <svg viewBox={`0 0 ${W} ${Hs}`} width={W} height={Hs} style={{ display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="st-hatch" gap={6} />
       <rect x={0} y={farY} width={W} height={nearY - farY} style={{ fill: C.sky, opacity: 0.07 }} />
       <path d={ripples.join(' ')} style={{ fill: 'none', stroke: C.sky, strokeWidth: 0.8, opacity: 0.6 }} />

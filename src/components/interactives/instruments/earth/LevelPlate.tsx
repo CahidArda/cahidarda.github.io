@@ -150,7 +150,7 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
     return `M ${apex.x + nx} ${apex.y + ny} L ${f.x + nx} ${f.y + ny} L ${f.x - nx} ${f.y - ny} L ${apex.x - nx} ${apex.y - ny} Z`;
   };
   return (
-    <svg viewBox={`0 0 ${W} ${Hs}`} width={W} height={Hs} style={{ display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="lv-hatch" gap={6} />
       {/* true horizontal, for reference */}
       <line
@@ -327,7 +327,7 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
   };
   const ground = `M ${xL - 40} ${gL - 3} L ${xL} ${gL} C ${xL + S * 0.6} ${gL + 4}, ${xR - S * 0.7} ${gR - 6}, ${xR} ${gR} L ${xR + 40} ${gR + 2}`;
   return (
-    <svg viewBox={`0 0 ${W} ${Hs}`} width={W} height={Hs} style={{ display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="cd-hatch" gap={6} />
       <path
         d={`${ground} L ${xR + 40} ${Hs} L ${xL - 40} ${Hs} Z`}

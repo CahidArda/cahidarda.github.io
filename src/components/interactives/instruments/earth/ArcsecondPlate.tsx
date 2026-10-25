@@ -109,9 +109,8 @@ export default function ArcsecondPlate() {
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
-          width={W}
-          height={H}
-          style={{ display: 'block', touchAction: 'pan-y', cursor: 'ew-resize' }}
+          width="100%"
+          style={{ display: 'block', height: 'auto', touchAction: 'pan-y', cursor: 'ew-resize' }}
           onPointerDown={onPointer}
           onPointerMove={onPointer}
         >
