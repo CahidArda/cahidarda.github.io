@@ -33,7 +33,7 @@ for (const w of widths) {
     if (only && !sc.name.startsWith(only)) continue;
     const plate = page.locator('.in-plate').filter({ has: page.locator('.in-plate-no', { hasText: new RegExp(`\\b${sc.plate}$`) }) }).first();
     await plate.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(900);
     for (const [op, a, b] of sc.do ?? []) {
       if (op === 'set') {
         const r = await plate.evaluate((el, [label, value]) => {
@@ -56,7 +56,7 @@ for (const w of widths) {
           await nx.click();
         }
       } else if (op === 'button' || op === 'seg') {
-        const btn = plate.locator('button', { hasText: a }).first();
+        const btn = plate.locator('.in-step-ctrl button, .in-step-settings button', { hasText: a }).first();
         if (await btn.count()) await btn.click(); else console.log(`${sc.name}: no button '${a}'`);
       } else if (op === 'wait') await page.waitForTimeout(a);
       await page.waitForTimeout(80);
