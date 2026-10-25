@@ -77,7 +77,7 @@ export function board(W: number) {
   const AY = 30 + BAND;
   const R = side - 14 - BAND - 46;
   const U = R / 60;
-  const H = AY + R + 46;
+  const H = AY + R + 58;
   /** Point at radius r (parts) on a thread at θ (degrees from the left edge). */
   const at = (r: number, th: number) => ({ x: AX + r * U * sind(th), y: AY + r * U * cosd(th) });
   return { W, H, BAND, AX, AY, R, U, at, side, ox };
@@ -95,9 +95,9 @@ export function quadScene(q: Quadrant, step: number, W: number) {
   // the noon-height limit on the rim: the thread can go past it, but the sun cannot
   const noonMark = q.hNoon > 0 ? { a: at(60, q.hNoon), b: at(66, q.hNoon) } : null;
   // the sun's true direction (for the sighting step), only when the sun is up
-  const sunDir = q.sunUp ? { a: at(60, q.hTrue), b: at(68, q.hTrue) } : null;
+  const sunDir = q.sunUp ? { a: at(60, q.hTrue), b: at(65, q.hTrue) } : null;
   // the plumb thread at the measured altitude
-  const thread = { a: { x: AX, y: AY }, b: at(60, q.hMeas), bob: at(72, q.hMeas) };
+  const thread = { a: { x: AX, y: AY }, b: at(60, q.hMeas), bob: at(65, q.hMeas) };
 
   const sinX = AX + p(q.sinh) * U; // 60 sin h on the top scale
   const latEnd = at(60, PHI);
@@ -113,10 +113,14 @@ export function quadScene(q: Quadrant, step: number, W: number) {
 
   // labels
   if (step >= 2 && !q.tooHigh) {
-    L.push({ id: 'sin', x: sinX, y: AY - g.BAND - 6, text: `60 sin h = ${p(q.sinh).toFixed(1)}`, size: small, anchor: 'middle', role: 'sky' });
+    const text = `60 sin h = ${p(q.sinh).toFixed(1)}`;
+    const w = text.length * small * 0.6;
+    const x = Math.max(AX - g.BAND + w / 2, Math.min(AX + g.R - w / 2, sinX));
+    L.push({ id: 'sin', x, y: AY - g.BAND - 7, text, size: small, anchor: 'middle', role: 'sky' });
   }
   if (step >= 3) {
-    L.push({ id: 'lat', x: latEnd.x + 6, y: latEnd.y + 12, text: '41°', size: small, anchor: 'start', role: 'brass' });
+    const lp = at(30, PHI - 6);
+    L.push({ id: 'lat', x: lp.x, y: lp.y, text: 'φ 41°', size: small, anchor: 'middle', role: 'brass' });
   }
   const out = {
     g,

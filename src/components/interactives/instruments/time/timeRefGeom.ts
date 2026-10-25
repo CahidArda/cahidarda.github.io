@@ -177,7 +177,7 @@ export function refScene(inp: RefInput, W: number) {
     gapTxt = `off by ${fmtSec(inp.gapSec)}`;
     if (inp.metresPerSec) gapTxt += ` = ${fmtDist(inp.gapSec * inp.metresPerSec)}${inp.distWord ? ` ${inp.distWord}` : ''}`;
   }
-  if (inp.gapNote && gapTxt) gapTxt += ` (${inp.gapNote})`;
+  if (inp.gapNote && gapTxt && inp.gapSec !== null) gapTxt += ` (${inp.gapNote})`;
   const gapSize = narrow ? 10.5 : 11.5;
   // wrap into two lines when it does not fit
   const lines: string[] = [];

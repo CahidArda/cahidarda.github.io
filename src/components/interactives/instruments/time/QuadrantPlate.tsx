@@ -77,8 +77,8 @@ function Board({ q, step }: { q: Quadrant; step: number }) {
         <path d={`M ${AX + R} ${AY} H ${AX} V ${AY + R}`} style={ink('ink', 1.1)} />
         <path d={arcPath(AX, AY, R, -90, 0)} style={ink('ink', 1.1)} />
         <ArcScale cx={AX} cy={AY} r={R + 2} from={-90} to={0} major={10} minor={2} labelEvery={10} value={(v) => v + 90} tick={7} size={small} rim={false} />
-        {/* sights on the top edge */}
-        {[AX + 8, AX + R - 6].map((x) => (
+        {/* sights on the top edge (drawn while sighting) */}
+        {step <= 1 && [AX + 8, AX + R - 6].map((x) => (
           <rect key={x} x={x - 3.5} y={AY - BAND - 8} width={7} height={8} style={{ ...ink('ink', 0.9), fill: C.paper }} />
         ))}
         {/* the day's noon height on the rim: a limit the sun never passes */}
@@ -89,7 +89,7 @@ function Board({ q, step }: { q: Quadrant; step: number }) {
         {step === 1 && s.sunDir && (
           <>
             <line x1={s.sunDir.a.x} y1={s.sunDir.a.y} x2={s.sunDir.b.x} y2={s.sunDir.b.y} style={ink('brass', 2.2)} />
-            <InkText x={s.sunDir.b.x + 3} y={s.sunDir.b.y + 10} size={small + 1} role="brass">sun</InkText>
+            <InkText x={s.sunDir.b.x + 4} y={s.sunDir.b.y - 4} size={small + 1} role="brass">sun's altitude now</InkText>
           </>
         )}
         {/* step 4: the date terms on the latitude thread (brass), fixed at 41° */}

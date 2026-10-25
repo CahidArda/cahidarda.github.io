@@ -200,6 +200,10 @@ for (const d of DEVICES) ok(d.lo <= d.hi && d.lo >= GAUGE_LO && d.hi <= GAUGE_HI
         const Hb = q.diff >= 0 ? 90 - rimTheta : 90 + rimTheta;
         ok(near(Hb, q.Hdeg, 1e-6), 'quadrant: rim reading gives H', () => `${day} ${t}`);
         for (const p of [s.thread.b, s.beadA, s.beadB, s.divEnd!, s.divBead!]) ok(Math.hypot(p.x - g.AX, p.y - g.AY) <= g.R + 1e-6, 'quadrant: marks inside the quarter', () => `${day} ${t}`);
+        for (const l of s.labels) {
+          const b = Q.qBox(l);
+          ok(b.x0 >= 0 && b.x1 <= W && b.y0 >= 0 && b.y1 <= g.H, 'quadrant: label inside', () => `${day} ${t} W=${W} ${l.id}`);
+        }
         ok(s.diffX >= g.AX - 1e-9 && s.diffX <= g.AX + g.R + 1e-9, 'quadrant: difference on the top scale', () => `${day} ${t}`);
         ok(g.H <= 600 && g.AX - g.BAND >= 0 && g.AX + g.R + 30 <= W, 'quadrant: board inside the view', () => `W=${W}`);
       }
