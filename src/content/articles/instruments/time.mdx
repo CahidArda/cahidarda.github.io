@@ -14,6 +14,7 @@ import PendulumClock from '../../../components/interactives/instruments/time/Pen
 import SineQuadrant from '../../../components/interactives/instruments/time/SineQuadrant.tsx';
 import AlaturkaDial from '../../../components/interactives/instruments/time/AlaturkaDial.tsx';
 import ClockToDistance from '../../../components/interactives/instruments/time/ClockToDistance.tsx';
+import ClockLadder from '../../../components/interactives/instruments/time/ClockLadder.tsx';
 import semiClock from '../../../assets/instruments/semi-clock.jpg';
 import rubuBoards from '../../../assets/instruments/rubu-boards.jpg';
 import rubuDrawing from '../../../assets/instruments/rubu-drawing-1848.jpg';
@@ -48,6 +49,17 @@ and about a metre of glass. This post is the ladder between them, and the rungs 
     </figcaption>
   </figure>
 </div>
+
+Before the details, the whole climb in one chart. Each mark is the best clock of its era and
+how far it drifted in a day. A water clock was off by something like a quarter of an hour. The
+best optical clock today, run for the age of the universe, would be off by less than a second.
+
+<div class="fx-figure fx-wide">
+  <ClockLadder client:visible />
+</div>
+
+Most of that climb happened in the last 400 years. For the three thousand before, the red line
+barely moves. The rest of this post is the rungs, one at a time.
 
 ## Sundials
 
@@ -127,7 +139,7 @@ Someone wrote on it, in Ottoman, roughly "quadrant drawing, but faulty" (museum 
       sizes="(min-width: 62rem) 26rem, 50vw"
     />
     <figcaption>
-      Quadrant drawing and study notes, 1848. Plate 1 is drawn after it.
+      Quadrant drawing and study notes, 1848. Levha 2 is drawn after it.
     </figcaption>
   </figure>
 </div>
@@ -291,7 +303,7 @@ next post: [How to Find Your Latitude](/articles/instruments/sky).
 - Alaturka time: [Bir, Acar and Kaçar, Nazariyat (2015)](https://www.nazariyat.org/content/5-sayilar/2-2/3-m0007/atilla-bir-sinasi-acar-mustafa-kacar.pdf);
   [Law No. 697](https://www.lexpera.com.tr/mevzuat/kanunlar/gunun-yirmi-dort-saate-taksimine-dair-kanun-697);
   Ahmet Haşim via [Milli Gazete](https://www.milligazete.com.tr/ahmet-hasimden-musluman-saati).
-  Plate 3's times are my calculation (solar time, no refraction).
+  Plate 4's times are my calculation (solar time, no refraction).
 - Longitude: [Royal Museums Greenwich](https://www.rmg.co.uk/stories/time/what-longitude);
   [Longitude Act rewards](https://xnatmap.org/adnm/docs/2013/long/reward/longreward.htm);
   [Linda Hall Library, John Harrison](https://www.lindahall.org/about/news/scientist-of-the-day/john-harrison);
@@ -302,5 +314,14 @@ next post: [How to Find Your Latitude](/articles/instruments/sky).
   [BIPM, 13th CGPM Resolution 1](https://www.bipm.org/committees/cg/cgpm/13-1967/resolution-1);
   [NIST, JILA strontium clock](https://www.nist.gov/node/392596);
   [optics.org, NIST ion clock](https://optics.org/news/nists-ion-clock-claims-record-for-most-accurate-in-the-world).
+- Plate 1 (accuracy chart): [Pendulum clock](https://en.wikipedia.org/wiki/Pendulum_clock)
+  (Wikipedia), for "about 15 minutes per day" before the pendulum, 15 seconds a day after it, and
+  the Shortt clock's "better than one second per year";
+  [Science Museum Group, caesium clock 1955](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955),
+  for the comparison with 1930s quartz; [NIST-F2](https://en.wikipedia.org/wiki/NIST-F2)
+  (Wikipedia); Aeppli et al.,
+  [Clock with 8 × 10⁻¹⁹ systematic uncertainty](https://arxiv.org/abs/2403.10664) (2024). The
+  sundial and water clock mark is an order-of-magnitude estimate. Each mark's own source is linked
+  in the chart.
 - GPS: [GPS World, GPS and relativity](https://www.gpsworld.com/inside-the-box-gps-and-relativity/);
   Neil Ashby, [Relativity and the Global Positioning System](https://www.aapt.org/doorway/tgru/articles/ashbyarticle.pdf).

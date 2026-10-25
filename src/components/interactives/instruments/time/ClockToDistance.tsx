@@ -87,7 +87,7 @@ export default function ClockToDistance() {
 
   return (
     <Plate
-      n={4}
+      n={5}
       id="plate-distance"
       title="How clock error becomes position error"
       caption={

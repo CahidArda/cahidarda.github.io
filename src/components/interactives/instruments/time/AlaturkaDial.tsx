@@ -155,7 +155,7 @@ export default function AlaturkaDial() {
   const since = sinceSunset(t, day);
   return (
     <Plate
-      n={3}
+      n={4}
       id="plate-alaturka"
       title="Clocks that counted from sunset"
       caption={

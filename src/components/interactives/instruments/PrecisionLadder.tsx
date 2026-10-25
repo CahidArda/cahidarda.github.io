@@ -44,6 +44,8 @@ export interface LadderConfig {
   xTicks?: { wide: number[]; narrow: number[] };
   /** Vertical label nudges to avoid collisions (rung index, narrow) → px. */
   dy?: (i: number, narrow: boolean) => number;
+  /** Force a rung's label to one side (default: right, except near the right edge). */
+  side?: (i: number) => 'left' | 'right' | undefined;
 }
 
 
@@ -316,7 +318,8 @@ export default function PrecisionLadder({
           {/* rungs */}
           {pts.map((p, i) => {
             const on = i === active;
-            const labelRight = p.x < m.l + iw * 0.8;
+            const forced = cfg.side?.(i);
+            const labelRight = forced ? forced === 'right' : p.x < m.l + iw * 0.8;
             const s = on ? 5.5 : 4;
             const diamond = `M ${p.x} ${p.y - s} L ${p.x + s} ${p.y} L ${p.x} ${p.y + s} L ${p.x - s} ${p.y} Z`;
             const dy = cfg.dy ? cfg.dy(i, narrow) : 0;

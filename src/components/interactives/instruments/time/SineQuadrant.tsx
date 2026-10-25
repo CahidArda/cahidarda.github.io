@@ -1,5 +1,5 @@
 /**
- * Plate 1: the sine quadrant (rubʿ al-mujayyab, rubu tahtası), drawn after the 1848 study
+ * Plate 2: the sine quadrant (rubʿ al-mujayyab, rubu tahtası), drawn after the 1848 study
  * sheet. Drag the thread to the sun's altitude; the board then works the hour out the way a
  * muvakkit did, in parts of 60: read 60·sin h, shift it by the date term (subtract when the
  * sun is north of the equator, add when south), divide by the date's divisor with the thread
@@ -78,7 +78,7 @@ export default function SineQuadrant() {
 
   return (
     <Plate
-      n={1}
+      n={2}
       label="Levha"
       id="plate-quadrant"
       title="Telling the time with a sine quadrant"

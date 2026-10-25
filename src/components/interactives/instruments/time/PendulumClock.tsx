@@ -254,7 +254,7 @@ export default function PendulumClock() {
 
   return (
     <Plate
-      n={2}
+      n={3}
       wide
       id="plate-pendulum"
       title="How the rod length sets the tick"
