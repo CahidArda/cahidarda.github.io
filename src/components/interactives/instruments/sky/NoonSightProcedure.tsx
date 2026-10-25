@@ -115,8 +115,12 @@ function Reference({ s, step }: { s: Sight; step: number }) {
         {/* you: horizon, zenith, h (sky) */}
         <line x1={g.horFar.x} y1={g.horFar.y} x2={g.horSun.x} y2={g.horSun.y} style={{ ...solid('ink', wd('horizon', 1.3)), opacity: hi.has('horizon') || hi.size === 0 ? 1 : 0.7 }} />
         {T('horizon', 'soft', 'horizon')}
-        <path d={arcPath(g.obs.x, g.obs.y, g.hArcR, g.hFrom, g.hTo)} style={{ ...solid('sky', wd('h', 1.4)), opacity: o('h') }} />
-        {T('h', 'sky', 'h')}
+        {s.visible && (
+          <>
+            <path d={arcPath(g.obs.x, g.obs.y, g.hArcR, g.hFrom, g.hTo)} style={{ ...solid('sky', wd('h', 1.4)), opacity: o('h') }} />
+            {T('h', 'sky', 'h')}
+          </>
+        )}
         <circle cx={g.obs.x} cy={g.obs.y} r={3.5} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.3 }} />
         {T('you', 'ink')}
         {T('zenith', 'soft')}
@@ -130,7 +134,7 @@ function Reference({ s, step }: { s: Sight; step: number }) {
 function SkyView({ s, t }: { s: Sight; t: number }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
   const g = skyScene(s, t, W);
-  const atNoon = t === 12;
+  const atNoon = t === 12 && s.visible;
   const alts = [30, 60];
   return (
     <div ref={ref}>
@@ -547,7 +551,7 @@ export default function NoonSightProcedure() {
             )}
           </Eq>
           <Eq>
-            <Known when={phiDone} role="red">{dm(r.phi, ['N', 'S'])}</Known> ={' '}
+            <Known when={phiDone} role="red">{dm(r.phi)}</Known> ={' '}
             {south ? (
               <>
                 90° − <Known when={hDone} role="sky">{dm(r.h)}</Known>
@@ -562,7 +566,7 @@ export default function NoonSightProcedure() {
           {phiDone && (
             <Eq>
               <span style={{ fontSize: '0.88em' }}>
-                {`True ${place.name}: ${dm(place.lat, ['N', 'S'])}. One arcminute of latitude is one nautical mile (1.852 km).`}
+                {`That is ${dm(r.phi, ['N', 'S'])} (negative = south); ${place.name} is at ${dm(place.lat, ['N', 'S'])}. One arcminute of latitude is one nautical mile, 1.852 km.`}
               </span>
             </Eq>
           )}

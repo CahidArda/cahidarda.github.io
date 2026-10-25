@@ -327,16 +327,24 @@ export function refScene(s: Sight, W: number) {
     const out: ReturnType<typeof lab>[] = [];
     const span = to - from;
     const fr = [0.5, 0.35, 0.65, 0.2, 0.8];
-    for (const dr of [11, -11, 20, -18, 30])
+    for (const dr of [11, -11, 20, -18, 30, -28, -40])
       for (const f of fr) out.push(lab(id, text, P(x0, y0, r + dr, from + span * f), S));
     // a tiny angle: just outside its ends
     for (const dr of [0, 10, -10]) for (const e of [-12, 12, -20, 20]) out.push(lab(id, text, P(x0, y0, r + dr, (e < 0 ? Math.min(from, to) : Math.max(from, to)) + e), S));
     return out;
   };
+  /** A centre angle measured from the equator: keep its label on the value's side of it. */
+  const sameSide = (cands: ReturnType<typeof lab>[], v: number, r: number) => {
+    // a tiny angle: also try just off the equator, beside the arc's end, on the value's side
+    const sg = v >= 0 ? -1 : 1;
+    const extra: ReturnType<typeof lab>[] = [];
+    for (const dy of [10, 14, 20, 26, 32]) for (const dx of [0, 8, -8, 16, -16, 26, -26, 36, -36, 48]) extra.push(lab(cands[0].id, cands[0].text, { x: cx + r + dx, y: cy + sg * dy }, S));
+    return [...cands, ...extra].filter((c) => (v >= 0 ? c.y <= cy - 4 : c.y >= cy + 4));
+  };
   // most constrained first
   pl.put(along('h', 'h', obs.x, obs.y, hArcR, hFrom, hTo));
-  pl.put(along('phi', 'φ', cx, cy, phiArcR, 0, phi));
-  pl.put(along('dec', 'δ', cx, cy, decArcR, 0, dec));
+  pl.put(sameSide(along('dec', 'δ', cx, cy, decArcR, 0, dec), dec, decArcR));
+  pl.put(sameSide(along('phi', 'φ', cx, cy, phiArcR, 0, phi), phi, phiArcR));
   pl.put(ring('you', 'you', obs, s11, [14, 22, 30], [phi + 180, phi + 150, phi + 210]));
   pl.put(ring('zenith', 'zenith', zen, s11, [8, 14, 22, 32], [phi, phi + 30, phi - 30]));
   pl.put(ring('horizon', 'horizon', horSun, s11, [8, 14, 22, 32], [horDir - 60, horDir + 60, horDir]));

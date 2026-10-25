@@ -67,6 +67,17 @@ for (const pl of places) {
     if (!s.visible) {
       invisible++;
       ok(s.hTrue < MIN_ALT, 'visible flag', () => ctx);
+      // no sight today: the reference still draws (without h); everything stays on the plate
+      if (doy % 5 === 0)
+        for (const W of WIDTHS) {
+          const g = refScene(s, W);
+          for (const sg of g.segs) ok(inBox(sg.a, W, g.H) && inBox(sg.b, W, g.H), 'bounds: ref line (no sight)', () => `${ctx} W=${W} ${sg.id}`);
+          for (const [id, l] of Object.entries(g.labels)) {
+            if (id === 'h') continue;
+            const b = labelBox(l);
+            ok(b.x0 >= 0 && b.y0 >= 0 && b.x1 <= W && b.y1 <= g.H, 'bounds: label (no sight)', () => `${ctx} W=${W} ${id}`);
+          }
+        }
       continue;
     }
     // ── maths ──
@@ -132,6 +143,8 @@ for (const pl of places) {
         const b = labelBox(l);
         ok(b.x0 >= 0 && b.y0 >= 0 && b.x1 <= W && b.y1 <= g.H, `bounds: label ${id}`, () => c);
       }
+      ok(pl.lat >= 0 ? g.labels.phi.y < g.cy : g.labels.phi.y > g.cy, 'labels: φ on its side of the equator', () => c);
+      ok(s.dec >= 0 ? g.labels.dec.y < g.cy : g.labels.dec.y > g.cy, 'labels: δ on its side of the equator', () => c);
       const ls = Object.values(g.labels).map((l) => ({ id: l.id, b: labelBox(l) }));
       for (let i = 0; i < ls.length; i++)
         for (let j = i + 1; j < ls.length; j++) {
