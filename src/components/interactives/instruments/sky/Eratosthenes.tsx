@@ -111,8 +111,7 @@ export default function Eratosthenes() {
           <line x1={alex.x} y1={alex.y} x2={sh.x} y2={sh.y} style={{ stroke: C.ink, strokeWidth: 3.2, opacity: 0.55 }} />
           <path d={arcPath(tipA.x, tipA.y, 22, 270, aAlex + 180)} style={{ fill: 'none', stroke: C.red, strokeWidth: 1.1 }} />
           {(() => {
-            const p = polar(tipA.x, tipA.y, 34, 270 + (aAlex - 90) / 2);
-            return <InkText x={p.x + 4} y={p.y + 4} size={13} role="red">{theta.toFixed(1)}°</InkText>;
+            return <InkText x={tipA.x + 7} y={tipA.y + 36} size={13} role="red">{theta.toFixed(1)}°</InkText>;
           })()}
           {/* labels */}
           {(() => {

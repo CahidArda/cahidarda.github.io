@@ -100,7 +100,7 @@ export default function NoonSight() {
           {/* Earth */}
           <circle cx={cx} cy={cy} r={Re} style={{ ...ink, fill: C.paper, strokeWidth: 1.3 }} />
           <line x1={cx - Re - 10} y1={cy} x2={cx + Re + 16} y2={cy} style={{ stroke: C.soft, strokeWidth: 0.8, strokeDasharray: '5 4' }} />
-          <InkText x={cx - Re - 12} y={cy - 6} anchor="end" size={11} role="soft">equator</InkText>
+          <InkText x={cx - Re + 6} y={cy - 6} size={11} role="soft">equator</InkText>
           <line x1={cx} y1={cy - Re - 8} x2={cx} y2={cy + Re + 8} style={{ stroke: C.faint, strokeWidth: 0.7 }} />
           <InkText x={cx + 4} y={cy - Re - 12} size={11} role="soft">N pole</InkText>
           {/* Istanbul tick */}
