@@ -180,7 +180,7 @@ export default function ArmillaryPlate() {
       }
       caption={
         <>
-          The view on the left is the instrument; the one on the right is the real sky it models, and it stays the same in every plate of this post.
+          The first view is the instrument; the second, “the real sky”, is what it models, and it stays the same in every plate of this post.
           Turning the sphere until the sun matches its measured height solves the triangle of pole, zenith and sun without any trigonometry.
           Sun positions: USNO approximate formula.
         </>

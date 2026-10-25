@@ -59,7 +59,7 @@ function Board({ step, dec, absH, hMeas }: { step: number; dec: number; absH: nu
               return (
                 <g key={a}>
                   <line x1={P1.x} y1={P1.y} x2={P2.x} y2={P2.y} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
-                  {a % 30 === 0 && a > 0 && (
+                  {a % 30 === 0 && a > 0 && a < 90 && (
                     <InkText x={L.x} y={L.y} kind="num" anchor="middle" baseline="central" size={10} role="ink">{`${a}°`}</InkText>
                   )}
                 </g>
@@ -77,7 +77,7 @@ function Board({ step, dec, absH, hMeas }: { step: number; dec: number; absH: nu
               </>
             )}
             <InkText x={f.cx + 6} y={f.cy - RC * k + 12} size={11} role="soft">noon</InkText>
-            <InkText x={f.cx + RC * k} y={f.cy + 16} anchor="end" size={11} role="soft">6 hours from noon</InkText>
+            <InkText x={f.cx + RC * k} y={f.cy + 16} anchor="end" size={11} role="soft">90°: 6 hours from noon</InkText>
           </>
         )}
         <InkText x={W / 2} y={H - 10} anchor="middle" size={12} role={step === 4 ? 'red' : 'soft'}>{note}</InkText>
