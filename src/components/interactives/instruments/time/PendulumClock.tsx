@@ -35,7 +35,7 @@ const L_MIN = 0.1;
 const L_MAX = 4;
 const period = (L: number) => 2 * Math.PI * Math.sqrt(L / G);
 /** Drawn rod length (world units, wheel tip radius = 1). Compressed so 0.1 m and 4 m both fit. */
-const rodWorld = (L: number) => 2.45 + 2.1 * Math.sqrt((L - L_MIN) / (L_MAX - L_MIN));
+const rodWorld = (L: number) => 3.0 + 2.6 * Math.sqrt((L - L_MIN) / (L_MAX - L_MIN));
 const BOB_R = 0.3;
 
 /* ───────────────────────── geometry helpers (anchor body) ───────────────────────── */
@@ -89,7 +89,7 @@ const ARMS = [armPoly(ARM_ENDS[0], 0.22), armPoly(ARM_ENDS[1], -0.22)];
 function Poster() {
   const W = 400;
   const H = 625;
-  const s = 400 / (2 * 0.64 * 2.95); // px per world unit, as the live camera
+  const s = 400 / (2 * 0.64 * 3.25); // px per world unit, as the live camera
   const ox = W / 2;
   const oy = H / 2 - (PIVOT[1] + 0.45 + PIVOT[1] - rodWorld(SECONDS_L) - BOB_R) / 2 * -s; // wheel centre, as the live model
   const P = (p: Pt) => `${(ox + p[0] * s).toFixed(1)},${(oy - p[1] * s).toFixed(1)}`;
@@ -239,7 +239,7 @@ export default function PendulumClock() {
         <div className="tm-canvas">
           <BlueprintCanvas<Params>
             aspect={0.64}
-            fit={2.95}
+            fit={3.25}
             animate
             yaw={-0.42}
             pitch={0.12}
@@ -375,7 +375,7 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   ]);
   const cord = new T.Line(cordGeo, ctx.lineMaterial('ink'));
   model.add(cord);
-  const WEIGHT_TOP = -0.75;
+  const WEIGHT_TOP = -1.15;
 
   /* anchor: hub, two curved arms, two pallets (red working faces), on an arbor */
   const anchor = new T.Group();

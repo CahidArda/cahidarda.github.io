@@ -17,7 +17,10 @@ import { dayLabel, declination, halfDay, hm } from './astro';
 
 const sunsetOf = (n: number) => 12 + halfDay(declination(n)) / 15; // local solar time
 const sunriseOf = (n: number) => 12 - halfDay(declination(n)) / 15;
-const alaturka = (t: number, n: number) => (((t - sunsetOf(n)) % 24) + 24) % 24;
+/** Reading of a 12-hour alaturka dial (0..12, where 0 shows as 12): hours since sunset. */
+const alaturka = (t: number, n: number) => (((t - sunsetOf(n)) % 12) + 12) % 12;
+const hm12 = (v: number) => hm(v < 1 ? v + 12 : v);
+const hm12f = (v: number) => hm12(v % 12);
 
 function Dial({
   cx,
@@ -164,7 +167,7 @@ export default function AlaturkaDial() {
           width="100%"
           style={{ display: 'block', maxWidth: narrow ? 320 : 600, margin: '0 auto' }}
           role="img"
-          aria-label={`At ${hm(t)} solar time on ${dayLabel(day)}, an alafranga clock reads ${hm(t % 12 || 12)} and an alaturka clock reads ${hm(at % 12 || 12)}`}
+          aria-label={`At ${hm(t)} solar time on ${dayLabel(day)}, an alafranga clock reads ${hm12f(t)} and an alaturka clock reads ${hm12(at)}`}
         >
           <Dial
             cx={140}
@@ -200,7 +203,7 @@ export default function AlaturkaDial() {
         <Slider label="solar time" value={t} min={0} max={23.95} step={1 / 12} onChange={setT} format={(v) => hm(v)} width="8rem" />
       </Controls>
       <p className="al-note">
-        Sunrise {hm(sunrise)}, sunset {hm(sunset)}. Noon reads <b>{hm(alaturka(12, day))}</b> alaturka.
+        Sunrise {hm(sunrise)}, sunset {hm(sunset)}. Noon reads <b>{hm12(alaturka(12, day))}</b> alaturka.
         Tonight&apos;s reset: {Math.abs(reset) < 0.05 ? 'almost nothing' : `${Math.abs(reset).toFixed(1)} min ${reset > 0 ? 'back' : 'forward'}`}.
       </p>
       <style>{`.al-note{margin:.6rem 0 0;font-family:var(--font-display);font-style:italic;font-size:.98rem;color:var(--in-ink-soft)}.al-note b{font-family:var(--font-mono);font-style:normal;font-weight:400;color:var(--in-red)}`}</style>
