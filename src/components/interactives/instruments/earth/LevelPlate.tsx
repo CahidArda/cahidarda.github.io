@@ -7,6 +7,7 @@
  * The bob swings and settles (damped pendulum) after each change; reduced motion snaps it.
  */
 import { useEffect, useRef, useState } from 'react';
+import { AFRAME_H_CM, CORD, RAD, aframeLayout, cordLayout, hitParam } from './geometry';
 import {
   C,
   Controls,
@@ -14,16 +15,19 @@ import {
   HatchDefs,
   InkText,
   Plate,
-  Readout,
   Segmented,
   Slider,
+  Sym,
+  V,
+  Working,
+  Eq,
+  arcPath,
   useHoverPreview,
   useMeasuredWidth,
   useReducedMotion,
 } from '../shared';
 
 type Mode = 'aframe' | 'cord';
-const RAD = Math.PI / 180;
 
 /** Damped swing of the bob (radians from vertical), kicked whenever the frame tilts. */
 function useSwing(tilt: number, reduced: boolean) {
@@ -67,20 +71,6 @@ function useSwing(tilt: number, reduced: boolean) {
 
 const fmtSigned = (v: number, d = 1) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(d)}`;
 
-/** Intersection of the vertical-ish string (p, dir) with segment a→b, as a parameter on a→b. */
-function hitParam(
-  p: { x: number; y: number },
-  d: { x: number; y: number },
-  a: { x: number; y: number },
-  b: { x: number; y: number },
-) {
-  const ex = b.x - a.x;
-  const ey = b.y - a.y;
-  const den = d.x * ey - d.y * ex;
-  if (Math.abs(den) < 1e-9) return 0.5;
-  return (d.x * (a.y - p.y) - d.y * (a.x - p.x)) / -den;
-}
-
 function Bob({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   // a brass plumb bob: a cap, a body, a point (the point is the reference)
   const w = 7 * s;
@@ -100,46 +90,24 @@ function Bob({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
 }
 
 function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
-  const narrow = W < 520;
-  const k = Math.min(1, W / 470);
-  const Hs = narrow ? 300 : 330;
-  const cx = W / 2;
-  const gy = Hs - 70;
-  const Hf = 215 * k + (narrow ? 25 : 0);
-  const L = 118 * k;
-  const h = Hf * 0.55; // apex to crossbar
-  const t = theta * RAD;
-  const P = (x: number, y: number) => ({
-    x: cx + x * Math.cos(t) - y * Math.sin(t),
-    y: gy - (x * Math.sin(t) + y * Math.cos(t)),
-  });
-  const beamHalf = Math.min(W * 0.44, 270);
-  const beam = [P(-beamHalf, 0), P(beamHalf, 0), P(beamHalf, -20), P(-beamHalf, -20)];
-  const apex = P(0, Hf);
-  const fl = P(-L, 0);
-  const fr = P(L, 0);
-  const cb = h / Hf; // crossbar sits at this fraction down the legs
-  const cl = P(-L * cb, Hf - h);
-  const cr = P(L * cb, Hf - h);
-  const mark = P(0, Hf - h);
+  const G = aframeLayout(W, theta);
+  const { P, apex, cl, cr, mark, Hf, h, L, s: k, cx, gy, beamHalf, narrow } = G;
   const strLen = Hf - 34 * k;
   const dir = { x: Math.sin(phi), y: Math.cos(phi) };
   const bob = { x: apex.x + dir.x * strLen, y: apex.y + dir.y * strLen };
+  // where the (possibly still swinging) string crosses the crossbar; at rest this is G.hit
   const u = hitParam(apex, dir, cl, cr);
   const hit = { x: cl.x + (cr.x - cl.x) * u, y: cl.y + (cr.y - cl.y) * u };
-  // crossbar graduations
   const ticks: string[] = [];
   for (let i = -6; i <= 6; i++) {
     if (i === 0) continue;
-    const xx = (i * (L * cb)) / 7;
+    const xx = (i * (L * (h / Hf))) / 7;
     const a = P(xx, Hf - h);
     const b = P(xx, Hf - h + (i % 2 === 0 ? 7 : 4));
     ticks.push(`M ${a.x} ${a.y} L ${b.x} ${b.y}`);
   }
   const m1 = P(0, Hf - h - 6);
   const m2 = P(0, Hf - h + 11);
-  const level = Math.abs(theta) < 0.15;
-  const off = Math.tan(t) * h;
   const legW = 4.5 * k + 2;
   const leg = (f: { x: number; y: number }) => {
     const dx = f.x - apex.x;
@@ -149,8 +117,9 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
     const ny = (dx / n) * legW;
     return `M ${apex.x + nx} ${apex.y + ny} L ${f.x + nx} ${f.y + ny} L ${f.x - nx} ${f.y - ny} L ${apex.x - nx} ${apex.y - ny} Z`;
   };
+  const showX = Math.abs(theta) >= 0.6;
   return (
-    <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
+    <svg viewBox={`0 0 ${W} ${G.Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="lv-hatch" gap={6} />
       {/* true horizontal, for reference */}
       <line
@@ -160,90 +129,51 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
         y2={gy}
         style={{ stroke: C.faint, strokeWidth: 0.8, strokeDasharray: '4 4' }}
       />
-      {/* label sits above the dashed line on the side where the beam dips below it */}
-      <InkText
-        x={theta >= 0 ? cx - beamHalf - 6 : cx + beamHalf + 6}
-        y={gy - 7}
-        anchor={theta >= 0 ? 'start' : 'end'}
-        size={11}
-        role="soft"
-      >
-        true level
+      <InkText x={G.levelLabel.x} y={G.levelLabel.y} anchor={G.levelLabel.anchor} size={narrow ? 11 : 12} role="soft">
+        {G.levelText}
       </InkText>
-      {/* the beam (a stone course in section) */}
       <path
-        d={`M ${beam.map((p) => `${p.x} ${p.y}`).join(' L ')} Z`}
+        d={`M ${G.beam.map((p) => `${p.x} ${p.y}`).join(' L ')} Z`}
         style={{ fill: 'url(#lv-hatch)', stroke: C.ink, strokeWidth: 1 }}
       />
-      {/* frame */}
-      <path d={leg(fl)} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.1 }} />
-      <path d={leg(fr)} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.1 }} />
-      <path
-        d={`M ${cl.x} ${cl.y} L ${cr.x} ${cr.y}`}
-        style={{ stroke: C.ink, strokeWidth: 5 * k + 2, strokeLinecap: 'butt' }}
-      />
-      <path
-        d={`M ${cl.x} ${cl.y} L ${cr.x} ${cr.y}`}
-        style={{ stroke: C.paper, strokeWidth: 5 * k, strokeLinecap: 'butt' }}
-      />
-      <path d={ticks.join(' ')} style={{ stroke: C.soft, strokeWidth: 0.8 }} />
-      <line x1={m1.x} y1={m1.y} x2={m2.x} y2={m2.y} style={{ stroke: C.red, strokeWidth: 1.6 }} />
-      <circle cx={apex.x} cy={apex.y} r={3} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
-      {/* string and bob */}
-      <line
-        x1={apex.x}
-        y1={apex.y}
-        x2={bob.x}
-        y2={bob.y}
-        style={{ stroke: C.ink, strokeWidth: 0.9 }}
-      />
-      <circle cx={hit.x} cy={hit.y} r={2.4} style={{ fill: level ? C.red : C.ink }} />
-      <Bob x={bob.x} y={bob.y} s={0.85 + 0.15 * k} />
-      {/* offset dimension, along the crossbar */}
-      {Math.abs(theta) >= 0.6 && (
-        <DimLine
-          x1={mark.x}
-          y1={mark.y}
-          x2={P(off, Hf - h).x}
-          y2={P(off, Hf - h).y}
-          offset={theta > 0 ? 26 : -26}
-        />
+      {/* θ between true level and the beam */}
+      {showX && (
+        <g>
+          <path d={arcPath(cx, gy, G.thetaR, G.thetaFrom, G.thetaTo)} style={{ fill: 'none', stroke: C.sky, strokeWidth: 1.3 }} />
+          <InkText x={G.thetaLabel.x} y={G.thetaLabel.y} anchor={G.thetaLabel.anchor} size={14} role="sky">
+            θ
+          </InkText>
+        </g>
       )}
-      {Math.abs(theta) >= 0.6 &&
-        (() => {
-          const q = P(off + (theta > 0 ? 10 : -10), Hf - h + (theta > 0 ? 26 : -26));
-          return (
-            <InkText x={q.x} y={q.y} anchor={theta > 0 ? 'start' : 'end'} baseline="central" size={14}>
-              x
-            </InkText>
-          );
-        })()}
-      {/* apex-to-crossbar dimension */}
-      {(() => {
-        const a = P(-L * 0.75 - 26, Hf);
-        const b = P(-L * 0.75 - 26, Hf - h);
-        return (
-          <g>
-            <DimLine x1={b.x} y1={b.y} x2={a.x} y2={a.y} />
-            <InkText x={(a.x + b.x) / 2 - 8} y={(a.y + b.y) / 2} anchor="end" baseline="central" size={14}>
-              h
-            </InkText>
-          </g>
-        );
-      })()}
+      <path d={leg(P(-L, 0))} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.1 }} />
+      <path d={leg(P(L, 0))} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.1 }} />
+      <path d={`M ${cl.x} ${cl.y} L ${cr.x} ${cr.y}`} style={{ stroke: C.ink, strokeWidth: 5 * k + 2, strokeLinecap: 'butt' }} />
+      <path d={`M ${cl.x} ${cl.y} L ${cr.x} ${cr.y}`} style={{ stroke: C.paper, strokeWidth: 5 * k, strokeLinecap: 'butt' }} />
+      <path d={ticks.join(' ')} style={{ stroke: C.soft, strokeWidth: 0.8 }} />
+      <line x1={m1.x} y1={m1.y} x2={m2.x} y2={m2.y} style={{ stroke: C.ink, strokeWidth: 1.6 }} />
+      <circle cx={apex.x} cy={apex.y} r={3} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
+      {/* apex-to-crossbar dimension, h */}
+      <DimLine x1={G.hDim.b.x} y1={G.hDim.b.y} x2={G.hDim.a.x} y2={G.hDim.a.y} role="brass" />
+      <InkText x={G.hLabel.x} y={G.hLabel.y} anchor="end" baseline="central" size={14} role="brass">
+        h
+      </InkText>
+      {/* the miss x, from the centre mark to where the string crosses (its rest position) */}
+      {showX && (
+        <g>
+          <DimLine x1={mark.x} y1={mark.y} x2={G.hit.x} y2={G.hit.y} offset={G.dimOffset} role="red" />
+          <InkText x={G.xLabelPt.x} y={G.xLabelPt.y} anchor="middle" baseline="central" size={14} role="red">
+            x
+          </InkText>
+        </g>
+      )}
+      <line x1={apex.x} y1={apex.y} x2={bob.x} y2={bob.y} style={{ stroke: C.ink, strokeWidth: 0.9 }} />
+      <circle cx={hit.x} cy={hit.y} r={2.6} style={{ fill: C.red }} />
+      <Bob x={bob.x} y={bob.y} s={0.85 + 0.15 * k} />
       <InkText x={apex.x + 10} y={apex.y - 8} size={12}>
         apex
       </InkText>
-      <InkText
-        x={cx}
-        y={Hs - 22}
-        anchor="middle"
-        size={narrow ? 12 : 13}
-        role={level ? 'red' : 'soft'}
-      >
-        {level
-          ? 'level: the string falls on the mark'
-          : `tilted ${Math.abs(theta).toFixed(1)}°: the string misses the mark`}
+      <InkText x={G.status.x} y={G.status.y} anchor="middle" size={narrow ? 12 : 13} role={G.level ? 'red' : 'soft'}>
+        {G.statusText}
       </InkText>
     </svg>
   );
@@ -251,43 +181,14 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
 
 /* ── cord mode: the havayi terazi between two poles ── */
 
-const SPAN = 6; // m between poles
-const NEAR = 1.2; // cord tied at this mark on the near pole (m)
-const DROP = 0.3; // the ground falls this much between the poles (m)
+const { SPAN, NEAR, DROP } = CORD;
 
 function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
-  const narrow = W < 520;
-  const Hs = narrow ? 320 : 340;
-  const S = Math.min(W * 0.4, 250);
-  const xL = W / 2 - S;
-  const xR = W / 2 + S;
-  const ky = (Hs - 110) / 2.1; // px per metre, vertical (exaggerated)
-  const gL = Hs - 48;
-  const gR = gL + DROP * ky;
-  const yAt = (pole: 'L' | 'R', m: number) => (pole === 'L' ? gL : gR) - m * ky;
-  const a = { x: xL, y: yAt('L', NEAR) };
-  const b = { x: xR, y: yAt('R', far) };
-  const tiltDrawn = Math.atan2(a.y - b.y, b.x - a.x); // rad, + = far end higher
-  const tiltReal = Math.atan2(far - (NEAR + DROP), SPAN); // the true cord slope
-  // triangle hung at the cord midpoint, apex down
-  const side = narrow ? 92 : 116;
-  const th = (side * Math.sqrt(3)) / 2;
-  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-  const ux = Math.cos(tiltDrawn);
-  const uy = -Math.sin(tiltDrawn); // along the cord, screen space
-  const nx = -uy;
-  const ny = ux; // "down" off the cord, perpendicular
-  const drop = 10; // hooks
-  const top = { x: mid.x + nx * drop, y: mid.y + ny * drop };
-  const h1 = { x: top.x - ux * side * 0.5, y: top.y - uy * side * 0.5 };
-  const h2 = { x: top.x + ux * side * 0.5, y: top.y + uy * side * 0.5 };
-  const tip = { x: top.x + nx * th, y: top.y + ny * th };
+  const G = cordLayout(W, far);
+  const { narrow, Hs, S, xL, xR, ky, gL, gR, a, b, tiltDrawn, th, ux, uy, nx, ny, drop, top, h1, h2, tip } = G;
   const dir = { x: Math.sin(phi), y: Math.cos(phi) };
   const strLen = th + 6;
   const bob = { x: top.x + dir.x * strLen, y: top.y + dir.y * strLen };
-  const err = far - (NEAR + DROP);
-  const level = Math.abs(err) < 0.006;
-  // pole graduations
   const pole = (x: number, g: number, side: 'L' | 'R') => {
     const p: string[] = [];
     const lab: React.ReactNode[] = [];
@@ -313,111 +214,69 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
     }
     return (
       <g>
-        <rect
-          x={x - 3}
-          y={g - 2.05 * ky}
-          width={6}
-          height={2.05 * ky}
-          style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }}
-        />
+        <rect x={x - 3} y={G.poleTop(g)} width={6} height={2.05 * ky} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
         <path d={p.join(' ')} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
         {lab}
       </g>
     );
   };
   const ground = `M ${xL - 40} ${gL - 3} L ${xL} ${gL} C ${xL + S * 0.6} ${gL + 4}, ${xR - S * 0.7} ${gR - 6}, ${xR} ${gR} L ${xR + 40} ${gR + 2}`;
+  const { r, c: dc } = G.detail;
+  // inside the detail circle: the tip and mark, magnified, with the vertical string. The
+  // string-to-mark offset in the detail is the drawn offset times the magnification.
+  // the string's x at the tip's height (it swings about `top`), relative to the tip, magnified
+  const strAtTip = top.x + dir.x * ((tip.y - top.y) / Math.max(0.2, dir.y));
+  const off = Math.max(-r * 0.8, Math.min(r * 0.8, (tip.x - strAtTip) * G.detail.mag));
+  const bar = r * 0.75;
   return (
     <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="cd-hatch" gap={6} />
-      <path
-        d={`${ground} L ${xR + 40} ${Hs} L ${xL - 40} ${Hs} Z`}
-        style={{ fill: 'url(#cd-hatch)', stroke: 'none' }}
-      />
+      <path d={`${ground} L ${xR + 40} ${Hs} L ${xL - 40} ${Hs} Z`} style={{ fill: 'url(#cd-hatch)', stroke: 'none' }} />
       <path d={ground} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1 }} />
       {pole(xL, gL, 'L')}
       {pole(xR, gR, 'R')}
-      {/* level reference through the near tie point */}
-      <line
-        x1={xL}
-        y1={a.y}
-        x2={xR + 14}
-        y2={a.y}
-        style={{ stroke: C.faint, strokeWidth: 0.8, strokeDasharray: '4 4' }}
-      />
-      {/* the cord */}
+      <line x1={xL} y1={a.y} x2={xR + 14} y2={a.y} style={{ stroke: C.faint, strokeWidth: 0.8, strokeDasharray: '4 4' }} />
       <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} style={{ stroke: C.ink, strokeWidth: 1.2 }} />
-      <circle cx={a.x} cy={a.y} r={3} style={{ fill: C.ink }} />
-      <circle cx={b.x} cy={b.y} r={3.4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.5 }} />
-      {/* hooks + triangle */}
+      <circle cx={a.x} cy={a.y} r={3.4} style={{ fill: C.paper, stroke: C.sky, strokeWidth: 1.6 }} />
+      <circle cx={b.x} cy={b.y} r={3.4} style={{ fill: C.paper, stroke: C.brass, strokeWidth: 1.6 }} />
       <path
         d={`M ${h1.x - nx * drop} ${h1.y - ny * drop} L ${h1.x} ${h1.y} M ${h2.x - nx * drop} ${h2.y - ny * drop} L ${h2.x} ${h2.y}`}
         style={{ stroke: C.soft, strokeWidth: 0.9 }}
       />
-      <path
-        d={`M ${h1.x} ${h1.y} L ${h2.x} ${h2.y} L ${tip.x} ${tip.y} Z`}
-        style={{ fill: 'none', stroke: C.brass, strokeWidth: 5, strokeLinejoin: 'round' }}
-      />
-      <path
-        d={`M ${h1.x} ${h1.y} L ${h2.x} ${h2.y} L ${tip.x} ${tip.y} Z`}
-        style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.8, strokeLinejoin: 'round' }}
-      />
-      <line
-        x1={tip.x - ux * 9}
-        y1={tip.y - uy * 9}
-        x2={tip.x + ux * 9}
-        y2={tip.y + uy * 9}
-        style={{ stroke: C.red, strokeWidth: 1.6 }}
-      />
+      <path d={`M ${h1.x} ${h1.y} L ${h2.x} ${h2.y} L ${tip.x} ${tip.y} Z`} style={{ fill: 'none', stroke: C.brass, strokeWidth: 5, strokeLinejoin: 'round' }} />
+      <path d={`M ${h1.x} ${h1.y} L ${h2.x} ${h2.y} L ${tip.x} ${tip.y} Z`} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.8, strokeLinejoin: 'round' }} />
+      <line x1={tip.x - ux * 9} y1={tip.y - uy * 9} x2={tip.x + ux * 9} y2={tip.y + uy * 9} style={{ stroke: C.red, strokeWidth: 1.6 }} />
       <line x1={top.x} y1={top.y} x2={bob.x} y2={bob.y} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
       <Bob x={bob.x} y={bob.y - 2} s={0.7} />
-      {/* detail circle: the tip and the string at five times size */}
-      {(() => {
-        const r = narrow ? 34 : 40;
-        const dx = W / 2 + S * 0.64;
-        const cordY = a.y + ((b.y - a.y) * (dx - xL)) / (xR - xL);
-        const dc = { x: dx, y: cordY + r + 18 };
-        const off = Math.max(-r * 0.7, Math.min(r * 0.7, Math.sin(tiltDrawn) * th * 2));
-        const mx = dc.x + off;
-        const bar = r * 0.75;
-        const sx = Math.sin(phi) * r;
-        return (
-          <g>
-            <circle cx={tip.x} cy={tip.y} r={9} style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.7, strokeDasharray: '2 2' }} />
-            <line x1={tip.x + 9} y1={tip.y - 3} x2={dc.x - r} y2={dc.y + 6} style={{ stroke: C.soft, strokeWidth: 0.6, strokeDasharray: '2 2' }} />
-            <circle cx={dc.x} cy={dc.y} r={r} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 0.9 }} />
-            <clipPath id="cd-detail">
-              <circle cx={dc.x} cy={dc.y} r={r - 1} />
-            </clipPath>
-            <g clipPath="url(#cd-detail)">
-            <g transform={`rotate(${-tiltDrawn / RAD} ${mx} ${dc.y + 4})`}>
-              <path d={`M ${mx - bar * 0.5} ${dc.y - r} L ${mx} ${dc.y + 4} L ${mx + bar * 0.5} ${dc.y - r}`} style={{ fill: 'none', stroke: C.brass, strokeWidth: 6, strokeLinejoin: 'round' }} />
-              <line x1={mx - 10} y1={dc.y + 8} x2={mx + 10} y2={dc.y + 8} style={{ stroke: C.red, strokeWidth: 1.8 }} />
-            </g>
-            <line x1={dc.x - sx} y1={dc.y - r + 2} x2={dc.x + sx} y2={dc.y + r - 2} style={{ stroke: C.ink, strokeWidth: 1 }} />
-            </g>
-            <InkText x={dc.x} y={dc.y + r + 14} anchor="middle" size={11} role="soft">
-              the tip, enlarged
-            </InkText>
+      <g>
+        <circle cx={tip.x} cy={tip.y} r={9} style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.7, strokeDasharray: '2 2' }} />
+        <line x1={tip.x + 9} y1={tip.y} x2={dc.x - r} y2={dc.y} style={{ stroke: C.soft, strokeWidth: 0.6, strokeDasharray: '2 2' }} />
+        <circle cx={dc.x} cy={dc.y} r={r} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 0.9 }} />
+        <clipPath id="cd-detail">
+          <circle cx={dc.x} cy={dc.y} r={r - 1} />
+        </clipPath>
+        <g clipPath="url(#cd-detail)">
+          <g transform={`rotate(${-tiltDrawn / RAD} ${dc.x + off} ${dc.y + 4})`}>
+            <path
+              d={`M ${dc.x + off - bar * 0.5} ${dc.y - r} L ${dc.x + off} ${dc.y + 4} L ${dc.x + off + bar * 0.5} ${dc.y - r}`}
+              style={{ fill: 'none', stroke: C.brass, strokeWidth: 6, strokeLinejoin: 'round' }}
+            />
+            <line x1={dc.x + off - 10} y1={dc.y + 8} x2={dc.x + off + 10} y2={dc.y + 8} style={{ stroke: C.red, strokeWidth: 1.8 }} />
           </g>
-        );
-      })()}
-      {/* labels */}
-      <InkText x={xL - 6} y={gL - 2.05 * ky - 8} anchor="middle" size={12} role="soft">
+          <line x1={dc.x} y1={dc.y - r} x2={dc.x} y2={dc.y + r} style={{ stroke: C.ink, strokeWidth: 1 }} />
+        </g>
+        <InkText x={dc.x} y={dc.y + r + 14} anchor="middle" size={11} role="soft">
+          the tip, enlarged
+        </InkText>
+      </g>
+      <InkText x={xL} y={G.poleTop(gL) - 8} anchor="middle" size={12} role="sky">
         near pole
       </InkText>
-      <InkText x={xR + 6} y={gR - 2.05 * ky - 8} anchor="middle" size={12} role="soft">
+      <InkText x={xR} y={G.poleTop(gR) - 8} anchor="middle" size={12} role="brass">
         far pole
       </InkText>
-      <InkText
-        x={W / 2}
-        y={Hs - 14}
-        anchor="middle"
-        size={narrow ? 12 : 13}
-        role={level ? 'red' : 'soft'}
-      >
-        {level
-          ? `level: the ground falls ${(DROP * 100).toFixed(0)} cm between the poles`
-          : `cord ${err > 0 ? 'rises' : 'falls'} ${Math.abs(tiltReal / RAD).toFixed(2)}°: keep sliding`}
+      <InkText x={G.status.x} y={G.status.y} anchor="middle" size={narrow ? 12 : 13} role={G.level ? 'red' : 'soft'}>
+        {G.statusText}
       </InkText>
     </svg>
   );
@@ -433,7 +292,9 @@ export default function LevelPlate() {
   const phiA = useSwing(mode === 'aframe' ? theta * RAD : 0, reduced);
   const phiC = useSwing(mode === 'cord' ? Math.atan2(far - NEAR - DROP, SPAN) * 4 : 0, reduced);
   const tanT = Math.tan(theta * RAD);
-  const seked = Math.abs(tanT) < 1e-3 ? '∞' : (7 / Math.abs(tanT)).toFixed(0);
+  const xmm = AFRAME_H_CM * 10 * Math.abs(tanT);
+  const seked = Math.abs(tanT) < 1e-3 ? null : 7 / Math.abs(tanT);
+  const farMax = 1.9;
   return (
     <Plate
       n={1}
@@ -476,34 +337,62 @@ export default function LevelPlate() {
         )}
       </div>
       {mode === 'aframe' ? (
-        <Controls>
-          <Slider
-            label="tilt θ"
-            value={theta}
-            min={-10}
-            max={10}
-            step={0.1}
-            onChange={setTheta}
-            format={(v) => `${fmtSigned(v)}°`}
-          />
-          <Readout label="slope">{`${Math.abs(tanT * 1000).toFixed(0)} mm per m`}</Readout>
-          <Readout label="offset, h = 50 cm">{`${(Math.abs(tanT) * 500).toFixed(0)} mm`}</Readout>
-          <Readout label="seked">{`${seked} palms per cubit`}</Readout>
-        </Controls>
+        <>
+          <Controls>
+            <Slider
+              label="tilt of the stone, θ"
+              value={theta}
+              min={-10}
+              max={10}
+              step={0.1}
+              onChange={setTheta}
+              format={(v) => `${fmtSigned(v)}°`}
+            />
+          </Controls>
+          <Working label="How far the string misses the mark">
+            <Eq>
+              <Sym role="red">x</Sym> = <Sym role="brass">h</Sym> · tan <Sym role="sky">θ</Sym>
+            </Eq>
+            <Eq>
+              <V role="red">{`${xmm.toFixed(0)} mm`}</V> = <V role="brass">{`${AFRAME_H_CM} cm`}</V> · tan{' '}
+              <V role="sky">{`${Math.abs(theta).toFixed(1)}°`}</V>
+            </Eq>
+            <Eq>
+              slope <V>{`${Math.abs(tanT * 1000).toFixed(0)} mm`}</V> per metre, or in Egyptian terms{' '}
+              {seked === null ? (
+                <>flat</>
+              ) : (
+                <>
+                  a seked of <V>{`${seked >= 100 ? seked.toFixed(0) : seked.toFixed(1)} palms`}</V> run per cubit of rise
+                </>
+              )}
+            </Eq>
+          </Working>
+        </>
       ) : (
-        <Controls>
-          <Slider
-            label="far end"
-            value={far}
-            min={1.3}
-            max={1.9}
-            step={0.01}
-            onChange={setFar}
-            format={(v) => `${v.toFixed(2)} m`}
-          />
-          <Readout label="near pole">{`${NEAR.toFixed(2)} m`}</Readout>
-          <Readout label="difference">{`${((far - NEAR) * 100).toFixed(0)} cm`}</Readout>
-        </Controls>
+        <>
+          <Controls>
+            <Slider
+              label="cord height at the far pole"
+              value={far}
+              min={CORD.MIN}
+              max={farMax}
+              step={0.01}
+              onChange={setFar}
+              format={(v) => `${v.toFixed(2)} m`}
+            />
+          </Controls>
+          <Working label="Height difference between the poles">
+            <Eq>
+              fall of the ground = <Sym role="brass">far reading</Sym> − <Sym role="sky">near reading</Sym>
+            </Eq>
+            <Eq>
+              <V role={Math.abs(far - NEAR - DROP) < 0.006 ? 'red' : 'ink'}>{`${((far - NEAR) * 100).toFixed(0)} cm`}</V> ={' '}
+              <V role="brass">{`${far.toFixed(2)} m`}</V> − <V role="sky">{`${NEAR.toFixed(2)} m`}</V>
+              {Math.abs(far - NEAR - DROP) < 0.006 ? ' (cord level, so this is the answer)' : ' (cord not level yet)'}
+            </Eq>
+          </Working>
+        </>
       )}
     </Plate>
   );

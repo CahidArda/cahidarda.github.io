@@ -17,13 +17,20 @@ import {
   Controls,
   InkText,
   Plate,
-  Readout,
+  Eq,
   Slider,
+  Sym,
+  V,
+  Working,
   useInView,
   useReducedMotion,
 } from '../shared';
 
 const RAD = Math.PI / 180;
+/** Tilt limits: beyond about −44° and +63° the objective or eyepiece would hit the alidade
+ *  plate (see scopeClearance in ./geometry.ts, checked by the sweep). */
+const V_MIN = -30;
+const V_MAX = 60;
 
 export function dms(v: number, signed = false) {
   const s = v < 0 ? '−' : signed ? '+' : '';
@@ -382,7 +389,7 @@ export default function TheodolitePlate() {
       </div>
       <Controls>
         <Slider
-          label="turn"
+          label="turn the telescope round"
           value={Math.round(hz * 20) / 20}
           min={0}
           max={359.95}
@@ -391,26 +398,32 @@ export default function TheodolitePlate() {
             setAuto(false);
             setH(x);
           }}
-          format={() => ''}
+          format={(x) => dms(x)}
           width="8rem"
         />
         <Slider
-          label="tilt"
+          label="tip it up or down"
           value={Math.round(v * 20) / 20}
-          min={-30}
-          max={60}
+          min={V_MIN}
+          max={V_MAX}
           step={0.05}
           onChange={(x) => {
             setAuto(false);
             setV(x);
           }}
-          format={() => ''}
+          format={(x) => dms(x, true)}
           width="8rem"
         />
-        <Readout label="Hz">{dms(hz)}</Readout>
-        <Readout label="V">{dms(v, true)}</Readout>
-        <Readout label="zenith">{dms(90 - v)}</Readout>
       </Controls>
+      <Working label="The two angles a theodolite reads">
+        <Eq>
+          horizontal angle <Sym>Hz</Sym> = <V>{dms(hz)}</V>, read on the fixed horizontal circle
+        </Eq>
+        <Eq>
+          elevation <Sym role="red">V</Sym> = <V role="red">{dms(v, true)}</V>, so the zenith angle is 90° − <Sym role="red">V</Sym> ={' '}
+          <V>{dms(90 - v)}</V>
+        </Eq>
+      </Working>
     </Plate>
   );
 }

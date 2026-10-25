@@ -1,61 +1,45 @@
 /**
- * Earth, Plate 3: triangulation. Measure one length on the ground and two angles, get a
- * length you cannot walk.
- *  - Minaret: two stations in line with the foot, a baseline b between them, elevation
- *    angles α (far) and β (near): h = b·tanα·tanβ / (tanβ − tanα). True h = 76 m.
- *  - Bosphorus: a baseline AB along the shore; C on the far shore sighted square to A
- *    (α = 90°) and at β from B: w = b·sinα·sinβ / sin(α+β). True w = 700 m.
- * The error slider perturbs each angle by ±ε (worst case of the four sign combinations)
- * and paints the resulting uncertainty in red on the thing being measured.
+ * Earth: triangulation. Measure one length on the ground and two angles, get a length you
+ * cannot walk. All coordinates come from ./geometry.ts (minaretLayout, straitLayout), which
+ * the sweep script checks.
+ *  - Minaret (elevation view): stations A (far) and B (near) in line with the foot, baseline b,
+ *    elevation angles α at A and β at B: h = b·sin α·sin β / sin(β − α). True h = 76 m.
+ *  - Bosphorus (plan view): baseline AB on the Asian shore, C on the European shore sighted
+ *    square to the baseline at A (α = 90°) and at β from B: AC = b·sin β / sin(α + β).
+ * Each angle may be off by ±ε. The red region is where the two sight lines can then cross (the
+ * overlap of the two error wedges); the bracket beside it gives its lowest and highest point,
+ * which is the range of the answer. It is not symmetric about the true value.
+ * Colours: α and everything at A in sky, β and everything at B in brass, the baseline in ink,
+ * the answer (height, width, error region) in red. The worked equation uses the same roles.
  */
 import { useState } from 'react';
 import {
   C,
   Controls,
   DimLine,
+  Eq,
   HatchDefs,
   InkText,
   Plate,
-  Readout,
   Segmented,
   Slider,
+  Sym,
+  V,
+  Working,
   arcPath,
   useHoverPreview,
   useMeasuredWidth,
 } from '../shared';
+import { RAD, deg, minaretLayout, straitLayout, type Pt } from './geometry';
 
 type Mode = 'minaret' | 'strait';
-const RAD = Math.PI / 180;
-const H_TRUE = 76;
-const W_TRUE = 700;
 
-const deg = (r: number) => r / RAD;
-const fmtDeg = (r: number) => `${deg(r).toFixed(2)}°`;
-const fmtEps = (m: number) => (m === 0 ? '0′' : m < 1 ? `${Math.round(m * 60)}″` : `${m.toFixed(0)}′`);
+const fmtEps = (m: number) => (m === 0 ? '0′' : m < 1 ? `${Math.round(m * 60)}″` : `${m.toFixed(m % 1 ? 1 : 0)}′`);
+const fd = (r: number) => `${deg(r).toFixed(2)}°`;
 
-function heightFrom(b: number, a: number, be: number) {
-  const ta = Math.tan(a);
-  const tb = Math.tan(be);
-  return (b * ta * tb) / (tb - ta);
-}
-function widthFrom(b: number, a: number, be: number) {
-  return (b * Math.sin(a) * Math.sin(be)) / Math.sin(a + be);
-}
-function spread(f: (a: number, b: number) => number, a: number, b: number, e: number) {
-  const vals = [
-    [-1, -1],
-    [-1, 1],
-    [1, -1],
-    [1, 1],
-  ].map(([s1, s2]) => f(a + s1 * e, b + s2 * e));
-  const ok = vals.filter((v) => Number.isFinite(v) && v > 0);
-  if (ok.length < 4) return { lo: Math.min(...ok, 0), hi: Infinity };
-  return { lo: Math.min(...ok), hi: Math.max(...ok) };
-}
-
-/** A Süleymaniye-style pencil minaret, drawn from its foot at (x, g), height Hpx. */
+/** A Süleymaniye-style pencil minaret, foot at (x, g), drawn tip exactly at g − Hpx. */
 function Minaret({ x, g, Hpx }: { x: number; g: number; Hpx: number }) {
-  const w = Math.max(5, Hpx * 0.07);
+  const w = Math.max(4, Hpx * 0.07);
   const capH = Hpx * 0.16;
   const shaftTop = g - Hpx + capH;
   const base = Hpx * 0.18;
@@ -74,134 +58,140 @@ function Minaret({ x, g, Hpx }: { x: number; g: number; Hpx: number }) {
       <rect x={x - w * 0.95} y={g - base} width={w * 1.9} height={base} style={s} />
       <rect x={x - w * 0.62} y={shaftTop} width={w * 1.24} height={g - base - shaftTop} style={s} />
       {[0.45, 0.66].map((f) => balcony(g - Hpx * f))}
-      <path
-        d={`M ${x - w * 0.7} ${shaftTop} L ${x + w * 0.7} ${shaftTop} L ${x} ${g - Hpx} Z`}
-        style={s}
-      />
-      <line x1={x} y1={g - Hpx} x2={x} y2={g - Hpx - 3} style={{ stroke: C.ink, strokeWidth: 1 }} />
+      <path d={`M ${x - w * 0.7} ${shaftTop} L ${x + w * 0.7} ${shaftTop} L ${x} ${g - Hpx} Z`} style={s} />
     </g>
   );
 }
 
-function Station({ x, y, name }: { x: number; y: number; name: string }) {
+function Station({ x, y, role }: { x: number; y: number; role: 'sky' | 'brass' }) {
   return (
     <g>
       <path
         d={`M ${x} ${y} L ${x - 6} ${y + 9} M ${x} ${y} L ${x + 6} ${y + 9} M ${x} ${y} L ${x} ${y + 9}`}
-        style={{ stroke: C.ink, strokeWidth: 1 }}
+        style={{ stroke: C[role], strokeWidth: 1.1 }}
       />
-      <circle cx={x} cy={y} r={2.6} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.2 }} />
-      <InkText x={x} y={y + 22} anchor="middle" kind="title" size={13}>
-        {name}
-      </InkText>
+      <circle cx={x} cy={y} r={2.8} style={{ fill: C.paper, stroke: C[role], strokeWidth: 1.5 }} />
+    </g>
+  );
+}
+
+/** The region's lowest and highest corners (screen y largest and smallest). */
+const extremes = (q: Pt[]) => [q.reduce((a, b) => (b.y > a.y ? b : a)), q.reduce((a, b) => (b.y < a.y ? b : a))];
+const poly = (q: Pt[]) => `M ${q.map((p) => `${p.x} ${p.y}`).join(' L ')} Z`;
+
+/** The range bracket: a vertical line from lo to hi with end ticks, an open arrow if clipped. */
+function RangeBracket({ x, y1, y2, clippedTop }: { x: number; y1: number; y2: number; clippedTop: boolean }) {
+  const st = { stroke: C.red, strokeWidth: 1.3, fill: 'none' };
+  return (
+    <g>
+      <line x1={x} y1={y1} x2={x} y2={y2} style={st} />
+      <line x1={x - 5} y1={y1} x2={x + 5} y2={y1} style={st} />
+      {clippedTop ? (
+        <path d={`M ${x - 4} ${y2 + 7} L ${x} ${y2} L ${x + 4} ${y2 + 7}`} style={st} />
+      ) : (
+        <line x1={x - 5} y1={y2} x2={x + 5} y2={y2} style={st} />
+      )}
     </g>
   );
 }
 
 function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps: number }) {
-  const narrow = W < 520;
-  const right = W - (narrow ? 40 : 70);
-  const k = (right - 24) / 300; // px per metre, same both ways
-  const Hs = Math.round(H_TRUE * k + (narrow ? 130 : 150));
-  const g = Hs - 62;
-  const dA = dB + b;
-  const fx = right;
-  const ax = fx - dA * k;
-  const bx = fx - dB * k;
-  const top = { x: fx, y: g - H_TRUE * k };
-  const al = Math.atan(H_TRUE / dA);
-  const be = Math.atan(H_TRUE / dB);
-  const h = heightFrom(b, al, be);
-  const sp = spread((x, y) => heightFrom(b, x, y), al, be, eps);
-  const lo = Math.max(0, sp.lo);
-  const hi = Math.min(sp.hi, 400);
-  const clampY = (m: number) => Math.max(8, g - m * k);
+  const L = minaretLayout(W, dB, b, eps);
+  const { g, k, fx, ax, bx, al, be, tip, quad, range, rangeLabel } = L;
   return (
-    <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
+    <svg viewBox={`0 0 ${W} ${L.Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="tri-hatch" gap={6} />
-      <rect x={0} y={g} width={W} height={Hs - g} style={{ fill: 'url(#tri-hatch)' }} />
+      <clipPath id="tri-clip">
+        <rect x={0} y={0} width={W} height={g} />
+      </clipPath>
+      <rect x={0} y={g} width={W} height={L.Hs - g} style={{ fill: 'url(#tri-hatch)' }} />
       <line x1={0} y1={g} x2={W} y2={g} style={{ stroke: C.ink, strokeWidth: 1.1 }} />
-      {/* sight lines */}
-      {[ax, bx].map((x) => (
-        <line
-          key={x}
-          x1={x}
-          y1={g}
-          x2={top.x}
-          y2={top.y}
-          style={{ stroke: C.soft, strokeWidth: 0.9, strokeDasharray: '5 3' }}
-        />
-      ))}
-      <path
-        d={arcPath(ax, g, 34, 0, deg(al))}
-        style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.9 }}
-      />
-      <path
-        d={arcPath(bx, g, 26, 0, deg(be))}
-        style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.9 }}
-      />
-      <InkText x={ax + 40} y={g - 6} size={13}>
-        α
-      </InkText>
-      <InkText x={bx + 31} y={g - 6} size={13}>
-        β
-      </InkText>
-      {/* uncertainty band on the minaret */}
-      {eps > 0 && (
-        <g>
-          <rect
-            x={fx - 14}
-            y={clampY(hi)}
-            width={28}
-            height={Math.max(1.5, clampY(lo) - clampY(hi))}
-            style={{ fill: C.red, opacity: 0.16 }}
-          />
-          <line
-            x1={fx - 16}
-            y1={clampY(hi)}
-            x2={fx + 16}
-            y2={clampY(hi)}
-            style={{ stroke: C.red, strokeWidth: 1.4 }}
-          />
-          <line
-            x1={fx - 16}
-            y1={clampY(lo)}
-            x2={fx + 16}
-            y2={clampY(lo)}
-            style={{ stroke: C.red, strokeWidth: 1.4 }}
-          />
+      {/* where the sight lines can cross, given ±ε on each angle */}
+      {eps > 0 && quad && (
+        <g clipPath="url(#tri-clip)">
+          <path d={poly(quad)} style={{ fill: C.red, opacity: 0.18, stroke: C.red, strokeWidth: 0.8 }} />
+          {/* level leaders from the region's lowest and highest corners to the bracket */}
+          {extremes(quad).map((p, i) => (
+            <line
+              key={i}
+              x1={p.x}
+              y1={p.y}
+              x2={range.x}
+              y2={p.y}
+              style={{ stroke: C.red, strokeWidth: 0.6, strokeDasharray: '2 3', opacity: 0.8 }}
+            />
+          ))}
         </g>
       )}
-      <Minaret x={fx} g={g} Hpx={H_TRUE * k} />
-      <DimLine x1={fx} y1={g} x2={fx} y2={top.y} offset={-(narrow ? 20 : 26)} label={`${h.toFixed(1)} m`} size={11} />
-      <DimLine x1={ax} y1={g + 40} x2={bx} y2={g + 40} ends="tick" />
-      <InkText x={(ax + bx) / 2} y={g + 56} anchor="middle" kind="num" size={11}>{`b = ${b} m`}</InkText>
-      <Station x={ax} y={g} name="A" />
-      <Station x={bx} y={g} name="B" />
-      {eps > 0 && (
-        <InkText x={fx - 20} y={Math.max(18, clampY(hi) - 8)} anchor="end" size={12} role="red">
-          {Number.isFinite(sp.hi) ? `${lo.toFixed(0)} to ${hi.toFixed(0)} m` : 'no answer at all'}
-        </InkText>
+      {eps > 0 && !quad && (
+        <rect x={0} y={4} width={W} height={range.y1 - 4} style={{ fill: C.red, opacity: 0.06 }} />
       )}
+      {/* sight lines */}
+      <line x1={ax} y1={g} x2={tip.x} y2={tip.y} style={{ stroke: C.sky, strokeWidth: 1, strokeDasharray: '5 3' }} />
+      <line x1={bx} y1={g} x2={tip.x} y2={tip.y} style={{ stroke: C.brass, strokeWidth: 1, strokeDasharray: '5 3' }} />
+      <path d={arcPath(ax, g, L.rA, 0, deg(al))} style={{ fill: 'none', stroke: C.sky, strokeWidth: 1.2 }} />
+      <path d={arcPath(bx, g, L.rB, 0, deg(be))} style={{ fill: 'none', stroke: C.brass, strokeWidth: 1.2 }} />
+      {L.alLabel.leader && (
+        <line x1={L.alLabel.x} y1={L.alLabel.y + 7} x2={L.alArcMid.x} y2={L.alArcMid.y} style={{ stroke: C.sky, strokeWidth: 0.6 }} />
+      )}
+      {L.beLabel.leader && (
+        <line x1={L.beLabel.x} y1={L.beLabel.y + 7} x2={L.beArcMid.x} y2={L.beArcMid.y} style={{ stroke: C.brass, strokeWidth: 0.6 }} />
+      )}
+      <InkText x={L.alLabel.x} y={L.alLabel.y} anchor="middle" baseline="central" size={14} role="sky">
+        α
+      </InkText>
+      <InkText x={L.beLabel.x} y={L.beLabel.y} anchor="middle" baseline="central" size={14} role="brass">
+        β
+      </InkText>
+      <Minaret x={fx} g={g} Hpx={L.h * k} />
+      <DimLine
+        x1={fx}
+        y1={g}
+        x2={fx}
+        y2={tip.y}
+        offset={-L.dimOff}
+        label={L.hLabelText}
+        role="red"
+        labelRole="red"
+        size={11}
+      />
+      {eps > 0 && (
+        <g>
+          <RangeBracket x={range.x} y1={range.y1} y2={range.y2} clippedTop={range.clippedTop} />
+          <InkText
+            x={rangeLabel.x}
+            y={rangeLabel.y}
+            anchor="middle"
+            baseline="central"
+            kind="num"
+            size={rangeLabel.size}
+            role="red"
+            rotate={90}
+          >
+            {rangeLabel.text}
+          </InkText>
+        </g>
+      )}
+      <DimLine x1={ax} y1={L.baseDim.y} x2={bx} y2={L.baseDim.y} ends="tick" role="ink" />
+      <InkText x={L.baseLabel.x} y={L.baseLabel.y} anchor="middle" kind="num" size={11}>
+        {L.baseLabel.text}
+      </InkText>
+      <Station x={ax} y={g} role="sky" />
+      <Station x={bx} y={g} role="brass" />
+      <InkText x={L.nameA.x} y={L.nameA.y} anchor={L.nameA.anchor} kind="title" size={13} role="sky">
+        A
+      </InkText>
+      <InkText x={L.nameB.x} y={L.nameB.y} anchor={L.nameB.anchor} kind="title" size={13} role="brass">
+        B
+      </InkText>
     </svg>
   );
 }
 
 function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
-  const narrow = W < 520;
-  const Hs = narrow ? 310 : 330;
-  const k = (Hs - 120) / W_TRUE;
-  const nearY = Hs - 62;
-  const farY = nearY - W_TRUE * k;
-  const ax = narrow ? 70 : W * 0.28;
-  const bx = ax + b * k;
-  const al = Math.PI / 2;
-  const be = Math.atan(W_TRUE / b);
-  const w = widthFrom(b, al, be);
-  const sp = spread((x, y) => widthFrom(b, x, y), al, be, eps);
-  const hi = Math.min(sp.hi, 2500);
-  const lo = sp.lo;
-  const yOf = (m: number) => Math.max(10, nearY - m * k);
+  const L = straitLayout(W, b, eps);
+  const { nearY, farY, ax, bx, be, quad, range, rangeLabel } = L;
+  const Hs = L.Hs;
   const shore = (y: number, seed: number) => {
     const pts: string[] = [];
     for (let i = 0; i <= 24; i++) {
@@ -211,7 +201,6 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
     }
     return pts.join(' ');
   };
-  // water ripples
   const ripples: string[] = [];
   for (let r = 0; r < 6; r++) {
     const y = farY + ((r + 0.5) / 6) * (nearY - farY);
@@ -223,67 +212,112 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
   return (
     <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="st-hatch" gap={6} />
-      <rect x={0} y={farY} width={W} height={nearY - farY} style={{ fill: C.sky, opacity: 0.07 }} />
-      <path d={ripples.join(' ')} style={{ fill: 'none', stroke: C.sky, strokeWidth: 0.8, opacity: 0.6 }} />
+      <clipPath id="st-clip">
+        <rect x={0} y={0} width={W} height={nearY} />
+      </clipPath>
+      <rect x={0} y={farY} width={W} height={nearY - farY} style={{ fill: C.sky, opacity: 0.06 }} />
+      <path d={ripples.join(' ')} style={{ fill: 'none', stroke: C.faint, strokeWidth: 0.8 }} />
       <path d={`${shore(farY, 1)} L ${W} 0 L 0 0 Z`} style={{ fill: 'url(#st-hatch)', stroke: 'none' }} />
       <path d={shore(farY, 1)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1 }} />
       <path d={`${shore(nearY, 4)} L ${W} ${Hs} L 0 ${Hs} Z`} style={{ fill: 'url(#st-hatch)', stroke: 'none' }} />
       <path d={shore(nearY, 4)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1.1 }} />
-      <InkText x={W - 10} y={farY - 10} anchor="end" size={12} role="soft">
+      <InkText x={W - 10} y={farY - 12} anchor="end" size={12} role="soft">
         Europe
       </InkText>
-      <InkText x={W - 10} y={nearY + 22} anchor="end" size={12} role="soft">
+      <InkText x={W - 10} y={nearY + 24} anchor="end" size={12} role="soft">
         Asia
       </InkText>
-      {/* uncertainty along A's square line */}
-      {eps > 0 && (
-        <g>
-          <rect
-            x={ax - 9}
-            y={yOf(hi)}
-            width={18}
-            height={Math.max(1.5, yOf(lo) - yOf(hi))}
-            style={{ fill: C.red, opacity: 0.16 }}
-          />
-          <line x1={ax - 11} y1={yOf(hi)} x2={ax + 11} y2={yOf(hi)} style={{ stroke: C.red, strokeWidth: 1.4 }} />
-          <line x1={ax - 11} y1={yOf(lo)} x2={ax + 11} y2={yOf(lo)} style={{ stroke: C.red, strokeWidth: 1.4 }} />
+      {eps > 0 && quad && (
+        <g clipPath="url(#st-clip)">
+          <path d={poly(quad)} style={{ fill: C.red, opacity: 0.2, stroke: C.red, strokeWidth: 0.8 }} />
+          {extremes(quad).map((p, i) => (
+            <line
+              key={i}
+              x1={range.x}
+              y1={p.y}
+              x2={p.x}
+              y2={p.y}
+              style={{ stroke: C.red, strokeWidth: 0.6, strokeDasharray: '2 3', opacity: 0.8 }}
+            />
+          ))}
         </g>
       )}
-      {/* triangle */}
-      <path
-        d={`M ${ax} ${nearY} L ${ax} ${farY} M ${bx} ${nearY} L ${ax} ${farY}`}
-        style={{ stroke: C.soft, strokeWidth: 0.9, strokeDasharray: '5 3' }}
-      />
+      {/* sight lines: A square across, B at β */}
+      <line x1={ax} y1={nearY} x2={L.C.x} y2={L.C.y} style={{ stroke: C.sky, strokeWidth: 1, strokeDasharray: '5 3' }} />
+      <line x1={bx} y1={nearY} x2={L.C.x} y2={L.C.y} style={{ stroke: C.brass, strokeWidth: 1, strokeDasharray: '5 3' }} />
       <line x1={ax} y1={nearY} x2={bx} y2={nearY} style={{ stroke: C.ink, strokeWidth: 1.6 }} />
       <path
         d={`M ${ax + 10} ${nearY} L ${ax + 10} ${nearY - 10} L ${ax} ${nearY - 10}`}
-        style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.9 }}
+        style={{ fill: 'none', stroke: C.sky, strokeWidth: 1.2 }}
       />
-      <path d={arcPath(bx, nearY, 26, 180 - deg(be), 180)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.9 }} />
-      <InkText x={bx - 34} y={nearY - 8} anchor="end" size={13}>
+      <path d={arcPath(bx, nearY, L.rB, 180 - deg(be), 180)} style={{ fill: 'none', stroke: C.brass, strokeWidth: 1.2 }} />
+      <InkText x={L.beLabel.x} y={L.beLabel.y} anchor="middle" baseline="central" size={14} role="brass">
         β
       </InkText>
-      <circle cx={ax} cy={farY} r={3} style={{ fill: C.ink }} />
-      <InkText x={ax - 8} y={farY + 16} anchor="end" kind="title" size={13}>
+      <circle cx={L.C.x} cy={L.C.y} r={3} style={{ fill: C.red }} />
+      <InkText x={ax + 8} y={L.C.y - 8} kind="title" size={13} role="red">
         C
       </InkText>
-      <DimLine x1={ax} y1={nearY} x2={ax} y2={farY} offset={narrow ? 26 : 34} label={`${w.toFixed(0)} m`} size={11} />
-      <DimLine x1={ax} y1={nearY + 26} x2={bx} y2={nearY + 26} ends="tick" />
-      <InkText x={(ax + bx) / 2} y={nearY + 42} anchor="middle" kind="num" size={11}>{`b = ${b} m`}</InkText>
-      <circle cx={ax} cy={nearY} r={2.6} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.2 }} />
-      <circle cx={bx} cy={nearY} r={2.6} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.2 }} />
-      <InkText x={ax - 8} y={nearY + 4} anchor="end" kind="title" size={13}>
+      <DimLine
+        x1={ax}
+        y1={nearY}
+        x2={ax}
+        y2={L.C.y}
+        offset={L.dimOff}
+        label={L.wText}
+        role="red"
+        labelRole="red"
+        size={11}
+      />
+      {eps > 0 && (
+        <g>
+          <RangeBracket x={range.x} y1={range.y1} y2={range.y2} clippedTop={range.clippedTop} />
+          <InkText
+            x={rangeLabel.x}
+            y={rangeLabel.y}
+            anchor="middle"
+            baseline="central"
+            kind="num"
+            size={rangeLabel.size}
+            role="red"
+            rotate={-90}
+          >
+            {rangeLabel.text}
+          </InkText>
+        </g>
+      )}
+      <DimLine x1={ax} y1={nearY + 28} x2={bx} y2={nearY + 28} ends="tick" role="ink" />
+      <InkText x={L.baseLabel.x} y={L.baseLabel.y} anchor="middle" kind="num" size={11}>
+        {L.baseLabel.text}
+      </InkText>
+      <circle cx={ax} cy={nearY} r={2.8} style={{ fill: C.paper, stroke: C.sky, strokeWidth: 1.5 }} />
+      <circle cx={bx} cy={nearY} r={2.8} style={{ fill: C.paper, stroke: C.brass, strokeWidth: 1.5 }} />
+      <InkText x={ax - 8} y={nearY + 4} anchor="end" kind="title" size={13} role="sky">
         A
       </InkText>
-      <InkText x={bx + 8} y={nearY + 4} kind="title" size={13}>
+      <InkText x={bx + 8} y={nearY + 4} kind="title" size={13} role="brass">
         B
       </InkText>
-      {eps > 0 && (
-        <InkText x={ax + 18} y={Math.min(nearY - 40, yOf(lo) + 18)} size={12} role="red">
-          {Number.isFinite(sp.hi) ? `${lo.toFixed(0)} to ${hi.toFixed(0)} m` : 'anywhere past the hills'}
-        </InkText>
-      )}
     </svg>
+  );
+}
+
+/** "63.5 to 94.1 m, i.e. 12.5 m low to 18.1 m high", or the unbounded case, said honestly. */
+function RangeLine({ lo, hi, truth, eps, dp }: { lo: number; hi: number; truth: number; eps: number; dp: number }) {
+  return (
+    <Eq>
+      with each angle off by up to <V>{fmtEps(eps)}</V>:{' '}
+      {Number.isFinite(hi) ? (
+        <>
+          <V role="red">{`${lo.toFixed(dp)} m`}</V> to <V role="red">{`${hi.toFixed(dp)} m`}</V> (
+          <V>{`${(truth - lo).toFixed(dp)} m`}</V> low to <V>{`${(hi - truth).toFixed(dp)} m`}</V> high)
+        </>
+      ) : (
+        <>
+          anything above <V role="red">{`${lo.toFixed(0)} m`}</V>: the lines may never cross
+        </>
+      )}
+    </Eq>
   );
 }
 
@@ -296,34 +330,30 @@ export default function TriangulationPlate() {
   const [eps, setEps] = useState(30); // arcminutes
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(640);
   const e = (eps / 60) * RAD;
-  const bMin = Math.min(bm, 300 - dB);
-  const al = Math.atan(H_TRUE / (dB + bMin));
-  const be = Math.atan(H_TRUE / dB);
-  const sp =
-    mode === 'minaret'
-      ? spread((x, y) => heightFrom(bMin, x, y), al, be, e)
-      : spread((x, y) => widthFrom(bs, x, y), Math.PI / 2, Math.atan(W_TRUE / bs), e);
-  const truth = mode === 'minaret' ? H_TRUE : W_TRUE;
-  const errTxt = !Number.isFinite(sp.hi)
-    ? 'unbounded'
-    : `±${(Math.max(truth - sp.lo, sp.hi - truth)).toFixed(mode === 'minaret' ? 1 : 0)} m`;
+  const bMax = 300 - dB;
+  const bMin = Math.min(bm, bMax); // the slider's range shrinks with dB, the value follows it
+  const M = minaretLayout(W, dB, bMin, e);
+  const S = straitLayout(W, bs, e);
   return (
     <Plate
       n={2}
-      title={mode === 'minaret' ? 'How tall is the minaret?' : 'How wide is the Bosphorus?'}
+      title={mode === 'minaret' ? 'Measuring a minaret from two points' : 'Measuring the Bosphorus from one shore'}
       kicker="one length, two angles"
       caption={
         mode === 'minaret' ? (
           <>
-            Walk a baseline toward the Süleymaniye minaret and read the elevation angle at both
-            ends. Two angles and one length fix the triangle. Push the stations close together,
-            or far away, and watch the same angle error blow up.
+            Side view, to scale. Walk a baseline toward the Süleymaniye minaret and read the
+            elevation angle at both ends. The red patch is everywhere the two sight lines can
+            cross if each angle is off by the error you set; its lowest and highest points are the
+            range of the answer. It is lopsided: the same error pushes the answer up further
+            than down. Put the stations close together, or far away, and it blows up.
           </>
         ) : (
           <>
-            Pace a baseline along the Asian shore. At A, sight a point C on the European shore at
-            a right angle; at B, read the angle to C. Plan view, to scale. A short baseline makes
-            the triangle a sliver, and slivers are where angle errors hide.
+            Plan view, to scale. Pace a baseline along the Asian shore. At A, sight a point C on
+            the European shore square to the baseline; at B, read the angle to C. A short
+            baseline makes a thin triangle, and in a thin triangle a small angle error moves C a
+            long way.
           </>
         )
       }
@@ -332,8 +362,8 @@ export default function TriangulationPlate() {
         <Segmented
           label="Problem"
           options={[
-            { value: 'minaret', label: 'Minaret' },
-            { value: 'strait', label: 'Bosphorus' },
+            { value: 'minaret', label: 'Height of a minaret' },
+            { value: 'strait', label: 'Width of the Bosphorus' },
           ]}
           value={sel}
           onChange={setSel}
@@ -341,38 +371,52 @@ export default function TriangulationPlate() {
         />
       </Controls>
       <div ref={ref} style={{ marginTop: '0.6rem' }}>
-        {mode === 'minaret' ? (
-          <MinaretView W={W} dB={dB} b={bMin} eps={e} />
-        ) : (
-          <StraitView W={W} b={bs} eps={e} />
-        )}
+        {mode === 'minaret' ? <MinaretView W={W} dB={dB} b={bMin} eps={e} /> : <StraitView W={W} b={bs} eps={e} />}
       </div>
       <Controls>
         {mode === 'minaret' ? (
           <>
-            <Slider label="B to foot" value={dB} min={20} max={250} step={5} onChange={setDB} format={(v) => `${v} m`} />
+            <Slider label="B to minaret" value={dB} min={20} max={250} step={5} onChange={setDB} format={(v) => `${v} m`} />
             <Slider
-              label="baseline b"
+              label="baseline b, A to B"
               value={bMin}
               min={5}
-              max={Math.max(5, 300 - dB)}
+              max={bMax}
               step={5}
               onChange={setBm}
               format={(v) => `${v} m`}
             />
-            <Readout label="α">{fmtDeg(al)}</Readout>
-            <Readout label="β">{fmtDeg(be)}</Readout>
           </>
         ) : (
-          <>
-            <Slider label="baseline b" value={bs} min={20} max={600} step={10} onChange={setBs} format={(v) => `${v} m`} />
-            <Readout label="α">90°</Readout>
-            <Readout label="β">{fmtDeg(Math.atan(W_TRUE / bs))}</Readout>
-          </>
+          <Slider label="baseline b, A to B" value={bs} min={20} max={600} step={10} onChange={setBs} format={(v) => `${v} m`} />
         )}
-        <Slider label="angle error ±" value={eps} min={0} max={60} step={0.5} onChange={setEps} format={fmtEps} />
-        <Readout label="result">{errTxt}</Readout>
+        <Slider label="error in each angle" value={eps} min={0} max={60} step={0.5} onChange={setEps} format={fmtEps} />
       </Controls>
+      {mode === 'minaret' ? (
+        <Working label="Height from two angles and a baseline">
+          <Eq>
+            <Sym role="red">h</Sym> = <Sym>b</Sym> · sin <Sym role="sky">α</Sym> · sin <Sym role="brass">β</Sym> / sin(
+            <Sym role="brass">β</Sym> − <Sym role="sky">α</Sym>)
+          </Eq>
+          <Eq>
+            <V role="red">{`${M.h.toFixed(1)} m`}</V> = <V>{`${bMin} m`}</V> · sin <V role="sky">{fd(M.al)}</V> · sin{' '}
+            <V role="brass">{fd(M.be)}</V> / sin <V>{fd(M.be - M.al)}</V>
+          </Eq>
+          {eps > 0 && <RangeLine lo={M.reg.lo} hi={M.reg.hi} truth={M.h} eps={eps} dp={1} />}
+        </Working>
+      ) : (
+        <Working label="Width from two angles and a baseline (law of sines)">
+          <Eq>
+            <Sym role="red">w</Sym> = <Sym>b</Sym> · sin <Sym role="sky">α</Sym> · sin <Sym role="brass">β</Sym> / sin(
+            <Sym role="sky">α</Sym> + <Sym role="brass">β</Sym>)
+          </Eq>
+          <Eq>
+            <V role="red">{`${S.w.toFixed(0)} m`}</V> = <V>{`${bs} m`}</V> · sin <V role="sky">90°</V> · sin <V role="brass">{fd(S.be)}</V> / sin(
+            <V role="sky">90°</V> + <V role="brass">{fd(S.be)}</V>)
+          </Eq>
+          {eps > 0 && <RangeLine lo={S.reg.lo} hi={S.reg.hi} truth={S.w} eps={eps} dp={0} />}
+        </Working>
+      )}
     </Plate>
   );
 }

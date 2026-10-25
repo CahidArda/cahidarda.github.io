@@ -1,6 +1,6 @@
 ---
-title: 'Plumb Bob to GPS: How We Learned to Build Straight and Map the Earth'
-description: 'Plumb bobs, cubits, aqueducts, triangulation and the theodolite: how builders and surveyors learned to make things level, straight and to scale, and then to measure a whole country.'
+title: 'How to Measure Heights and Distances: From Plumb Bobs to GPS'
+description: 'How builders and surveyors measured level, height and distance, from the plumb bob and the A-frame through triangulation and the theodolite to GPS.'
 date: 2026-10-25
 tags: ['blog']
 series: instruments
@@ -13,6 +13,8 @@ import LevelPlate from '../../../components/interactives/instruments/earth/Level
 import TriangulationPlate from '../../../components/interactives/instruments/earth/TriangulationPlate.tsx';
 import TheodolitePlate from '../../../components/interactives/instruments/earth/TheodolitePlate.tsx';
 import ArcsecondPlate from '../../../components/interactives/instruments/earth/ArcsecondPlate.tsx';
+import PrecisionLadder from '../../../components/interactives/instruments/PrecisionLadder.tsx';
+import { SURVEY_LADDER } from '../../../components/interactives/instruments/earth/surveyLadder.ts';
 import plumbLevels from '../../../assets/instruments/miniature-plumb-levels.jpg';
 import sinanPanel from '../../../assets/instruments/sinan-panel.jpg';
 import theodoliteBox from '../../../assets/instruments/theodolite-box.jpg';
@@ -48,7 +50,7 @@ A weight on a string may be the oldest measuring instrument still sold in hardwa
 climbs from it to the satellites that now tell a surveyor where she stands to the centimetre.
 Every rung exists because the one below it hit a wall.
 
-## A string that knows which way is down
+## Finding level with a plumb line
 
 Gravity gives you one free direction: down. A plumb line shows it, so it tells you whether a
 wall is vertical. Level is harder, because nothing points sideways for you.
@@ -82,7 +84,7 @@ the Pera Museum's teacher booklet says Sinan used one to build the Kırkçeşme 
 The wall: a level tells you that two points are at the same height. It does not tell you how far
 apart they are.
 
-## A length you can hold
+## Units of length: the cubit and the arşın
 
 For that you need a unit, and a stick that carries it. The Egyptian royal cubit was 7 palms or
 28 digits, and surviving cubit rods are about 52.5 cm long
@@ -117,7 +119,7 @@ drawing instrument is my favourite thing in the whole exhibition.
 The wall: rods and levels work at the scale of a building. Carry them across 50 km of hills
 and the small errors add up.
 
-## Rome: holding a slope for 50 km
+## Roman levelling over 50 km
 
 Roman surveyors had the groma (a cross on a pole with four plumb lines, for straight lines and
 right angles) and the chorobates, a 20-foot bench with plumb lines and a water channel cut into
@@ -137,7 +139,7 @@ crews met with an offset of about 60 cm over a kilometre
 The wall: all of this is step by step. Every leapfrog of the poles adds a little error, and you
 cannot pace across a river or up a minaret.
 
-## Triangulation: one length, then only angles
+## Triangulation: distances from angles
 
 The trick is to stop measuring lengths. Measure one baseline carefully, then measure the angles
 from both ends to a far point. A triangle with one known side and two known angles is fixed.
@@ -159,10 +161,10 @@ covered France, and their map came out in 181 sheets at 1:86,400
 The same idea measures a height. Stand at two points in line with a minaret, a baseline $b$
 apart, and read the elevation angle at each.
 
-<EqTip note="h is the height. b is the baseline walked toward the minaret. α is the elevation angle from the far station, β from the near one. When the two angles are close, the bottom line is tiny and any error in them is magnified.">
+<EqTip note="h is the height. b is the baseline walked toward the minaret. α is the elevation angle from the far station, β from the near one. β minus α is the angle at the top of the minaret between the two sight lines. When it is small, the bottom line is tiny and any error in the angles is magnified.">
 
 $$
-h = \frac{b\,\tan\alpha\,\tan\beta}{\tan\beta-\tan\alpha}
+h = \frac{b\,\sin\alpha\,\sin\beta}{\sin(\beta-\alpha)}
 $$
 
 </EqTip>
@@ -175,7 +177,7 @@ Snellius's 3.5% is far worse than the pyramid builders' level, so this ladder do
 evenly. Levelling with plumb lines and water was superb early. Long distances lagged until the
 angles got good.
 
-## The theodolite
+## The theodolite: an instrument for measuring angles
 
 Getting the angles good is the theodolite's job. The word first appears in Leonard Digges's
 *Pantometria* of 1571, and nobody knows where it comes from
@@ -236,7 +238,7 @@ plumb line (same source). The 2020 Nepal-China figure is 8,848.86 m, or 29,032 f
 ([AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements/)).
 A team with brass circles and log tables was off by about 30 ft, or 0.1%.
 
-## From measuring to building: the scale drawing
+## Scale drawings: taking measurements back to the building site
 
 Measuring is half the story. The other half is carrying a measurement from paper to stone. The
 second photo above is a drawing of a mosque door by Mehmed Nuri, a student at the
@@ -250,7 +252,7 @@ the Ottoman, they are marked *mikyas ½*, half full size, because a carpenter ne
 itself, not a picture of it. A scale drawing is a theodolite run backwards: the measurements go
 from the paper out into the world.
 
-## Total stations, satellites, lasers
+## Total stations, GPS and lidar
 
 A modern total station is a theodolite with a laser rangefinder and a computer. A Leica TS13
 reads angles to 1″ in its best version, the same as Ramsden's giant, and distances to a prism
@@ -264,9 +266,30 @@ No line of sight, no triangle chain. And airborne LiDAR sweeps the ground with l
 at least 8 points per square metre with 10 cm vertical accuracy in the USGS's QL1 standard
 ([USGS](https://www.usgs.gov/3d-elevation-program/topographic-data-quality-levels-qls)).
 
+Put all of these on one scale, the error in a measured length per kilometre, and the
+climb is not a straight one.
+
+<div class="fx-figure">
+  <PrecisionLadder
+    client:visible
+    n={5}
+    config={SURVEY_LADDER}
+    title="How precisely we could measure distance, from the pyramids to GPS"
+    caption={
+      <>
+        Error per kilometre of length measured, on a log scale; the red line is the best so
+        far. The pyramid builders levelled a 325 m pavement to a few centimetres per kilometre,
+        while Snellius's triangle chain, 4,000 years later, was off by 35 m per km. Short,
+        careful levelling was good early; long distances only caught up when the angles did.
+        The years before 1500 are squeezed into the dashed stretch.
+      </>
+    }
+  />
+</div>
+
 The plumb bob is still in the kit.
 
-## The end of the ladder
+## Where the three series meet
 
 That closes the series. Three ladders, for [time, the sky and the ground](/articles/instruments),
 and the same shape every time: a crude method that worked, a wall, a better instrument. They
