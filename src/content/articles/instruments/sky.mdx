@@ -16,6 +16,7 @@ import DoubleReflection from '../../../components/interactives/instruments/sky/D
 import NoonSight from '../../../components/interactives/instruments/sky/NoonSight.tsx';
 import SunDeclination from '../../../components/interactives/instruments/sky/SunDeclination.tsx';
 import AngleLadder from '../../../components/interactives/instruments/sky/AngleLadder.tsx';
+import NoonSightProcedure from '../../../components/interactives/instruments/sky/NoonSightProcedure.tsx'; // preview (StepPlate agent): move or remove
 import sextant from '../../../assets/instruments/sextant.jpg';
 
 On one table in the exhibition there was a dark green sextant, a theodolite box, and a panel
@@ -246,3 +247,11 @@ is, and eventually how big a country is.
 - [Lunar distance](https://en.wikipedia.org/wiki/Lunar_distance_%28navigation%29) (Wikipedia).
 - [AAC Clyde ST200 datasheet](https://www.aac-clyde.space/wp-content/uploads/2021/11/ST200.pdf); [Hipparcos mission](https://cosmos.esa.int/web/hipparcos/the-mission) (ESA); [Gaia ends science operations](https://skyandtelescope.org/astronomy-news/galaxy-mapping-satellite-ends-science-operations/) (Sky & Telescope).
 - The coin-on-the-Moon and coin-at-700-metres comparisons, and the factor of twenty million, are my own arithmetic.
+
+{/* preview: StepPlate reference implementation, added by the StepPlate agent at the end of the
+post only so it can be seen before integration. Integrator: move it into "Latitude from the noon
+sun" (likely replacing NoonSight), renumber the plate, and delete this marker. */}
+
+<div class="fx-figure fx-wide">
+  <NoonSightProcedure client:visible />
+</div>
