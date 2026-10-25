@@ -165,7 +165,7 @@ export default function AlaturkaDial() {
         <svg
           viewBox={narrow ? `0 0 280 ${Hh * 2 - 30}` : `0 0 ${W} ${Hh}`}
           width="100%"
-          style={{ display: 'block', maxWidth: narrow ? 320 : 600, margin: '0 auto' }}
+          style={{ display: 'block', maxWidth: narrow ? 270 : 600, margin: '0 auto' }}
           role="img"
           aria-label={`At ${hm(t)} solar time on ${dayLabel(day)}, an alafranga clock reads ${hm12f(t)} and an alaturka clock reads ${hm12(at)}`}
         >
