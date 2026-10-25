@@ -20,18 +20,23 @@ type PresetId = (typeof PRESETS)[number]['id'];
 function fmtTime(s: number) {
   if (s >= 60) return `${(s / 60).toFixed(s >= 600 ? 0 : 1)} min`;
   if (s >= 1) return `${s.toFixed(s >= 10 ? 0 : 1)} s`;
-  if (s >= 1e-3) return `${(s * 1e3).toPrecision(2)} ms`;
-  if (s >= 1e-6) return `${(s * 1e6).toPrecision(2)} µs`;
-  return `${(s * 1e9).toPrecision(2)} ns`;
+  if (s >= 1e-3) return `${sig(s * 1e3)} ms`;
+  if (s >= 1e-6) return `${sig(s * 1e6)} µs`;
+  return `${sig(s * 1e9)} ns`;
 }
+/** Two or three significant figures, never exponent notation. */
+const sig = (v: number) => {
+  const d = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+  return Number(v.toFixed(d)).toLocaleString('en-US', { maximumFractionDigits: d });
+};
 function fmtDist(m: number) {
-  if (m >= 1e6) return `${Math.round(m / 1e3).toLocaleString('en-US')} km`;
-  if (m >= 1e3) return `${(m / 1e3).toPrecision(3)} km`;
-  if (m >= 1) return `${m.toPrecision(3)} m`;
-  if (m >= 1e-2) return `${(m * 100).toPrecision(2)} cm`;
-  if (m >= 1e-3) return `${(m * 1000).toPrecision(2)} mm`;
-  if (m >= 1e-6) return `${(m * 1e6).toPrecision(2)} µm`;
-  return `${(m * 1e9).toPrecision(2)} nm`;
+  if (m >= 1e9) return `${sig(m / 1e9)} million km`;
+  if (m >= 1e3) return `${sig(m / 1e3)} km`;
+  if (m >= 1) return `${sig(m)} m`;
+  if (m >= 1e-2) return `${sig(m * 100)} cm`;
+  if (m >= 1e-3) return `${sig(m * 1000)} mm`;
+  if (m >= 1e-6) return `${sig(m * 1e6)} µm`;
+  return `${sig(m * 1e9)} nm`;
 }
 
 export default function ClockToDistance() {

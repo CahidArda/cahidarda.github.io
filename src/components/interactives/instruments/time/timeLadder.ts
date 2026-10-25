@@ -22,7 +22,7 @@ const SHORT: Record<string, string> = {
 };
 
 /** Vertical nudges (px) so neighbouring labels clear each other; found by the sweep. */
-const DY: Record<number, number> = { 0: 14, 1: -2, 3: -7, 4: 3, 6: -3 };
+const DY: Record<number, number> = { 0: -12, 1: 6, 3: -7, 4: 3, 6: -3 };
 
 export const CLOCK_LADDER: LadderConfig = {
   ...TIME_LADDER,

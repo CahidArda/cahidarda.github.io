@@ -168,7 +168,7 @@ function Poster() {
 function PeriodCurve({ L }: { L: number }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(320);
   const H = Math.round(Math.min(230, Math.max(170, W * 0.62)));
-  const m = { l: 34, r: 12, t: 14, b: 30 };
+  const m = { l: 34, r: 12, t: 26, b: 30 };
   const iw = W - m.l - m.r;
   const ih = H - m.t - m.b;
   const TMAX = 4.2;
@@ -209,7 +209,7 @@ function PeriodCurve({ L }: { L: number }) {
         <InkText x={m.l + iw} y={m.t + ih + 27} kind="note" anchor="end" size={11.5} role="brass" halo={false}>
           length L, metres
         </InkText>
-        <InkText x={m.l + 4} y={m.t + 2} kind="note" size={11.5} role="red" baseline="hanging" halo={false}>
+        <InkText x={m.l - 30} y={m.t - 16} kind="note" size={11.5} role="red" baseline="hanging" halo={false}>
           period T, seconds
         </InkText>
         <path
