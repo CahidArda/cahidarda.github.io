@@ -121,10 +121,10 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
     faces.push(f);
     return mesh;
   };
-  const paint = () => {
+  const paint = (kick = true) => {
     const ink = readInk(document.documentElement);
     faces.forEach((f) => f.draw(ink));
-    ctx.invalidate();
+    if (kick) ctx.invalidate(); // not during build: the canvas's render loop is not set up yet
   };
 
   // mater: body + rim (inkified), front limb, back scales
@@ -233,8 +233,8 @@ function buildModel(T: THREE, ctx: BlueprintCtx, first: ModelParams) {
     inst.add(l);
   }
 
-  paint();
-  onThemeChange(() => requestAnimationFrame(paint)); // canvas faces re-read the ink on a theme flip
+  paint(false);
+  onThemeChange(() => requestAnimationFrame(() => paint())); // canvas faces re-read the ink on a theme flip
 
   // eased state
   let faceY = first.face * Math.PI;
