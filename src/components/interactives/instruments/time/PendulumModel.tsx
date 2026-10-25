@@ -1,47 +1,24 @@
 /**
- * Plate 2 (wide): a pendulum clock movement as a blueprint. A 30-tooth escape wheel, a recoil
- * anchor whose pallets lock and release it, and a pendulum hung from the anchor's arbor. The
- * wheel is driven (by a weight we do not draw) and only moves when a pallet lets it: it locks,
- * recoils, drops, and gains half a tooth per swing, one tooth per full period. The slider
- * changes the pendulum length; the animation runs at the true period T = 2π√(L/g).
+ * The pendulum clock's movement in 3D: a 30-tooth escape wheel with pointed, raked teeth, a
+ * Graham DEADBEAT anchor whose pallets span 7½ teeth, and a pendulum hung from the anchor's
+ * arbor. The wheel is driven by a weight and moves only when a pallet lets it: a tooth tip rests
+ * on a locking face (the wheel stands dead still while the anchor slides on), slides over the
+ * impulse face (pushing the pendulum), drops, and lands on the other pallet. Half a tooth per
+ * swing. Every contact comes from ./deadbeat.ts (exact, swept per frame by deadbeat.sweep.ts).
  */
-import { useMemo, useState } from 'react';
-import {
-  BlueprintCanvas,
-  C,
-  Controls,
-  InkText,
-  Plate,
-  Slider,
-  Eq,
-  Sym,
-  V,
-  Working,
-  useMeasuredWidth,
-  type BlueprintCtx,
-  type THREE,
-} from '../shared';
-import {
-  AMP,
-  N_TEETH,
-  PALLETS,
-  PIVOT,
-  R_ROOT,
-  palletsAt,
-  stepMovement,
-  wheelOutline,
-  type Pt,
-} from './escapement';
+import { useMemo } from 'react';
+import { BlueprintCanvas, C, type BlueprintCtx, type THREE } from '../shared';
+import { AMP, PALLETS, PIVOT, R_ROOT, initialState, palletsAt, stepMovement, wheelOutline, type Pt } from './deadbeat';
+import { SECONDS_L, period, rodWorld } from './pendulumGeom';
 
-const G = 9.80665;
-const SECONDS_L = G / (Math.PI * Math.PI); // 0.9936 m: period 2 s
-const L_MIN = 0.1;
-const L_MAX = 4;
-const period = (L: number) => 2 * Math.PI * Math.sqrt(L / G);
-/** Drawn rod length (world units, wheel tip radius = 1). Compressed so 0.1 m and 4 m both fit. */
-const rodWorld = (L: number) => 3.0 + 2.6 * Math.sqrt((L - L_MIN) / (L_MAX - L_MIN));
 const BOB_R = 0.3;
 const FIT = 3.0;
+const ASPECT = 0.8;
+const rotPt = (p: Pt, c: Pt, a: number): Pt => {
+  const k = Math.cos(a);
+  const n = Math.sin(a);
+  return [c[0] + (p[0] - c[0]) * k - (p[1] - c[1]) * n, c[1] + (p[0] - c[0]) * n + (p[1] - c[1]) * k];
+};
 
 /* ───────────────────────── geometry helpers (anchor body) ───────────────────────── */
 
@@ -83,19 +60,19 @@ function armPoly(to: Pt, bulge: number, width = 0.075, n = 14): Pt[] {
 }
 const centroid = (p: Pt[]): Pt => mul(p.reduce(add, [0, 0] as Pt), 1 / p.length);
 const ARM_ENDS = PALLETS.map((p) => {
-  // aim at the back of the pallet, a little outside the wheel
-  const c = centroid(p);
-  return add(c, mul(norm(c), 0.04));
+  // aim at the pallet's outer end (its two arcs' outer points), clear of the wheel
+  const c = centroid([p[0], p[p.length - 1]]);
+  return add(c, mul(norm(c), 0.02));
 });
-const ARMS = [armPoly(ARM_ENDS[0], 0.22), armPoly(ARM_ENDS[1], -0.22)];
+export const ARMS = [armPoly(ARM_ENDS[0], 0.22), armPoly(ARM_ENDS[1], -0.22)];
 
 /* ───────────────────────── the SVG poster (front elevation) ───────────────────────── */
 
 function Poster() {
   const W = 400;
-  const H = 625;
+  const H = 500;
   const k0 = Math.min(1, (2 * FIT * 0.93) / (PIVOT[1] + 0.45 - (PIVOT[1] - rodWorld(SECONDS_L) - BOB_R - 0.1)));
-  const s = (400 / (2 * 0.64 * FIT)) * k0; // px per world unit, as the live camera
+  const s = (400 / (2 * ASPECT * FIT)) * k0; // px per world unit, as the live camera
   const ox = W / 2;
   const oy = H / 2 + ((PIVOT[1] + 0.45 + PIVOT[1] - rodWorld(SECONDS_L) - BOB_R - 0.1) / 2) * s; // wheel centre, as the live model
   const P = (p: Pt) => `${(ox + p[0] * s).toFixed(1)},${(oy - p[1] * s).toFixed(1)}`;
@@ -103,10 +80,12 @@ function Poster() {
   const L = rodWorld(SECONDS_L);
   const bobY = PIVOT[1] - L;
   const ink = { fill: 'none', stroke: C.ink, strokeWidth: 1 };
-  const pals = palletsAt(0);
+  const st0 = initialState();
+  const pals = palletsAt(AMP * Math.sin(st0.phase));
+  const swing = AMP * Math.sin(st0.phase);
   return (
     <svg viewBox={`0 0 ${W} ${H}`}>
-      <polygon points={poly(wheelOutline(0.08))} style={ink} />
+      <polygon points={poly(wheelOutline(st0.w))} style={ink} />
       <circle cx={ox} cy={oy} r={R_ROOT * s * 0.85} style={{ ...ink, strokeWidth: 0.7 }} />
       <circle cx={ox} cy={oy} r={R_ROOT * s * 0.35} style={{ ...ink, strokeWidth: 0.7 }} />
       {[0, 1, 2, 3].map((k) => {
@@ -124,21 +103,23 @@ function Poster() {
       })}
       <circle cx={ox} cy={oy} r={5} style={ink} />
       {ARMS.map((a, i) => (
-        <polygon key={i} points={poly(a)} style={{ ...ink, fill: C.paper }} />
+        <polygon key={i} points={poly(a.map((q) => rotPt(q, PIVOT, swing)))} style={{ ...ink, fill: C.paper }} />
       ))}
       {pals.map((p, i) => (
         <polygon key={i} points={poly(p)} style={{ ...ink, fill: C.paper }} />
       ))}
       <circle cx={ox} cy={oy - PIVOT[1] * s} r={9} style={{ ...ink, fill: C.paper }} />
-      <line
-        x1={ox}
-        y1={oy - PIVOT[1] * s}
-        x2={ox}
-        y2={oy - (bobY + BOB_R) * s}
-        style={{ ...ink, stroke: C.brass, strokeWidth: 1.4 }}
-      />
-      <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s} style={{ ...ink, stroke: C.brass, fill: C.paper }} />
-      <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s * 0.55} style={{ ...ink, stroke: C.brass, strokeWidth: 0.6 }} />
+      <g transform={`rotate(${(-swing * 180) / Math.PI} ${ox} ${oy - PIVOT[1] * s})`}>
+        <line
+          x1={ox}
+          y1={oy - PIVOT[1] * s}
+          x2={ox}
+          y2={oy - (bobY + BOB_R) * s}
+          style={{ ...ink, stroke: C.brass, strokeWidth: 1.4 }}
+        />
+        <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s} style={{ ...ink, stroke: C.brass, fill: C.paper }} />
+        <circle cx={ox} cy={oy - bobY * s} r={BOB_R * s * 0.55} style={{ ...ink, stroke: C.brass, strokeWidth: 0.6 }} />
+      </g>
       {(() => {
         const rA = (L + BOB_R + 0.12) * s;
         const cy0 = oy - PIVOT[1] * s;
@@ -163,180 +144,28 @@ function Poster() {
   );
 }
 
-/* ───────────────────────── the T(L) side drawing ───────────────────────── */
+/* ───────────────────────── the canvas ───────────────────────── */
 
-function PeriodCurve({ L }: { L: number }) {
-  const [ref, W] = useMeasuredWidth<HTMLDivElement>(320);
-  const H = Math.round(Math.min(230, Math.max(170, W * 0.62)));
-  const m = { l: 34, r: 12, t: 26, b: 30 };
-  const iw = W - m.l - m.r;
-  const ih = H - m.t - m.b;
-  const TMAX = 4.2;
-  const x = (l: number) => m.l + (l / L_MAX) * iw;
-  const y = (t: number) => m.t + ih - (t / TMAX) * ih;
-  const d = useMemo(() => {
-    let s = '';
-    for (let i = 0; i <= 80; i++) {
-      const l = (i / 80) * L_MAX;
-      s += `${i ? 'L' : 'M'} ${x(l).toFixed(1)} ${y(period(l)).toFixed(1)} `;
-    }
-    return s;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [W, H]);
-  const T = period(L);
+type Params = { L: number; tilt: number };
+
+/** The rotatable 3D movement. `tilt` (radians): the case off level (the pendulum hangs plumb). */
+export function Movement3D({ L, tilt = 0 }: { L: number; tilt?: number }) {
+  const params = useMemo<Params>(() => ({ L, tilt }), [L, tilt]);
   return (
-    <div ref={ref}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block', overflow: 'visible' }}>
-        {[0, 1, 2, 3, 4].map((t) => (
-          <g key={t}>
-            <line
-              x1={m.l}
-              x2={m.l + iw}
-              y1={y(t)}
-              y2={y(t)}
-              style={{ stroke: C.faint, strokeWidth: 0.5, opacity: 0.6 }}
-            />
-            <InkText x={m.l - 6} y={y(t)} kind="num" anchor="end" baseline="central" size={10} role="soft" halo={false}>
-              {t}
-            </InkText>
-          </g>
-        ))}
-        {[0, 1, 2, 3, 4].map((l) => (
-          <InkText key={l} x={x(l)} y={m.t + ih + 14} kind="num" anchor="middle" size={10} role="soft" halo={false}>
-            {l}
-          </InkText>
-        ))}
-        <InkText x={m.l + iw} y={m.t + ih + 27} kind="note" anchor="end" size={11.5} role="brass" halo={false}>
-          length L, metres
-        </InkText>
-        <InkText x={m.l - 30} y={m.t - 16} kind="note" size={11.5} role="red" baseline="hanging" halo={false}>
-          period T, seconds
-        </InkText>
-        <path
-          d={`M ${m.l} ${m.t} V ${m.t + ih} H ${m.l + iw}`}
-          style={{ stroke: C.ink, strokeWidth: 1, fill: 'none' }}
-        />
-        <path d={d} style={{ stroke: C.ink, strokeWidth: 1.3, fill: 'none' }} />
-        {/* seconds pendulum */}
-        <path
-          d={`M ${x(SECONDS_L)} ${m.t + ih} V ${y(2)} H ${m.l}`}
-          style={{ stroke: C.soft, strokeWidth: 0.7, strokeDasharray: '3 3', fill: 'none' }}
-        />
-        <InkText x={x(SECONDS_L) + 6} y={y(2) + 12} size={11.5} role="soft">
-          the seconds pendulum
-        </InkText>
-        {/* current */}
-        <path
-          d={`M ${x(L)} ${m.t + ih} V ${y(T)}`}
-          style={{ stroke: C.brass, strokeWidth: 1.4, fill: 'none' }}
-        />
-        <path
-          d={`M ${x(L)} ${y(T)} H ${m.l}`}
-          style={{ stroke: C.red, strokeWidth: 1.4, fill: 'none' }}
-        />
-        <circle cx={x(L)} cy={y(T)} r={4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.5 }} />
-        <circle cx={x(L)} cy={m.t + ih} r={2.6} style={{ fill: C.brass }} />
-        <circle cx={m.l} cy={y(T)} r={2.6} style={{ fill: C.red }} />
-      </svg>
-    </div>
+    <BlueprintCanvas<Params>
+      aspect={ASPECT}
+      fit={FIT}
+      animate
+      yaw={-0.42}
+      pitch={0.12}
+      pitchLimit={0.9}
+      params={params}
+      label="Rotatable line drawing of a pendulum clock's deadbeat escapement: a 30-tooth escape wheel, an anchor with two pallets, and a pendulum"
+      poster={<Poster />}
+      build={(T3, ctx) => buildMovement(T3, ctx)}
+    />
   );
 }
-
-/* ───────────────────────── the plate ───────────────────────── */
-
-type Params = { L: number };
-
-export default function PendulumClock() {
-  const [L, setL] = useState(SECONDS_L);
-  const params = useMemo<Params>(() => ({ L }), [L]);
-  const T = period(L);
-  const wheelTurn = N_TEETH * T;
-
-  return (
-    <Plate
-      n={3}
-      wide
-      id="plate-pendulum"
-      title="How the rod length sets the tick"
-      caption={
-        <>
-          The falling weight always pushes the escape wheel clockwise. The two pallets of the
-          anchor let it move half a tooth per swing: a tooth lands on a pallet, is shoved back a
-          little (the recoil), then slips off and the next tooth drops onto the other pallet. The
-          3D pendulum (brass) is squeezed so a 4 m one still fits; the chart is to scale, and the
-          bob runs along the red arc at the true period T.
-        </>
-      }
-    >
-      <div className="tm-split">
-        <div className="tm-canvas">
-          <BlueprintCanvas<Params>
-            aspect={0.64}
-            fit={FIT}
-            animate
-            yaw={-0.42}
-            pitch={0.12}
-            pitchLimit={0.9}
-            params={params}
-            label="Rotatable line drawing of a pendulum clock's anchor escapement: a 30-tooth escape wheel, an anchor with two pallets, and a pendulum"
-            poster={<Poster />}
-            build={(T3, ctx) => buildMovement(T3, ctx)}
-          />
-        </div>
-        <div className="tm-side">
-          <PeriodCurve L={L} />
-          <Working label="Period of the pendulum">
-            <Eq>
-              <Sym role="red">T</Sym> = 2π √(<Sym role="brass">L</Sym> ÷ <Sym>g</Sym>)
-            </Eq>
-            <Eq>
-              <V role="red">{T.toFixed(2)} s</V> = 2π √(<V role="brass">{L.toFixed(3)} m</V> ÷ <V>9.81 m/s²</V>)
-            </Eq>
-          </Working>
-          <dl className="tm-facts">
-            <div>
-              <dt>ticks a minute (one per half swing)</dt>
-              <dd>{(120 / T).toFixed(1)}</dd>
-            </div>
-            <div>
-              <dt>escape wheel turns once in</dt>
-              <dd>{wheelTurn < 100 ? `${wheelTurn.toFixed(1)} s` : `${(wheelTurn / 60).toFixed(2)} min`}</dd>
-            </div>
-          </dl>
-          <p className="tm-note">
-            {Math.abs(L - SECONDS_L) < 0.004
-              ? 'A 2 s period: one tick per second, and the 30-tooth wheel turns once a minute, so a seconds hand can sit on its arbor.'
-              : 'Set the rod to 0.994 m and every tick is one second.'}
-          </p>
-        </div>
-      </div>
-      <Controls>
-        <Slider
-          label="pendulum length L"
-          value={L}
-          min={L_MIN}
-          max={L_MAX}
-          step={0.001}
-          onChange={(v) => setL(Math.abs(v - SECONDS_L) < 0.012 ? SECONDS_L : v)}
-          format={(v) => `${v.toFixed(3)} m`}
-          width="12rem"
-        />
-      </Controls>
-      <style>{CSS}</style>
-    </Plate>
-  );
-}
-
-const CSS = `
-.tm-split { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: center; }
-@media (min-width: 40rem) { .tm-split { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.5rem; } }
-.tm-canvas { max-width: 26rem; width: 100%; margin: 0 auto; }
-.tm-facts { display: grid; gap: 0.35rem; margin: 0.9rem 0 0; }
-.tm-facts > div { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px dotted var(--in-ink-faint); padding-bottom: 0.2rem; }
-.tm-facts dt { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--in-ink-soft); }
-.tm-facts dd { margin: 0; font-family: var(--font-mono); font-size: 0.88rem; font-variant-numeric: tabular-nums; color: var(--in-ink); }
-.tm-note { margin: 0.7rem 0 0; font-family: var(--font-display); font-style: italic; font-size: 0.98rem; line-height: 1.45; color: var(--in-ink-soft); min-height: 4.3em; }
-`;
 
 /* ───────────────────────── the 3D model ───────────────────────── */
 
@@ -483,7 +312,7 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
   ctx.inkify(susp, { threshold: 30, outline: 0 });
   model.add(susp);
 
-  let st = { phase: Math.PI / 2, w: 0 };
+  let st = initialState();
   let lastL = -1;
   const setLength = (L: number) => {
     const Lw = rodWorld(L);
@@ -511,17 +340,18 @@ function buildMovement(T: THREE, ctx: BlueprintCtx) {
       setLength(p.L);
       lastL = p.L;
     }
-    if (ctx.reduced) {
-      st = { phase: Math.PI * 0.3, w: st.w };
-      st = stepMovement(st, 0, period(p.L));
-    } else {
-      // cap dt (tab switches) and substep, so the escapement is right at any frame rate
-      st = stepMovement(st, Math.min(dt, 0.1), period(p.L));
+    // the case is off level by `tilt`; anchor and pendulum angles below are relative to it, and
+    // a = θ − tilt, where θ = AMP·sin(phase) is the pendulum's swing about the true vertical
+    model.rotation.z = p.tilt;
+    if (!ctx.reduced) {
+      // cap dt (tab switches); stepMovement substeps, so the escapement is right at any frame rate
+      const n = stepMovement(st, Math.min(dt, 0.1), period(p.L), { tilt: p.tilt });
+      st = { phase: n.phase, w: n.w };
     }
     const w = st.w;
-    const a = AMP * Math.sin(st.phase);
+    const a = AMP * Math.sin(st.phase) - p.tilt; // anchor angle relative to the case
     anchor.rotation.z = a;
-    pend.rotation.z = a;
+    pend.rotation.z = a; // rigid with the anchor through the crutch: plumb ± AMP in the world
     wheel.rotation.z = -w;
     // cord unwinds as the wheel turns clockwise; loop the drop so the weight never leaves
     const drop = (((BARREL_R * w) % 1.0) + 1.0) % 1.0;

@@ -1,6 +1,6 @@
 ---
 title: 'How Clocks Got Accurate: From Sundials to Atomic Clocks'
-description: 'How timekeeping went from sundials and water clocks to pendulum clocks, marine chronometers and atomic clocks, and why each one replaced the last.'
+description: 'Nine clocks in a row, from the sundial to GPS, each built because the one before it failed at something, and each shown step by step.'
 date: 2026-10-25
 tags: ['blog']
 wideLayout: true
@@ -11,24 +11,24 @@ draft: false
 
 import { Image } from 'astro:assets';
 import EqTip from '../../../components/EqTip.astro';
-import PendulumClock from '../../../components/interactives/instruments/time/PendulumClock.tsx';
-import SineQuadrant from '../../../components/interactives/instruments/time/SineQuadrant.tsx';
-import AlaturkaDial from '../../../components/interactives/instruments/time/AlaturkaDial.tsx';
-import ClockToDistance from '../../../components/interactives/instruments/time/ClockToDistance.tsx';
+import SundialPlate from '../../../components/interactives/instruments/time/SundialPlate.tsx';
+import WaterClockPlate from '../../../components/interactives/instruments/time/WaterClockPlate.tsx';
+import QuadrantPlate from '../../../components/interactives/instruments/time/QuadrantPlate.tsx';
+import VergePlate from '../../../components/interactives/instruments/time/VergePlate.tsx';
+import PendulumPlate from '../../../components/interactives/instruments/time/PendulumPlate.tsx';
+import SeaClockPlate from '../../../components/interactives/instruments/time/SeaClockPlate.tsx';
+import QuartzPlate from '../../../components/interactives/instruments/time/QuartzPlate.tsx';
+import AtomicPlate from '../../../components/interactives/instruments/time/AtomicPlate.tsx';
+import GpsPlate from '../../../components/interactives/instruments/time/GpsPlate.tsx';
 import ClockLadder from '../../../components/interactives/instruments/time/ClockLadder.tsx';
 import semiClock from '../../../assets/instruments/semi-clock.jpg';
 import rubuBoards from '../../../assets/instruments/rubu-boards.jpg';
 import rubuDrawing from '../../../assets/instruments/rubu-drawing-1848.jpg';
 
-The clock in the photo below hangs in a glass case in Istanbul. The label says it was made in
-the first half of the 20th century by the clockmaker Mustafa Şem'i, and the dial is signed
-"Mustafa ve Nâsır ve Şürekâsı", Istanbul, number 31. A brass dial, a long wooden rod, a brass
-bob the size of a dinner plate. It is not old by museum standards. What caught me was the
-shelf next to it: two wooden boards for telling the time from the sun, one from 1753 and one
-from 1860.
-
-So in one case you had two ways of answering "what time is it?", separated by a century or two
-and about a metre of glass. This post is the ladder between them, and the rungs above and below.
+In a glass case in Istanbul there is a wall clock with a brass dial and a long wooden pendulum,
+made in the first half of the 20th century by the clockmaker Mustafa Şem'i. On the shelf next to
+it sit two wooden boards for telling the time from the sun, one from 1753 and one from 1860. Two
+answers to "what time is it?", a metre of glass apart.
 
 <div class="fx-figure">
   <figure class="in-photos">
@@ -51,64 +51,67 @@ and about a metre of glass. This post is the ladder between them, and the rungs 
   </figure>
 </div>
 
-Before the details, the whole climb in one chart. Each mark is the best clock of its era and
-how far it drifted in a day. A water clock was off by something like a quarter of an hour. The
-best optical clock today, run for the age of the universe, would be off by less than a second.
+The question underneath both is the same: how far has the sun turned since noon? Every device in
+this post is a better way of carrying that answer, through clouds, through the night, across a
+week, across an ocean, down to a nanosecond. Each one exists because the one before it failed at
+something specific, so each plate below ends where its device breaks.
 
-<div class="fx-figure fx-wide">
-  <ClockLadder client:visible />
-</div>
+The right half of every plate is the same picture: the sun over Istanbul at the true time, what
+the device says, and a gauge of how many seconds a day it gets wrong. Watch the red mark on the
+gauge move right.
 
-Most of that climb happened in the last 400 years. For the three thousand before, the red line
-barely moves. The rest of this post is the rungs, one at a time.
-
-## Sundials
+## The sundial: the hour from a shadow
 
 The oldest sundial we have is Egyptian, from the reign of Thutmose III around 1500 BCE: an
-L-shaped stone with hour marks, turned round at noon to face the other way
-([Oxford, Cabinet](https://www.cabinet.ox.ac.uk/node/9784)).
+L-shaped stone with hour marks, turned round at noon
+([Oxford, Cabinet](https://www.cabinet.ox.ac.uk/node/9784)). Its hours were not ours. The
+daylight was cut into twelve, whatever its length
+([Museo Galileo](https://catalogue.museogalileo.it/indepth/HourLines.html)), so a summer hour was
+longer than a winter one.
 
-A shadow gives you the time of day, but only in the sense the ancient world meant it. The day
-from sunrise to sunset was split into twelve hours, whatever its length
-([Museo Galileo](https://catalogue.museogalileo.it/indepth/HourLines.html)). In Istanbul, by my
-arithmetic, a daytime hour stretches from about 45 minutes in December to 75 in June.
+<div class="fx-figure fx-wide">
+  <SundialPlate client:visible />
+</div>
 
-The wall: no sun, no time. Clouds and nights are a problem for a shadow.
+In Istanbul, by my arithmetic, that hour runs from about 45 minutes in December to 75 in June.
+Tilting the shadow edge to point at the pole fixes the hours, and the same lines then work all
+year. Nothing fixes the night.
 
-## Water clocks
+## The water clock: time in the dark
 
-A water clock works in the dark. The oldest complete one, from the reign of Amenhotep III
-(c. 1390 to 1350 BCE), is a stone bowl with a hole near the bottom and twelve columns of marks
-inside, one per month, because night hours changed length through the year
+A water clock keeps going when the sun is gone. The oldest complete one, from the reign of
+Amenhotep III (c. 1390 to 1350 BCE), is a stone bowl, 46 cm across at the top and 26 cm at the
+bottom, with a hole near its base and twelve columns of marks inside, one per month
 ([McMaster, Ancient Egypt Archive](https://aea.mcmaster.ca/index.php/en/database/water-clocks/wco-1-amenhotep-iii-karnak)).
 
-Its flaw is physics. As the bowl empties, the pressure drops and the flow slows. Around 270 BCE
-Ctesibius of Alexandria fixed that with a header tank kept at constant level, feeding a vessel
-whose float lifts a pointer ([Oxford, Cabinet](https://www.cabinet.ox.ac.uk/node/9787)). In 1206
-al-Jazari's *Book of Knowledge of Ingenious Mechanical Devices* turned the idea into theatre: in
-his elephant clock "every half hour, the bird on the dome whistled"
-([The Met](https://www.metmuseum.org/en/art/collection/search/451402)).
+<div class="fx-figure fx-wide">
+  <WaterClockPlate client:visible />
+</div>
 
-The wall: water changes with temperature, holes clog, and the clock still has to be set from
-the sky. Nobody has a good figure for how well these kept time; a quarter of an hour a day is
-the usual order of magnitude.
+The physics is against an even scale. Water leaves a hole faster when there is more of it above
+the hole, so a full bowl drains quickly and a nearly empty one barely drips. Sloping walls help
+([Wikipedia](https://en.wikipedia.org/wiki/Water_clock)). Ctesibius of Alexandria, around 270 BCE,
+solved it properly with a header tank kept at a constant level, so the flow into a second vessel
+never changed and a float rose at a steady rate
+([Oxford, Cabinet](https://www.cabinet.ox.ac.uk/node/9787)).
+
+But grit, cold water and a slightly wrong start all carry through the night, and the start itself
+has to come from the sun. Setting a clock needs the time from the sun to the minute, at any hour,
+and a shadow on a dial is too coarse for that.
 
 ## The sine quadrant: the hour from the sun's height
 
-Which brings us to the boards. A sine quadrant (*rubʿ al-mujayyab*, in Turkish *rubu tahtası*)
-is a quarter circle with a 60 by 60 grid on its face and a thread hanging from the corner. It
-was described by al-Khwārizmī in 9th-century Baghdad and was used mostly for prayer times
-([Wikipedia](https://en.wikipedia.org/wiki/Sine_quadrant)). The person who used it was the
-*muvakkit*, the mosque timekeeper. The first Ottoman *muvakkithane*, a timekeeper's room next to
-a mosque, is usually taken to be the one at the Fatih Mosque, around 1470
-([Belleten](https://belleten.gov.tr/eng/full-text/215/tur)).
+That is the job of the two boards in the case. A sine quadrant (*rubʿ al-mujayyab*, in Turkish
+*rubu tahtası*) is a quarter circle with a 60 by 60 grid and a thread hanging from the corner.
+al-Khwārizmī described one in 9th-century Baghdad
+([Wikipedia](https://en.wikipedia.org/wiki/Sine_quadrant)). In Ottoman cities it belonged to the
+*muvakkit*, the mosque timekeeper; the first Ottoman timekeeper's room is usually taken to be the
+one at the Fatih Mosque, around 1470 ([Belleten](https://belleten.gov.tr/eng/full-text/215/tur)).
 
-You sight the sun along the top edge and the thread falls to the sun's altitude, $h$. Follow the
-grid line from that point to the edge and you read $60 \sin h$. The board is a sine table you
-can hold. With the date and your latitude, the altitude gives the hour angle $H$, the sun's
-distance from noon:
+You sight the sun along the top edge and the thread falls to its altitude $h$. With the date and
+your latitude, that altitude gives the hour angle $H$, the sun's distance from noon:
 
-<EqTip note="h is the sun's altitude, φ your latitude (41° for Istanbul), δ the sun's declination (how far north or south of the equator it is that day, from −23.4° to +23.4°), and H the hour angle: how far the sun has turned past noon, 15° per hour. The muvakkit solved it for H on the board, step by step.">
+<EqTip note="h is the sun's altitude, φ your latitude (41° for Istanbul), δ the sun's declination that day (how far north or south of the equator it stands, −23.4° to +23.4°), and H the hour angle: how far the sun has turned from noon, 15° per hour.">
 
 $$
 \sin h = \sin\varphi \sin\delta + \cos\varphi \cos\delta \cos H
@@ -116,20 +119,17 @@ $$
 
 </EqTip>
 
-Every term is a sine or a cosine, and the grid does products and quotients with similar
-triangles. Solved for $H$, the date term $\sin\varphi \sin\delta$ is subtracted from $\sin h$ in
-summer, when the sun is north of the equator. In winter $\delta$ is negative, so the same rule
-adds it. The board only holds positive lengths, so the plate draws the shift to the left or to
-the right. Drag the thread:
+Every term is a sine or a cosine, which is exactly what the board's two edges read. Work it the
+way the muvakkit did:
 
-<div class="fx-figure">
-  <SineQuadrant client:visible />
+<div class="fx-figure fx-wide">
+  <QuadrantPlate client:visible />
 </div>
 
-The $\sin\varphi$ and $\cos\varphi$ never change if you never move, which is why the labels on
-both boards say they were made for the 41st parallel, "on which Istanbul also lies". Next to
-them hangs a study sheet from 1848: a quadrant drawn in ink with one red line across the grid.
-Someone wrote on it, in Ottoman, roughly "quadrant drawing, but faulty" (museum label).
+The $\varphi$ terms never change if you never move, which is why both labels say the boards were
+made for the 41st parallel, "on which Istanbul also lies". Next to them is an 1848 study sheet, a
+quadrant drawn in ink, on which someone wrote, roughly, "quadrant drawing, but faulty" (museum
+label).
 
 <div class="fx-figure">
   <figure class="in-photos">
@@ -139,40 +139,43 @@ Someone wrote on it, in Ottoman, roughly "quadrant drawing, but faulty" (museum 
       widths={[480, 800]}
       sizes="(min-width: 62rem) 26rem, 50vw"
     />
-    <figcaption>
-      Quadrant drawing and study notes, 1848. Levha 2 is drawn after it.
-    </figcaption>
+    <figcaption>Quadrant drawing and study notes, 1848. Levha 3 is drawn after it.</figcaption>
   </figure>
 </div>
 
-The wall: the quadrant gives a reading, not a running clock. Between readings you still need
-something that ticks.
+The quadrant gives a reading, not a running clock. Between two readings, something has to tick.
 
-## Mechanical clocks
+## Verge and foliot: a clock that ticks by itself
 
-Mechanical clocks appear in Europe in the late 13th century. Their heart was the verge and
-foliot: a crown-shaped wheel pushed by a weight, and a bar with two weights that swings one way,
-then the other, letting the wheel advance a tooth at a time. The first ones drifted by an hour
-or two a day; the best, by the mid-1600s, about 15 minutes
-([Wikipedia](https://en.wikipedia.org/wiki/Verge_escapement)).
+Mechanical clocks appear in Europe in the late 13th century. In 1271 Robertus Anglicus wrote that
+clockmakers were trying to make one and had not yet succeeded
+([Wikipedia](https://en.wikipedia.org/wiki/Verge_escapement)). The answer was the verge and
+foliot: a crown-shaped wheel turned by a weight, and a bar on a vertical rod whose two flags let
+the wheel go one tooth at a time.
 
-In 1559 (some sources say 1556) Taqi al-Din wrote the first Ottoman book on mechanical clocks,
-and in his Istanbul observatory he used one for timing the stars: "We divided each minute into
-five seconds" ([Muslim Heritage](https://muslimheritage.com/instruments-istanbul-observatory/)).
+<div class="fx-figure fx-wide">
+  <VergePlate client:visible />
+</div>
 
-The wall: a foliot has no rhythm of its own. It swings as fast as the weight pushes it, so
-anything that changes the push changes the time.
+The first ones are thought to have drifted by one to two hours a day, the best by the mid-1600s
+by about 15 minutes ([Wikipedia](https://en.wikipedia.org/wiki/Verge_escapement)). In Istanbul,
+Taqi al-Din wrote the first Ottoman book on mechanical clocks in 1559 (some sources say 1556) and
+used one to time the stars at his observatory: "We divided each minute into five seconds"
+([Muslim Heritage](https://muslimheritage.com/instruments-istanbul-observatory/)).
 
-## Pendulum clocks
+The trouble is in the plate's last step. A foliot has no rhythm of its own: it swings as fast as
+it is pushed, so anything that changes the push changes the time.
 
-A pendulum does have a rhythm of its own. Galileo put isochronism (the swing takes the same time
-whatever its size, if the swing is small) in writing in 1602
+## The pendulum: a clock with its own rhythm
+
+A pendulum has its own rhythm. Galileo put it in writing in 1602: for small swings, the time of a
+swing does not depend on how far it swings
 ([Museo Galileo](https://museogalileo.it/en/galileo/life.html)). Christiaan Huygens built the
-first pendulum clock in 1656, and its error was "less than 1 minute a day"
-([NIST](https://www.nist.gov/node/446006)). The period depends on the length, and almost on
-nothing else:
+first pendulum clock in 1656, and it erred by "less than 1 minute a day"
+([NIST](https://www.nist.gov/node/446006)). The period depends on the length and on gravity, and
+on almost nothing else:
 
-<EqTip note="T is the time for one full swing, there and back. L is the length from the pivot to the bob's centre, and g is gravity's acceleration, about 9.81 m/s². Four times the length doubles the period. The weight of the bob does not appear at all.">
+<EqTip note="T is the time of one full swing, there and back. L is the length from the pivot to the bob's centre, g the acceleration of gravity, about 9.81 m/s². Four times the length doubles the period; the weight of the bob does not appear.">
 
 $$
 T = 2\pi \sqrt{\frac{L}{g}}
@@ -180,78 +183,105 @@ $$
 
 </EqTip>
 
-Around 1670 English clockmakers added the anchor escapement, which cut the swing from about 100°
-to 4 to 6° ([Wikipedia](https://en.wikipedia.org/wiki/Anchor_escapement)). A small swing keeps
-the formula honest. Here is that movement, with a weight driving the wheel and a pendulum you can
-lengthen:
+The escapement below is the deadbeat, first made by Thomas Tompion to a design by Richard
+Towneley in 1675 and made popular by George Graham around 1715
+([Wikipedia](https://en.wikipedia.org/wiki/Escapement)). Its pallets hold the wheel dead still
+while the pendulum swings on, so the clock barely disturbs the thing that keeps its time.
 
 <div class="fx-figure fx-wide">
-  <PendulumClock client:visible />
+  <PendulumPlate client:visible />
 </div>
 
-At 0.994 m the period is exactly 2 seconds. Each half swing releases half a tooth, and a 30-tooth
-wheel turns once a minute, so it can carry the seconds hand
-([Wikipedia](https://en.wikipedia.org/wiki/Anchor_escapement)). The same sensitivity is the
-weakness: if summer heat lengthens that rod by one millimetre, the clock loses about 43 seconds a
-day.
+At 0.994 m the period is 2 seconds, one beat a second
+([Wikipedia](https://en.wikipedia.org/wiki/Pendulum_clock)). Mustafa Şem'i's clock in the photo is
+a weight-driven pendulum clock of this family. Its weakness is in that formula: the rod's length,
+which heat changes, and $g$, which, it turns out, is not the same everywhere.
 
-Mustafa Şem'i's clock is a weight-driven pendulum clock of this family, but in Istanbul the same
-hands could tell a different time. Ottoman time counted the day from sunset, so sunset was 12 o'clock and the clocks had to be reset to it
-every evening ([Bir, Acar and Kaçar](https://www.nazariyat.org/content/5-sayilar/2-2/3-m0007/atilla-bir-sinasi-acar-mustafa-kacar.pdf)).
-The label does not say which way No. 31 was set, so try both:
-
-<div class="fx-figure">
-  <AlaturkaDial client:visible />
-</div>
-
-The poet Ahmet Haşim missed the old way. In his essay "Müslüman Saati" he wrote of a twelve-hour
-day "ziyada başlayıp ziyada biten", beginning and ending in light
-([Milli Gazete](https://www.milligazete.com.tr/ahmet-hasimden-musluman-saati)). Law No. 697
-moved Turkey to a day starting at midnight, in force from 2 January 1926
-([Lexpera](https://www.lexpera.com.tr/mevzuat/kanunlar/gunun-yirmi-dort-saate-taksimine-dair-kanun-697)).
-
-The wall: a pendulum needs a floor that stays still. Put it on a rolling ship and it stops being
-a clock.
-
-## Marine chronometers and longitude
+## The pendulum at sea, and Harrison's answer
 
 At sea, time is longitude. The Earth "turns through one degree of longitude every four minutes"
 ([Royal Museums Greenwich](https://www.rmg.co.uk/stories/time/what-longitude)), so a ship that
-carries home-port time and compares it with local noon knows how far east or west it is. Britain's
-Longitude Act of 1714 offered £20,000 for half a degree, two minutes of time after a long voyage
-([xnatmap](https://xnatmap.org/adnm/docs/2013/long/reward/longreward.htm)).
+carries home-port time and compares it with local noon knows how far east or west it has come.
+Britain's Longitude Act of 1714 offered £20,000 for longitude to within half a degree on a voyage
+to the West Indies, about six weeks
+([Wikipedia](https://en.wikipedia.org/wiki/Longitude_rewards)). Half a degree is two minutes of
+time.
 
-John Harrison's H4, a large pocket watch, sailed to Jamaica in 1761. After 81 days at sea
-([Wikipedia](https://en.wikipedia.org/wiki/John_Harrison)), with its known rate allowed for, "it
-was only 5 seconds slow" ([Linda Hall Library](https://www.lindahall.org/about/news/scientist-of-the-day/john-harrison)).
+Newton told Parliament why no clock could do it: "the motion of a Ship, the variation of heat &
+cold, wet and dry, and the difference of Gravity in different Latitudes"
+([RMG](https://rmg.co.uk/stories/blog/newton-has-his-say)). Huygens had already learned at sea
+that "the pendulum clock would never work accurately on a heaving ship's deck"
+([Smithsonian](https://timeandnavigation.si.edu/navigating-at-sea/longitude-problem/solving-longitude-problem/early-sea-clocks)).
+Here are all three of Newton's enemies, one at a time:
 
-The wall: a balance wheel and a spring are still metal, and metal creeps with heat and age.
+<div class="fx-figure fx-wide">
+  <SeaClockPlate client:visible />
+</div>
 
-## Quartz and atomic clocks
+John Harrison's way out was to drop the pendulum. His first sea clock, H1, used two linked
+balances swinging against each other so the ship's lurches cancelled
+([RMG](https://www.rmg.co.uk/discover/explore/longitude-found-john-harrison)). His fourth, H4, was
+a large watch whose balance "ticks five times a second" (same source). A balance wheel is pulled
+back by a spring, not by gravity, so $g$ drops out of its period:
 
-In 1927 Warren Marrison and J. W. Horton at Bell Labs built a clock around a vibrating quartz
-crystal ([Wikipedia](https://en.wikipedia.org/wiki/Warren_Marrison)). In 1969 Seiko put one on
-a wrist, the Astron, good to five seconds a month
+<EqTip note="I is the balance wheel's moment of inertia (its mass, and how far out that mass sits), κ the stiffness of the spiral spring. No g: heave and latitude do not change it. Heat still does, through both I and κ, which is why chronometers need temperature compensation.">
+
+$$
+T = 2\pi \sqrt{\frac{I}{\kappa}}
+$$
+
+</EqTip>
+
+On the 1761 trial to Jamaica, after 81 days and 5 hours at sea and with its known rate allowed
+for, H4 was 5 seconds slow: about one nautical mile of longitude
+([Wikipedia](https://en.wikipedia.org/wiki/John_Harrison)). After a second trial the Board of
+Longitude agreed it had "kept time within the most stringent limits of the 1714 Act"
+([RMG](https://www.rmg.co.uk/discover/explore/longitude-found-john-harrison)). I first ran into
+this story at the Royal Observatory in Greenwich, which is why this section exists.
+
+The limit now is the metal. A balance and a spring are hand-made, expensive, and still change
+with heat and age.
+
+## Quartz: a crystal that rings
+
+The next oscillator is not a moving part you can see. In 1927 Warren Marrison and J. W. Horton at
+Bell Labs built a clock around a vibrating quartz crystal
+([Wikipedia](https://en.wikipedia.org/wiki/Warren_Marrison)). In 1969 Seiko put one on a wrist,
+the Astron, good to about five seconds a month
 ([IEEE Milestone](https://ethw.org/Milestones:Electronic_Quartz_Wristwatch,_1969)).
 
-In 1955 Louis Essen and Jack Parry at NPL built "the first successful atomic clock", accurate to
-a second in 300 years ([Science Museum Group](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955)).
-Since 1967 the second has been defined by caesium: 9,192,631,770 periods of a particular
-microwave transition ([BIPM](https://www.bipm.org/committees/cg/cgpm/13-1967/resolution-1)).
-Optical clocks now go further. JILA's 2015 strontium clock "would neither gain nor lose one
-second in some 15 billion years" ([NIST](https://www.nist.gov/node/392596)), and in 2025 NIST
-reported an aluminium ion clock better still
-([optics.org](https://optics.org/news/nists-ion-clock-claims-record-for-most-accurate-in-the-world)).
+<div class="fx-figure fx-wide">
+  <QuartzPlate client:visible />
+</div>
 
-The wall, for once, is on our side: very little needs time this good. One thing that does is in
-your pocket.
+Watch crystals ring at 32,768 Hz because it is a power of two: fifteen halvings make one pulse a
+second ([Wikipedia](https://en.wikipedia.org/wiki/Quartz_clock)). They are cut to be truest near
+25 °C and drift with temperature and age
+([Wikipedia](https://en.wikipedia.org/wiki/Crystal_oscillator)). Every crystal is a little
+different, so no two quartz clocks agree for long.
 
-## GPS: position from timing
+## Atomic clocks: counting caesium
 
-Your phone finds itself by timing radio signals from satellites. Light travels about 30 cm in a
-nanosecond, so the distance to a satellite is a clock reading in disguise:
+What quartz lacks is a frequency nature fixes for everyone. In 1955 Louis Essen and Jack Parry at
+NPL built "the first successful atomic clock", good to a second in 300 years
+([Science Museum Group](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955)).
 
-<EqTip note="d is the distance to the satellite, c the speed of light (299,792,458 m/s, exact by definition), and Δt how long the signal took. With four satellites the receiver also solves for its own clock's error.">
+<div class="fx-figure fx-wide">
+  <AtomicPlate client:visible />
+</div>
+
+Since 1967 the second has been defined as 9,192,631,770 periods of that caesium radiation
+([BIPM](https://www.bipm.org/committees/cg/cgpm/13-1967/resolution-1)). JILA's strontium clock
+"would neither gain nor lose one second in some 15 billion years"
+([NIST](https://www.nist.gov/node/392596)). At that point the wall is not the clock: very little
+needs time this good. One thing that does is in your pocket.
+
+## GPS: time is distance
+
+Your phone finds itself by timing radio signals from satellites about 20,200 km up. Light covers
+about 30 cm in a nanosecond, so the distance to a satellite is a clock reading in disguise:
+
+<EqTip note="d is the distance to the satellite, c the speed of light (299,792,458 m/s, exact by definition), Δt how long the signal took. An error of 3 ns in Δt is about 1 m.">
 
 $$
 d = c\,\Delta t
@@ -259,70 +289,79 @@ $$
 
 </EqTip>
 
-Harrison and GPS are the same trick at different speeds:
+It is Harrison's problem again with the speeds changed: an error of 3 nanoseconds is about a metre
+([Ashby](https://www.aapt.org/doorway/tgru/articles/ashbyarticle.pdf)).
 
-<div class="fx-figure">
-  <ClockToDistance client:visible />
+<div class="fx-figure fx-wide">
+  <GpsPlate client:visible />
 </div>
 
-Up there, relativity gets a vote. The satellites feel weaker gravity and move fast, and the net
-effect is that "a GPS satellite clock will gain about 38 microseconds per day"
-([GPS World](https://www.gpsworld.com/inside-the-box-gps-and-relativity/)). Left alone, that
-grows into range errors of up to about 11 km between daily corrections. So the clocks are set to
-tick slow on the ground, at 10.22999999543 MHz instead of 10.23 MHz, and run right in orbit.
+Up there relativity gets a vote: "A GPS satellite clock will gain about 38 microseconds per day"
+([GPS World](https://www.gpsworld.com/inside-the-box-gps-and-relativity/)), which left alone would
+grow into range errors of up to about 11 km between daily corrections. So the satellite clocks are
+set to tick at 10.22999999543 MHz instead of 10.23 MHz on the ground, and run right in orbit
+(same source).
 
-## Next: measuring the sun's angle
+## The whole climb
 
-Notice what the longitude trick needed. A clock that keeps home time, yes, but also a measurement
-of local noon: the sun's highest point, read off the sky with an angle. Harrison solved one half.
-The other half is an instrument that measures angles on a rolling deck, and that is the
-next post: [How to Find Your Latitude](/articles/instruments/sky).
+Every rung, best clock of its time against how far it drifts in a day:
+
+<div class="fx-figure fx-wide">
+  <ClockLadder client:visible />
+</div>
+
+Most of the climb happened in the last 400 years, and each step was one specific failure fixed:
+no sun, an uneven drip, no running count, no rhythm, a moving floor, metal, a crystal that differs
+from every other one.
+
+Notice what the longitude trick still needed besides a clock: the sun's height at local noon,
+measured on a rolling deck. That is the next post:
+[How to Find Your Latitude](/articles/instruments/sky).
 
 ## Sources
 
-- Sundial: [Oxford, Cabinet: Egyptian shadow clock](https://www.cabinet.ox.ac.uk/node/9784).
-  Hour systems: [Museo Galileo, Hour lines](https://catalogue.museogalileo.it/indepth/HourLines.html).
-  The 45 to 75 minute hours at Istanbul are my calculation from the half-day arc, cos H₀ = −tan φ tan δ.
-- Water clocks: [McMaster, Amenhotep III clepsydra](https://aea.mcmaster.ca/index.php/en/database/water-clocks/wco-1-amenhotep-iii-karnak);
-  [Oxford, Cabinet: Ctesibius](https://www.cabinet.ox.ac.uk/node/9787);
-  [The Met, al-Jazari's elephant clock](https://www.metmuseum.org/en/art/collection/search/451402).
-  Water clock accuracy is an order-of-magnitude estimate.
+- Sundial: [Oxford, Cabinet: Egyptian shadow clock](https://www.cabinet.ox.ac.uk/node/9784);
+  hour systems: [Museo Galileo, Hour lines](https://catalogue.museogalileo.it/indepth/HourLines.html).
+  Plate 1's hour lines and the 45 to 75 minute hours are my calculation for 41° N
+  (cos H₀ = −tan φ tan δ, local solar time, no refraction).
+- Water clocks: [McMaster, Amenhotep III clepsydra](https://aea.mcmaster.ca/index.php/en/database/water-clocks/wco-1-amenhotep-iii-karnak)
+  (outflow clock; 46 and 26 cm diameters; 12 columns of holes);
+  [Water clock](https://en.wikipedia.org/wiki/Water_clock) (Wikipedia, sloping sides);
+  [Oxford, Cabinet: Ctesibius](https://www.cabinet.ox.ac.uk/node/9787). Plate 2 uses Torricelli's
+  law; its errors are my model, not measurements.
 - Sine quadrant: [Sine quadrant](https://en.wikipedia.org/wiki/Sine_quadrant) (Wikipedia);
   [The Astrolabe Project, Deconstructing the Sine Quadrant](https://www.astrolabeproject.com/category/sine-quadrant/);
-  the medieval time-from-altitude formula, of Indian origin: David A. King,
-  [An Instrument of Mass Calculation](https://www.ub.edu/arab/suhayl/volums/volum8/paper%203.pdf)
-  (Suhayl 8, 2008, p. 109). The plate's numbers are my arithmetic from the formula above;
-  muvakkithanes: [Belleten](https://belleten.gov.tr/eng/full-text/215/tur). The 1753, 1860 and
-  1848 objects, and Mustafa Şem'i's clock: the exhibition labels.
-- Mechanical clocks: [Verge escapement](https://en.wikipedia.org/wiki/Verge_escapement) and
-  [Anchor escapement](https://en.wikipedia.org/wiki/Anchor_escapement) (Wikipedia); Taqi al-Din:
-  [Muslim Heritage](https://muslimheritage.com/instruments-istanbul-observatory/) and
-  [BEA, McGill](https://islamsci.mcgill.ca/RASI/BEA/Taqi_al-Din_BEA.htm).
+  David A. King, [An Instrument of Mass Calculation](https://www.ub.edu/arab/suhayl/volums/volum8/paper%203.pdf)
+  (Suhayl 8, 2008); muvakkithanes: [Belleten](https://belleten.gov.tr/eng/full-text/215/tur). The
+  1753, 1860 and 1848 objects and Mustafa Şem'i's clock: the exhibition labels.
+- Verge and foliot: [Verge escapement](https://en.wikipedia.org/wiki/Verge_escapement) (Wikipedia);
+  Taqi al-Din: [Muslim Heritage](https://muslimheritage.com/instruments-istanbul-observatory/) and
+  [BEA, McGill](https://islamsci.mcgill.ca/RASI/BEA/Taqi_al-Din_BEA.htm). Plate 4's foliot is a
+  schematic model.
 - Pendulum: [Museo Galileo, Galileo's life](https://museogalileo.it/en/galileo/life.html);
-  [NIST, A Walk Through Time](https://www.nist.gov/node/446006). The 0.994 m length and the 43 s a
-  day for 1 mm are my arithmetic from T = 2π√(L/g).
-- Alaturka time: [Bir, Acar and Kaçar, Nazariyat (2015)](https://www.nazariyat.org/content/5-sayilar/2-2/3-m0007/atilla-bir-sinasi-acar-mustafa-kacar.pdf);
-  [Law No. 697](https://www.lexpera.com.tr/mevzuat/kanunlar/gunun-yirmi-dort-saate-taksimine-dair-kanun-697);
-  Ahmet Haşim via [Milli Gazete](https://www.milligazete.com.tr/ahmet-hasimden-musluman-saati).
-  Plate 4's times are my calculation (solar time, no refraction).
-- Longitude: [Royal Museums Greenwich](https://www.rmg.co.uk/stories/time/what-longitude);
-  [Longitude Act rewards](https://xnatmap.org/adnm/docs/2013/long/reward/longreward.htm);
-  [Linda Hall Library, John Harrison](https://www.lindahall.org/about/news/scientist-of-the-day/john-harrison);
-  [John Harrison](https://en.wikipedia.org/wiki/John_Harrison) (Wikipedia).
-- Quartz and atomic: [Warren Marrison](https://en.wikipedia.org/wiki/Warren_Marrison) (Wikipedia);
-  [IEEE Milestone, Seiko Astron](https://ethw.org/Milestones:Electronic_Quartz_Wristwatch,_1969);
-  [Science Museum Group, caesium clock 1955](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955);
+  [NIST, A Walk Through Time](https://www.nist.gov/node/446006);
+  [Escapement](https://en.wikipedia.org/wiki/Escapement) (deadbeat: Towneley and Tompion 1675,
+  Graham 1715) and [Pendulum clock](https://en.wikipedia.org/wiki/Pendulum_clock) (Wikipedia).
+  The deadbeat in Plate 5 is my own layout (30 teeth, pallets spanning 7½), its contacts computed.
+- At sea: [RMG, What is longitude?](https://www.rmg.co.uk/stories/time/what-longitude);
+  [Longitude rewards](https://en.wikipedia.org/wiki/Longitude_rewards) (Wikipedia);
+  Newton via [RMG, Newton has his say](https://rmg.co.uk/stories/blog/newton-has-his-say);
+  [Smithsonian, Early sea clocks](https://timeandnavigation.si.edu/navigating-at-sea/longitude-problem/solving-longitude-problem/early-sea-clocks);
+  [Jean Richer](https://en.wikipedia.org/wiki/Jean_Richer) (Wikipedia, 2 min 28 s a day);
+  [RMG, Longitude found: John Harrison](https://www.rmg.co.uk/discover/explore/longitude-found-john-harrison);
+  [John Harrison](https://en.wikipedia.org/wiki/John_Harrison) (Wikipedia, the Jamaica trial).
+  Plate 6's sea, gravity (WGS-84) and heat terms are my model; its temperatures are assumptions.
+- Quartz: [Warren Marrison](https://en.wikipedia.org/wiki/Warren_Marrison),
+  [Quartz clock](https://en.wikipedia.org/wiki/Quartz_clock) and
+  [Crystal oscillator](https://en.wikipedia.org/wiki/Crystal_oscillator) (Wikipedia);
+  [IEEE Milestone, Seiko Astron](https://ethw.org/Milestones:Electronic_Quartz_Wristwatch,_1969).
+- Atomic: [Science Museum Group, caesium clock 1955](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955);
   [BIPM, 13th CGPM Resolution 1](https://www.bipm.org/committees/cg/cgpm/13-1967/resolution-1);
   [NIST, JILA strontium clock](https://www.nist.gov/node/392596);
-  [optics.org, NIST ion clock](https://optics.org/news/nists-ion-clock-claims-record-for-most-accurate-in-the-world).
-- Plate 1 (accuracy chart): [Pendulum clock](https://en.wikipedia.org/wiki/Pendulum_clock)
-  (Wikipedia), for "about 15 minutes per day" before the pendulum, 15 seconds a day after it, and
-  the Shortt clock's "better than one second per year";
-  [Science Museum Group, caesium clock 1955](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955),
-  for the comparison with 1930s quartz; [NIST-F2](https://en.wikipedia.org/wiki/NIST-F2)
-  (Wikipedia); Aeppli et al.,
-  [Clock with 8 × 10⁻¹⁹ systematic uncertainty](https://arxiv.org/abs/2403.10664) (2024). The
-  sundial and water clock mark is an order-of-magnitude estimate. Each mark's own source is linked
-  in the chart.
+  [NIST-F2](https://en.wikipedia.org/wiki/NIST-F2) (Wikipedia); Aeppli et al.,
+  [Clock with 8 × 10⁻¹⁹ systematic uncertainty](https://arxiv.org/abs/2403.10664) (2024). Plate
+  8's resonance width is illustrative.
 - GPS: [GPS World, GPS and relativity](https://www.gpsworld.com/inside-the-box-gps-and-relativity/);
   Neil Ashby, [Relativity and the Global Positioning System](https://www.aapt.org/doorway/tgru/articles/ashbyarticle.pdf).
+- Plate 10 (the ladder): each mark's own source is linked in the chart; the sundial and water
+  clock mark is an order-of-magnitude estimate.
