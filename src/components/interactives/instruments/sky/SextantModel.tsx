@@ -406,7 +406,7 @@ export default function SextantModel() {
             ctx.inkify(glassI, { fill: 'deep', outline: 0, threshold: 10 });
             mirrorI.add(glassI);
             const backI = new T.Mesh(new T.BoxGeometry(0.03, 0.24, 0.19));
-            backI.position.set(-0.024, 0, 0.09);
+            backI.position.set(0.024, 0, 0.09); // silvered face towards the sun (−normal side), backing behind it
             ctx.inkify(backI, { outline: 0 });
             mirrorI.add(backI);
 

@@ -26,7 +26,9 @@ function solve(theta: number, tilt: number) {
   const d3 = reflect(d2, nB);
   const tB = { x: -nB.y, y: nB.x };
   const along = P.x * tB.x + P.y * tB.y;
-  return { nA, nB, A, d1, d2, P, d3, hits: Math.abs(along) <= MB + 1e-6 && a > 0 };
+  // the sunlight must reach the silvered face of the upper mirror, not its back
+  const front = d1.x * nA.x + d1.y * nA.y > 0;
+  return { nA, nB, A, d1, d2, P, d3, hits: front && Math.abs(along) <= MB + 1e-6 && a > 0 };
 }
 
 const deg = (v: V2) => Math.atan2(v.y, v.x) / RAD;
@@ -179,7 +181,7 @@ export default function DoubleReflection() {
           <InkText x={mB.q.x - 6} y={mB.q.y + 18} anchor="middle" size={12} role="soft">horizon mirror</InkText>
           {!sv.hits && (
             <InkText x={W / 2} y={H - 8} anchor="middle" size={12} role="red">
-              the ray misses the mirror here, but the angle still holds
+              a real mirror would miss this ray, but the angle still holds
             </InkText>
           )}
         </svg>
