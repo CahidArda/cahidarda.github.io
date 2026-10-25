@@ -204,9 +204,9 @@ function AFrame({ W, theta, phi }: { W: number; theta: number; phi: number }) {
       )}
       {Math.abs(theta) >= 0.6 &&
         (() => {
-          const q = P(off / 2, Hf - h + (theta > 0 ? 44 : -46));
+          const q = P(off + (theta > 0 ? 10 : -10), Hf - h + (theta > 0 ? 26 : -26));
           return (
-            <InkText x={q.x} y={q.y} anchor="middle" baseline="central" size={14}>
+            <InkText x={q.x} y={q.y} anchor={theta > 0 ? 'start' : 'end'} baseline="central" size={14}>
               x
             </InkText>
           );
@@ -369,15 +369,25 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
         const dx = W / 2 + S * 0.64;
         const cordY = a.y + ((b.y - a.y) * (dx - xL)) / (xR - xL);
         const dc = { x: dx, y: cordY + r + 18 };
-        const missPx = Math.max(-r * 0.8, Math.min(r * 0.8, -Math.tan(tiltDrawn) * th * 5));
+        const off = Math.max(-r * 0.7, Math.min(r * 0.7, Math.sin(tiltDrawn) * th * 5));
+        const mx = dc.x + off;
+        const bar = r * 0.75;
+        const sx = Math.sin(phi) * r;
         return (
           <g>
             <circle cx={tip.x} cy={tip.y} r={9} style={{ fill: 'none', stroke: C.soft, strokeWidth: 0.7, strokeDasharray: '2 2' }} />
             <line x1={tip.x + 9} y1={tip.y - 3} x2={dc.x - r} y2={dc.y + 6} style={{ stroke: C.soft, strokeWidth: 0.6, strokeDasharray: '2 2' }} />
             <circle cx={dc.x} cy={dc.y} r={r} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 0.9 }} />
-            <line x1={dc.x - r * 0.75} y1={dc.y + 4} x2={dc.x + r * 0.75} y2={dc.y + 4} style={{ stroke: C.brass, strokeWidth: 6 }} />
-            <line x1={dc.x} y1={dc.y - 2} x2={dc.x} y2={dc.y + 12} style={{ stroke: C.red, strokeWidth: 1.6 }} />
-            <line x1={dc.x + missPx} y1={dc.y - r + 4} x2={dc.x + missPx} y2={dc.y + r - 4} style={{ stroke: C.ink, strokeWidth: 1 }} />
+            <clipPath id="cd-detail">
+              <circle cx={dc.x} cy={dc.y} r={r - 1} />
+            </clipPath>
+            <g clipPath="url(#cd-detail)">
+            <g transform={`rotate(${-tiltDrawn / RAD} ${mx} ${dc.y + 4})`}>
+              <path d={`M ${mx - bar * 0.5} ${dc.y - r} L ${mx} ${dc.y + 4} L ${mx + bar * 0.5} ${dc.y - r}`} style={{ fill: 'none', stroke: C.brass, strokeWidth: 6, strokeLinejoin: 'round' }} />
+              <line x1={mx - 10} y1={dc.y + 8} x2={mx + 10} y2={dc.y + 8} style={{ stroke: C.red, strokeWidth: 1.8 }} />
+            </g>
+            <line x1={dc.x - sx} y1={dc.y - r + 2} x2={dc.x + sx} y2={dc.y + r - 2} style={{ stroke: C.ink, strokeWidth: 1 }} />
+            </g>
             <InkText x={dc.x} y={dc.y + r + 14} anchor="middle" size={11} role="soft">
               tip, five times size
             </InkText>
