@@ -153,9 +153,9 @@ export default function DoubleReflection() {
           <circle cx={a.x} cy={a.y} r={3} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
           {theta > 0.4 && (
             <>
-              <path d={arcPath(a.x, a.y, S * 0.3, angB - theta, angB)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.9 }} />
+              <path d={arcPath(a.x, a.y, S * 0.42, angB - theta, angB)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.9 }} />
               {(() => {
-                const q = { x: a.x + Math.cos((angB - theta / 2) * RAD) * (S * 0.3 + 14), y: a.y - Math.sin((angB - theta / 2) * RAD) * (S * 0.3 + 14) };
+                const q = { x: a.x + Math.cos((angB - theta / 2) * RAD) * (S * 0.42 + 14), y: a.y - Math.sin((angB - theta / 2) * RAD) * (S * 0.42 + 14) };
                 return <InkText x={q.x} y={q.y} anchor="middle" baseline="central" size={14}>θ</InkText>;
               })()}
             </>
@@ -175,7 +175,7 @@ export default function DoubleReflection() {
           {/* the eye */}
           <path d={`M ${out.x - 14} ${out.y} q 7 -7 14 0 q -7 7 -14 0 Z`} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
           <circle cx={out.x - 7} cy={out.y} r={2.2} style={{ fill: C.ink }} />
-          <InkText x={a.x - 14} y={a.y - S * 0.3} anchor="end" size={12} role="soft">index mirror</InkText>
+          <InkText x={mA.q.x + 10} y={mA.q.y + 4} size={12} role="soft">index mirror</InkText>
           <InkText x={mB.q.x - 6} y={mB.q.y + 18} anchor="middle" size={12} role="soft">horizon mirror</InkText>
           {!sv.hits && (
             <InkText x={W / 2} y={H - 8} anchor="middle" size={12} role="red">

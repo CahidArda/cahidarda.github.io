@@ -122,6 +122,12 @@ function Eyepiece({ reading, gRef }: { reading: number; gRef: React.Ref<SVGGElem
           <circle cx={R * 0.45} cy={shown} r={4.5} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.6 }} />
         </g>
       </g>
+      {Math.abs(off) > R - 6 && (
+        <path
+          d={off > 0 ? `M ${R * 0.45 - 6} ${-R + 16} L ${R * 0.45} ${-R + 8} L ${R * 0.45 + 6} ${-R + 16}` : `M ${R * 0.45 - 6} ${R - 16} L ${R * 0.45} ${R - 8} L ${R * 0.45 + 6} ${R - 16}`}
+          style={{ fill: 'none', stroke: C.red, strokeWidth: 1.6 }}
+        />
+      )}
       <line x1={0} y1={-R} x2={0} y2={R} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
       <circle r={R} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1 }} />
     </svg>
@@ -463,12 +469,6 @@ export default function SextantModel() {
             horGeo.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(6), 3));
             const horLine = new T.Line(horGeo, ctx.lineMaterial('sky', { dashed: true, dash: 0.035, gap: 0.025 }));
             world.add(horLine);
-            // ground line (the sea horizon) far left
-            const sea = new T.Line(
-              new T.BufferGeometry().setFromPoints([new T.Vector3(-1.75, H.y - 0.005, 0), new T.Vector3(-1.45, H.y - 0.005, 0)]),
-              ctx.lineMaterial('sky'),
-            );
-            world.add(sea);
 
             pickRef.current = { T, camera: ctx.camera, inst, parts: [armBar, clamp, screw, knob, glassI, backI] };
             return (_dt, t, p) => {

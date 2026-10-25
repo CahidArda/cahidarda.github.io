@@ -5,7 +5,7 @@
  * the angle was good, the unit is where the uncertainty lives.
  */
 import { useState } from 'react';
-import { C, Controls, InkText, Plate, Readout, Segmented, Slider, arcPath, polar, useMeasuredWidth } from '../shared';
+import { C, Controls, HatchDefs, InkText, Plate, Readout, Segmented, Slider, arcPath, polar, useMeasuredWidth } from '../shared';
 
 const DIST = 5000; // stades, Syene to Alexandria
 const STADIA = [
@@ -76,9 +76,12 @@ export default function Eratosthenes() {
           {/* radii towards the centre */}
           {[top, aAlex].map((a) => {
             const p = polar(cx, cy, R + g, a);
-            const q = polar(cx, cy, R * 0.28, a);
+            const q = { x: cx, y: cy };
             return <line key={a} x1={p.x} y1={p.y} x2={q.x} y2={q.y} style={{ stroke: C.soft, strokeWidth: 0.8, strokeDasharray: '5 4' }} />;
           })}
+          {/* the slice of Earth between the cities */}
+          <HatchDefs id="er-hatch" gap={6} role="faint" />
+          <path d={`M ${cx} ${cy} L ${syene.x} ${syene.y} ${arcPath(cx, cy, R, top, aAlex).replace(/^M [^A]+/, '')} Z`} style={{ fill: 'url(#er-hatch)', stroke: 'none', opacity: 0.8 }} />
           {/* angle at the centre */}
           <path d={arcPath(cx, cy, R * 0.3, top, aAlex)} style={{ ...ink, stroke: C.red, strokeWidth: 1.2 }} />
           <circle cx={cx} cy={cy} r={2.2} style={{ fill: C.ink }} />
@@ -112,10 +115,18 @@ export default function Eratosthenes() {
             return <InkText x={p.x + 4} y={p.y + 4} size={13} role="red">{theta.toFixed(1)}°</InkText>;
           })()}
           {/* labels */}
-          <InkText x={syene.x + 10} y={syene.y + 22} size={13}>Syene</InkText>
-          <InkText x={syene.x + 10} y={syene.y + 36} size={11} role="soft">no shadow</InkText>
-          <InkText x={alex.x - 10} y={alex.y + 22} anchor="end" size={13}>Alexandria</InkText>
-          <InkText x={alex.x - 10} y={alex.y + 36} anchor="end" size={11} role="soft">a short shadow</InkText>
+          {(() => {
+            const sl = polar(cx, cy, R + 12, top - 2.5);
+            const al = polar(cx, cy, R + 12, aAlex + 2.5);
+            return (
+              <>
+                <InkText x={sl.x} y={sl.y} size={13}>Syene</InkText>
+                <InkText x={sl.x} y={sl.y + 14} size={11} role="soft">no shadow</InkText>
+                <InkText x={al.x} y={al.y} anchor="end" size={13}>Alexandria</InkText>
+                <InkText x={al.x} y={al.y + 14} anchor="end" size={11} role="soft">a short shadow</InkText>
+              </>
+            );
+          })()}
         </svg>
       </div>
       <Controls>

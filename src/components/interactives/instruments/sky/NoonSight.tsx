@@ -9,7 +9,7 @@ import { C, Controls, InkText, Plate, Readout, Slider, arcPath, polar, useMeasur
 
 const RAD = Math.PI / 180;
 const YEAR = 2026;
-const ISTANBUL = 41.01;
+const ISTANBUL = 41.0136;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** Day of year (1..365) → Date at local noon in Istanbul (≈ 09:50 UTC). */
@@ -93,7 +93,10 @@ export default function NoonSight() {
             const near = polar(base.x, base.y, Re * 1.25, sunDir);
             return <line key={o} x1={far.x} y1={far.y} x2={near.x} y2={near.y} style={{ stroke: C.red, strokeWidth: 0.7, opacity: 0.45 }} />;
           })}
-          <InkText x={W - 10} y={polar(cx, cy, W, sunDir).y > 0 ? 18 : 18} anchor="end" size={12} role="soft">to the sun</InkText>
+          {(() => {
+            const p = polar(cx, cy, W - cx - 14, sunDir);
+            return <InkText x={W - 10} y={p.y - 8} anchor="end" size={12} role="soft">to the sun</InkText>;
+          })()}
           {/* Earth */}
           <circle cx={cx} cy={cy} r={Re} style={{ ...ink, fill: C.paper, strokeWidth: 1.3 }} />
           <line x1={cx - Re - 10} y1={cy} x2={cx + Re + 16} y2={cy} style={{ stroke: C.soft, strokeWidth: 0.8, strokeDasharray: '5 4' }} />
