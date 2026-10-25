@@ -106,10 +106,16 @@ function Vane({ a60, a30 }: { a60: number; a30: number }) {
         <rect x={vane.x0} y={g.slitY - 2} width={vane.x1 - vane.x0} height={4} style={{ fill: C.sky, opacity: 0.5 }} />
         <line x1={vane.x0} y1={g.slitY} x2={vane.x1} y2={g.slitY} style={solid('sky', 1.4)} />
         <InkText x={vane.x1 + 6} y={g.slitY} baseline="central" size={11} role="sky">slit</InkText>
+        {g.off && (
+          <path
+            d={g.off === 'above' ? `M ${g.cx - 8} ${vane.y0 - 4} L ${g.cx} ${vane.y0 - 12} L ${g.cx + 8} ${vane.y0 - 4}` : `M ${g.cx - 8} ${vane.y1 + 4} L ${g.cx} ${vane.y1 + 12} L ${g.cx + 8} ${vane.y1 + 4}`}
+            style={solid('red', 1.8)}
+          />
+        )}
         {Math.abs(g.offMm) <= 6.5 && (
           <line x1={vane.x0 - 8} y1={g.edgeY} x2={vane.x0} y2={g.edgeY} style={solid(g.on ? 'sky' : 'red', 1.6)} />
         )}
-        <InkText x={W / 2} y={18} anchor="middle" kind="label" size={12} role="soft">the horizon vane, close up</InkText>
+        <InkText x={14} y={14} kind="label" size={12} role="soft">the horizon vane, close up</InkText>
         <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={g.on ? 'sky' : 'soft'}>{bsSay(g)}</InkText>
       </svg>
     </div>

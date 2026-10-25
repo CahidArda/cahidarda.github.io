@@ -42,6 +42,7 @@ import {
   swingAt,
 } from './marinerGeom';
 import { dm } from './noonProcGeom';
+import { nmi } from './latRefGeom';
 
 const solid = (role: Role, w = 1.1) => ({ fill: 'none', stroke: C[role], strokeWidth: w });
 const am = (deg: number) => `${deg < 0 ? '−' : '+'}${Math.abs(deg * 60).toFixed(0)}′`;
@@ -56,7 +57,7 @@ function Ring({ a, psi }: { a: number; psi: number }) {
           <line key={i} x1={r.a.x} y1={r.a.y} x2={r.b.x} y2={r.b.y} style={{ ...solid('brass', 0.8), opacity: 0.6 }} />
         ))}
         <line x1={g.level.a.x} y1={g.level.a.y} x2={g.level.b.x} y2={g.level.b.y} style={{ ...solid('soft', 0.8), strokeDasharray: '5 4' }} />
-        <InkText x={g.level.a.x} y={g.level.a.y - 6} size={10} role="soft">level</InkText>
+        <InkText x={g.levelLabel.x} y={g.levelLabel.y} anchor="end" baseline="central" size={10} role="soft">{g.levelLabel.text}</InkText>
         <line x1={g.shackle.x} y1={g.shackle.y - 14} x2={g.shackle.x} y2={g.shackle.y} style={solid('ink', 1.2)} />
         <circle cx={g.shackle.x} cy={g.shackle.y + 5} r={6} style={solid('ink', 1.6)} />
         {/* the ring, its four spokes and the weight at the bottom, all tipped by ψ */}
@@ -68,12 +69,9 @@ function Ring({ a, psi }: { a: number; psi: number }) {
         {g.ticks.map((t) => (
           <line key={t.d} x1={t.p.x} y1={t.p.y} x2={t.q.x} y2={t.q.y} style={solid('paper', t.d % 10 === 0 ? 1.3 : 0.8)} />
         ))}
-        {[0, 30, 60, 90].map((d) => {
-          const s = ((d + psi) * Math.PI) / 180;
-          return (
-            <InkText key={d} x={g.cx + (g.R + 14) * Math.cos(s)} y={g.cy - (g.R + 14) * Math.sin(s)} kind="num" anchor="middle" baseline="central" size={10} role="soft">{`${d}`}</InkText>
-          );
-        })}
+        {g.nums.map((n) => (
+          <InkText key={n.d} x={n.x} y={n.y} kind="num" anchor="middle" baseline="central" size={10} role="soft">{`${n.d}°`}</InkText>
+        ))}
         {/* the alidade */}
         <line x1={g.ali.a.x} y1={g.ali.a.y} x2={g.ali.b.x} y2={g.ali.b.y} style={solid(g.on ? 'sky' : 'red', 4)} />
         <circle cx={g.ali.b.x} cy={g.ali.b.y} r={4} style={{ fill: C.paper, stroke: C.ink }} />
@@ -144,7 +142,7 @@ const HI: RefKey[][] = [['sun'], ['h'], ['h'], ['h'], ['phi']];
 
 export default function MarinerAstrolabeProcedure() {
   const [a, setA] = useState(20);
-  const [amp, setAmp] = useState(1.5);
+  const [amp, setAmp] = useState(0.5);
   const [n, setN] = useState(1);
   const [step, setStep] = useState(0);
   const still = Math.abs(a - H_SUN) <= ALI_TOL;
@@ -258,7 +256,7 @@ export default function MarinerAstrolabeProcedure() {
           </Eq>
           {kn(2) && (
             <Eq>
-              <span style={{ fontSize: '0.88em' }}>{`Off by ${(Math.abs(phi - IST.lat) * 60).toFixed(0)} nautical miles.`}</span>
+              <span style={{ fontSize: '0.88em' }}>{`Off by ${nmi(phi - IST.lat)}.`}</span>
             </Eq>
           )}
         </Working>

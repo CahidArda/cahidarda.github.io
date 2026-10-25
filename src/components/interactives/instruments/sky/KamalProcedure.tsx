@@ -23,6 +23,7 @@ import {
   type StepDef,
 } from '../shared';
 import LatitudeReference, { type RefKey } from './LatitudeReference';
+import { nmi } from './latRefGeom';
 import {
   BOARD_H,
   CIRCLE_MAG,
@@ -100,24 +101,25 @@ function SideView({ d }: { d: number }) {
         <line x1={g.eye.x} y1={g.eye.y} x2={g.far.x} y2={g.far.y} style={{ ...solid('sky', 0.9), strokeDasharray: '4 3' }} />
         <line x1={g.eye.x} y1={g.eye.y} x2={g.W - g.pad} y2={g.eye.y} style={{ ...solid('ink', 0.9), strokeDasharray: '4 3' }} />
         <InkText x={g.W - g.pad} y={g.eye.y + 16} anchor="end" size={11} role="soft">to the horizon</InkText>
-        {/* cord with knots every 10 cm */}
-        <line x1={g.eye.x} y1={g.eye.y} x2={g.boardX} y2={g.eye.y} style={solid('ink', 1.6)} />
-        {g.marks.filter((m) => m.x <= g.boardX + 0.5).map((m) => (
-          <circle key={m.cm} cx={m.x} cy={g.eye.y} r={2.4} style={{ fill: C.ink }} />
-        ))}
+        {/* cord with a knot every 10 cm */}
+        <line x1={g.eye.x} y1={g.eye.y} x2={g.boardX} y2={g.eye.y} style={solid('sky', 1.6)} />
         {g.marks.map((m) => (
-          <InkText key={m.cm} x={m.x} y={g.eye.y + 30} kind="num" anchor="middle" size={10} role="soft">{`${m.cm}`}</InkText>
+          <circle key={m.cm} cx={m.x} cy={g.eye.y} r={2.6} style={{ fill: C.sky }} />
         ))}
-        <InkText x={g.eye.x} y={g.eye.y + 44} size={10} role="soft">cord, cm</InkText>
         {/* the board */}
         <line x1={g.boardX} y1={g.eye.y} x2={g.boardTop.x} y2={g.boardTop.y} style={solid('brass', 4)} />
-        <InkText x={g.boardX + 7} y={(g.eye.y + g.boardTop.y) / 2} baseline="central" size={13} role="ink">{`h = ${BOARD_H} cm`}</InkText>
-        <line x1={g.eye.x} y1={g.eye.y + 12} x2={g.boardX} y2={g.eye.y + 12} style={solid('sky', 1.1)} />
-        <InkText x={(g.eye.x + g.boardX) / 2} y={g.eye.y + 12} anchor="middle" baseline="central" size={13} role="sky">{`d = ${d.toFixed(1)} cm`}</InkText>
-        <path d={arcPath(g.eye.x, g.eye.y, g.arcR, 0, g.theta)} style={solid('red', 1.5)} />
-        <InkText x={g.eye.x + g.arcR + 6} y={g.eye.y - g.arcR * Math.sin((g.theta * Math.PI) / 360) - 2} size={14} role="red">θ</InkText>
+        <path d={arcPath(g.eye.x, g.eye.y, g.arcR, 0, g.theta)} style={solid('sky', 1.6)} />
         <circle cx={g.eye.x} cy={g.eye.y} r={4} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.3 }} />
-        <InkText x={g.eye.x - 4} y={g.eye.y - 12} size={11} role="ink">eye (cord in the teeth)</InkText>
+        {(['eye', 'd', 'h', 'theta'] as const).map((id) => {
+          const l = g.labels[id];
+          const role: Role = id === 'eye' ? 'ink' : id === 'h' ? 'ink' : 'sky';
+          return (
+            <InkText key={id} x={l.x} y={l.y} anchor={l.anchor} baseline="central" size={l.size} role={role}>
+              {id === 'theta' ? 'h' : l.text}
+            </InkText>
+          );
+        })}
+        <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role="soft">a knot every 10 cm of cord</InkText>
       </svg>
     </div>
   );
@@ -161,12 +163,12 @@ function CurveView({ port }: { port: Port }) {
         {g.yTicks.map((t) => (
           <InkText key={t.d} x={g.x0 - 6} y={t.y} kind="num" anchor="end" baseline="central" size={10} role="soft">{`${t.d}`}</InkText>
         ))}
-        <InkText x={g.x0 + 6} y={g.y0 - 6} size={11} role="soft">cm</InkText>
+        <InkText x={g.unit.x} y={g.unit.y} baseline="central" size={g.unit.size} role="soft">{g.unit.text}</InkText>
         <polyline points={g.pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')} style={solid('sky', 1.6)} />
-        {g.here && (
+        {g.here && g.hereLabel && (
           <>
             <circle cx={g.here.x} cy={g.here.y} r={4} style={{ fill: C.red }} />
-            <InkText x={g.here.x + (g.here.x > W * 0.55 ? -8 : 8)} y={g.here.y - 10} anchor={g.here.x > W * 0.55 ? 'end' : 'start'} size={12} role="red">{`${port.name}: ${cordFor(port.lat).toFixed(1)} cm`}</InkText>
+            <InkText x={g.hereLabel.x} y={g.hereLabel.y} anchor={g.hereLabel.anchor} baseline="central" size={12} role="red">{g.hereLabel.text}</InkText>
           </>
         )}
         <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role="soft">
@@ -303,7 +305,7 @@ export default function KamalProcedure() {
           </Eq>
           {kn(3) && (
             <Eq>
-              <span style={{ fontSize: '0.88em' }}>{`${port.name} is at ${port.lat.toFixed(2)}° N: off by ${(Math.abs(phi - port.lat) * 60).toFixed(0)}′, ${(Math.abs(phi - port.lat) * 60).toFixed(0)} nautical miles.`}</span>
+              <span style={{ fontSize: '0.88em' }}>{`${port.name} is at ${port.lat.toFixed(2)}° N: off by ${nmi(phi - port.lat)}.`}</span>
             </Eq>
           )}
         </Working>

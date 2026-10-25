@@ -85,6 +85,12 @@ export function arcPts(cx: number, cy: number, r: number, from: number, to: numb
   return Array.from({ length: n + 1 }, (_, i) => P(cx, cy, r, from + ((to - from) * i) / n));
 }
 
+/** "0 nautical miles" / "1 nautical mile" / "12 nautical miles" from degrees of latitude. */
+export function nmi(deg: number) {
+  const n = Math.round(Math.abs(deg) * 60);
+  return `${n} nautical mile${n === 1 ? '' : 's'}`;
+}
+
 /** One drawing size for both views of a step plate, from the measured column width. */
 export const viewH = (W: number) => Math.round(Math.max(290, Math.min(400, W * 0.86)));
 

@@ -137,7 +137,7 @@ export function rulerSay(sCm: number) {
 
 export function triangleScene(sCm: number, W: number) {
   const H = viewH(W);
-  const base = { x: W * 0.36, y: H - 50 };
+  const base = { x: W * 0.5, y: H - 50 };
   const k = (H - 50 - 44) / G; // px per metre
   const top = { x: base.x, y: base.y - G * k };
   const tip = { x: base.x + (sCm / 100) * k, y: base.y };
@@ -146,5 +146,6 @@ export function triangleScene(sCm: number, W: number) {
   const ext = 30 / Math.cos(theta * RAD);
   const rayFrom = { x: top.x - Math.sin(theta * RAD) * ext, y: top.y - Math.cos(theta * RAD) * ext };
   const arcR = Math.min(70, G * k * 0.32);
-  return { W, H, base, top, tip, k, theta, rayFrom, arcR };
+  const sunLabel = { x: top.x + 10, y: top.y - 14 };
+  return { W, H, base, top, tip, k, theta, rayFrom, arcR, sunLabel };
 }

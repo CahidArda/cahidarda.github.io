@@ -42,6 +42,7 @@ import {
   type TransomId,
 } from './staffGeom';
 import { dm } from './noonProcGeom';
+import { nmi } from './latRefGeom';
 
 const solid = (role: Role, w = 1.1) => ({ fill: 'none', stroke: C[role], strokeWidth: w });
 
@@ -87,19 +88,16 @@ function SideView({ L, x, perMm }: { L: number; x: number; perMm?: number }) {
         <line x1={g.eye.x} y1={g.eye.y} x2={g.b.x} y2={g.b.y} style={{ ...solid('brass', 0.9), strokeDasharray: '4 3' }} />
         <line x1={g.eye.x} y1={g.eye.y} x2={g.end.x} y2={g.end.y} style={solid('ink', 2.4)} />
         {g.ticks.map((t) => (
-          <g key={t.cm}>
-            <circle cx={t.p.x} cy={t.p.y} r={1.6} style={{ fill: C.ink }} />
-            {t.cm % 20 === 0 && (
-              <InkText x={t.p.x + g.n.x * -12} y={t.p.y + g.n.y * -12 + 4} kind="num" anchor="middle" size={10} role="soft">{`${t.cm}`}</InkText>
-            )}
-          </g>
+          <circle key={t.cm} cx={t.p.x} cy={t.p.y} r={1.6} style={{ fill: C.ink }} />
         ))}
         <line x1={g.a.x} y1={g.a.y} x2={g.b.x} y2={g.b.y} style={solid('ink', 3)} />
-        <path d={arcPath(g.eye.x, g.eye.y, 40, lo, hi)} style={solid('sky', 1.5)} />
-        <InkText x={g.eye.x + 46} y={g.eye.y - 40 * Math.sin(((lo + hi) / 2) * (Math.PI / 180)) + 4} size={14} role="sky">h</InkText>
-        <InkText x={g.mid.x + 8} y={g.mid.y + 22} size={12} role="sky">{`x = ${x.toFixed(1)} cm`}</InkText>
+        <path d={arcPath(g.eye.x, g.eye.y, g.arcR, lo, hi)} style={solid('sky', 1.5)} />
         <circle cx={g.eye.x} cy={g.eye.y} r={4} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.3 }} />
-        <InkText x={g.eye.x} y={g.eye.y + 20} size={11} role="ink">eye</InkText>
+        {g.labels.map((l) => (
+          <InkText key={l.id} x={l.x} y={l.y} anchor={l.anchor} baseline="central" kind={l.id.startsWith('t') ? 'num' : 'note'} size={l.size} role={l.id === 'h' || l.id === 'x' ? 'sky' : l.id === 'eye' ? 'ink' : 'soft'}>
+            {l.text}
+          </InkText>
+        ))}
         {perMm !== undefined && (
           <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role="soft">{`set for ${H_SUN.toFixed(0)}°: 1 mm on the staff = ${(perMm * 60).toFixed(1)}′`}</InkText>
         )}
@@ -112,8 +110,8 @@ function GlareView({ L }: { L: number }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
   const H = Math.round(Math.max(290, Math.min(400, W * 0.86)));
   const cx = W / 2;
-  const gy = H * 0.55;
-  const r = Math.min(W * 0.28, H * 0.3);
+  const r = Math.min(W * 0.26, H * 0.26);
+  const gy = 40 + r + 20;
   const perMm = csPerMm(L);
   return (
     <div ref={ref}>
@@ -126,7 +124,7 @@ function GlareView({ L }: { L: number }) {
         <InkText x={cx + 14} y={gy + r - 8} size={12} role="ink">and here (the horizon)</InkText>
         <line x1={cx} y1={gy - r + 16} x2={cx} y2={gy + r} style={{ ...solid('red', 1.2), strokeDasharray: '4 4' }} />
         <InkText x={cx - 8} y={gy} anchor="end" size={12} role="red">{`${H_SUN.toFixed(0)}° apart`}</InkText>
-        <InkText x={W / 2} y={H - 30} anchor="middle" size={12} role="soft">{`1 mm on the staff moves the reading ${(perMm * 60).toFixed(1)}′`}</InkText>
+        <InkText x={W / 2} y={H - 32} anchor="middle" size={12} role="soft">{`1 mm on the staff moves the reading ${(perMm * 60).toFixed(1)}′`}</InkText>
         <InkText x={W / 2} y={H - 10} anchor="middle" size={12} role="soft">a ship rolls the ends apart while you look</InkText>
       </svg>
     </div>
@@ -249,7 +247,7 @@ export default function CrossStaffProcedure() {
           </Eq>
           {kn(3) && (
             <Eq>
-              <span style={{ fontSize: '0.88em' }}>{`Istanbul is at ${dm(IST.lat)}: off by ${(Math.abs(phi - IST.lat) * 60).toFixed(0)} nautical miles.`}</span>
+              <span style={{ fontSize: '0.88em' }}>{`Istanbul is at ${dm(IST.lat)}: off by ${nmi(phi - IST.lat)}.`}</span>
             </Eq>
           )}
         </Working>

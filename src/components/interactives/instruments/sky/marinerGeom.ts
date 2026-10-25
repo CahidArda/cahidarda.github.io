@@ -33,9 +33,10 @@ export const ALI_TOL = 0.1;
 export const A_MIN = 0;
 export const A_MAX = 90;
 export const A_STEP = 0.05;
-/** Swing amplitude slider, degrees. */
-export const SWING_MAX = 3;
-export const SWING_STEP = 0.1;
+/** Swing amplitude slider, degrees. A ±1° swing scatters single readings by 42′ (RMS), about
+ *  de Hilster's ~29′ for novices at sea; more would be off his scale. */
+export const SWING_MAX = 1;
+export const SWING_STEP = 0.05;
 export const N_READ = 8;
 
 /** Seeded phases (mulberry32), degrees, for the readings at sea. */
@@ -96,7 +97,10 @@ export function ringScene(a: number, psi: number, W: number) {
     return { a: far, b: p };
   });
   const level = { a: { x: cx - R - 14, y: cy }, b: { x: cx + R + 14, y: cy } };
-  return { W, H, R, cx, cy, shackle, ticks, ali, spot, on, rays, level, world, psi };
+  // scale numbers outside the ring (not at 90: the shackle is there), "level" left of the ring
+  const nums = [0, 30, 60].map((d) => ({ d, x: cx + (R + 16) * Math.cos((d + psi) * RAD), y: cy - (R + 16) * Math.sin((d + psi) * RAD) }));
+  const levelLabel = { x: cx - R - 18, y: cy - 10, text: 'level', size: 10, anchor: 'end' as const };
+  return { W, H, R, cx, cy, shackle, ticks, ali, spot, on, rays, level, levelLabel, nums, world, psi };
 }
 export function ringSay(a: number, psi: number) {
   const err = a + psi - H_SUN;
@@ -131,6 +135,6 @@ export function scatterScene(amp: number, n: number, W: number) {
   const y = H * 0.48;
   const dots = r.map((v, i) => ({ x: xOf(v), y: y - 14 - (i % 4) * 12, v }));
   const ticks: { x: number; m: number }[] = [];
-  for (let m = -180; m <= 180; m += 60) ticks.push({ x: xOf(H_SUN + m / 60), m });
+  for (let m = -60; m <= 60; m += 20) ticks.push({ x: xOf(H_SUN + m / 60), m });
   return { W, H, x0, x1, k, y, dots, ticks, mean, xMean: xOf(mean), xTrue: xOf(H_SUN), half };
 }

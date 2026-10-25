@@ -89,22 +89,33 @@ export function skySay(g: ReturnType<typeof skyScene>) {
 
 /* ───────────────────────────── step 3: side view of the kamal ───────────────────────────── */
 
+/**
+ * Side view (step 3, no slider on that step): drawn to one scale for the CURRENT cord, chosen so
+ * the board is tall enough to label. Labels: "eye" under the eye, d under the cord, h right of
+ * the board, θ just outside its arc.
+ */
 export function sideScene(d: number, W: number) {
   const H = viewH(W);
   const pad = 26;
-  const k = (W - 2 * pad - 40) / D_MAX; // px per cm (fits the longest cord)
-  const eye = { x: pad + 10, y: H - 70 };
+  const eye = { x: pad + 10, y: H - 86 };
+  const k = Math.min((W - 2 * pad - 100) / d, (eye.y - 40) / BOARD_H); // px per cm
   const boardX = eye.x + d * k;
   const boardTop = { x: boardX, y: eye.y - BOARD_H * k };
   const theta = thetaOf(d);
-  const arcR = Math.min(46, d * k * 0.6);
-  // knots every 5 cm along the cord for reading
+  const arcR = Math.min(70, d * k * 0.45);
+  // knots every 10 cm along the cord
   const marks: { x: number; cm: number }[] = [];
-  for (let cm = 10; cm <= D_MAX; cm += 10) marks.push({ x: eye.x + cm * k, cm });
+  for (let cm = 10; cm < d; cm += 10) marks.push({ x: eye.x + cm * k, cm });
+  const labels = {
+    eye: { x: eye.x - 6, y: eye.y + 22, text: 'eye', size: 11, anchor: 'start' as const },
+    d: { x: (eye.x + boardX) / 2, y: eye.y + 22, text: `d = ${d.toFixed(1)} cm`, size: 13, anchor: 'middle' as const },
+    h: { x: boardX + 8, y: (eye.y + boardTop.y) / 2, text: `board ${BOARD_H} cm`, size: 13, anchor: 'start' as const },
+    theta: { x: eye.x + arcR + 8, y: eye.y - Math.sin((theta * Math.PI) / 360) * arcR, text: 'θ', size: 14, anchor: 'start' as const },
+  };
   // the sight line on to the star, past the board
   const far = { x: eye.x + (W - pad - eye.x), y: eye.y - (W - pad - eye.x) * Math.tan(theta * RAD) };
   const farClip = far.y < 26 ? { x: eye.x + (eye.y - 26) / Math.tan(theta * RAD), y: 26 } : far;
-  return { W, H, k, eye, boardX, boardTop, theta, arcR, marks, far: farClip, pad };
+  return { W, H, k, eye, boardX, boardTop, theta, arcR, marks, far: farClip, pad, labels };
 }
 
 /* ───────────────────────────── step 4: Polaris's circle, magnified ───────────────────────────── */
@@ -139,7 +150,13 @@ export function curveScene(port: Port, W: number) {
   for (let lat = thetaOf(D_MAX); lat <= CURVE_LAT_MAX + 1e-9; lat += 0.25) pts.push({ x: xOf(lat), y: yOf(cordFor(lat)) });
   // one knot per degree: their spacing on the cord, at the port's latitude
   const here = port.lat > thetaOf(D_MAX) ? { x: xOf(port.lat), y: yOf(cordFor(port.lat)), perDeg: cordFor(port.lat - 0.5) - cordFor(port.lat + 0.5) } : null;
+  // the curve falls to the right, so the label goes above-right of the point on the left half
+  // (the curve is lower there) and below-left on the right half (the curve is higher there)
+  const right = here ? here.x > (x0 + x1) / 2 : false;
+  const hereLabel = here
+    ? { x: here.x + (right ? -10 : 10), y: here.y + (right ? 18 : -14), text: `${port.name}: ${cordFor(port.lat).toFixed(1)} cm`, size: 12, anchor: (right ? 'end' : 'start') as 'end' | 'start' }
+    : null;
   const yTicks = [0, 20, 40, 60].map((d) => ({ y: yOf(d), d }));
   const xTicks = [0, 10, 20, 30, 40, 50].map((l) => ({ x: xOf(l), l }));
-  return { W, H, x0, x1, y0, y1, pts, here, xTicks, yTicks, xOf, yOf };
+  return { W, H, x0, x1, y0, y1, pts, here, hereLabel, xTicks, yTicks, xOf, yOf, unit: { x: x0 + 10, y: y0 + 4, text: 'cm', size: 11, anchor: 'start' as const } };
 }

@@ -141,7 +141,7 @@ function TriangleView({ s, blur }: { s: number; blur?: boolean }) {
         <InkText x={g.top.x + 8} y={g.top.y + g.arcR + 16} size={15} role="red">θ</InkText>
         <InkText x={g.base.x - 8} y={(g.base.y + g.top.y) / 2} anchor="end" size={13} role="ink">g = 100 cm</InkText>
         <InkText x={g.tip.x + 8} y={g.base.y - 8} size={13} role="sky">{`s = ${s.toFixed(2)} cm`}</InkText>
-        <InkText x={g.rayFrom.x + 8} y={g.rayFrom.y + 6} size={11} role="soft">sunlight</InkText>
+        <InkText x={g.sunLabel.x} y={g.sunLabel.y} size={11} role="soft">sunlight</InkText>
       </svg>
     </div>
   );

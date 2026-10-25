@@ -23,7 +23,7 @@
  * Widths: stacked views ~320 (390px phone) up to side-by-side columns ~440-600.
  */
 import { near, ok, report } from '../../../../../scripts/plates/check.ts';
-import { latRef, labelBox, arcPts, type RefSpec } from './latRefGeom.ts';
+import { latRef, labelBox, arcPts, segHitsBox as segHitsBoxK, type RefSpec } from './latRefGeom.ts';
 import * as Gn from './gnomonGeom.ts';
 import * as K from './kamalGeom.ts';
 import * as S from './staffGeom.ts';
@@ -97,7 +97,7 @@ for (const W of WIDTHS) {
     }
   for (const x of [S.X_MIN, 30, 60, S.X_MAX]) for (const t of S.TRANSOMS) checkRef({ phi: S.IST.lat, src: { kind: 'sun', dec: S.DEC }, sight: S.csTheta(t.L, x) }, W, `cross L=${t.L} x=${x}`);
   for (let h = 10; h <= 90; h += 5) checkRef({ phi: S.IST.lat, src: { kind: 'sun', dec: S.DEC }, sight: h }, W, `backstaff h=${h}`);
-  for (const amp of [0, 1.5, M.SWING_MAX]) for (let n = 1; n <= M.N_READ; n++) checkRef({ phi: M.IST.lat, src: { kind: 'sun', dec: M.DEC }, sight: M.readings(amp, n).mean }, W, `astrolabe amp=${amp} n=${n}`);
+  for (const amp of [0, 0.5, M.SWING_MAX]) for (let n = 1; n <= M.N_READ; n++) checkRef({ phi: M.IST.lat, src: { kind: 'sun', dec: M.DEC }, sight: M.readings(amp, n).mean }, W, `astrolabe amp=${amp} n=${n}`);
   checkRef({ phi: Z.PHI_GPS, src: { kind: 'sun', dec: Z.PHI_GPS }, srcName: 'a star overhead', visible: false }, W, 'zenith');
 }
 
@@ -145,6 +145,12 @@ for (const W of WIDTHS) {
       ok(near(Math.atan((tr.tip.x - tr.base.x) / (tr.base.y - tr.top.y)) / RAD, tr.theta, 1e-9), 'gnomon scale: triangle angle = θ', () => c);
       for (const p of [tr.top, tr.tip, tr.rayFrom]) ok(inBox(p, W, tr.H, 2), 'gnomon bounds: triangle', () => c);
       const lb = labelBox({ x: tr.tip.x + 8, y: tr.base.y - 8, text: `s = ${s.toFixed(2)} cm`, size: 13, anchor: 'start' });
+      const title = labelBox({ x: 14, y: 14, text: 'SIDE ON, TO SCALE', size: 12 * 0.78 * 1.25, anchor: 'start' });
+      const sun = labelBox({ x: tr.sunLabel.x, y: tr.sunLabel.y - 4, text: 'sunlight', size: 11, anchor: 'start' });
+      const gl = labelBox({ x: tr.base.x - 8, y: (tr.base.y + tr.top.y) / 2 - 4, text: 'g = 100 cm', size: 13, anchor: 'end' });
+      ok(!(title.x0 < sun.x1 && sun.x0 < title.x1 && title.y0 < sun.y1 && sun.y0 < title.y1), 'gnomon labels: sunlight clear of the title', () => c);
+      ok(gl.x0 >= 2, 'gnomon bounds: g label', () => c);
+      ok(!segHitsBoxK(tr.rayFrom, tr.tip, sun), 'gnomon labels: sunlight off the ray', () => c);
       ok(lb.x1 <= W - 2, 'gnomon bounds: s label', () => c);
     }
     // the step-1 snap honest: the slider at a value within 3 min shows noon
@@ -188,6 +194,16 @@ for (const p of K.PORTS)
         const sd = K.sideScene(dd, W);
         ok(near(ang(sd.eye, sd.boardTop), K.thetaOf(dd), 1e-9), 'kamal scale: side angle = θ', () => cc);
         ok(inBox(sd.boardTop, W, sd.H, 2) && inBox(sd.far, W, sd.H, 0), 'kamal bounds: side', () => cc);
+        const sl = Object.values(sd.labels).map((l) => ({ ...labelBox(l), id: l.text }));
+        for (const b of sl) ok(b.x0 >= 2 && b.x1 <= W - 2 && b.y0 >= 24 && b.y1 <= sd.H - 24, 'kamal bounds: side labels', () => `${cc} ${b.id}`);
+        for (let i = 0; i < sl.length; i++)
+          for (let j = i + 1; j < sl.length; j++) {
+            const A = sl[i];
+            const B = sl[j];
+            ok(A.x1 + 3 <= B.x0 || B.x1 + 3 <= A.x0 || A.y1 + 3 <= B.y0 || B.y1 + 3 <= A.y0, 'kamal labels: side labels apart', () => `${cc} ${A.id}/${B.id}`);
+          }
+        ok(!segHitsBoxK(sd.eye, sd.boardTop, labelBox(sd.labels.h), 0) && !segHitsBoxK(sd.eye, { x: sd.boardX, y: sd.eye.y }, labelBox(sd.labels.d), 0), 'kamal labels: side labels off the lines', () => cc);
+        ok(sd.eye.y - sd.boardTop.y >= 26, 'kamal: board tall enough to read (drawn to scale)', () => cc);
       }
       const ci = K.circleScene(p, lha, W);
       ok(near((ci.cy - ci.star.y) / ci.kd, P_OFFcos(lha), 1e-9), 'kamal scale: Polaris above the pole = p cos t', () => c);
@@ -195,11 +211,14 @@ for (const p of K.PORTS)
       ok(inBox(ci.star, W, ci.H, 10), 'kamal bounds: circle', () => c);
       const cu = K.curveScene(p, W);
       for (const q of cu.pts) ok(inBox(q, W, cu.H, 2), 'kamal bounds: curve', () => c);
-      if (cu.here) {
-        const right = cu.here.x > W * 0.55;
-        const lb = labelBox({ x: cu.here.x + (right ? -8 : 8), y: cu.here.y - 10, text: `${p.name}: ${K.cordFor(p.lat).toFixed(1)} cm`, size: 12, anchor: right ? 'end' : 'start' });
-        ok(lb.x1 <= W - 2 && lb.y0 >= 0, 'kamal bounds: curve label', () => `${c} W=${W}`);
+      if (cu.hereLabel) {
+        const lb = labelBox(cu.hereLabel);
+        ok(lb.x0 >= 2 && lb.x1 <= W - 2 && lb.y1 <= cu.y1 - 2, 'kamal bounds: curve label', () => `${c} W=${W}`);
+        ok(!cu.pts.some((q, i) => i > 0 && segHitsBoxK(cu.pts[i - 1], q, lb, 0)), 'kamal labels: curve label off the curve', () => `${c} W=${W}`);
       }
+      const ub = labelBox(cu.unit);
+      ok(!cu.yTicks.some((t) => labelBox({ x: cu.x0 - 6, y: t.y, text: `${t.d}`, size: 10, anchor: 'end' }).x1 > ub.x0), 'kamal labels: cm unit clear of ticks', () => '');
+      ok(!cu.pts.some((q, i) => i > 0 && segHitsBoxK(cu.pts[i - 1], q, ub, 0)), 'kamal labels: cm unit off the curve', () => `${c} W=${W}`);
     }
   }
 function P_OFFcos(lha: number) {
@@ -221,6 +240,20 @@ for (const t of S.TRANSOMS) {
       ok(near(sub, S.csTheta(t.L, xx), 1e-9), 'cross scale: transom subtends θ at the eye', () => c);
       ok(near(ang(sd.eye, sd.a), 0, 1e-9), 'cross: lower end on the horizon (level)', () => `${c} ${ang(sd.eye, sd.a)}`);
       for (const p of [sd.a, sd.b, sd.end]) ok(inBox(p, W, sd.H, 2), 'cross bounds: side', () => c);
+      const lb = sd.labels.map((l) => ({ ...labelBox(l), id: l.id }));
+      const lines = [[sd.eye, sd.end], [sd.a, sd.b], [sd.eye, sd.a], [sd.eye, sd.b]] as const;
+      for (const l of sd.labels) ok(l.placed, `cross labels: ${l.id.replace(/\d+/, '')} placed`, () => c);
+      for (const b of lb) {
+        ok(b.x0 >= 2 && b.x1 <= W - 2 && b.y0 >= 2 && b.y1 <= sd.H - 26, 'cross bounds: side labels', () => `${c} ${b.id}`);
+        if (b.id !== 'eye') ok(!lines.some(([p, q]) => segHitsBoxK(p, q, b, 0)), 'cross labels: side label off the lines', () => `${c} ${b.id}`);
+        ok(!arcPts(sd.eye.x, sd.eye.y, sd.arcR, 0, sd.theta).some((q, i, a) => i > 0 && segHitsBoxK(a[i - 1], q, b, 0)), 'cross labels: off the h arc', () => `${c} ${b.id}`);
+      }
+      for (let i = 0; i < lb.length; i++)
+        for (let j = i + 1; j < lb.length; j++) {
+          const A = lb[i];
+          const B = lb[j];
+          ok(A.x1 + 3 <= B.x0 || B.x1 + 3 <= A.x0 || A.y1 + 3 <= B.y0 || B.y1 + 3 <= A.y0, 'cross labels: side labels apart', () => `${c} ${A.id}/${B.id}`);
+        }
       const g = S.csSky(t.L, xx, W);
       ok(g.on === (Math.abs(S.csTheta(t.L, xx) - S.H_SUN) <= S.CS_TOL), 'cross honesty: on', () => c);
       if (!g.clipped) ok(near(g.horizonY - g.upper.y, g.theta * g.k, 1e-9), 'cross scale: upper end at θ', () => c);
@@ -246,6 +279,8 @@ for (let a60 = S.A60_MIN; a60 <= S.A60_MAX; a60 += S.A60_STEP) {
       ok(Math.sign(v.offMm) === Math.sign(a60 + a30 - S.H_SUN) || Math.abs(a60 + a30 - S.H_SUN) < 1e-9, 'backstaff: too big an angle ⇒ shadow above', () => c);
       ok(near(v.slitY - v.edgeY, v.offMm * v.kmm, 1e-9), 'backstaff scale: edge offset', () => c);
       ok(v.on === Math.abs(a60 + a30 - S.H_SUN) <= S.BS_TOL, 'backstaff honesty: on', () => c);
+      ok(v.off === null ? Math.abs(v.edgeY - v.cy) <= (v.vane.y1 - v.vane.y0) / 2 * (6.5 / 6) + 1e-9 : true, 'backstaff: drawn edge within the vane or flagged', () => c);
+      ok(!!v.off === Math.abs(v.offMm) > 6.5, 'backstaff honesty: off flag', () => c);
       const sb = labelBox({ x: W / 2, y: v.H - 10, text: S.bsSay(v), size: 12, anchor: 'middle' });
       ok(sb.x0 >= 2 && sb.x1 <= W - 2, 'backstaff bounds: status', () => `${c} ${S.bsSay(v)}`);
       const sd = S.bsSide(a60, a30, W);
@@ -258,7 +293,7 @@ for (let a60 = S.A60_MIN; a60 <= S.A60_MAX; a60 += S.A60_STEP) {
 
 /* ───────────────────────────── mariner's astrolabe ───────────────────────────── */
 
-for (const amp of [0, 0.5, 1.5, M.SWING_MAX])
+for (const amp of [0, 0.05, 0.25, 0.5, 0.75, M.SWING_MAX])
   for (let n = 1; n <= M.N_READ; n++) {
     const { r, mean } = M.readings(amp, n);
     ok(r.every((v, i) => near(v, M.H_SUN - M.swingAt(amp, i), 1e-12)), 'astrolabe: reading = h − ψ', () => `${amp} ${n}`);
@@ -283,6 +318,13 @@ for (let a = M.A_MIN; a <= M.A_MAX + 1e-9; a += 0.5)
       ok(g.on === (Math.abs(a + psi - M.H_SUN) <= M.ALI_TOL), 'astrolabe honesty: on', () => c);
       for (const p of [g.ali.a, g.ali.b, g.shackle, ...g.rays.flatMap((r) => [r.a, r.b])]) ok(inBox(p, W, g.H, 0), 'astrolabe bounds: ring', () => `${c} ${JSON.stringify(p)}`);
       ok(g.cy + g.R + 7 < g.H - 22, 'astrolabe bounds: ring above the status', () => c);
+      const ll = labelBox(g.levelLabel);
+      ok(ll.x0 >= 2 && ll.x1 < g.cx - g.R - 4, 'astrolabe labels: level left of the ring', () => c);
+      for (const n of g.nums) {
+        const nb = labelBox({ x: n.x, y: n.y, text: `${n.d}°`, size: 10, anchor: 'middle' });
+        ok(nb.x0 >= 0 && nb.x1 <= W && nb.y0 >= 0, 'astrolabe bounds: scale numbers', () => `${c} ${n.d}`);
+        ok(Math.hypot(n.x - g.shackle.x, n.y - g.shackle.y) > 18, 'astrolabe labels: numbers clear of the shackle', () => `${c} ${n.d}`);
+      }
       const sb = labelBox({ x: W / 2, y: g.H - 10, text: M.ringSay(a, psi), size: 12, anchor: 'middle' });
       ok(sb.x0 >= 2 && sb.x1 <= W - 2, 'astrolabe bounds: status', () => `${c} ${M.ringSay(a, psi)}`);
       const pv = M.plateScene(a, psi, W);

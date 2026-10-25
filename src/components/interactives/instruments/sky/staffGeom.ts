@@ -19,7 +19,7 @@
  * Drawings. Screen coordinates, y DOWN, viewBox units = CSS px of the measured width W.
  */
 import { DOY_PRESET, PLACES, sight } from './noonProcGeom.ts';
-import { viewH } from './latRefGeom.ts';
+import { viewH, placer, arcPts, type Seg } from './latRefGeom.ts';
 
 const RAD = Math.PI / 180;
 
@@ -105,7 +105,34 @@ export function csSide(L: number, x: number, W: number) {
   const b = { x: mid.x + n.x * (L / 2) * k, y: mid.y + n.y * (L / 2) * k }; // upper end
   const ticks: { p: { x: number; y: number }; cm: number }[] = [];
   for (let cm = 10; cm <= STAFF_LEN; cm += 10) ticks.push({ p: { x: eye.x + u.x * cm * k, y: eye.y + u.y * cm * k }, cm });
-  return { W, H, k, eye, end, mid, a, b, theta, tilt, ticks, u, n, pad };
+  // labels, placed greedily off every line and the h arc (shared placer)
+  const arcR = 34;
+  const along = (cm: number, off: number) => ({ x: eye.x + u.x * cm * k + n.x * off, y: eye.y + u.y * cm * k + n.y * off });
+  const segs: Seg[] = [
+    { id: 'staff', a: eye, b: end },
+    { id: 'transom', a, b },
+    { id: 'lo', a: eye, b: a },
+    { id: 'hi', a: eye, b },
+  ];
+  const pl = placer(W, H - 26, segs, [arcPts(eye.x, eye.y, arcR, 0, theta)], [], 3);
+  const C = (id: string, text: string, size: number, pts: { x: number; y: number }[], anchor: 'start' | 'middle' | 'end' = 'middle') =>
+    pts.map((q) => ({ id, text, size, anchor, x: q.x, y: q.y }));
+  pl.put(C('eye', 'eye', 11, [{ x: eye.x - 8, y: eye.y + 18 }, { x: eye.x - 8, y: eye.y + 30 }, { x: eye.x - 8, y: eye.y - 14 }], 'start'));
+  const hc: { x: number; y: number }[] = [];
+  for (const r of [arcR - 12, arcR + 10, arcR + 18, arcR + 28, arcR + 40])
+    for (const f of [0.5, 0.35, 0.65, 1.2, 1.4, 1.7, -0.3, -0.6])
+      hc.push({ x: eye.x + r * Math.cos(theta * f * RAD), y: eye.y - r * Math.sin(theta * f * RAD) });
+  for (const dx of [-4, 8, 20]) hc.push({ x: eye.x + dx, y: eye.y - arcR - 14 });
+  pl.put(C('h', 'h', 14, hc));
+  const xt = `x = ${x.toFixed(1)} cm`;
+  const xc: { x: number; y: number }[] = [];
+  for (const off of [-16, -26, 16, 26]) for (const f of [0.5, 0.65, 0.35, 0.8]) xc.push(along(x * f, off));
+  // a short x: below the horizon line, under the transom's foot
+  for (const dy of [18, 32, 46]) for (const dx of [0, 30, 60]) xc.push({ x: a.x + dx, y: eye.y + dy });
+  pl.put(C('x', xt, 12, xc));
+  for (const t of ticks) if (t.cm % 20 === 0) pl.put(C(`t${t.cm}`, `${t.cm}`, 10, [along(t.cm, 11), along(t.cm, -11)]));
+  const labels = pl.placed.filter((l) => l.placed || !l.id.startsWith('t'));
+  return { W, H, k, eye, end, mid, a, b, theta, tilt, ticks, u, n, pad, arcR, labels };
 }
 
 /* ───────────────────────────── backstaff ───────────────────────────── */
@@ -137,14 +164,15 @@ export function bsVane(a60: number, a30: number, W: number) {
   const H = viewH(W);
   const d = a60 + a30 - H_SUN; // deg
   const offMm = bsOffMm(a60, a30);
-  const vane = { x0: W / 2 - Math.min(110, W * 0.28), x1: W / 2 + Math.min(110, W * 0.28), y0: 30, y1: H - 56 };
+  const vane = { x0: W / 2 - Math.min(110, W * 0.28), x1: W / 2 + Math.min(110, W * 0.28), y0: 40, y1: H - 56 };
   const cy = (vane.y0 + vane.y1) / 2;
   const kmm = (vane.y1 - vane.y0) / 2 / 6; // px per mm: ±6 mm fills the vane
   const slitY = cy;
   const edgeY = cy - offMm * kmm; // above the slit when the angle is too big
   const blur = BS_BLUR_MM * kmm;
   const on = Math.abs(d) <= BS_TOL;
-  return { W, H, d, kmm, cx: W / 2, cy, slitY, edgeY, blur, on, vane, offMm };
+  const off = Math.abs(offMm) > 6.5 ? (offMm > 0 ? 'above' : 'below') : null;
+  return { W, H, d, kmm, cx: W / 2, cy, slitY, edgeY, blur, on, vane, offMm, off };
 }
 export function bsSay(g: ReturnType<typeof bsVane>) {
   if (g.on) return 'shadow edge on the slit, horizon in the slit';
