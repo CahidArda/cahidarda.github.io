@@ -63,8 +63,8 @@ for (const w of widths) {
     }
     await page.mouse.move(0, 0);
     await page.waitForTimeout(sc.wait ?? 700);
-    const file = join(out, `${w}${dark ? '-dark' : ''}-${sc.name}.png`);
-    await plate.screenshot({ path: file });
+    const file = join(out, `${w}${dark ? '-dark' : ''}-${sc.name}.jpg`);
+    await plate.screenshot({ path: file, quality: 72 });
     console.log(file);
   }
   await page.close();
