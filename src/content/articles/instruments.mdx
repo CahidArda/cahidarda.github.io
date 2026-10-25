@@ -1,0 +1,79 @@
+---
+title: 'Measuring the World'
+description: 'A short series on the instruments people built to measure time, the sky and the ground, from shadow sticks to atomic clocks, starting from a few objects in a museum case in Istanbul.'
+date: 2026-10-25
+tags: ['blog']
+seriesLanding: instruments
+---
+
+import { Image } from 'astro:assets';
+import SeriesList from '../../components/SeriesList.astro';
+import PrecisionLadder from '../../components/interactives/instruments/PrecisionLadder.tsx';
+import ArmillaryDemo from '../../components/interactives/instruments/ArmillaryDemo.tsx';
+import semiClock from '../../assets/instruments/semi-clock.jpg';
+import rubuDrawing from '../../assets/instruments/rubu-drawing-1848.jpg';
+
+I walked into an exhibition of old instruments in Istanbul expecting to look at some brass for
+twenty minutes. I stayed for most of the afternoon. There was a wood-and-brass pendulum clock by
+Mustafa Şem'i, a pair of quadrants for telling the time from the sun, a sextant next to an
+engineer's treatise on how to use it, a theodolite still in its box with a Constantinople
+maker's label, and a hand-drawn quadrant from 1848 with one red line across the grid.
+
+The labels said what each object was. They did not say how it worked, or what people did before
+it existed, or what replaced it. Those were the questions I kept asking, so this series is my
+attempt to answer them, one interactive drawing at a time.
+
+<div class="fx-figure fx-wide">
+  <figure class="in-photos">
+    <Image src={semiClock} alt="A brass-faced pendulum clock with a long wooden rod and a large brass bob, in a glass case" widths={[480, 800]} sizes="(min-width: 62rem) 26rem, 50vw" />
+    <Image src={rubuDrawing} alt="An 1848 ink drawing of a sine quadrant: a quarter circle filled with a fine grid, one red diagonal line" widths={[480, 800]} sizes="(min-width: 62rem) 26rem, 50vw" />
+    <figcaption>Left: Mustafa Şem'i's pendulum clock. Right: a sine quadrant drawn in 1848. The red line is the one I could not stop looking at.</figcaption>
+  </figure>
+</div>
+
+There are three posts, one per thing being measured: time, the sky, and the ground. Each one
+starts with the crudest method that worked and climbs to the current state of the art. The
+museum objects are rungs on the way up.
+
+## The ladder
+
+Before the details, the shape of the whole story. The chart below shows how small an error the
+best instrument of each era could hold. The vertical axis is logarithmic, so every gridline is a
+factor of ten. A water clock was off by about a quarter of an hour a day. The best optical clock today,
+run for the whole age of the universe, would be uncertain by less than a second.
+
+<div class="fx-figure fx-wide">
+  <PrecisionLadder client:visible />
+</div>
+
+Most of that climb happened in the last 400 years. For the three thousand before that, the
+red line barely moves.
+
+<div class="fx-figure">
+  <ArmillaryDemo client:visible />
+</div>
+
+## The series
+
+<SeriesList series="instruments" />
+
+## Sources
+
+- Time: [Pendulum clock](https://en.wikipedia.org/wiki/Pendulum_clock) (Wikipedia), for "about
+  15 minutes per day" before the pendulum, 15 seconds a day after it, and the Shortt clock's
+  "better than one second per year".
+- [John Harrison](https://www.lindahall.org/about/news/scientist-of-the-day/john-harrison)
+  (Linda Hall Library), for H4 arriving in Jamaica "only 5 seconds slow" after two months.
+- [Caesium atomic clock, 1955](https://collection.sciencemuseumgroup.org.uk/objects/co855/caesium-atomic-clock-1955)
+  (Science Museum Group), for one second in 300 years and the comparison with 1930s quartz.
+- [NIST-F2](https://en.wikipedia.org/wiki/NIST-F2) (Wikipedia), for "will not gain or lose a
+  second in at least 300 million years".
+- Aeppli et al., [Clock with 8 × 10⁻¹⁹ systematic uncertainty](https://arxiv.org/abs/2403.10664)
+  (2024), for the strontium optical lattice clock.
+- Angle: Erik Høg, [Astrometric accuracy during the past 2000 years](https://arxiv.org/pdf/1707.01020)
+  (2017), for Ptolemy, Ulugh Beg, Tycho, Argelander, Hipparcos and Gaia.
+- [Sextant](https://en.wikipedia.org/wiki/Sextant) (Wikipedia), for a vernier that "reads to 0.1
+  minute", and [Ramsden surveying instruments](https://en.wikipedia.org/wiki/Ramsden_surveying_instruments)
+  (Wikipedia), for the great theodolite's "within one arc second".
+- The shadow and water clock rung, and the gnomon rung, are order-of-magnitude estimates (half a
+  degree is the width of the sun), drawn hollow on the chart.

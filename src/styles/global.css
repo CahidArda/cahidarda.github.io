@@ -110,6 +110,17 @@ html {
 
   /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
   --color-dk-ink: var(--dk-ink);
+
+  /* Instruments series ("the blueprint"): parchment, sepia ink in three weights, one
+     red-ochre accent line, brass for metal parts, a muted indigo for sky and water. */
+  --color-in-paper: var(--in-paper);
+  --color-in-paper-deep: var(--in-paper-deep);
+  --color-in-ink: var(--in-ink);
+  --color-in-ink-soft: var(--in-ink-soft);
+  --color-in-ink-faint: var(--in-ink-faint);
+  --color-in-red: var(--in-red);
+  --color-in-brass: var(--in-brass);
+  --color-in-sky: var(--in-sky);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -871,4 +882,302 @@ html {
 }
 .dark {
   --dk-ink: #e8dccb;
+}
+
+/* ==========================================================================
+   Instruments series: "the blueprint". Every widget is a plate from an old
+   technical drawing: parchment, sepia ink, hairline dimension lines, one
+   red-ochre accent. Dark mode is the same drawing inverted (dark paper, light
+   ink), still warm. Components live in
+   src/components/interactives/instruments/shared.tsx.
+   ========================================================================== */
+:root {
+  --in-paper: #f1e8d4;
+  --in-paper-deep: #e3d4b4;
+  --in-ink: #3a2a1c;
+  --in-ink-soft: #6e5843;
+  --in-ink-faint: #ab9a7f;
+  --in-red: #b04a2c;
+  --in-brass: #9a7426;
+  --in-sky: #4c5a88;
+  /* fine paper grain, tinted to the ink (feTurbulence, tiled; ~1KB) */
+  --in-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .23 0 0 0 0 .16 0 0 0 0 .1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark {
+  --in-paper: #1c1813;
+  --in-paper-deep: #241e17;
+  --in-ink: #ecdfc6;
+  --in-ink-soft: #c2b092;
+  --in-ink-faint: #6f604b;
+  --in-red: #dc7d58;
+  --in-brass: #d2aa55;
+  --in-sky: #93a2d4;
+  --in-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .87 0 0 0 0 .78 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Wide figure. Below the two-column breakpoint it is an ordinary .fx-figure. On the
+   desktop grid (18rem sidebar | 52rem reading column | empty minmax(0,18rem) column;
+   the table of contents lives in the LEFT sidebar) it grows to the right into the
+   empty third column, by however much of it exists at this viewport, up to the gap +
+   the full column (21rem). 82.5rem = 2rem padding + 18rem + 3rem gap + 52rem + 3rem
+   gap + 2rem padding + ~2.5rem slack for a classic scrollbar, so it never causes
+   horizontal page scroll. Use it on <div class="fx-figure fx-wide"> or <Plate wide>. */
+@media (min-width: 62rem) {
+  .fx-wide {
+    margin-right: calc(-1 * clamp(0rem, 100vw - 82.5rem, 21rem));
+  }
+}
+
+/* The plate: a bordered sheet of parchment with a double rule and registration marks. */
+.prose .in-plate,
+.in-plate {
+  position: relative;
+  margin: 0;
+  padding: 1.1rem 1.15rem 1rem;
+  color: var(--in-ink);
+  background-color: var(--in-paper);
+  background-image:
+    var(--in-grain),
+    radial-gradient(
+      ellipse 120% 90% at 50% 45%,
+      transparent 60%,
+      color-mix(in srgb, var(--in-paper-deep) 85%, transparent) 100%
+    );
+  border: 1px solid var(--in-ink-soft);
+  box-shadow:
+    inset 0 0 0 4px var(--in-paper),
+    inset 0 0 0 5px color-mix(in srgb, var(--in-ink-faint) 70%, transparent);
+}
+@media (min-width: 40rem) {
+  .prose .in-plate,
+  .in-plate {
+    padding: 1.4rem 1.6rem 1.25rem;
+  }
+}
+.in-plate .in-reg {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.in-plate .in-reg circle,
+.in-plate .in-reg path {
+  fill: none;
+  stroke: var(--in-ink-soft);
+  stroke-width: 0.8;
+}
+.in-plate-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.9rem;
+  row-gap: 0.2rem;
+  padding-bottom: 0.55rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid var(--in-ink-soft);
+  box-shadow: 0 3px 0 -2px color-mix(in srgb, var(--in-ink-faint) 70%, transparent);
+}
+.in-plate-no {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--in-red);
+  white-space: nowrap;
+}
+.in-plate-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  color: var(--in-ink);
+}
+.in-plate-kicker {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--in-ink-soft);
+}
+.in-plate-cap {
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed color-mix(in srgb, var(--in-ink-faint) 80%, transparent);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--in-ink-soft);
+}
+
+/* Controls: thin ink borders, mono numerals, a red-ochre diamond for slider thumbs. */
+.in-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.85rem;
+}
+.in-seg {
+  display: inline-flex;
+  border: 1px solid var(--in-ink);
+}
+.in-seg button {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  color: var(--in-ink);
+  background: transparent;
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.in-seg button + button {
+  border-left: 1px solid var(--in-ink);
+}
+.in-seg button:hover {
+  background: color-mix(in srgb, var(--in-ink) 10%, transparent);
+}
+.in-seg button[aria-pressed='true'] {
+  background: var(--in-ink);
+  color: var(--in-paper);
+}
+.in-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--in-ink-soft);
+}
+.in-readout {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--in-ink);
+}
+.in-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9rem;
+  height: 1.4rem;
+  background: transparent;
+  cursor: pointer;
+}
+.in-range:focus-visible {
+  outline: 1px dashed var(--in-red);
+  outline-offset: 2px;
+}
+.in-range::-webkit-slider-runnable-track {
+  height: 5px;
+  border-bottom: 1px solid var(--in-ink);
+  background: repeating-linear-gradient(
+      to right,
+      var(--in-ink-soft) 0 1px,
+      transparent 1px calc(10% - 0.1px)
+    )
+    bottom / 100% 4px no-repeat;
+}
+.in-range::-moz-range-track {
+  height: 5px;
+  border-bottom: 1px solid var(--in-ink);
+  background: repeating-linear-gradient(
+      to right,
+      var(--in-ink-soft) 0 1px,
+      transparent 1px calc(10% - 0.1px)
+    )
+    bottom / 100% 4px no-repeat;
+}
+.in-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: 0;
+  background: var(--in-paper);
+  border: 1.5px solid var(--in-red);
+  transform: rotate(45deg);
+}
+.in-range::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border-radius: 0;
+  background: var(--in-paper);
+  border: 1.5px solid var(--in-red);
+  transform: rotate(45deg);
+}
+
+/* 3D canvas: never steals vertical scroll on touch; drag sideways to turn. */
+.in-canvas {
+  position: relative;
+  width: 100%;
+}
+.in-canvas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  cursor: grab;
+  outline: none;
+}
+.in-canvas canvas:active {
+  cursor: grabbing;
+}
+.in-canvas:focus-visible {
+  outline: 1px dashed var(--in-red);
+  outline-offset: 3px;
+}
+.in-canvas .in-poster {
+  position: absolute;
+  inset: 0;
+  transition: opacity 300ms;
+}
+.in-canvas .in-poster > svg {
+  width: 100%;
+  height: 100%;
+}
+.in-canvas .in-hint {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--in-ink-faint);
+  pointer-events: none;
+  transition: opacity 400ms;
+}
+
+/* Photo pair on the series landing: two museum photos side by side, one under the other on phones. */
+.prose .in-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0;
+}
+.prose .in-photos img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--color-line-strong);
+}
+.prose .in-photos figcaption {
+  grid-column: 1 / -1;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+@media (max-width: 30rem) {
+  .prose .in-photos {
+    grid-template-columns: 1fr;
+  }
 }
