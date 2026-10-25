@@ -330,7 +330,14 @@ export function AstrolabeModel({ p, label, aspect = 1, fit = 2.35 }: { p: ModelP
       params={params}
       poster={<AstrolabePoster p={p} />}
       label={label}
-      build={(T, ctx) => buildModel(T, ctx, p)}
+      build={(T, ctx) => {
+        try {
+          return buildModel(T, ctx, p);
+        } catch (e) {
+          console.error('astrolabe model', e);
+          throw e;
+        }
+      }}
     />
   );
 }
