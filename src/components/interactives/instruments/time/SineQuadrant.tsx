@@ -1,5 +1,5 @@
 /**
- * Plate 2: the sine quadrant (rubʿ al-mujayyab, rubu tahtası), drawn after the 1848 study
+ * Plate 1: the sine quadrant (rubʿ al-mujayyab, rubu tahtası), drawn after the 1848 study
  * sheet: a quarter circle filled with a 60 × 60 grid, a graduated rim, and one red line (the
  * plumb thread). Drag the thread (or use the slider) to the sun's altitude; the drawing shows
  * where 60·sin h is read off the grid, and the panel follows the muvakkit from sin h to the hour.
@@ -91,7 +91,7 @@ export default function SineQuadrant() {
 
   return (
     <Plate
-      n={2}
+      n={1}
       label="Levha"
       id="plate-quadrant"
       title="The sine quadrant"

@@ -1,5 +1,5 @@
 /**
- * Plate 1 (wide): a pendulum clock movement as a blueprint. A 30-tooth escape wheel, a recoil
+ * Plate 2 (wide): a pendulum clock movement as a blueprint. A 30-tooth escape wheel, a recoil
  * anchor whose pallets lock and release it, and a pendulum hung from the anchor's arbor. The
  * wheel is driven (by a weight we do not draw) and only moves when a pallet lets it: it locks,
  * recoils, drops, and gains half a tooth per swing, one tooth per full period. The slider
@@ -233,7 +233,7 @@ export default function PendulumClock() {
 
   return (
     <Plate
-      n={1}
+      n={2}
       wide
       id="plate-pendulum"
       title="Pendulum and anchor"

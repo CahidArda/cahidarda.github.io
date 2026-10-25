@@ -156,7 +156,7 @@ export default function AlaturkaDial() {
       caption={
         <>
           Local solar time in Istanbul (41° N), sun&apos;s centre on the horizon, no refraction or
-          time zone. Each evening the alaturka clock was set back to 12, by however much sunset
+          time zone. Each evening the alaturka clock was set to 12 again, by however much sunset
           had moved since the day before.
         </>
       }
