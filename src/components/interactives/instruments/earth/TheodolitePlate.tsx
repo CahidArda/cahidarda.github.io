@@ -13,6 +13,7 @@ import type * as THREEns from 'three';
 import {
   BlueprintCanvas,
   C,
+  useMeasuredWidth,
   Controls,
   InkText,
   Plate,
@@ -127,6 +128,8 @@ export default function TheodolitePlate() {
   }, [auto, reduced, inView]);
 
   const params = useMemo<Params>(() => ({ h, v }), [h, v]);
+  const [boxRef, boxW] = useMeasuredWidth<HTMLDivElement>(700);
+  const narrow = boxW < 520;
   const hz = ((h % 360) + 360) % 360;
 
   return (
@@ -144,8 +147,10 @@ export default function TheodolitePlate() {
         </>
       }
     >
+      <div ref={boxRef}>
       <BlueprintCanvas<Params>
-        aspect={3 / 2}
+        key={narrow ? 'n' : 'w'}
+        aspect={narrow ? 1 : 3 / 2}
         fit={1.18}
         yaw={-0.75}
         pitch={0.3}
@@ -374,6 +379,7 @@ export default function TheodolitePlate() {
           };
         }}
       />
+      </div>
       <Controls>
         <Slider
           label="turn"

@@ -279,7 +279,7 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
         B
       </InkText>
       {eps > 0 && (
-        <InkText x={ax + 18} y={Math.max(20, yOf(hi) + 16)} size={12} role="red">
+        <InkText x={ax + 18} y={Math.min(nearY - 40, yOf(lo) + 18)} size={12} role="red">
           {Number.isFinite(sp.hi) ? `${lo.toFixed(0)} to ${hi.toFixed(0)} m` : 'anywhere past the hills'}
         </InkText>
       )}

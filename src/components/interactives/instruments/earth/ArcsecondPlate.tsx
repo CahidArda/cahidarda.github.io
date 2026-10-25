@@ -118,9 +118,19 @@ export default function ArcsecondPlate() {
           {Array.from({ length: X1 - X0 + 1 }, (_, i) => X0 + i).map((ld) => (
             <g key={`x${ld}`}>
               <line x1={x(ld)} y1={m.t} x2={x(ld)} y2={m.t + ih} style={{ stroke: C.faint, strokeWidth: 0.5 }} />
-              <InkText x={x(ld)} y={m.t + ih + 16} kind="num" anchor="middle" size={10} role="soft" halo={false}>
-                {['1 m', '10 m', '100 m', '1 km', '10 km', '100 km', '1000 km'][ld]}
-              </InkText>
+              {(!narrow || ld % 2 === 0) && (
+                <InkText
+                  x={x(ld)}
+                  y={m.t + ih + 16}
+                  kind="num"
+                  anchor={ld === X1 ? 'end' : ld === X0 ? 'start' : 'middle'}
+                  size={10}
+                  role="soft"
+                  halo={false}
+                >
+                  {['1 m', '10 m', '100 m', '1 km', '10 km', '100 km', '1000 km'][ld]}
+                </InkText>
+              )}
             </g>
           ))}
           {Array.from({ length: (Y1 - Y0) / 2 + 1 }, (_, i) => Y0 + i * 2).map((le) => (

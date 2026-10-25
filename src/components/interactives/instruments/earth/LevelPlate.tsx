@@ -369,7 +369,7 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
         const dx = W / 2 + S * 0.64;
         const cordY = a.y + ((b.y - a.y) * (dx - xL)) / (xR - xL);
         const dc = { x: dx, y: cordY + r + 18 };
-        const off = Math.max(-r * 0.7, Math.min(r * 0.7, Math.sin(tiltDrawn) * th * 5));
+        const off = Math.max(-r * 0.7, Math.min(r * 0.7, Math.sin(tiltDrawn) * th * 2));
         const mx = dc.x + off;
         const bar = r * 0.75;
         const sx = Math.sin(phi) * r;
@@ -389,7 +389,7 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
             <line x1={dc.x - sx} y1={dc.y - r + 2} x2={dc.x + sx} y2={dc.y + r - 2} style={{ stroke: C.ink, strokeWidth: 1 }} />
             </g>
             <InkText x={dc.x} y={dc.y + r + 14} anchor="middle" size={11} role="soft">
-              tip, five times size
+              the tip, enlarged
             </InkText>
           </g>
         );
