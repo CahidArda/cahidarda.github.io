@@ -918,13 +918,15 @@ html {
 /* Wide figure. Below the two-column breakpoint it is an ordinary .fx-figure. On the
    desktop grid (18rem sidebar | 52rem reading column | empty minmax(0,18rem) column;
    the table of contents lives in the LEFT sidebar) it grows to the right into the
-   empty third column, by however much of it exists at this viewport, up to the gap +
-   the full column (21rem). 82.5rem = 2rem padding + 18rem + 3rem gap + 52rem + 3rem
-   gap + 2rem padding + ~2.5rem slack for a classic scrollbar, so it never causes
-   horizontal page scroll. Use it on <div class="fx-figure fx-wide"> or <Plate wide>. */
+   empty space beside the reading column: by however much exists at this viewport,
+   up to the gap + the full third column (21rem), and always leaving the page's 2rem
+   right padding. NOTE: inside calc() 1rem = 12px here (html is 75%), unlike in media
+   queries. Room to the right of <main> = 100vw - scrollbar - (2 + 18 + 3 + 52)rem, so
+   minus 2rem padding and ~1.5rem for a classic scrollbar gives 100vw - 78.5rem. It never
+   causes horizontal page scroll. Use <div class="fx-figure fx-wide"> or <Plate wide>. */
 @media (min-width: 62rem) {
   .fx-wide {
-    margin-right: calc(-1 * clamp(0rem, 100vw - 82.5rem, 21rem));
+    margin-right: calc(-1 * clamp(0rem, 100vw - 78.5rem, 21rem));
   }
 }
 

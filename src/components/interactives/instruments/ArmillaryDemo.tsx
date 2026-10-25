@@ -41,6 +41,7 @@ export default function ArmillaryDemo() {
   return (
     <Plate
       n={2}
+      id="plate-armillary"
       title="An armillary sphere, for the road"
       kicker="drag to turn"
       caption={

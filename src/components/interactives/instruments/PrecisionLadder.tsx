@@ -116,7 +116,7 @@ export default function PrecisionLadder() {
   const active = hover ?? pick[mode];
   const cur = cfg.rungs[Math.min(active, cfg.rungs.length - 1)];
 
-  const xTicks = narrow ? [-1500, 0, 1500, 1700, 1900, 2000] : [-1500, -500, 500, 1500, 1600, 1700, 1800, 1900, 2000];
+  const xTicks = narrow ? [-1000, 1500, 1700, 1900, 2000] : [-1000, 500, 1500, 1600, 1700, 1800, 1900, 2000];
 
   const choose = (i: number) => setPick((p) => ({ ...p, [mode]: i }));
 
@@ -231,7 +231,7 @@ export default function PrecisionLadder() {
                 x={x(yr)}
                 y={m.t + ih + 16}
                 kind="num"
-                anchor={yr === -1500 ? 'start' : 'middle'}
+                anchor="middle"
                 size={narrow ? 9 : 10}
                 role="soft"
                 halo={false}
@@ -240,13 +240,13 @@ export default function PrecisionLadder() {
               </InkText>
             </g>
           ))}
-          {/* "better" arrow */}
+          {/* "better" arrow, top right (the empty corner in both modes) */}
           <g>
             <path
-              d={`M ${m.l + 10} ${m.t + 34} V ${m.t + 4} M ${m.l + 6.5} ${m.t + 11} L ${m.l + 10} ${m.t + 4} L ${m.l + 13.5} ${m.t + 11}`}
+              d={`M ${m.l + iw - 4} ${m.t + 34} V ${m.t + 4} M ${m.l + iw - 7.5} ${m.t + 11} L ${m.l + iw - 4} ${m.t + 4} L ${m.l + iw - 0.5} ${m.t + 11}`}
               style={{ stroke: C.soft, strokeWidth: 0.8, fill: 'none' }}
             />
-            <InkText x={m.l + 17} y={m.t + 14} size={12} role="soft">
+            <InkText x={m.l + iw - 11} y={m.t + 12} anchor="end" size={12} role="soft">
               more precise
             </InkText>
           </g>
@@ -384,6 +384,7 @@ function labelDy(mode: Mode, i: number, narrow: boolean): number {
     if (i === 6) return 9 * k;
   }
   if (mode === 'time') {
+    if (i === 0) return -10 * k; // sundial sits on the same level as the verge
     if (i === 4) return -6 * k; // H4
   }
   return 0;
