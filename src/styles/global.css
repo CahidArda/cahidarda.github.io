@@ -1213,3 +1213,50 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Wide article layout (frontmatter `wideLayout: true`) ==================================
+   Owned by the layout; see BaseLayout.astro (`wide` prop + scroll script). Pages without the
+   flag never get `.layout-wide`, so none of this applies to them.
+   - Columns are symmetric (18rem | 52rem | 18rem, total 94rem) and centred, so the reading
+     column sits exactly at the viewport centre once the page is wider than 94rem + gutters.
+   - #content is an inline-size container, so 100cqw = viewport minus scrollbar: exact centring.
+   - `.fx-wide` grows by g on BOTH sides. The sidebar can slide as far as the 2rem page edge
+     (so it ends at 20rem) and the plate must start 2rem after it; the reading column starts at
+     50cqw - 26rem, so g = (100cqw - 96rem) / 2, capped at 10.5rem (max plate width 73rem, as
+     before). g is 0 below 1152px, where plates keep the column width. 1rem = 12px in calc().
+   - The sidebar's head (name, nav) scrolls away with the page; the dock (ToC, links) sticks.
+   Below 62rem nothing changes. */
+@media (min-width: 62rem) {
+  #content:has(> .layout-wide) {
+    container-type: inline-size;
+  }
+  .layout-wide {
+    justify-content: center;
+    grid-template-columns: 18rem 52rem minmax(0, 18rem);
+  }
+  .layout-wide > header {
+    position: relative;
+    top: auto;
+    height: auto;
+  }
+  .layout-wide > header > [data-sidebar] {
+    height: 100%;
+  }
+  .layout-wide .sidebar-dock {
+    position: sticky;
+    top: 3.5rem;
+  }
+}
+@media (min-width: 62rem) {
+  .layout-wide .fx-wide {
+    --wide-g: clamp(0rem, (100cqw - 96rem) / 2, 10.5rem);
+    margin-left: calc(-1 * var(--wide-g));
+    margin-right: calc(-1 * var(--wide-g));
+  }
+  /* <div class="fx-figure fx-wide"><Plate wide /></div>: only the outer one grows. */
+  .layout-wide .fx-wide .fx-wide {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+/* ===== end wide article layout ===== */

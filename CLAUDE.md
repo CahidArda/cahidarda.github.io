@@ -27,6 +27,7 @@ pnpm format    # prettier --write .
 - `src/styles/global.css` — design tokens (CSS vars, light/dark), Tailwind `@theme`, `.prose`
   typography, and per-topic widget styles.
 - `src/layouts/`, `src/lib/og.ts` — article layout; per-slug OG images are generated at build.
+- Frontmatter `wideLayout: true` (opt-in, posts with big `.fx-wide` plates): reading column centred, wide plates grow on both sides, sidebar head scrolls away while its ToC sticks and eases left (BaseLayout `wide`, "Wide article layout" block in global.css).
 
 ## Conventions
 
