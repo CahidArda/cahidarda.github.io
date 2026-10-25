@@ -71,7 +71,7 @@ export default function ArcsecondPlate() {
   const who = EPS.find((o) => o.value === eps)?.who ?? '';
   return (
     <Plate
-      n={4}
+      n={10}
       title="How a small angle error grows with distance"
       kicker="log scales · drag along the chart"
       caption={

@@ -46,7 +46,7 @@ export function wallScene(W: number, lean: number) {
   const foot = H - 54;
   const hPx = foot - top; // px per WALL_H
   const kx = (hPx / (WALL_H * 1000)) * EX; // px per mm, horizontal
-  const lineX = Math.min(W * 0.62, W - 120);
+  const lineX = Math.min(W * 0.6, W - 112);
   const gapTop = GAP_TOP_MM;
   const gapFoot = gapTop + lean * WALL_H;
   const faceTop = { x: lineX - gapTop * kx, y: top };
@@ -57,8 +57,8 @@ export function wallScene(W: number, lean: number) {
     ? 'plumb: the line runs parallel to the face'
     : `leans ${Math.abs(lean).toFixed(1)} mm per metre ${lean > 0 ? 'out' : 'in'}: tap the stone`;
   const labels = {
-    top: { x: lineX + 10, y: top + 14, text: `${gapTop.toFixed(0)} mm at the top` },
-    foot: { x: lineX + 10, y: foot - 22, text: `${gapFoot.toFixed(1)} mm at the foot` },
+    top: { x: lineX + 10, y: top + 14, text: `top ${gapTop.toFixed(0)} mm` },
+    foot: { x: lineX + 10, y: foot - 22, text: `foot ${gapFoot.toFixed(1)} mm` },
     status: { x: W / 2, y: H - 12, text: status },
   };
   const boxes: Box[] = [

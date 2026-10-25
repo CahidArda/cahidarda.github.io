@@ -296,7 +296,8 @@ for (const W of WIDTHS)
     const st = G.boxes.find((b) => b.name === 'status')!;
     ok(!segHitsBox(G.a, G.b, st), 'cord: status on the cord', () => ctx);
     const bobBottom = G.top.y + G.th + 6 + 18 * 0.7;
-    ok(bobBottom < Math.min(G.gL, G.gR) + 10, 'cord: bob above the ground', () => ctx);
+    // compare with the ground right under the bob (the ground now falls 1 in 8 between the poles)
+    ok(bobBottom < G.groundAt(G.top.x) - 3, 'cord: bob above the ground', () => `${ctx} bob ${bobBottom.toFixed(0)} ground ${G.groundAt(G.top.x).toFixed(0)}`);
   }
 
 /* ── Arcsecond chart ── */

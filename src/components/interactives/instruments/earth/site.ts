@@ -23,7 +23,7 @@ export const SITE = {
   CHANNEL_FALL: 0.025, // m, then a water channel runs 100 m to the crest falling 2.5 cm: the Nîmes aqueduct's 25 cm per km
   CREST_X: 200, // m, where the road starts down
   SHORE_X: 480, // m, A: the quay at the foot of the slope
-  QUAY_Z: 4.5, // m, height of the quay above the water: the road falls 35 m in 280 m, 1 in 8
+  QUAY_Z: 4.975, // m, height of the quay above the water: the road falls 35 m in 280 m, 1 in 8
   WIDTH: 700, // m, the strait at the narrows (round figure)
   FAR_Z: 4, // m, the far quay
   FAR_TOP_Z: 26, // m, the far shore at the edge of the drawing

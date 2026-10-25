@@ -1,36 +1,21 @@
 /**
- * Earth, Plate 2 (wide): a theodolite as an engraved line drawing.
+ * The 3D theodolite, as a component the triangulation step plates put in their view slot.
  * Parts, bottom to top: tripod and its plumb bob over the station mark; tribrach with three
  * levelling screws; the fixed horizontal circle (graduated every 2°); the alidade, which turns
  * about the vertical axis and carries the plate level, the index and the two standards; the
  * trunnion (horizontal) axis; the telescope with its vertical circle. The red line is the line
  * of sight. Horizontal angle = alidade rotation read against the fixed circle; vertical angle
  * = telescope tilt read against the index on the standard.
- * Until the reader touches a slider the alidade sweeps slowly (static under reduced motion).
+ * Horizontal readings run clockwise seen from above (like a real circle), so the alidade turns
+ * by −h about the vertical axis. `targets` draws faint dashed lines from the instrument toward
+ * each target (same circle readings as the eyepiece, ./theoGeom.ts), so the reader sees the
+ * red line of sight swing onto them.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import type * as THREEns from 'three';
-import {
-  BlueprintCanvas,
-  C,
-  useMeasuredWidth,
-  Controls,
-  InkText,
-  Plate,
-  Eq,
-  Slider,
-  Sym,
-  V,
-  Working,
-  useInView,
-  useReducedMotion,
-} from '../shared';
+import { BlueprintCanvas, C, InkText, useMeasuredWidth } from '../shared';
 
 const RAD = Math.PI / 180;
-/** Tilt limits: beyond about −44° and +63° the objective or eyepiece would hit the alidade
- *  plate (see scopeClearance in ./geometry.ts, checked by the sweep). */
-const V_MIN = -30;
-const V_MAX = 60;
 
 export function dms(v: number, signed = false) {
   const s = v < 0 ? '−' : signed ? '+' : '';
@@ -108,62 +93,34 @@ function Poster() {
   );
 }
 
-type Params = { h: number; v: number };
+type Params = { h: number; v: number; targets: { h: number; v: number }[] };
 
-export default function TheodolitePlate() {
-  const reduced = useReducedMotion();
-  const [rootRef, inView] = useInView<HTMLElement>();
-  const [h, setH] = useState(38);
-  const [v, setV] = useState(12);
-  const [auto, setAuto] = useState(true);
-  const t0 = useRef(0);
-
-  // idle sweep: the alidade swings slowly until the reader takes over
+/** Line of sight and up to three target directions, driven by circle readings (degrees). */
+export function TheodoliteCanvas({ h, v, targets = [] }: { h: number; v: number; targets?: { h: number; v: number }[] }) {
+  const params = useMemo<Params>(() => ({ h, v, targets }), [h, v, targets]);
+  const [boxRef, boxW] = useMeasuredWidth<HTMLDivElement>(420);
+  const narrow = boxW < 360;
+  // StepPlate remounts its view on every step; release this canvas's WebGL context when it
+  // goes, so stepping back and forth never piles up live contexts.
   useEffect(() => {
-    if (!auto || reduced || !inView) return;
-    let raf = 0;
-    const start = performance.now() - t0.current;
-    const step = (now: number) => {
-      const t = (now - start) / 1000;
-      t0.current = now - start;
-      setH(38 + 34 * Math.sin(t * 0.35));
-      setV(12 + 8 * Math.sin(t * 0.23));
-      raf = requestAnimationFrame(step);
+    const box = boxRef.current;
+    return () => {
+      const c = box?.querySelector('canvas');
+      const gl = (c?.getContext('webgl2') ?? c?.getContext('webgl')) as WebGLRenderingContext | null | undefined;
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
     };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [auto, reduced, inView]);
-
-  const params = useMemo<Params>(() => ({ h, v }), [h, v]);
-  const [boxRef, boxW] = useMeasuredWidth<HTMLDivElement>(700);
-  const narrow = boxW < 520;
-  const hz = ((h % 360) + 360) % 360;
-
+  }, [boxRef]);
   return (
-    <Plate
-      n={3}
-      wide
-      rootRef={rootRef}
-      title="The theodolite"
-      caption={
-        <>
-          Two circles and two axes. The alidade turns on the vertical axis over the fixed
-          horizontal circle; the telescope tilts on the trunnion axis against the vertical
-          circle. The plumb bob puts the vertical axis over the station mark, the levelling
-          screws and the plate level make it truly vertical. The red line is the line of sight.
-        </>
-      }
-    >
-      <div ref={boxRef}>
+    <div ref={boxRef}>
       <BlueprintCanvas<Params>
         key={narrow ? 'n' : 'w'}
-        aspect={narrow ? 1 : 3 / 2}
+        aspect={narrow ? 1 : 4 / 3}
         fit={1.3}
         yaw={-0.75}
         pitch={0.3}
         params={params}
         poster={<Poster />}
-        label="Rotatable line drawing of a theodolite on a tripod, with its telescope aimed by the sliders below"
+        label="Rotatable line drawing of a theodolite on a tripod; the red line is its line of sight"
         build={(T, ctx) => {
           const ink = (o: THREEns.Object3D, opts?: Parameters<typeof ctx.inkify>[1]) => {
             ctx.inkify(o, opts);
@@ -380,50 +337,27 @@ export default function TheodolitePlate() {
           losLine.computeLineDistances();
           scope.add(losLine);
 
+          // target directions: dashed, faint, from the vertical axis at trunnion height
+          const tLines = [0, 1, 2].map(() => {
+            const g = new T.BufferGeometry().setFromPoints([new T.Vector3(0, 0, 0), new T.Vector3(3.2, 0, 0)]);
+            const l = new T.Line(g, ctx.lineMaterial('soft', { dashed: true, dash: 0.06, gap: 0.05 }));
+            l.computeLineDistances();
+            l.position.y = trunY; // the trunnion axis (the alidade group sits at the origin)
+            l.visible = false;
+            root.add(l);
+            return l;
+          });
           return (_dt, _t, p) => {
-            alidade.rotation.y = p.h * RAD;
+            alidade.rotation.y = -p.h * RAD;
             scope.rotation.z = p.v * RAD;
+            tLines.forEach((l, i) => {
+              const t = p.targets[i];
+              l.visible = !!t;
+              if (t) l.rotation.set(0, -t.h * RAD, t.v * RAD, 'YXZ');
+            });
           };
         }}
       />
-      </div>
-      <Controls>
-        <Slider
-          label="turn the telescope round"
-          value={Math.round(hz * 20) / 20}
-          min={0}
-          max={359.95}
-          step={0.05}
-          onChange={(x) => {
-            setAuto(false);
-            setH(x);
-          }}
-          format={(x) => dms(x)}
-          width="8rem"
-        />
-        <Slider
-          label="tip it up or down"
-          value={Math.round(v * 20) / 20}
-          min={V_MIN}
-          max={V_MAX}
-          step={0.05}
-          onChange={(x) => {
-            setAuto(false);
-            setV(x);
-          }}
-          format={(x) => dms(x, true)}
-          width="8rem"
-        />
-      </Controls>
-      <Working label="The two angles a theodolite reads">
-        <Eq>
-          horizontal angle <Sym>Hz</Sym> = <V>{dms(hz)}</V>, read on the fixed horizontal circle
-        </Eq>
-        <Eq>
-          elevation <Sym role="red">V</Sym> = <V role="red">{dms(v, true)}</V>, so the zenith angle is 90° − <Sym role="red">V</Sym> ={' '}
-          <V>{dms(90 - v)}</V>
-        </Eq>
-      </Working>
-    </Plate>
+    </div>
   );
 }

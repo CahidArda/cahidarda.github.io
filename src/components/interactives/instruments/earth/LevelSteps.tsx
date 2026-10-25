@@ -204,7 +204,7 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
   const pole = (x: number, g: number, side: 'L' | 'R') => {
     const p: string[] = [];
     const lab: React.ReactNode[] = [];
-    for (let i = 0; i <= 20; i++) {
+    for (let i = 0; i <= 23; i++) {
       const y = g - (i / 10) * ky;
       const w = i % 5 === 0 ? 9 : 5;
       p.push(side === 'L' ? `M ${x} ${y} L ${x - w} ${y}` : `M ${x} ${y} L ${x + w} ${y}`);
@@ -226,7 +226,7 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
     }
     return (
       <g>
-        <rect x={x - 3} y={G.poleTop(g)} width={6} height={2.05 * ky} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
+        <rect x={x - 3} y={G.poleTop(g)} width={6} height={2.35 * ky} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1 }} />
         <path d={p.join(' ')} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
         {lab}
       </g>
@@ -371,7 +371,7 @@ function CrossbarView({ theta }: { theta: number }) {
 /* ── the plate ── */
 
 const ROAD = SURFACES.find((s) => s.id === 'road')!;
-const FAR_START = 1.5;
+const FAR_START = 2.25;
 
 export default function LevelSteps() {
   const [step, setStep] = useState(0);

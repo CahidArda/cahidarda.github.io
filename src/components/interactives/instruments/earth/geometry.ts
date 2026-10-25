@@ -391,7 +391,8 @@ export function aframeLayout(W: number, thetaDeg: number) {
   const Hs = narrow ? 300 : 330;
   const cx = W / 2;
   const gy = Hs - 72;
-  const Hf = 215 * s + (narrow ? 25 : 0);
+  // frame height: as large as the width allows, but the apex (and its label) stays on the plate
+  const Hf = Math.min(215 * s + (narrow ? 25 : 0), gy - 52);
   const L = 118 * s;
   const h = Hf * 0.55; // apex to crossbar, px
   const t = thetaDeg * RAD;
@@ -516,7 +517,7 @@ export function hitParam(p: Pt, d: Pt, a: Pt, b: Pt) {
 /* ─────────────────────────── havayi terazi on a cord ─────────────────────────── */
 
 /** The cord level on the road down to the quay: poles 6 m apart, ground falls 1 in 8 (75 cm). */
-export const CORD = { SPAN: 6, NEAR: 1.0, DROP: 0.75, MIN: 1.2, MAX: 2.0 };
+export const CORD = { SPAN: 6, NEAR: 1.3, DROP: 0.75, MIN: 1.85, MAX: 2.3 };
 
 export function cordLayout(W: number, far: number) {
   const { SPAN, NEAR, DROP } = CORD;
@@ -525,7 +526,8 @@ export function cordLayout(W: number, far: number) {
   const S = Math.min(W * 0.36, 250);
   const xL = W / 2 - S;
   const xR = W / 2 + S;
-  const ky = (Hs - 84) / (2.05 + DROP); // px per metre, vertical (exaggerated, said in the caption)
+  const ky = (Hs - 84) / (2.35 + DROP); // px per metre, vertical (exaggerated, said in the caption)
+  // the ground falls between the poles; the cord's lowest setting must keep the triangle clear of it
   const gR = Hs - 44;
   const gL = gR - DROP * ky;
   const yAt = (pole: 'L' | 'R', m: number) => (pole === 'L' ? gL : gR) - m * ky;
@@ -547,7 +549,7 @@ export function cordLayout(W: number, far: number) {
   const tip = { x: top.x + nx * th, y: top.y + ny * th };
   const err = far - (NEAR + DROP);
   const level = Math.abs(err) < 0.006;
-  const poleTop = (g: number) => g - 2.05 * ky;
+  const poleTop = (g: number) => g - 2.35 * ky;
   const statusText = level
     ? `level: the ground falls ${(DROP * 100).toFixed(0)} cm between the poles`
     : `cord ${err > 0 ? 'rises' : 'falls'} ${Math.abs(tiltReal / RAD).toFixed(2)}°: keep sliding`;

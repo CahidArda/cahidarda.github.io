@@ -1,6 +1,7 @@
 /**
- * Earth: triangulation. Measure one length on the ground and two angles, get a length you
- * cannot walk. All coordinates come from ./geometry.ts (minaretLayout, straitLayout), which
+ * Earth: the triangulation drawings with their error regions, used as the last step of the
+ * width and height procedure plates. Measure one length on the ground and two angles, get a
+ * length you cannot walk. All coordinates come from ./geometry.ts (minaretLayout, straitLayout), which
  * the sweep script checks.
  *  - Minaret (elevation view): stations A (far) and B (near) in line with the foot, baseline b,
  *    elevation angles α at A and β at B: h = b·sin α·sin β / sin(β − α). True h = 76 m.
@@ -12,30 +13,10 @@
  * Colours: α and everything at A in sky, β and everything at B in brass, the baseline in ink,
  * the answer (height, width, error region) in red. The worked equation uses the same roles.
  */
-import { useState } from 'react';
-import {
-  C,
-  Controls,
-  DimLine,
-  Eq,
-  HatchDefs,
-  InkText,
-  Plate,
-  Segmented,
-  Slider,
-  Sym,
-  V,
-  Working,
-  arcPath,
-  useHoverPreview,
-  useMeasuredWidth,
-} from '../shared';
-import { RAD, deg, minaretLayout, straitLayout, type Pt } from './geometry';
+import { C, DimLine, Eq, HatchDefs, InkText, V, arcPath, useMeasuredWidth } from '../shared';
+import { deg, minaretLayout, straitLayout, type Pt } from './geometry';
 
-type Mode = 'minaret' | 'strait';
-
-const fmtEps = (m: number) => (m === 0 ? '0′' : m < 1 ? `${Math.round(m * 60)}″` : `${m.toFixed(m % 1 ? 1 : 0)}′`);
-const fd = (r: number) => `${deg(r).toFixed(2)}°`;
+export const fmtEps = (m: number) => (m === 0 ? '0′' : m < 1 ? `${Math.round(m * 60)}″` : `${m.toFixed(m % 1 ? 1 : 0)}′`);
 
 /** A Süleymaniye-style pencil minaret, foot at (x, g), drawn tip exactly at g − Hpx. */
 function Minaret({ x, g, Hpx }: { x: number; g: number; Hpx: number }) {
@@ -95,10 +76,12 @@ function RangeBracket({ x, y1, y2, clippedTop }: { x: number; y1: number; y2: nu
   );
 }
 
-function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps: number }) {
+export function MinaretView({ dB, b, eps }: { dB: number; b: number; eps: number }) {
+  const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
   const L = minaretLayout(W, dB, b, eps);
   const { g, k, fx, ax, bx, al, be, tip, quad, range, rangeLabel } = L;
   return (
+    <div ref={ref}>
     <svg viewBox={`0 0 ${W} ${L.Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="tri-hatch" gap={6} />
       <clipPath id="tri-clip">
@@ -182,10 +165,12 @@ function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps:
         B
       </InkText>
     </svg>
+    </div>
   );
 }
 
-function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
+export function StraitView({ b, eps }: { b: number; eps: number }) {
+  const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
   const L = straitLayout(W, b, eps);
   const { nearY, farY, ax, bx, be, quad, range, rangeLabel } = L;
   const Hs = L.Hs;
@@ -207,6 +192,7 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
     }
   }
   return (
+    <div ref={ref}>
     <svg viewBox={`0 0 ${W} ${Hs}`} width="100%" style={{ display: 'block', height: 'auto' }}>
       <HatchDefs id="st-hatch" gap={6} />
       <clipPath id="st-clip">
@@ -296,11 +282,12 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
         B
       </InkText>
     </svg>
+    </div>
   );
 }
 
 /** "63.5 to 94.1 m, i.e. 12.5 m low to 18.1 m high", or the unbounded case, said honestly. */
-function RangeLine({ lo, hi, truth, eps, dp }: { lo: number; hi: number; truth: number; eps: number; dp: number }) {
+export function RangeLine({ lo, hi, truth, eps, dp }: { lo: number; hi: number; truth: number; eps: number; dp: number }) {
   return (
     <Eq>
       with each angle off by up to <V>{fmtEps(eps)}</V>:{' '}
@@ -318,102 +305,3 @@ function RangeLine({ lo, hi, truth, eps, dp }: { lo: number; hi: number; truth: 
   );
 }
 
-export default function TriangulationPlate() {
-  const [sel, setSel] = useState<Mode>('minaret');
-  const [mode, bindMode] = useHoverPreview(sel);
-  const [dB, setDB] = useState(100);
-  const [bm, setBm] = useState(50);
-  const [bs, setBs] = useState(200);
-  const [eps, setEps] = useState(30); // arcminutes
-  const [ref, W] = useMeasuredWidth<HTMLDivElement>(640);
-  const e = (eps / 60) * RAD;
-  const bMax = 300 - dB;
-  const bMin = Math.min(bm, bMax); // the slider's range shrinks with dB, the value follows it
-  const M = minaretLayout(W, dB, bMin, e);
-  const S = straitLayout(W, bs, e);
-  return (
-    <Plate
-      n={2}
-      title={mode === 'minaret' ? 'Measuring a minaret from two points' : 'Measuring the Bosphorus from one shore'}
-      kicker="one length, two angles"
-      caption={
-        mode === 'minaret' ? (
-          <>
-            Side view, to scale. Walk a baseline toward the Süleymaniye minaret and read the
-            elevation angle at both ends. The red patch is everywhere the two sight lines can
-            cross if each angle is off by the error you set; its lowest and highest points are the
-            range of the answer. It is lopsided: the same error pushes the answer up further
-            than down. Put the stations close together, or far away, and it blows up.
-          </>
-        ) : (
-          <>
-            Plan view, to scale. Pace a baseline along the Asian shore. At A, sight a point C on
-            the European shore square to the baseline; at B, read the angle to C. A short
-            baseline makes a thin triangle, and in a thin triangle a small angle error moves C a
-            long way.
-          </>
-        )
-      }
-    >
-      <Controls>
-        <Segmented
-          label="Problem"
-          options={[
-            { value: 'minaret', label: 'Height of a minaret' },
-            { value: 'strait', label: 'Width of the Bosphorus' },
-          ]}
-          value={sel}
-          onChange={setSel}
-          preview={bindMode}
-        />
-      </Controls>
-      <div ref={ref} style={{ marginTop: '0.6rem' }}>
-        {mode === 'minaret' ? <MinaretView W={W} dB={dB} b={bMin} eps={e} /> : <StraitView W={W} b={bs} eps={e} />}
-      </div>
-      <Controls>
-        {mode === 'minaret' ? (
-          <>
-            <Slider label="B to minaret" value={dB} min={20} max={250} step={5} onChange={setDB} format={(v) => `${v} m`} />
-            <Slider
-              label="baseline b, A to B"
-              value={bMin}
-              min={5}
-              max={bMax}
-              step={5}
-              onChange={setBm}
-              format={(v) => `${v} m`}
-            />
-          </>
-        ) : (
-          <Slider label="baseline b, A to B" value={bs} min={20} max={600} step={10} onChange={setBs} format={(v) => `${v} m`} />
-        )}
-        <Slider label="error in each angle" value={eps} min={0} max={60} step={0.5} onChange={setEps} format={fmtEps} />
-      </Controls>
-      {mode === 'minaret' ? (
-        <Working label="Height from two angles and a baseline">
-          <Eq>
-            <Sym role="red">h</Sym> = <Sym>b</Sym> · sin <Sym role="sky">α</Sym> · sin <Sym role="brass">β</Sym> / sin(
-            <Sym role="brass">β</Sym> − <Sym role="sky">α</Sym>)
-          </Eq>
-          <Eq>
-            <V role="red">{`${M.h.toFixed(1)} m`}</V> = <V>{`${bMin} m`}</V> · sin <V role="sky">{fd(M.al)}</V> · sin{' '}
-            <V role="brass">{fd(M.be)}</V> / sin <V>{fd(M.be - M.al)}</V>
-          </Eq>
-          {eps > 0 && <RangeLine lo={M.reg.lo} hi={M.reg.hi} truth={M.h} eps={eps} dp={1} />}
-        </Working>
-      ) : (
-        <Working label="Width from two angles and a baseline (law of sines)">
-          <Eq>
-            <Sym role="red">w</Sym> = <Sym>b</Sym> · sin <Sym role="sky">α</Sym> · sin <Sym role="brass">β</Sym> / sin(
-            <Sym role="sky">α</Sym> + <Sym role="brass">β</Sym>)
-          </Eq>
-          <Eq>
-            <V role="red">{`${S.w.toFixed(0)} m`}</V> = <V>{`${bs} m`}</V> · sin <V role="sky">90°</V> · sin <V role="brass">{fd(S.be)}</V> / sin(
-            <V role="sky">90°</V> + <V role="brass">{fd(S.be)}</V>)
-          </Eq>
-          {eps > 0 && <RangeLine lo={S.reg.lo} hi={S.reg.hi} truth={S.w} eps={eps} dp={0} />}
-        </Working>
-      )}
-    </Plate>
-  );
-}
