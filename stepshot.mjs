@@ -33,7 +33,15 @@ for (const w of widths) {
     if (only && !sc.name.startsWith(only)) continue;
     const plate = page.locator('.in-plate').filter({ has: page.locator('.in-plate-no', { hasText: new RegExp(`\\b${sc.plate}$`) }) }).first();
     await plate.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
-    await page.waitForTimeout(900);
+    // wait for the island to hydrate (Astro drops the `ssr` attribute when it has)
+    await plate.evaluate(async (el) => {
+      for (let i = 0; i < 100; i++) {
+        const isl = el.closest('astro-island');
+        if (!isl || !isl.hasAttribute('ssr')) return;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    });
+    await page.waitForTimeout(400);
     for (const [op, a, b] of sc.do ?? []) {
       if (op === 'set') {
         const r = await plate.evaluate((el, [label, value]) => {
