@@ -22,6 +22,8 @@ export function hodoLayout(W: number) {
   const H = 220;
   const wc = { x: Math.min(110, W * 0.26), y: 120, r: Math.min(80, W * 0.2) };
   const dc = { x: wc.x + wc.r + Math.min(90, W * 0.22), y: 70, r: 44 };
-  const bowl = { x: Math.min(dc.x + Math.min(110, W * 0.26), W - 56), y: 160 };
-  return { H, wc, dc, bowl };
+  const ground = wc.y + wc.r;
+  // the bowl and its label (26 below it) sit above the ground line
+  const bowl = { x: Math.min(dc.x + Math.min(110, W * 0.26), W - 56), y: Math.min(160, ground - 40) };
+  return { H, wc, dc, bowl, ground };
 }

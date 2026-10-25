@@ -354,6 +354,7 @@ for (const W of WIDTHS) {
   ok(wc.x - wc.r >= 0 && dc.x + dc.r <= W && bowl.x - 34 >= 0 && bowl.x + 34 <= W, 'hodo: wheel, drum and bowl inside', () => `W=${W}`);
   const lab = textBox('bowl', bowl.x, bowl.y + 26, `bowl: ${hodometer(30_000).pebbles} pebbles`, 11, 'middle');
   ok(inside(lab, W, H), 'hodo: bowl label inside', () => `W=${W} ${JSON.stringify(lab)}`);
+  ok(lab.y1 < hodoLayout(W).ground - 1, 'hodo: bowl label above the ground line', () => `W=${W}`);
   ok(dc.x - dc.r > wc.x + wc.r && bowl.x - 34 > dc.x - dc.r, 'hodo: parts in order, no overlap', () => `W=${W}`);
 }
 for (const ft of range(0, 30_000, 50)) {
