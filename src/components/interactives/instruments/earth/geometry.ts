@@ -515,7 +515,8 @@ export function hitParam(p: Pt, d: Pt, a: Pt, b: Pt) {
 
 /* ─────────────────────────── havayi terazi on a cord ─────────────────────────── */
 
-export const CORD = { SPAN: 6, NEAR: 1.2, DROP: 0.3, MIN: 1.3, MAX: 1.9 };
+/** The cord level on the road down to the quay: poles 6 m apart, ground falls 1 in 8 (75 cm). */
+export const CORD = { SPAN: 6, NEAR: 1.0, DROP: 0.75, MIN: 1.2, MAX: 2.0 };
 
 export function cordLayout(W: number, far: number) {
   const { SPAN, NEAR, DROP } = CORD;
@@ -524,9 +525,9 @@ export function cordLayout(W: number, far: number) {
   const S = Math.min(W * 0.36, 250);
   const xL = W / 2 - S;
   const xR = W / 2 + S;
-  const ky = (Hs - 120) / 2.1; // px per metre, vertical (exaggerated, said in the caption)
-  const gL = Hs - 52;
-  const gR = gL + DROP * ky;
+  const ky = (Hs - 84) / (2.05 + DROP); // px per metre, vertical (exaggerated, said in the caption)
+  const gR = Hs - 44;
+  const gL = gR - DROP * ky;
   const yAt = (pole: 'L' | 'R', m: number) => (pole === 'L' ? gL : gR) - m * ky;
   const a = { x: xL, y: yAt('L', NEAR) };
   const b = { x: xR, y: yAt('R', far) };
@@ -550,7 +551,7 @@ export function cordLayout(W: number, far: number) {
   const statusText = level
     ? `level: the ground falls ${(DROP * 100).toFixed(0)} cm between the poles`
     : `cord ${err > 0 ? 'rises' : 'falls'} ${Math.abs(tiltReal / RAD).toFixed(2)}°: keep sliding`;
-  const status = { x: W / 2, y: 20 }; // the empty band above the poles
+  const status = { x: W / 2, y: 18 }; // the empty band above the poles
   // the ground profile (a cubic between the pole feet), shared with the drawing
   const groundPath = `M ${xL - 40} ${gL - 3} L ${xL} ${gL} C ${xL + S * 0.6} ${gL + 4}, ${xR - S * 0.7} ${gR - 6}, ${xR} ${gR} L ${xR + 40} ${gR + 2}`;
   const groundAt = (x: number) => {

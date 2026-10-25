@@ -5,12 +5,12 @@ date: 2026-10-25
 tags: ['blog']
 wideLayout: true
 series: instruments
-seriesOrder: 3
+seriesOrder: 4
 ---
 
 import { Image } from 'astro:assets';
 import EqTip from '../../../components/EqTip.astro';
-import LevelPlate from '../../../components/interactives/instruments/earth/LevelPlate.tsx';
+import LevelSteps from '../../../components/interactives/instruments/earth/LevelSteps.tsx';
 import TriangulationPlate from '../../../components/interactives/instruments/earth/TriangulationPlate.tsx';
 import TheodolitePlate from '../../../components/interactives/instruments/earth/TheodolitePlate.tsx';
 import ArcsecondPlate from '../../../components/interactives/instruments/earth/ArcsecondPlate.tsx';
@@ -63,8 +63,8 @@ only when the feet are level. Tilt the frame by θ and the string lands $x = h\t
 centre mark, where $h$ is the drop from apex to crossbar. Mark the crossbar and the same tool
 reads slope.
 
-<div class="fx-figure">
-  <LevelPlate client:visible />
+<div class="fx-figure fx-wide">
+  <LevelSteps client:visible />
 </div>
 
 It was good enough. The pavement of the Great Pyramid slopes by about 15 mm from one corner to
