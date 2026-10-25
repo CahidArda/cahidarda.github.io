@@ -116,12 +116,17 @@ for (const W of WIDTHS)
           ok(near(reg.lo, Math.min(...v), 1e-7) && near(reg.hi, Math.max(...v), 1e-7), 'minaret: range = formula extremes', () => `${ctx} ${reg.lo},${reg.hi} vs ${v}`);
           const yHi = L.g - reg.hi * L.k;
           ok(range.clippedTop ? yHi < 4 : near(range.y2, yHi, 1e-9), 'minaret: bracket top at hi (or marked clipped)', () => ctx);
-          // the quad corners are exactly the region's extremes
+          // the drawn region spans lo..hi (hi clipped at the top edge of the drawing)
           const ys = L.quad!.map((p) => (L.g - p.y) / L.k);
-          ok(near(Math.min(...ys), reg.lo, 1e-7) && near(Math.max(...ys), reg.hi, 1e-7), 'minaret: drawn region spans lo..hi', () => ctx);
+          const topM = L.g / L.k;
+          const atSide = L.quad!.some((p) => p.x < 0.01 || p.x > W - 0.01);
+          ok(near(Math.min(...ys), reg.lo, 1e-7) && (atSide || near(Math.max(...ys), Math.min(reg.hi, topM), 1e-7)), 'minaret: drawn region spans lo..hi', () => `${ctx} ${Math.min(...ys)}..${Math.max(...ys)} vs ${reg.lo}..${reg.hi}`);
         } else {
           minUnbounded++;
           ok(range.clippedTop, 'minaret: unbounded range drawn as open-ended', () => ctx);
+          const ys = L.quad!.map((p) => (L.g - p.y) / L.k);
+          const atSide = L.quad!.some((p) => p.x < 0.01 || p.x > W - 0.01);
+          ok(near(Math.min(...ys), reg.lo, 1e-7) && (atSide || near(Math.max(...ys), L.g / L.k, 1e-7)), 'minaret: unbounded region reaches the edge', () => ctx);
         }
         {
           // centred on its bracket, or pushed in by the drawing edge but still beside the bracket
@@ -159,6 +164,9 @@ for (const W of WIDTHS)
         ok(near(reg.lo, Math.min(...v), 1e-7) && near(reg.hi, Math.max(...v), 1e-7), 'strait: range = formula extremes', () => `${ctx} ${reg.lo},${reg.hi} vs ${v}`);
         const yHi = L.nearY - reg.hi * L.k;
         ok(range.clippedTop ? yHi < 4 : near(range.y2, yHi, 1e-9), 'strait: bracket top at hi (or marked clipped)', () => ctx);
+        const ys = L.quad!.map((p) => (L.nearY - p.y) / L.k);
+        const atSide = L.quad!.some((p) => p.x < 0.01 || p.x > W - 0.01);
+        ok(near(Math.min(...ys), reg.lo, 1e-7) && (atSide || near(Math.max(...ys), Math.min(reg.hi, L.nearY / L.k), 1e-7)), 'strait: drawn region spans lo..hi', () => ctx);
       } else ok(range.clippedTop, 'strait: unbounded range drawn as open-ended', () => ctx);
       {
         const half = ([...L.rangeLabel.text].length * L.rangeLabel.size * 0.52) / 2 + 3;
@@ -339,6 +347,26 @@ for (const [W, narrow] of [
     // its readout string says the same value
     ok(cfg.fmt(r.value).length > 0, 'ladder: readout', () => r.short);
   });
+  // labels must not sit on the red best-so-far staircase
+  {
+    // same path as PrecisionLadder's `stair`
+    const segs: [Pt, Pt][] = [];
+    const pts = cfg.rungs.map((r) => ({ x: x(r.year), y: y(r.value) }));
+    let cur = pts[0];
+    let best = pts[0].y;
+    pts.forEach((p, i) => {
+      if (i === 0) return;
+      segs.push([cur, { x: p.x, y: cur.y }]);
+      cur = { x: p.x, y: cur.y };
+      if (p.y < best) {
+        segs.push([cur, { x: p.x, y: p.y }]);
+        cur = { x: p.x, y: p.y };
+      }
+      best = Math.min(best, p.y);
+    });
+    segs.push([cur, { x: m.l + iw, y: cur.y }]);
+    boxes.forEach((b) => segs.forEach(([p, q]) => ok(!segHits(p, q, b, 0), `ladder: label '${b.name}' on the staircase`, () => `${ctx} ${fmtB(b)}`)));
+  }
   // ticks and year labels inside
   for (const t of cfg.ticks) ok(y(t.v) >= m.t - 1e-9 && y(t.v) <= m.t + ih + 1e-9, `ladder: tick ${t.label} inside`, () => ctx);
   const xt = narrow ? cfg.xTicks!.narrow : cfg.xTicks!.wide;

@@ -94,6 +94,46 @@ export function errorRegion(P: Pt, tp: number, Q: Pt, tq: number, e: number) {
   return { corners: bounded ? (hits as Pt[]) : null, lo, hi, bounded };
 }
 
+/** Clip a convex polygon to the half-plane where f(p) >= 0 (f affine). Sutherland-Hodgman. */
+function clipHalf(poly: Pt[], f: (p: Pt) => number): Pt[] {
+  const out: Pt[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    const fa = f(a);
+    const fb = f(b);
+    if (fa >= 0) out.push(a);
+    if (fa >= 0 !== fb >= 0) {
+      const t = fa / (fa - fb);
+      out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+    }
+  }
+  return out;
+}
+/**
+ * The exact region (world units) where a sight line from P at tp ± e and one from Q at tq ± e
+ * can cross, above the ground (y > 0), clipped to the box [x0, x1] × [0, y1]. Works whether or
+ * not the region is bounded.
+ */
+export function wedgeRegion(P: Pt, tp: number, Q: Pt, tq: number, e: number, box: { x0: number; x1: number; y1: number }) {
+  let poly: Pt[] = [
+    { x: box.x0, y: 0 },
+    { x: box.x1, y: 0 },
+    { x: box.x1, y: box.y1 },
+    { x: box.x0, y: box.y1 },
+  ];
+  const side = (O: Pt, t: number, sgn: number) => (X: Pt) =>
+    sgn * (Math.cos(t) * (X.y - O.y) - Math.sin(t) * (X.x - O.x));
+  for (const [O, t] of [
+    [P, tp],
+    [Q, tq],
+  ] as [Pt, number][]) {
+    poly = clipHalf(poly, side(O, t - e, 1)); // left of the lower ray
+    poly = clipHalf(poly, side(O, t + e, -1)); // right of the upper ray
+  }
+  return poly;
+}
+
 export const H_TRUE = 76; // Süleymaniye minaret, m (round figure)
 export const W_TRUE = 700; // Bosphorus at its narrowest, m (round figure)
 export const MIN_Y_MAX = 115; // the minaret drawing shows heights up to this many metres
@@ -120,7 +160,10 @@ export function minaretLayout(W: number, dB: number, b: number, epsRad: number) 
   const tip = { x: fx, y: g - h * k };
   const toS = (p: Pt) => ({ x: fx + p.x * k, y: g - p.y * k });
   const reg = errorRegion({ x: -dA, y: 0 }, al, { x: -dB, y: 0 }, be, epsRad);
-  const quad = reg.corners ? reg.corners.map(toS) : null;
+  // the drawn region, clipped to the drawing (world box: the whole width, up to the top edge)
+  const quad = epsRad > 0
+    ? wedgeRegion({ x: -dA, y: 0 }, al, { x: -dB, y: 0 }, be, epsRad, { x0: -fx / k, x1: (W - fx) / k, y1: g / k }).map(toS)
+    : null;
   // the range bracket, beside the minaret, from lo to hi (clipped at the top of the drawing)
   const yTopLimit = 4;
   const loY = g - reg.lo * k;
@@ -268,7 +311,9 @@ export function straitLayout(W: number, b: number, epsRad: number) {
   const C = { x: ax + w * Math.cos(al) * k, y: nearY - w * k };
   const toS = (p: Pt) => ({ x: ax + p.x * k, y: nearY - p.y * k });
   const reg = errorRegion({ x: 0, y: 0 }, al, { x: b, y: 0 }, Math.PI - be, epsRad);
-  const quad = reg.corners ? reg.corners.map(toS) : null;
+  const quad = epsRad > 0
+    ? wedgeRegion({ x: 0, y: 0 }, al, { x: b, y: 0 }, Math.PI - be, epsRad, { x0: -ax / k, x1: (W - ax) / k, y1: nearY / k }).map(toS)
+    : null;
   const yTopLimit = 4;
   const loY = nearY - reg.lo * k;
   const hiYraw = reg.bounded ? nearY - reg.hi * k : -Infinity;

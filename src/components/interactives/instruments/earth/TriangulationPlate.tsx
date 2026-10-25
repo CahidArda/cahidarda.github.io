@@ -111,7 +111,7 @@ function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps:
         <g clipPath="url(#tri-clip)">
           <path d={poly(quad)} style={{ fill: C.red, opacity: 0.18, stroke: C.red, strokeWidth: 0.8 }} />
           {/* level leaders from the region's lowest and highest corners to the bracket */}
-          {extremes(quad).map((p, i) => (
+          {extremes(quad).filter((p) => p.y > 1).map((p, i) => (
             <line
               key={i}
               x1={p.x}
@@ -122,9 +122,6 @@ function MinaretView({ W, dB, b, eps }: { W: number; dB: number; b: number; eps:
             />
           ))}
         </g>
-      )}
-      {eps > 0 && !quad && (
-        <rect x={0} y={4} width={W} height={range.y1 - 4} style={{ fill: C.red, opacity: 0.06 }} />
       )}
       {/* sight lines */}
       <line x1={ax} y1={g} x2={tip.x} y2={tip.y} style={{ stroke: C.sky, strokeWidth: 1, strokeDasharray: '5 3' }} />
@@ -230,7 +227,7 @@ function StraitView({ W, b, eps }: { W: number; b: number; eps: number }) {
       {eps > 0 && quad && (
         <g clipPath="url(#st-clip)">
           <path d={poly(quad)} style={{ fill: C.red, opacity: 0.2, stroke: C.red, strokeWidth: 0.8 }} />
-          {extremes(quad).map((p, i) => (
+          {extremes(quad).filter((p) => p.y > 1).map((p, i) => (
             <line
               key={i}
               x1={range.x}

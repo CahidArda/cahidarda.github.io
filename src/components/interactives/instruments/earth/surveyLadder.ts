@@ -133,5 +133,6 @@ export const SURVEY_LADDER: LadderConfig = {
     wide: [-2500, -1000, 500, 1500, 1700, 1800, 1900, 2000],
     narrow: [-2500, -500, 1500, 1800, 2000],
   },
-  dy: () => 0,
+  // the best-so-far line runs right from 'pyramid level' and 'Ramsden': lift their labels off it
+  dy: (i) => (i === 1 || i === 5 ? -10 : 0),
 };
