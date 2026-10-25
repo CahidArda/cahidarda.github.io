@@ -170,8 +170,8 @@ export default function ArcsecondPlate() {
               />
             ))}
           </g>
-          {!narrow && (
-            <InkText x={x(4.9)} y={y(2 * 4.9 - Math.log10(2 * R)) - 10} anchor="end" size={11} role="sky">
+          {L.curveLabel && (
+            <InkText x={L.curveLabel.x} y={L.curveLabel.y} anchor="end" size={11} role="sky">
               Earth’s curve, d²/2R
             </InkText>
           )}
@@ -208,11 +208,11 @@ export default function ArcsecondPlate() {
         </Eq>
         <Eq>
           <V role="red">{fmtLen(miss)}</V> = <V>{fmtLen(d)}</V> · tan <V role="red">{fmtEpsV(eps)}</V>
-          {!L.missOn && <> (off the chart)</>}
+          {!L.missOn && <> ({L.missWhere} the chart)</>}
         </Eq>
         <Eq>
           <V role="sky">{fmtLen(curve)}</V> = (<V>{fmtLen(d)}</V>)² / (2 · <V>6,371 km</V>)
-          {!L.dropOn && <> (below the chart)</>}
+          {!L.dropOn && <> ({L.dropWhere} the chart)</>}
         </Eq>
       </Working>
     </Plate>

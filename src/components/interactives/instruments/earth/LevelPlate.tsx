@@ -185,7 +185,7 @@ const { SPAN, NEAR, DROP } = CORD;
 
 function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
   const G = cordLayout(W, far);
-  const { narrow, Hs, S, xL, xR, ky, gL, gR, a, b, tiltDrawn, th, ux, uy, nx, ny, drop, top, h1, h2, tip } = G;
+  const { narrow, Hs, xL, xR, ky, gL, gR, a, b, tiltDrawn, th, ux, uy, nx, ny, drop, top, h1, h2, tip } = G;
   const dir = { x: Math.sin(phi), y: Math.cos(phi) };
   const strLen = th + 6;
   const bob = { x: top.x + dir.x * strLen, y: top.y + dir.y * strLen };
@@ -220,7 +220,7 @@ function Cord({ W, far, phi }: { W: number; far: number; phi: number }) {
       </g>
     );
   };
-  const ground = `M ${xL - 40} ${gL - 3} L ${xL} ${gL} C ${xL + S * 0.6} ${gL + 4}, ${xR - S * 0.7} ${gR - 6}, ${xR} ${gR} L ${xR + 40} ${gR + 2}`;
+  const ground = G.groundPath;
   const { r, c: dc } = G.detail;
   // inside the detail circle: the tip and mark, magnified, with the vertical string. The
   // string-to-mark offset in the detail is the drawn offset times the magnification.

@@ -479,13 +479,35 @@ export function cordLayout(W: number, far: number) {
   const statusText = level
     ? `level: the ground falls ${(DROP * 100).toFixed(0)} cm between the poles`
     : `cord ${err > 0 ? 'rises' : 'falls'} ${Math.abs(tiltReal / RAD).toFixed(2)}°: keep sliding`;
-  const status = { x: W / 2, y: Hs - 12 };
+  const status = { x: W / 2, y: 20 }; // the empty band above the poles
+  // the ground profile (a cubic between the pole feet), shared with the drawing
+  const groundPath = `M ${xL - 40} ${gL - 3} L ${xL} ${gL} C ${xL + S * 0.6} ${gL + 4}, ${xR - S * 0.7} ${gR - 6}, ${xR} ${gR} L ${xR + 40} ${gR + 2}`;
+  const groundAt = (x: number) => {
+    // solve the cubic's x(t) = x by bisection, return y(t)
+    const P0 = { x: xL, y: gL };
+    const P1 = { x: xL + S * 0.6, y: gL + 4 };
+    const P2 = { x: xR - S * 0.7, y: gR - 6 };
+    const P3 = { x: xR, y: gR };
+    const bz = (t: number, k: 'x' | 'y') =>
+      (1 - t) ** 3 * P0[k] + 3 * (1 - t) ** 2 * t * P1[k] + 3 * (1 - t) * t ** 2 * P2[k] + t ** 3 * P3[k];
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (bz(mid, 'x') < x) lo = mid;
+      else hi = mid;
+    }
+    return bz(lo, 'y');
+  };
 
   // the enlarged-tip detail sits right of the triangle, under the cord, above the status line
-  const r = narrow ? 30 : 40;
-  const dx = Math.min(xR - r - 14, tip.x + r + (narrow ? 26 : 44));
+  const r = narrow ? 26 : 40;
+  // right of the triangle, just inside the far pole, between the cord and the ground
+  const dx = xR - r - (narrow ? 16 : 22);
   const cordY = a.y + ((b.y - a.y) * (dx - xL)) / (xR - xL);
-  const dc = { x: dx, y: Math.min(Math.max(cordY + r + 16, tip.y - r * 0.2), status.y - 30 - r) };
+  const yMin = cordY + r + 12;
+  const yMax = Math.min(groundAt(dx - r - 10), groundAt(dx)) - r - 24;
+  const dc = { x: dx, y: Math.max(yMin, Math.min(yMax, tip.y - r * 0.4)) };
   // magnification: as large as fits the worst tilt of the slider range, at most 3×
   const worst = Math.max(
     ...[CORD.MIN, CORD.MAX].map((f) => {
@@ -530,6 +552,8 @@ export function cordLayout(W: number, far: number) {
     statusText,
     status,
     detail: { r, c: dc, mag },
+    groundPath,
+    groundAt,
     poleTop,
     boxes,
   };
@@ -558,12 +582,23 @@ export function chartLayout(W: number, logD: number, epsArcsec: number) {
   const dropLe = Math.log10(drop);
   const missOn = missLe >= Y0 && missLe <= Y1;
   const dropOn = dropLe >= Y0 && dropLe <= Y1;
+  const dropWhere = dropLe > Y1 ? 'above' : dropLe < Y0 ? 'below' : 'on';
+  const missWhere = missLe > Y1 ? 'above' : missLe < Y0 ? 'below' : 'on';
   const ey = y(missLe);
   const cy = y(dropLe);
   const right = logD > 4.6;
-  const missLabel = { x: ex + (right ? -9 : 9), y: ey + (ey < m.t + 30 ? 16 : -10), anchor: right ? ('end' as const) : ('start' as const) };
+  // miss label: above its marker, unless that is the top edge or the drop marker sits just
+  // above it; then below (and if the bottom edge is near too, beside on the far side)
+  const dropAbove = dropOn && cy < ey && ey - cy < 26;
+  let ly = ey - 10;
+  if (ey < m.t + 30 || dropAbove) ly = ey + 18;
+  if (ly > m.t + ih - 4) ly = ey - 10;
+  const missLabel = { x: ex + (right ? -9 : 9), y: ly, anchor: right ? ('end' as const) : ('start' as const) };
+  // the curve's own label rides on the curve, away from the moving marker
+  const cAt = logD > 3.9 ? 3.3 : 4.9;
+  const curveLabel = narrow ? null : { x: x(cAt), y: y(2 * cAt - Math.log10(2 * EARTH_R)) - 10 };
   const crossover = 2 * EARTH_R * Math.tan(epsArcsec * ARCSEC); // where d·tanε = d²/2R
-  return { W, H, narrow, m, iw, ih, x, y, d, miss, drop, ex, ey, cy, missOn, dropOn, missLabel, crossover };
+  return { W, H, narrow, m, iw, ih, x, y, d, miss, drop, ex, ey, cy, missOn, dropOn, dropWhere, missWhere, missLabel, curveLabel, crossover };
 }
 
 /* ─────────────────────────── theodolite ─────────────────────────── */

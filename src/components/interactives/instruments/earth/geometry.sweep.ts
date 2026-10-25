@@ -6,6 +6,7 @@
  * on the lines they describe. Exit code 1 on any failure.
  */
 import {
+  segHitsBox as segHits,
   CHART,
   CORD,
   H_TRUE,
@@ -240,6 +241,15 @@ for (const W of WIDTHS)
     ok(tri.every(([p, q]) => segDist(c, p, q) > r + 3), 'cord: detail circle clear of the triangle', () => ctx);
     ok(segDist(c, G.a, G.b) > r + 3, 'cord: detail circle clear of the cord', () => ctx);
     ok(c.x + r < G.xR - 8, 'cord: detail circle clear of the far pole', () => ctx);
+    ok(c.y - r > Math.max(G.a.y, G.b.y) + 4, 'cord: detail circle below the cord', () => ctx);
+    for (const bx of G.boxes) {
+      const gy = Math.min(G.groundAt(Math.max(G.xL, Math.min(G.xR, bx.x0))), G.groundAt(Math.max(G.xL, Math.min(G.xR, bx.x1))));
+      ok(bx.y1 < gy - 2, `cord: '${bx.name}' above the ground`, () => `${ctx} ${fmtB(bx)} ground ${gy.toFixed(0)}`);
+    }
+    ok(c.y + r < G.groundAt(c.x) - 4, 'cord: detail circle above the ground', () => ctx);
+    // status line clear of the pole labels and the cord
+    const st = G.boxes.find((b) => b.name === 'status')!;
+    ok(!segHitsBox(G.a, G.b, st), 'cord: status on the cord', () => ctx);
     const bobBottom = G.top.y + G.th + 6 + 18 * 0.7;
     ok(bobBottom < Math.min(G.gL, G.gR) + 10, 'cord: bob above the ground', () => ctx);
   }
@@ -258,6 +268,16 @@ for (const W of WIDTHS)
         ok(inside(lb, W, L.H), 'chart: miss label inside', () => `${ctx} ${fmtB(lb)}`);
         const ax1 = textBox('sideways miss', L.m.l + 4, L.m.t + 12, 'sideways miss', 11, 'start', 'alphabetic', 0.48);
         ok(!overlap(lb, ax1), 'chart: miss label vs axis title', () => ctx);
+        if (L.dropOn) {
+          const dm: Box = { name: 'drop marker', x0: L.ex - 4, x1: L.ex + 4, y0: L.cy - 4, y1: L.cy + 4 };
+          ok(!overlap(lb, dm), 'chart: miss label on the drop marker', () => `${ctx} ${fmtB(lb)}`);
+        }
+        const mm: Box = { name: 'miss marker', x0: L.ex - 5, x1: L.ex + 5, y0: L.ey - 5, y1: L.ey + 5 };
+        ok(!overlap(lb, mm), 'chart: miss label on its own marker', () => ctx);
+        if (L.curveLabel) {
+          const cl = textBox('curve', L.curveLabel.x, L.curveLabel.y, 'Earth’s curve, d²/2R', 11, 'end', 'alphabetic', 0.5);
+          ok(!overlap(lb, cl), 'chart: miss label on the curve label', () => `${ctx} ${fmtB(lb)}`);
+        }
       }
       if (L.dropOn) {
         const back = CHART.Y0 + (1 - (L.cy - L.m.t) / L.ih) * (CHART.Y1 - CHART.Y0);
