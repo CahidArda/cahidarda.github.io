@@ -44,7 +44,7 @@ Worked examples (copy their shape):
 | `instruments/earth/geometry.ts` | `minaretLayout`, `straitLayout`, `aframeLayout`, `cordLayout`, `chartLayout`; `textBox`/`overlap`/`segHitsBox` helpers; exact error region `wedgeRegion` |
 | `instruments/earth/geometry.sweep.ts` | the full sweep for all earth plates (about 4.5M checks, all passing) |
 | `instruments/sky/doubleGeom.ts` | `doubleReflection(θ, roll)` world optics + `drScene(θ, roll, W)` screen layout + `labelBox` |
-| `instruments/sky/sextantView.ts` | `sextantView(reading, tilt)`: one function for the 3D rays, eyepiece inset, status and equation (on branch `rev-sky-3d-wip`, pending merge) |
+| `instruments/sky/sextantView.ts` | `sextantView(reading, tilt)`: one function for the 3D rays, eyepiece inset, status and equation |
 | `instruments/time/quadrantGeom.ts` | `quadrant(h, day)`, `quadrantLabels`, `maxAltitude(day)` (the slider's clamp) |
 | `instruments/time/escapement.ts` | contact solver + `stepMovement` (substepped, frame-rate independent) |
 
