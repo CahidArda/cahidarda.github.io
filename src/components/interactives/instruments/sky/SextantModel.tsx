@@ -1,49 +1,56 @@
 /**
- * The 3D sextant plate. The reader moves the index arm; the deck tips the whole instrument a
- * little in its own plane. The sun and the sea horizon stay fixed in the world. Every ray, the
- * eyepiece inset, the status and the worked equation come from ONE function, `sextantView`
- * (./sextantView.ts), checked against an independent 3D model of the two mirrors.
+ * Plate 2 (wide): a marine sextant as a blueprint. The index arm carries the index mirror; the
+ * horizon mirror is half silvered; the telescope looks at both. Move the arm (slider or the
+ * fine tangent screw) and watch the real ray from the sun: it reaches the eyepiece only when
+ * the arc reads the sun's altitude, which is twice the angle the mirror turned. The frame
+ * rolls gently, like a ship: both images in the eyepiece move together.
  */
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type * as THREEns from 'three';
-import {
-  ArcScale,
-  BlueprintCanvas,
-  C,
-  Controls,
-  Eq,
-  InkText,
-  Plate,
-  Slider,
-  Sym,
-  V,
-  Working,
-  polar,
-} from '../shared';
-import {
-  ARC_FROM,
-  ARC_TO,
-  H,
-  NH_DEG,
-  TEL_FROM,
-  TEL_TO,
-  armAngle,
-  pol,
-  type V2,
-} from './sextantGeom';
-import { FIELD_R, SUN_ALT, SUN_SD, sextantView, tiltAt, type SextantView } from './sextantView';
+import { ArcScale, BlueprintCanvas, C, Controls, InkText, Plate, Readout, Slider, polar } from '../shared';
+import { ARC_FROM, ARC_TO, EYE, H, NH, NH_DEG, TEL_FROM, TEL_TO, armAngle, optics, pol, reflect, rot, type V2 } from './sextantGeom';
 
-export { SUN_ALT };
+/** The noon sun over Istanbul on 25 October 2026 (USNO approximate solar coordinates). */
+export const SUN_ALT = 36.82;
+const ROLL_AMP = 1.6; // degrees
+const ROLL_PERIOD = 5.5; // seconds
 const Z_SUN = 0.085; // height of the reflected path above the frame (silvered half)
 const Z_HOR = 0.155; // the direct horizon ray (clear half)
-const Z_AXIS = 0.12; // the telescope's axis: the line between the two halves
 
 const fmtDeg = (v: number) => {
   const d = Math.floor(v + 1e-9);
   const m = Math.round((v - d) * 60);
   return m === 60 ? `${d + 1}°00′` : `${d}°${String(m).padStart(2, '0')}′`;
 };
-const sgn = (v: number, dp: number) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(dp)}°`;
+
+/** Trace the actual sunlight through both mirrors, in the frame plane, world coordinates. */
+function trace(reading: number, roll: number) {
+  const s: V2 = { x: -Math.cos((SUN_ALT * Math.PI) / 180), y: Math.sin((SUN_ALT * Math.PI) / 180) };
+  const d1 = { x: -s.x, y: -s.y };
+  const { nI } = optics(reading);
+  const nIw = rot(nI, roll);
+  const nHw = rot(NH, roll);
+  const Hw = rot(H, roll);
+  const start = { x: s.x * 1.08, y: s.y * 1.08 };
+  const d2 = reflect(d1, nIw);
+  // O + a d2 = Hw + b t, t = mirror direction
+  const t = { x: -nHw.y, y: nHw.x };
+  const det = d2.x * -t.y - d2.y * -t.x;
+  const pts: V2[] = [start, { x: 0, y: 0 }];
+  let hit = false;
+  if (Math.abs(det) > 1e-9) {
+    const a = (Hw.x * -t.y - Hw.y * -t.x) / det;
+    const b = (d2.x * Hw.y - d2.y * Hw.x) / det;
+    if (a > 0 && Math.abs(b) <= 0.07) {
+      const P = { x: a * d2.x, y: a * d2.y };
+      const d3 = reflect(d2, nHw);
+      pts.push(P, { x: P.x + d3.x * 0.86, y: P.y + d3.y * 0.86 });
+      hit = true;
+    }
+  }
+  if (!hit) pts.push({ x: d2.x * 0.95, y: d2.y * 0.95 });
+  return { pts, sun: start, Hw };
+}
 
 /* ───────────── poster: the same instrument, face on, set to the sun ───────────── */
 
@@ -57,8 +64,8 @@ function Poster() {
   const ink = { fill: 'none', stroke: C.ink, strokeWidth: 1.1 };
   const reading = SUN_ALT;
   const a = armAngle(reading);
-  const v = sextantView(reading, 0);
-  const line = (pts: V2[]) => pts.map((p, i) => `${i ? 'L' : 'M'} ${P(p).x} ${P(p).y}`).join(' ');
+  const { pts } = trace(reading, 0);
+  const path = pts.map((p, i) => `${i ? 'L' : 'M'} ${P(p).x} ${P(p).y}`).join(' ');
   const bar = (deg: number) => {
     const p = polar(ox, oy, S * 0.88, deg);
     return `M ${ox} ${oy} L ${p.x} ${p.y}`;
@@ -67,112 +74,37 @@ function Poster() {
   const tA = P({ x: TEL_FROM, y: H.y });
   const tB = P({ x: TEL_TO, y: H.y });
   const arm = polar(ox, oy, S * 1.06, a);
+  const nAng = NH_DEG; // horizon mirror normal angle
   const mHalf = 0.07 * S;
-  const mDir = ((NH_DEG + 90) * Math.PI) / 180;
+  const mDir = ((nAng + 90) * Math.PI) / 180;
   const iDir = ((NH_DEG - reading / 2 + 90) * Math.PI) / 180;
   const iHalf = 0.11 * S;
-  const sun = P(v.sun);
   return (
     <svg viewBox={`0 0 ${W} ${Hh}`}>
-      <ArcScale
-        cx={ox}
-        cy={oy}
-        r={S * 0.98}
-        from={-120}
-        to={-60}
-        major={5}
-        minor={1}
-        labelEvery={10}
-        value={(x) => -2 * (x + 60)}
-        inward
-        tick={9}
-        size={10}
-      />
-      <path
-        d={`${bar(-120)} ${bar(-60)}`}
-        style={{ ...ink, strokeWidth: 6, stroke: C.soft, opacity: 0.35 }}
-      />
+      <ArcScale cx={ox} cy={oy} r={S * 0.98} from={-120} to={-60} major={5} minor={1} labelEvery={10} value={(x) => -2 * (x + 60)} inward tick={9} size={10} />
+      <path d={`${bar(-120)} ${bar(-60)}`} style={{ ...ink, strokeWidth: 6, stroke: C.soft, opacity: 0.35 }} />
       <path d={`${bar(-120)} ${bar(-60)}`} style={ink} />
       <path d={`M ${ox} ${oy} L ${arm.x} ${arm.y}`} style={{ ...ink, strokeWidth: 2.2 }} />
       <circle cx={ox} cy={oy} r={7} style={{ ...ink, fill: C.paper }} />
-      <line
-        x1={ox - Math.cos(iDir) * iHalf}
-        y1={oy + Math.sin(iDir) * iHalf}
-        x2={ox + Math.cos(iDir) * iHalf}
-        y2={oy - Math.sin(iDir) * iHalf}
-        style={{ ...ink, stroke: C.brass, strokeWidth: 3.2 }}
-      />
-      <line
-        x1={hE.x - Math.cos(mDir) * mHalf}
-        y1={hE.y + Math.sin(mDir) * mHalf}
-        x2={hE.x + Math.cos(mDir) * mHalf}
-        y2={hE.y - Math.sin(mDir) * mHalf}
-        style={{ ...ink, strokeWidth: 3.2 }}
-      />
-      <rect
-        x={tA.x}
-        y={tA.y - 9}
-        width={tB.x - tA.x}
-        height={18}
-        style={{ ...ink, fill: C.paper }}
-      />
-      <path
-        d={line(v.blue)}
-        style={{ fill: 'none', stroke: C.sky, strokeWidth: 1, strokeDasharray: '5 4' }}
-      />
-      <path d={line(v.red)} style={{ fill: 'none', stroke: C.red, strokeWidth: 1.4 }} />
-      <circle
-        cx={sun.x}
-        cy={sun.y}
-        r={11}
-        style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.2 }}
-      />
-      <InkText x={16} y={P(v.blue[0]).y - 8} size={13} role="sky">
-        horizon
-      </InkText>
-      <InkText x={sun.x + 16} y={sun.y + 4} size={13} role="red">
-        sun
-      </InkText>
+      <line x1={ox - Math.cos(iDir) * iHalf} y1={oy + Math.sin(iDir) * iHalf} x2={ox + Math.cos(iDir) * iHalf} y2={oy - Math.sin(iDir) * iHalf} style={{ ...ink, strokeWidth: 3.2 }} />
+      <line x1={hE.x - Math.cos(mDir) * mHalf} y1={hE.y + Math.sin(mDir) * mHalf} x2={hE.x + Math.cos(mDir) * mHalf} y2={hE.y - Math.sin(mDir) * mHalf} style={{ ...ink, strokeWidth: 3.2 }} />
+      <rect x={tA.x} y={tA.y - 9} width={tB.x - tA.x} height={18} style={{ ...ink, fill: C.paper }} />
+      <line x1={8} y1={hE.y} x2={tA.x} y2={hE.y} style={{ stroke: C.sky, strokeWidth: 1, strokeDasharray: '5 4' }} />
+      <path d={path} style={{ fill: 'none', stroke: C.red, strokeWidth: 1.4 }} />
+      <circle cx={P(pts[0]).x} cy={P(pts[0]).y} r={11} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.2 }} />
+      <InkText x={16} y={hE.y - 8} size={13} role="soft">horizon</InkText>
+      <InkText x={P(pts[0]).x + 16} y={P(pts[0]).y + 4} size={13} role="soft">sun</InkText>
     </svg>
   );
 }
 
 /* ───────────── the eyepiece: horizon (clear half) and sun (silvered half) ───────────── */
 
-const EYE_R = 50; // px, the field stop
-const EYE_K = EYE_R / FIELD_R; // px per degree: the sun's disc is drawn at its true size
-
-type EyeRefs = {
-  hor: SVGGElement | null;
-  sun: SVGGElement | null;
-  up: SVGPathElement | null;
-  down: SVGPathElement | null;
-};
-
-/** Place the eyepiece marks for one view. Used by the first render and by every 3D frame. */
-function eyeLayout(v: SextantView) {
-  const horY = -v.horizonEl * EYE_K;
-  const sunY = v.sunEl === null ? null : -v.sunEl * EYE_K;
-  // no image: the light passes above or below the field (gap > 0: the image would be higher)
-  const show = v.inField && sunY !== null;
-  const arrow = show ? 0 : v.gap > 0 ? 1 : -1;
-  return { horY, sunY: show ? sunY : 0, show, arrow };
-}
-function applyEye(r: EyeRefs, v: SextantView) {
-  const L = eyeLayout(v);
-  r.hor?.setAttribute('transform', `translate(0 ${L.horY.toFixed(2)})`);
-  if (r.sun) {
-    r.sun.setAttribute('transform', `translate(0 ${L.sunY.toFixed(2)})`);
-    r.sun.style.display = L.show ? '' : 'none';
-  }
-  if (r.up) r.up.style.display = L.arrow > 0 ? '' : 'none';
-  if (r.down) r.down.style.display = L.arrow < 0 ? '' : 'none';
-}
-
-function Eyepiece({ view, refs }: { view: SextantView; refs: React.RefObject<EyeRefs> }) {
-  const R = EYE_R;
-  const L = eyeLayout(view);
-  const sx = R * 0.45;
+function Eyepiece({ reading, gRef }: { reading: number; gRef: React.Ref<SVGGElement> }) {
+  const R = 50;
+  const k = 15; // px per degree
+  const off = (SUN_ALT - reading) * k;
+  const shown = Math.max(-R - 20, Math.min(R + 20, -off));
   return (
     <svg viewBox="-60 -60 120 120" style={{ width: '100%', display: 'block' }} aria-hidden="true">
       <defs>
@@ -183,54 +115,20 @@ function Eyepiece({ view, refs }: { view: SextantView; refs: React.RefObject<Eye
       <circle r={R + 4} style={{ fill: C.paper, stroke: C.ink, strokeWidth: 1.2 }} />
       <g clipPath="url(#sx-eye)">
         <rect x={0} y={-R} width={R} height={2 * R} style={{ fill: C.deep }} />
-        <g
-          ref={(el) => void (refs.current.hor = el)}
-          transform={`translate(0 ${L.horY.toFixed(2)})`}
-        >
-          {/* the sea, seen straight through the clear half; its line carried faintly across */}
-          <rect x={-R} y={0} width={R} height={R * 3} style={{ fill: C.sky, opacity: 0.22 }} />
-          <line x1={-R} y1={0} x2={0} y2={0} style={{ stroke: C.sky, strokeWidth: 1.6 }} />
-          <line
-            x1={0}
-            y1={0}
-            x2={R}
-            y2={0}
-            style={{ stroke: C.sky, strokeWidth: 0.9, strokeDasharray: '3 3' }}
-          />
-        </g>
-        <g
-          ref={(el) => void (refs.current.sun = el)}
-          transform={`translate(0 ${L.sunY.toFixed(2)})`}
-          style={{ display: L.show ? undefined : 'none' }}
-        >
-          <circle
-            cx={sx}
-            cy={0}
-            r={SUN_SD * EYE_K}
-            style={{ fill: C.red, stroke: C.paper, strokeWidth: 0.8 }}
-          />
+        <g ref={gRef}>
+          {/* horizon: seen directly through the clear half, and faintly in the mirror half */}
+          <rect x={-R} y={0} width={R} height={R * 2} style={{ fill: C.sky, opacity: 0.22 }} />
+          <line x1={-R} y1={0} x2={0} y2={0} style={{ stroke: C.ink, strokeWidth: 1.4 }} />
+          <line x1={0} y1={0} x2={R} y2={0} style={{ stroke: C.ink, strokeWidth: 0.7, strokeDasharray: '3 3', opacity: 0.6 }} />
+          <circle cx={R * 0.45} cy={shown} r={5} style={{ fill: C.red, stroke: C.paper, strokeWidth: 1 }} />
         </g>
       </g>
-      <path
-        ref={(el) => void (refs.current.up = el)}
-        d={`M ${sx - 6} ${-R + 16} L ${sx} ${-R + 8} L ${sx + 6} ${-R + 16}`}
-        style={{
-          fill: 'none',
-          stroke: C.red,
-          strokeWidth: 1.6,
-          display: L.arrow > 0 ? undefined : 'none',
-        }}
-      />
-      <path
-        ref={(el) => void (refs.current.down = el)}
-        d={`M ${sx - 6} ${R - 16} L ${sx} ${R - 8} L ${sx + 6} ${R - 16}`}
-        style={{
-          fill: 'none',
-          stroke: C.red,
-          strokeWidth: 1.6,
-          display: L.arrow < 0 ? undefined : 'none',
-        }}
-      />
+      {Math.abs(off) > R - 6 && (
+        <path
+          d={off > 0 ? `M ${R * 0.45 - 6} ${-R + 16} L ${R * 0.45} ${-R + 8} L ${R * 0.45 + 6} ${-R + 16}` : `M ${R * 0.45 - 6} ${R - 16} L ${R * 0.45} ${R - 8} L ${R * 0.45 + 6} ${R - 16}`}
+          style={{ fill: 'none', stroke: C.red, strokeWidth: 1.6 }}
+        />
+      )}
       <line x1={0} y1={-R} x2={0} y2={R} style={{ stroke: C.ink, strokeWidth: 0.8 }} />
       <circle r={R} style={{ fill: 'none', stroke: C.ink, strokeWidth: 1 }} />
     </svg>
@@ -259,7 +157,7 @@ function numeral(T: typeof THREEns, text: string, mat: THREEns.MeshBasicMaterial
   return { mesh: new T.Mesh(new T.PlaneGeometry(h * 2, h), m), m };
 }
 
-type Params = { reading: number; eye: React.RefObject<EyeRefs>; tilt: React.RefObject<number> };
+type Params = { reading: number; eye: React.RefObject<SVGGElement | null> };
 type Pick = {
   T: typeof THREEns;
   camera: THREEns.Camera;
@@ -267,12 +165,9 @@ type Pick = {
   parts: THREEns.Object3D[];
 };
 
-export default function SextantModel({ n = 2 }: { n?: number | string }) {
+export default function SextantModel() {
   const [reading, setReading] = useState(20);
-  const eyeRef = useRef<EyeRefs>({ hor: null, sun: null, up: null, down: null });
-  const tiltRef = useRef(0); // the tilt of the last drawn 3D frame
-  // a React render writes the still (untilted) eyepiece; put it back at the drawn frame's tilt
-  useLayoutEffect(() => applyEye(eyeRef.current, sextantView(reading, tiltRef.current)), [reading]);
+  const eyeRef = useRef<SVGGElement | null>(null);
   const pickRef = useRef<Pick | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<number | null>(null);
@@ -282,10 +177,7 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
     const cv = wrapRef.current?.querySelector('canvas');
     if (!pk || !cv) return null;
     const r = cv.getBoundingClientRect();
-    const ndc = new pk.T.Vector2(
-      ((e.clientX - r.left) / r.width) * 2 - 1,
-      -((e.clientY - r.top) / r.height) * 2 + 1,
-    );
+    const ndc = new pk.T.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     const rc = new pk.T.Raycaster();
     rc.setFromCamera(ndc, pk.camera);
     return { rc, pk };
@@ -326,28 +218,24 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
     const r = g.reading - 2 * d;
     setReading(Math.max(0, Math.min(120, Math.round(r * 10) / 10)));
   };
-  const params = useMemo<Params>(() => ({ reading, eye: eyeRef, tilt: tiltRef }), [reading]);
-  const nudge = (d: number) =>
-    setReading((r) => Math.max(0, Math.min(120, Math.round((r + d) * 10) / 10)));
-  // the still view (no tilt) for the first paint and the text; frames re-apply with their tilt
-  const view = sextantView(reading, 0);
-  const theta = reading / 2;
+  const params = useMemo<Params>(() => ({ reading, eye: eyeRef }), [reading]);
+  const nudge = (d: number) => setReading((r) => Math.max(0, Math.min(120, Math.round((r + d) * 10) / 10)));
+  const err = reading - SUN_ALT;
+  const onIt = Math.abs(err) < 0.12;
 
   return (
     <Plate
-      n={n}
+      n={2}
       wide
-      title="The sextant: measuring the sun's height"
+      title="The sextant, set to the sun"
       kicker="drag the index arm"
       caption={
         <>
-          The sun and the sea horizon stay put; the instrument moves. The red line is a real ray
-          from the noon sun over Istanbul on 25 October 2026, bounced by the index mirror on the arm
-          and then by the silvered half of the horizon mirror. The blue dashed line is the horizon,
-          seen straight through the clear half. As the deck tips the instrument, both lines swing
-          across the telescope together, so in the eyepiece (top right, drawn at true size, 5°
-          across) the sun and the horizon drift up and down as a pair and the gap between them never
-          changes. Only the arm changes the gap.
+          The red line is a real ray from the noon sun over Istanbul on 25 October 2026. It bounces off
+          the index mirror on the arm, then off the silvered half of the horizon mirror, and into
+          the telescope only when the arc reads the sun&apos;s altitude. The arm turns the mirror by
+          half that number. In the eyepiece (top right) the horizon is seen straight through the
+          clear half; the frame rolls like a ship, and both images move together.
         </>
       }
     >
@@ -400,11 +288,7 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
             world.add(inst);
             const deg = Math.PI / 180;
             const ext = (shape: THREEns.Shape, depth: number, z = 0) => {
-              const g = new T.ExtrudeGeometry(shape, {
-                depth,
-                bevelEnabled: false,
-                curveSegments: 48,
-              });
+              const g = new T.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 48 });
               const m = new T.Mesh(g);
               m.position.z = z;
               return m;
@@ -509,10 +393,7 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
             knob.position.set(1.2, 0, 0.02);
             ctx.inkify(knob, { threshold: 50 });
             arm.add(knob);
-            const idxLine = new T.BufferGeometry().setFromPoints([
-              new T.Vector3(0.93, 0, -0.018),
-              new T.Vector3(1.05, 0, -0.018),
-            ]);
+            const idxLine = new T.BufferGeometry().setFromPoints([new T.Vector3(0.93, 0, -0.018), new T.Vector3(1.05, 0, -0.018)]);
             const idx = new T.Line(idxLine, ctx.lineMaterial('red', { onTop: true }));
             idx.renderOrder = 5;
             arm.add(idx);
@@ -522,7 +403,7 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
             arm.add(mirrorI);
             const glassI = new T.Mesh(new T.BoxGeometry(0.014, 0.22, 0.17));
             glassI.position.set(0, 0, 0.09);
-            ctx.inkify(glassI, { fill: 'deep', edge: 'brass', outline: 0, threshold: 10 });
+            ctx.inkify(glassI, { fill: 'deep', outline: 0, threshold: 10 });
             mirrorI.add(glassI);
             const backI = new T.Mesh(new T.BoxGeometry(0.03, 0.24, 0.19));
             backI.position.set(0.024, 0, 0.09); // silvered face towards the sun (−normal side), backing behind it
@@ -564,9 +445,7 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
             const tel = new T.Group();
             tel.position.set(0, H.y, 0.12);
             inst.add(tel);
-            const tube = new T.Mesh(
-              new T.CylinderGeometry(0.042, 0.042, TEL_TO - TEL_FROM - 0.12, 32),
-            );
+            const tube = new T.Mesh(new T.CylinderGeometry(0.042, 0.042, TEL_TO - TEL_FROM - 0.12, 32));
             tube.rotation.z = Math.PI / 2;
             tube.position.x = (TEL_FROM + TEL_TO) / 2;
             ctx.inkify(tube, { threshold: 50 });
@@ -595,62 +474,45 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
             const rays: number[] = [];
             for (let i = 0; i < 12; i++) {
               const a = (i / 12) * Math.PI * 2;
-              rays.push(
-                Math.cos(a) * 0.085,
-                Math.sin(a) * 0.085,
-                0,
-                Math.cos(a) * 0.12,
-                Math.sin(a) * 0.12,
-                0,
-              );
+              rays.push(Math.cos(a) * 0.085, Math.sin(a) * 0.085, 0, Math.cos(a) * 0.12, Math.sin(a) * 0.12, 0);
             }
             const rg = new T.BufferGeometry();
             rg.setAttribute('position', new T.Float32BufferAttribute(rays, 3));
             sunG.add(new T.LineSegments(rg, ctx.lineMaterial('red')));
 
             const pathGeo = new T.BufferGeometry();
-            pathGeo.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(18), 3));
+            pathGeo.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(15), 3));
             const pathLine = new T.Line(pathGeo, ctx.lineMaterial('red', { onTop: true }));
             pathLine.renderOrder = 6;
             world.add(pathLine);
             const horGeo = new T.BufferGeometry();
-            horGeo.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(12), 3));
-            const horLine = new T.Line(
-              horGeo,
-              ctx.lineMaterial('sky', { dashed: true, dash: 0.035, gap: 0.025 }),
-            );
+            horGeo.setAttribute('position', new T.Float32BufferAttribute(new Float32Array(6), 3));
+            const horLine = new T.Line(horGeo, ctx.lineMaterial('sky', { dashed: true, dash: 0.035, gap: 0.025 }));
             world.add(horLine);
 
             pickRef.current = { T, camera: ctx.camera, inst, parts: [armBar, clamp, screw, knob] };
-            /** Write a path into a fixed-size buffer (repeat the last point), last segment on the axis. */
-            const setPath = (
-              geo: THREEns.BufferGeometry,
-              pts: V2[],
-              z: number,
-              axisEnd: boolean,
-            ) => {
-              const pos = geo.attributes.position as THREEns.BufferAttribute;
-              for (let i = 0; i < pos.count; i++) {
-                const k = Math.min(i, pts.length - 1);
-                const q = pts[k];
-                pos.setXYZ(i, q.x, q.y, axisEnd && k === pts.length - 1 ? Z_AXIS : z);
-              }
-              pos.needsUpdate = true;
-              geo.computeBoundingSphere();
-            };
             return (_dt, t, p) => {
               texMats.forEach((m) => m.color.copy(inkFill.color));
-              const tilt = ctx.reduced ? 0 : tiltAt(t);
-              p.tilt.current = tilt;
-              const v = sextantView(p.reading, tilt);
-              inst.rotation.z = tilt * deg;
+              const roll = ctx.reduced ? 0 : ROLL_AMP * Math.sin((2 * Math.PI * t) / ROLL_PERIOD);
+              inst.rotation.z = roll * deg;
               arm.rotation.z = armAngle(p.reading) * deg;
-              sunG.position.set(v.sun.x, v.sun.y, Z_SUN);
-              // the last point is at the eye: there the two light paths meet on the axis
-              setPath(pathGeo, v.red, Z_SUN, v.red.length === 5);
-              setPath(horGeo, v.blue, Z_HOR, v.blue.length === 4);
+              const tr = trace(p.reading, roll);
+              sunG.position.set(tr.sun.x, tr.sun.y, Z_SUN);
+              const pos = pathGeo.attributes.position as THREEns.BufferAttribute;
+              for (let i = 0; i < 5; i++) {
+                const q = tr.pts[Math.min(i, tr.pts.length - 1)];
+                pos.setXYZ(i, q.x, q.y, Z_SUN);
+              }
+              pos.needsUpdate = true;
+              pathGeo.computeBoundingSphere();
+              const eyeW = rot(EYE, roll);
+              const hp = horGeo.attributes.position as THREEns.BufferAttribute;
+              hp.setXYZ(0, -1.45, tr.Hw.y, Z_HOR);
+              hp.setXYZ(1, eyeW.x, tr.Hw.y, Z_HOR);
+              hp.needsUpdate = true;
               horLine.computeLineDistances();
-              applyEye(p.eye.current, v);
+              const g = p.eye.current;
+              if (g) g.setAttribute('transform', `translate(0 ${(-roll * 15).toFixed(2)})`);
               return false;
             };
           }}
@@ -664,7 +526,7 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
             pointerEvents: 'none',
           }}
         >
-          <Eyepiece view={view} refs={eyeRef} />
+          <Eyepiece reading={reading} gRef={eyeRef} />
           <div
             style={{
               textAlign: 'center',
@@ -692,46 +554,20 @@ export default function SextantModel({ n = 2 }: { n?: number | string }) {
           width="12rem"
         />
         <span className="in-seg" role="group" aria-label="Tangent screw, fine adjustment">
-          <button
-            type="button"
-            onClick={() => nudge(-0.1)}
-            aria-label="Turn the arm back 0.1 degree"
-          >
+          <button type="button" onClick={() => nudge(-0.1)} aria-label="Turn the arm back 0.1 degree">
             −0.1
           </button>
           <button type="button" onClick={() => nudge(0.1)} aria-label="Turn the arm on 0.1 degree">
             +0.1
           </button>
         </span>
+        <Readout label="mirror turned">{(reading / 2).toFixed(2)}°</Readout>
+        <Readout label="sun">
+          <span style={{ color: onIt ? C.red : C.ink }}>
+            {onIt ? `on the horizon: ${fmtDeg(SUN_ALT)}` : err > 0 ? 'below the horizon' : 'above the horizon'}
+          </span>
+        </Readout>
       </Controls>
-      <Working label="Worked equation: arc reading and the sun's altitude">
-        <Eq>
-          reading <Sym>R</Sym> = 2 × mirror angle <Sym role="brass">θ</Sym>
-        </Eq>
-        <Eq>
-          <V>{reading.toFixed(2)}°</V> = 2 × <V role="brass">{theta.toFixed(2)}°</V>
-        </Eq>
-        <Eq>
-          sun over horizon <Sym role="soft">g</Sym> = <Sym role="red">h</Sym> − <Sym>R</Sym>
-        </Eq>
-        <Eq>
-          <V role="soft">{sgn(view.gap, 2)}</V> = <V role="red">{SUN_ALT.toFixed(2)}°</V> −{' '}
-          <V>{reading.toFixed(2)}°</V>
-        </Eq>
-        <Eq>
-          {view.status === 'on' ? (
-            <>
-              they touch: <Sym role="red">h</Sym> = <Sym>R</Sym> ={' '}
-              <V role="red">{fmtDeg(reading)}</V>
-            </>
-          ) : (
-            <>
-              sun {fmtDeg(Math.abs(view.gap))} {view.gap > 0 ? 'above' : 'below'} the horizon: move
-              the arm {view.gap > 0 ? 'on' : 'back'}
-            </>
-          )}
-        </Eq>
-      </Working>
     </Plate>
   );
 }

@@ -22,7 +22,7 @@ export default function SunDeclination() {
     return l ? <InkText key={id} x={l.x} y={l.y} anchor={l.anchor} size={l.size} role={role}>{l.text}</InkText> : null;
   };
   const solid = (role: Role, w = 1.1) => ({ fill: 'none', stroke: C[role], strokeWidth: w });
-  const dashed = (role: Role, w = 0.9) => ({ ...solid(role, w), strokeDasharray: '4 4', opacity: 0.7 });
+  const dashed = (role: Role, w = 1) => ({ ...solid(role, w), strokeDasharray: '4 4' });
   const sinPart = Math.sin(s.eps * RAD) * Math.sin(s.lambda * RAD);
 
   return (

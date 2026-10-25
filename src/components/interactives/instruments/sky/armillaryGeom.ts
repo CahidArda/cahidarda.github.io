@@ -12,8 +12,8 @@ const RAD = Math.PI / 180;
 type V3 = [number, number, number];
 export type Pt = { x: number; y: number };
 
-const VIEW_EL = 18; // degrees above the equator
-const VIEW_AZ = 270; // the viewer faces the December solstice; the equinoxes sit on the rim
+const VIEW_EL = 20; // degrees above the equator
+const VIEW_AZ = 245; // the viewer faces late autumn, a little off the December solstice so its hour circle opens up
 const v: V3 = [Math.cos(VIEW_EL * RAD) * Math.cos(VIEW_AZ * RAD), Math.cos(VIEW_EL * RAD) * Math.sin(VIEW_AZ * RAD), Math.sin(VIEW_EL * RAD)];
 const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];

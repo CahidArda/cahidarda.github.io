@@ -36,7 +36,7 @@ export default function Eratosthenes() {
     <Plate
       n={1}
       title="Eratosthenes measures the Earth"
-      kicker="angles drawn 2.5× larger"
+      kicker="angles drawn 4× larger"
       caption={
         <>
           The sun is so far away that its rays arrive parallel. At Syene a gnomon casts no shadow at

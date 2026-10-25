@@ -79,7 +79,8 @@ export function noonScene(h: number, dec: number, W: number) {
     zenith: { x: zen.x + 6, y: zen.y, text: 'zenith' },
     horizon: { x: horS.x + 4, y: horS.y + 14, text: 'horizon' },
     equator: { x: cx - Re + 6, y: cy - 6, text: 'equator' },
-    pole: { x: cx + 4, y: cy - Re - 12, text: 'N pole' },
+    // standing near the pole puts you on top of this label: move it to the other side
+    pole: phi > 70 ? { x: cx - 40, y: cy - Re - 12, text: 'N pole' } : { x: cx + 4, y: cy - Re - 12, text: 'N pole' },
   };
   return { narrow, HH, phi, Re, cx, cy, obs, zen, L, horS, horN, sunAt, drawnH, drawnPhi, hArcR, phiArcR, decArcR, labels };
 }
