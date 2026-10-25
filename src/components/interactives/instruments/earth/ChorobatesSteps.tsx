@@ -180,7 +180,7 @@ export default function ChorobatesSteps() {
       reference={(i) => (
         <SiteRef
           hi={['channel']}
-          best={i >= 3 ? `known: the channel falls ${cm(drop)} in ${SIGHT_D.toFixed(0)} m` : 'known: a right angle, the slope of the road'}
+          best={i >= 3 && lvl ? `known: the channel falls ${cm(drop)} in ${SIGHT_D.toFixed(0)} m` : 'known: a right angle, the slope of the road'}
           label="The site, with the water channel on the hilltop highlighted"
         />
       )}
@@ -201,7 +201,7 @@ export default function ChorobatesSteps() {
           </Eq>
           {kn(4) && (
             <Eq>
-              <span style={{ fontSize: '0.88em' }}>{`this setting: bench tilted ${(tiltOf(shim) * 1000).toFixed(2)}‰, ${lvl ? 'and it still looks level' : 'and the water shows it'}`}</span>
+              <span style={{ fontSize: '0.88em' }}>{`this setting: bench tilted ${tiltOf(shim) < 0 ? '−' : ''}${Math.abs(tiltOf(shim) * 1000).toFixed(2)}‰, ${lvl ? 'and it still looks level' : 'and the water shows it'}`}</span>
             </Eq>
           )}
         </Working>
