@@ -139,12 +139,12 @@ export default function BarSteps() {
       reference={(i) => (
         <SiteRef
           hi={['baseline', 'strait']}
-          best={i >= 1 && i < 4 ? `plain bars at ${t} °C: the strait reads ${(SITE.WIDTH - wErr * 1).toFixed(3)} m` : 'known: the strait 700 m, the minaret 76 m'}
+          best={i >= 1 && i < 4 ? `plain bars, ${t} °C: strait reads ${(SITE.WIDTH - wErr).toFixed(3)} m` : 'known: the strait 700 m, the minaret 76 m'}
           label="The site, with the baseline and the width of the strait highlighted"
         />
       )}
       referenceLabel="The site"
-      settings={<Slider label="air and bar temperature" value={t} min={T.MIN} max={T.MAX} step={T.STEP} onChange={setT} format={(v) => `${v} °C`} />}
+      settings={<Slider label="air and bar temperature" value={t} min={T.MIN} max={T.MAX} step={T.STEP} onChange={setT} format={(v) => `${v < 0 ? '−' : ''}${Math.abs(v)} °C`} />}
       onSkip={() => setDotX(X_STAR)}
       equation={
         <Working label="Thermal error and the compensation point">
@@ -152,7 +152,7 @@ export default function BarSteps() {
             <Sym role="red">ΔL</Sym> = <Sym>L</Sym> · <Sym role="brass">α</Sym> · <Sym role="sky">ΔT</Sym>
           </Eq>
           <Eq>
-            <Known when={step >= 1} role="red">{mm(err)}</Known> = <Known when>{`${BASELINE} m`}</Known> · <Known when role="brass">11.5×10⁻⁶</Known> · <Known when={step >= 1} role="sky">{`${t - T0} °C`}</Known>
+            <Known when={step >= 1} role="red">{mm(err)}</Known> = <Known when>{`${BASELINE} m`}</Known> · <Known when role="brass">11.5×10⁻⁶</Known> · <Known when={step >= 1} role="sky">{`${t - T0 < 0 ? '−' : ''}${Math.abs(t - T0)} °C`}</Known>
           </Eq>
           <Eq>
             <Sym role="red">x</Sym> / <Sym>s</Sym> = <Sym role="soft">α</Sym>

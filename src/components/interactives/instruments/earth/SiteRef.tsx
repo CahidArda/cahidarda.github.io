@@ -9,6 +9,9 @@ import { SITE, siteScene, type SiteScene } from './site';
 
 export type SiteKey = 'minaret' | 'slope' | 'line' | 'road' | 'strait' | 'height' | 'baseline' | 'fall' | 'channel' | 'wall';
 
+/** Width of one character of the 10px mono tag with its letter spacing (px). */
+const TAG_EM = 6.9;
+
 const solid = (role: Role, w = 1) => ({ fill: 'none', stroke: C[role], strokeWidth: w });
 
 /** The minaret in section, foot at f, tip at t (drawn to the section's scale). */
@@ -37,8 +40,8 @@ export function SiteRef({
 }: {
   /** Quantities to highlight. */
   hi?: SiteKey[];
-  /** "best so far" line at the top, e.g. "slope known to about 1 in 1,000". */
-  best?: ReactNode;
+  /** "best so far" line at the top. A string is squeezed to fit the width if it is too long. */
+  best?: string;
   /** Extra marks in the scene's coordinates (sight lines, chain, beam, error regions). */
   overlay?: (g: SiteScene) => ReactNode;
   /** Accessible description. */
@@ -55,7 +58,14 @@ export function SiteRef({
       <svg viewBox={`0 0 ${W} ${g.H}`} width="100%" style={{ display: 'block' }} role="img" aria-label={label}>
         <HatchDefs id={id} gap={5} role="faint" />
         {best && (
-          <text x={g.tag.x} y={g.tag.y} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', fill: C.soft }}>
+          <text
+            x={g.tag.x}
+            y={g.tag.y}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', fill: C.soft }}
+            {...(typeof best === 'string' && best.length * TAG_EM > W - 2 * g.tag.x
+              ? { textLength: W - 2 * g.tag.x, lengthAdjust: 'spacingAndGlyphs' }
+              : {})}
+          >
             {best}
           </text>
         )}

@@ -43,7 +43,7 @@ export default function GpsPlate() {
       <div style={{ marginTop: '0.6rem' }}>
         <SiteRef
           hi={[]}
-          best={`rover ${d >= 10_000 ? `${(d / 1000).toFixed(0)} km` : `${d.toFixed(0)} m`} from the base: ±${mm(e.h)} across, ±${mm(e.v)} up`}
+          best={`rover ${d >= 10_000 ? `${(d / 1000).toFixed(0)} km` : `${d.toFixed(0)} m`} out: ±${mm(e.h)} across, ±${mm(e.v)} up`}
           label={`Base at A, rover at ${p.name}`}
           overlay={(g) => {
             const base = g.names.pA;

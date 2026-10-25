@@ -119,7 +119,7 @@ export default function EdmSteps() {
       id: 'fails',
       title: 'Where it fails',
       text: <>Light is slower in air, and how much slower depends on temperature and pressure: about 1 mm per km for each degree you get wrong. And you still need to see the other end.</>,
-      controls: <Slider label="air temperature assumed" value={air} min={-5} max={35} step={1} onChange={setAir} format={(v) => `${v} °C`} />,
+      controls: <Slider label="air temperature assumed" value={air} min={-5} max={35} step={1} onChange={setAir} format={(v) => `${v < 0 ? '−' : ''}${Math.abs(v)} °C`} />,
     },
   ];
   return (
@@ -168,7 +168,8 @@ export default function EdmSteps() {
           </Eq>
           {kn(4) && (
             <Eq>
-              air off by <Known when>{`${air - 15} °C`}</Known>: <Known when role="red">{`${(airErr * 1000).toFixed(1)} mm`}</Known> over 700 m
+              air assumed {air - 15 < 0 ? `${15 - air} °C too cold` : air - 15 > 0 ? `${air - 15} °C too warm` : 'right'}: off by{' '}
+              <Known when role="red">{`${(Math.abs(airErr) * 1000).toFixed(1)} mm`}</Known> over 700 m
             </Eq>
           )}
         </Working>

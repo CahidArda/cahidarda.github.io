@@ -26,7 +26,10 @@ import {
 } from './romanGeom';
 
 const solid = (role: 'ink' | 'soft' | 'faint' | 'red' | 'sky' | 'brass', w = 1) => ({ fill: 'none', stroke: C[role], strokeWidth: w });
-const cm = (m: number, dp = 1) => `${(m * 100).toFixed(dp)} cm`;
+const cm = (m: number, dp = 1) => {
+  const v = m * 100;
+  return `${Math.abs(v) < 0.5 * 10 ** -dp ? (0).toFixed(dp) : v.toFixed(dp)} cm`;
+};
 
 function BenchView({ shim }: { shim: number }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
@@ -177,7 +180,7 @@ export default function ChorobatesSteps() {
       reference={(i) => (
         <SiteRef
           hi={['channel']}
-          best={i >= 3 ? `known: the channel falls ${cm(drop)} (true ${cm(CHORO.FALL, 1)} per 100 m)` : 'known: a right angle, the slope of the road'}
+          best={i >= 3 ? `known: the channel falls ${cm(drop)} in ${SIGHT_D.toFixed(0)} m` : 'known: a right angle, the slope of the road'}
           label="The site, with the water channel on the hilltop highlighted"
         />
       )}

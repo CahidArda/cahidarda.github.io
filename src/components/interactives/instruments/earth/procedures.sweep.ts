@@ -81,6 +81,20 @@ for (const f of range(0, 1, 0.001)) {
 ok(near(roadAt(1).p.x, SITE.SHORE_X) && near(roadAt(0).p.x, 0), 'site: road ends at M and A', () => '');
 ok(ROAD_PTS.every((r, i) => i === 0 || r.s >= ROAD_PTS[i - 1].s), 'site: road length monotone', () => '');
 
+/* the "known" tag at the top of the reference: longest strings each plate can print */
+for (const tag of [
+  'plain bars, -5 °C: strait reads 700.161 m',
+  'known: the slope, a gradient, a right angle',
+  'known: a right angle, the slope of the road',
+  'known: the channel falls -10.00 cm in 94 m',
+  'rover 25 km out: ±33.0 mm across, ±40.0 mm up',
+  'known: up and down · unknown: how far',
+  'known: the strait 700 m (from angles)',
+]) {
+  const w = tag.length * 6.9;
+  for (const W of WIDTHS) ok(w <= (W - 16) * 1.12, 'site: known-tag fits (squeezed at most 12%)', () => `${tag} W=${W} ${w.toFixed(0)}`);
+}
+
 /* ── plate 1: level ── */
 for (const W of WIDTHS) {
   for (const lean of range(LEAN.MIN, LEAN.MAX, LEAN.STEP)) {
