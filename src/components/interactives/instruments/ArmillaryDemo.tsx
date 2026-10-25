@@ -43,7 +43,6 @@ export default function ArmillaryDemo() {
       n={2}
       id="plate-armillary"
       title="An armillary sphere, for the road"
-      kicker="drag to turn"
       caption={
         <>
           The sky as nested rings: horizon, meridian, celestial equator, and the ecliptic in
@@ -54,7 +53,7 @@ export default function ArmillaryDemo() {
     >
       <BlueprintCanvas
         aspect={4 / 3}
-        fit={1.45}
+        fit={1.62}
         animate
         yaw={-0.5}
         pitch={0.32}
@@ -63,10 +62,9 @@ export default function ArmillaryDemo() {
         build={(T, ctx) => {
           const band = (r: number, w = 0.045) => {
             const g = new T.TorusGeometry(r, w, 4, 128);
-            const m = new T.Mesh(g);
-            m.rotation.z = Math.PI / 4; // not needed for a ring, kept for symmetry
-            return m;
+            return new T.Mesh(g);
           };
+          ctx.root.position.y = 0.1;
           // Fixed frame: horizon ring (flat) and meridian ring (vertical, N-S)
           const horizon = band(1.18, 0.05);
           horizon.rotation.x = Math.PI / 2;
@@ -84,7 +82,7 @@ export default function ArmillaryDemo() {
           ctx.root.add(post);
           const foot = new T.Mesh(new T.CylinderGeometry(0.42, 0.48, 0.07, 64));
           foot.position.y = -1.5;
-          ctx.inkify(foot, { hidden: true });
+          ctx.inkify(foot, { threshold: 40 });
           ctx.root.add(foot);
 
           // The sky: tilted by latitude, spins about the polar axis
@@ -95,22 +93,22 @@ export default function ArmillaryDemo() {
           pole.add(sky);
 
           const axis = new T.Mesh(new T.CylinderGeometry(0.018, 0.018, 2.5, 12));
-          ctx.inkify(axis, { outline: 0.8 });
+          ctx.inkify(axis, { threshold: 60, outline: 0.6 });
           pole.add(axis);
 
           const equator = band(0.98, 0.04);
           equator.rotation.x = Math.PI / 2;
-          ctx.inkify(equator, { hidden: true, outline: 1 });
+          ctx.inkify(equator, { outline: 1 });
           sky.add(equator);
 
           const colure = band(0.98, 0.035);
           colure.rotation.y = Math.PI / 2;
-          ctx.inkify(colure, { hidden: true, outline: 1 });
+          ctx.inkify(colure, { outline: 1 });
           sky.add(colure);
 
           const ecliptic = band(0.98, 0.05);
           ecliptic.rotation.x = Math.PI / 2 + TILT;
-          ctx.inkify(ecliptic, { edge: 'red', hidden: true, hiddenEdge: 'red', outline: 1.2 });
+          ctx.inkify(ecliptic, { edge: 'red', hidden: true, outline: 1.2 });
           sky.add(ecliptic);
 
           const earth = new T.Mesh(new T.SphereGeometry(0.13, 32, 16));

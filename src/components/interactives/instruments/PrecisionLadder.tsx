@@ -88,8 +88,8 @@ export default function PrecisionLadder() {
     if (yr <= YB) return m.l + ((yr - Y0) / (YB - Y0)) * SPLIT * iw;
     return m.l + SPLIT * iw + ((yr - YB) / (Y1 - YB)) * (1 - SPLIT) * iw;
   };
-  // larger error = lower on the page; the ladder climbs
-  const y = (v: number) => m.t + ((cfg.hi - Math.log10(v)) / (cfg.hi - cfg.lo)) * ih;
+  // smaller error = higher on the page; the ladder climbs
+  const y = (v: number) => m.t + ((Math.log10(v) - cfg.lo) / (cfg.hi - cfg.lo)) * ih;
 
   const pts = useMemo(
     () => cfg.rungs.map((r) => ({ r, x: x(r.year), y: y(r.value) })),
@@ -240,13 +240,13 @@ export default function PrecisionLadder() {
               </InkText>
             </g>
           ))}
-          {/* "better" arrow, top right (the empty corner in both modes) */}
+          {/* "better" arrow, bottom right (empty in both modes: late and imprecise) */}
           <g>
             <path
-              d={`M ${m.l + iw - 4} ${m.t + 34} V ${m.t + 4} M ${m.l + iw - 7.5} ${m.t + 11} L ${m.l + iw - 4} ${m.t + 4} L ${m.l + iw - 0.5} ${m.t + 11}`}
+              d={`M ${m.l + iw - 4} ${m.t + ih - 8} V ${m.t + ih - 40} M ${m.l + iw - 7.5} ${m.t + ih - 33} L ${m.l + iw - 4} ${m.t + ih - 40} L ${m.l + iw - 0.5} ${m.t + ih - 33}`}
               style={{ stroke: C.soft, strokeWidth: 0.8, fill: 'none' }}
             />
-            <InkText x={m.l + iw - 11} y={m.t + 12} anchor="end" size={12} role="soft">
+            <InkText x={m.l + iw - 11} y={m.t + ih - 30} anchor="end" size={12} role="soft">
               more precise
             </InkText>
           </g>
@@ -378,13 +378,13 @@ export default function PrecisionLadder() {
 function labelDy(mode: Mode, i: number, narrow: boolean): number {
   const k = narrow ? 0.8 : 1;
   if (mode === 'angle') {
-    if (i === 0) return -10 * k; // gnomon above Ptolemy
-    if (i === 1) return 9 * k;
-    if (i === 5) return -9 * k; // theodolite above the meridian circle
-    if (i === 6) return 9 * k;
+    if (i === 0) return 10 * k; // gnomon below Ptolemy
+    if (i === 1) return -9 * k;
+    if (i === 5) return 9 * k; // theodolite below the meridian circle
+    if (i === 6) return -9 * k;
   }
   if (mode === 'time') {
-    if (i === 0) return -10 * k; // sundial sits on the same level as the verge
+    if (i === 0) return 10 * k; // sundial sits on the same level as the verge
     if (i === 4) return -6 * k; // H4
   }
   return 0;
