@@ -216,7 +216,7 @@ export default function SineQuadrant() {
           })()}
           {/* angle label at the apex */}
           <path d={arcPath(AX, AY, 70, -90, hEff - 90)} style={{ fill: 'none', stroke: C.ink, strokeWidth: 0.8 }} />
-          <InkText x={polar(AX, AY, 84, (hEff - 180) / 2).x + 4} y={polar(AX, AY, 84, (hEff - 180) / 2).y + 4} kind="num" anchor="start" baseline="central" size={11}>
+          <InkText x={polar(AX, AY, 70, hEff - 90).x + 9} y={polar(AX, AY, 70, hEff - 90).y + 2} kind="num" anchor="start" baseline="central" size={11}>
             {`h = ${hEff.toFixed(1)}°`}
           </InkText>
 
