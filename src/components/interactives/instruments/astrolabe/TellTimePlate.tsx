@@ -246,7 +246,7 @@ export default function TellTimePlate() {
         caption={
           <>
             The rete does the trigonometry: turning it until the sun's point sits on the measured height circle solves the same equation the panel shows.
-            The “real sky” view is the sky at the moment you picked; your measured time agrees with it to the minute. Sun positions and
+            The “real sky” view is the sky at the moment you picked; your measured time agrees with it within about two minutes, since the altitude is read to 0.1°. Sun positions and
             equation of time: USNO approximate formulae. Engraving: almucantars every 10°, azimuths every 30°, computed for 41° N.
           </>
         }

@@ -48,11 +48,16 @@ export function projScene(W: number, o: { mode: 'star' | 'alm'; dec: number; h: 
   const Pl = (u: number, v: number): XY => ({ x: pc.x + u * kp, y: pc.y - v * kp });
 
   const south = S(0, -1);
-  const pts: { theta: number; on: XY; cross: XY; x: number; planPt: XY }[] = [];
+  const pts: { theta: number; on: XY; cross: XY; x: number; planPt: XY; rayEnd: XY }[] = [];
   const thetas = o.mode === 'star' ? [o.dec] : [...almThetas(o.h, o.phi)];
   for (const th of thetas) {
     const x = crossAt(th);
-    pts.push({ theta: th, on: S(cosd(th), sind(th)), cross: S(x, 0), x, planPt: Pl(0, x) });
+    // the ray runs from the eye through the point AND on to the plate: for a point above the
+    // plate it crosses first; for a point below (south of the equator) it crosses after the point
+    const on = S(cosd(th), sind(th));
+    const cross = S(x, 0);
+    const rayEnd = sind(th) >= 0 ? on : cross;
+    pts.push({ theta: th, on, cross, x, planPt: Pl(0, x), rayEnd });
   }
   // the resulting circle on the plate
   let circle: { c: XY; r: number; cv: number; rr: number } | null = null;

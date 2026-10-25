@@ -38,7 +38,7 @@ function Construction({ mode, dec, h, step }: { mode: Mode; dec: number; h: numb
         {g.chord && <line x1={g.chord[0].x} y1={g.chord[0].y} x2={g.chord[1].x} y2={g.chord[1].y} style={{ stroke: C.sky, strokeWidth: 1.6 }} />}
         {g.pts.map((p, i) => (
           <g key={i}>
-            {showRay && <line x1={g.south.x} y1={g.south.y} x2={p.on.x} y2={p.on.y} style={{ stroke: C.brass, strokeWidth: 1 }} />}
+            {showRay && <line x1={g.south.x} y1={g.south.y} x2={p.rayEnd.x} y2={p.rayEnd.y} style={{ stroke: C.brass, strokeWidth: 1 }} />}
             <circle cx={p.on.x} cy={p.on.y} r={4.5} style={{ fill: mode === 'star' ? C.sky : C.sky, stroke: C.paper, strokeWidth: 1 }} />
             {showCross && <circle cx={p.cross.x} cy={p.cross.y} r={3.5} style={{ fill: C.red }} />}
           </g>

@@ -253,6 +253,9 @@ for (const W of WIDTHS)
           const x = g.south.x + (p.on.x - g.south.x) * t;
           ok(near(x, p.cross.x, 1e-6), 'side ray hits the plate at the marked point', () => `${W} ${dec}`);
           // and that crossing is drawn on the plan at the same distance from the pole
+          // the drawn ray reaches both the point and its crossing (ray end is the farther one)
+          const dEye = (q: { x: number; y: number }) => Math.hypot(q.x - g.south.x, q.y - g.south.y);
+          ok(dEye(p.rayEnd) >= dEye(p.on) - 1e-9 && dEye(p.rayEnd) >= dEye(p.cross) - 1e-9, 'drawn ray reaches the point and the plate', () => `${W} ${mode} ${dec} ${h}`);
           ok(near((p.cross.x - g.sc.x) / g.ks, (g.pc.y - p.planPt.y) / g.kp, 1e-9), 'side crossing = plan distance');
           ok(p.cross.x >= g.sideBox.x0 && p.cross.x <= g.sideBox.x0 + g.sideBox.w, 'crossing inside its panel', () => `${W} ${mode} ${dec} ${h}`);
           if (Math.abs(p.x) <= P.RC) ok(p.planPt.y >= g.planBox.y0 && p.planPt.y <= g.planBox.y0 + g.planBox.h, 'plan point inside its panel');
