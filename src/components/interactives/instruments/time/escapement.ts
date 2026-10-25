@@ -57,7 +57,7 @@ export function wheelOutline(w = 0): Pt[] {
  * and moving it inward pushes the wheel back (recoil).
  * Local frame at the pallet point: r = outward radial unit, d = downstream tangent unit.
  */
-const DEPTH = 0.03; // pallet tip sits this far inside the tip circle at neutral
+const DEPTH = 0.04; // pallet tip sits this far inside the tip circle at neutral
 const SLOPE = 0.9; // tangential run of the face per unit of radial depth
 function pallet(theta: number): Pt[] {
   const r: Pt = [Math.cos(theta), Math.sin(theta)];
