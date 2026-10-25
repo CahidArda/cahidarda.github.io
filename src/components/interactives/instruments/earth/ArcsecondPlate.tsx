@@ -8,39 +8,36 @@ import { useRef, useState } from 'react';
 import {
   C,
   Controls,
+  Eq,
   InkText,
   Plate,
-  Readout,
   Segmented,
   Slider,
+  Sym,
+  V,
+  Working,
   useHoverPreview,
   useMeasuredWidth,
 } from '../shared';
+import { ARCSEC as ARC, CHART, EARTH_R as R, chartLayout, fmtLen } from './geometry';
 
-const ARC = Math.PI / 180 / 3600;
+export { fmtLen };
+
 const Y_LABELS = ['1 µm', '100 µm', '1 cm', '1 m', '100 m', '10 km'];
-const R = 6_371_000;
 type Eps = 0.2 | 1 | 200;
 const EPS: { value: Eps; label: string; who: string }[] = [
-  { value: 0.2, label: '0.2″', who: 'Wild T3 theodolite' },
-  { value: 1, label: '1″', who: "Ramsden's great theodolite, a modern total station" },
-  { value: 200, label: '200″', who: 'Great Pyramid alignment, about 3 to 4 arcmin' },
+  { value: 0.2, label: 'Wild T3, 0.2″', who: 'A 20th-century precision theodolite' },
+  { value: 1, label: 'Ramsden, 1″', who: "Ramsden's great theodolite (1787), or a modern total station" },
+  { value: 200, label: 'Pyramid, 200″', who: 'The Great Pyramid’s sides miss true north by 3 to 4 arcminutes' },
 ];
 const MARKS = [
-  { d: 76, name: 'minaret' },
-  { d: 700, name: 'Bosphorus' },
-  { d: 50_000, name: 'Nîmes' },
-  { d: 160_000, name: 'Everest' },
+  { d: 76, name: 'minaret, 76 m' },
+  { d: 700, name: 'Bosphorus, 700 m' },
+  { d: 50_000, name: 'Nîmes aqueduct, 50 km' },
+  { d: 160_000, name: 'Everest sights, 160 km' },
 ];
+const fmtEpsV = (e: number) => `${e}″`;
 
-export function fmtLen(m: number) {
-  if (!Number.isFinite(m)) return '∞';
-  if (m >= 1000) return `${(m / 1000).toFixed(m >= 10_000 ? 0 : 1)} km`;
-  if (m >= 1) return `${m.toFixed(m >= 100 ? 0 : 2)} m`;
-  if (m >= 0.01) return `${(m * 100).toFixed(1)} cm`;
-  if (m >= 0.001) return `${(m * 1000).toFixed(1)} mm`;
-  return `${(m * 1e6).toFixed(0)} µm`;
-}
 
 export default function ArcsecondPlate() {
   const [sel, setSel] = useState<Eps>(1);
@@ -48,27 +45,17 @@ export default function ArcsecondPlate() {
   const [logD, setLogD] = useState(Math.log10(160_000));
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(640);
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const narrow = W < 520;
-  const H = narrow ? 300 : 330;
-  const m = { l: narrow ? 50 : 60, r: narrow ? 12 : 20, t: 18, b: 40 };
-  const iw = W - m.l - m.r;
-  const ih = H - m.t - m.b;
-  const X0 = 0; // 1 m
-  const X1 = 6; // 1000 km
-  const Y0 = -6; // 1 µm
-  const Y1 = 4; // 10 km
-  const x = (ld: number) => m.l + ((ld - X0) / (X1 - X0)) * iw;
-  const y = (le: number) => m.t + (1 - (le - Y0) / (Y1 - Y0)) * ih;
-  const d = 10 ** logD;
-  const miss = d * Math.tan(eps * ARC);
-  const curve = (d * d) / (2 * R);
+  const L = chartLayout(W, logD, eps);
+  const { narrow, H, m, iw, ih, x, y, d, miss, ex, ey, cy } = L;
+  const curve = L.drop;
+  const { X0, X1, Y0, Y1 } = CHART;
   const line = (e: number) =>
     `M ${x(X0)} ${y(Math.log10(Math.tan(e * ARC)) + X0)} L ${x(X1)} ${y(Math.log10(Math.tan(e * ARC)) + X1)}`;
   const curvPath = () => {
     const pts: string[] = [];
     for (let ld = X0; ld <= X1 + 1e-9; ld += 0.25) {
       const le = 2 * ld - Math.log10(2 * R);
-      pts.push(`${pts.length ? 'L' : 'M'} ${x(ld)} ${y(Math.max(Y0, le))}`);
+      pts.push(`${pts.length ? 'L' : 'M'} ${x(ld)} ${y(le)}`);
     }
     return pts.join(' ');
   };
@@ -82,24 +69,23 @@ export default function ArcsecondPlate() {
     setLogD(Math.max(0, Math.min(X1, ld)));
   };
   const who = EPS.find((o) => o.value === eps)?.who ?? '';
-  const ex = x(logD);
-  const ey = y(Math.log10(miss));
-  const cy = y(Math.max(Y0, Math.log10(curve)));
   return (
     <Plate
       n={4}
-      title="One arcsecond, carried a long way"
-      kicker="log scales"
+      title="How a small angle error grows with distance"
+      kicker="log scales · drag along the chart"
       caption={
         <>
-          A sight line that is off by a fixed angle misses by more the farther it goes: the solid
-          lines. The dashed curve is how far the Earth falls away below a level line. For a
-          1″ instrument the curve wins after about 62 m, which is why long surveys correct for
-          it.
+          The solid lines: how far sideways a sight line lands if its angle is off by a fixed
+          amount. The farther the target, the bigger the miss. The dashed curve: how far the
+          Earth falls away below a level line. For the {fmtEpsV(eps)} instrument the curve
+          overtakes the miss beyond {fmtLen(L.crossover)}, which is why long surveys correct for
+          the Earth’s shape.
         </>
       }
     >
       <Controls>
+        <span className="in-field">angle error of the instrument</span>
         <Segmented label="Angle error" options={EPS.map(({ value, label }) => ({ value, label }))} value={sel} onChange={setSel} preview={bindEps} />
         <span className="in-field" style={{ textTransform: 'none', letterSpacing: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '0.9rem' }}>
           {who}
@@ -177,38 +163,54 @@ export default function ArcsecondPlate() {
               />
             ))}
           </g>
-          {!narrow && (
-            <InkText x={x(4.9)} y={y(2 * 4.9 - Math.log10(2 * R)) - 10} anchor="end" size={11} role="sky">
+          {L.curveLabel && (
+            <InkText x={L.curveLabel.x} y={L.curveLabel.y} anchor="end" size={11} role="sky">
               Earth’s curve, d²/2R
             </InkText>
           )}
           {/* marker */}
           <line x1={ex} y1={m.t} x2={ex} y2={m.t + ih} style={{ stroke: C.ink, strokeWidth: 0.8, strokeDasharray: '2 3' }} />
-          <circle cx={ex} cy={cy} r={3} style={{ fill: C.paper, stroke: C.sky, strokeWidth: 1.4 }} />
-          <circle cx={ex} cy={ey} r={4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.8 }} />
-          <InkText
-            x={ex + (logD > 4.6 ? -9 : 9)}
-            y={ey + (ey < m.t + 30 ? 16 : -10)}
-            anchor={logD > 4.6 ? 'end' : 'start'}
+          {L.dropOn && <circle cx={ex} cy={cy} r={3.2} style={{ fill: C.paper, stroke: C.sky, strokeWidth: 1.5 }} />}
+          {L.missOn && <circle cx={ex} cy={ey} r={4} style={{ fill: C.paper, stroke: C.red, strokeWidth: 1.8 }} />}
+          {L.missOn && L.missLabel.leader && (
+            <line x1={ex} y1={ey} x2={L.missLabel.x - 4} y2={L.missLabel.y - 4} style={{ stroke: C.red, strokeWidth: 0.6, strokeDasharray: '2 2' }} />
+          )}
+          {L.missOn && <InkText
+            x={L.missLabel.x}
+            y={L.missLabel.y}
+            anchor={L.missLabel.anchor}
             kind="num"
             size={13}
             role="red"
           >
             {fmtLen(miss)}
-          </InkText>
+          </InkText>}
         </svg>
       </div>
       <Controls>
-        <Slider label="distance" value={logD} min={0} max={6} step={0.01} onChange={setLogD} format={(v) => fmtLen(10 ** v)} />
+        <Slider label="distance to target, d" value={logD} min={0} max={6} step={0.01} onChange={setLogD} format={(v) => fmtLen(10 ** v)} />
         <Segmented
-          label="Landmarks"
+          label="Example distances"
           options={MARKS.map((mk) => ({ value: mk.d, label: mk.name }))}
           value={Math.round(d)}
           onChange={(v) => setLogD(Math.log10(v))}
         />
-        <Readout label="miss">{fmtLen(miss)}</Readout>
-        <Readout label="curve">{fmtLen(curve)}</Readout>
       </Controls>
+      <Working label="Sideways miss and the Earth's drop at this distance">
+        <Eq>
+          <Sym role="red">miss</Sym> = <Sym>d</Sym> · tan <Sym role="red">ε</Sym>
+          {'   '}and{'   '}
+          <Sym role="sky">drop</Sym> = <Sym>d</Sym>² / 2<Sym>R</Sym>
+        </Eq>
+        <Eq>
+          <V role="red">{fmtLen(miss)}</V> = <V>{fmtLen(d)}</V> · tan <V role="red">{fmtEpsV(eps)}</V>
+          {!L.missOn && <> ({L.missWhere} the chart)</>}
+        </Eq>
+        <Eq>
+          <V role="sky">{fmtLen(curve)}</V> = (<V>{fmtLen(d)}</V>)² / (2 · <V>6,371 km</V>)
+          {!L.dropOn && <> ({L.dropWhere} the chart)</>}
+        </Eq>
+      </Working>
     </Plate>
   );
 }
