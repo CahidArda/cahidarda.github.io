@@ -189,19 +189,32 @@ export default function SextantModel() {
       .intersectObjects(q.pk.parts, true)
       .some((h) => (h.object as THREEns.Mesh).isMesh && !h.object.userData.inkHull);
   };
-  const dragTo = (e: React.PointerEvent) => {
+  const grabRef = useRef<{ ang: number; reading: number } | null>(null);
+  const readingRef = useRef(reading);
+  readingRef.current = reading;
+  /** Pointer angle about the pivot, in the instrument's own plane (degrees). */
+  const pointerAngle = (e: React.PointerEvent) => {
     const q = ray(e);
-    if (!q) return;
+    if (!q) return null;
     const { T } = q.pk;
     const m = q.pk.inst.matrixWorld;
     const n = new T.Vector3(0, 0, 1).transformDirection(m);
     const o = new T.Vector3(0, 0, 0.05).applyMatrix4(m);
     const plane = new T.Plane().setFromNormalAndCoplanarPoint(n, o);
     const hit = q.rc.ray.intersectPlane(plane, new T.Vector3());
-    if (!hit) return;
+    if (!hit) return null;
     const loc = q.pk.inst.worldToLocal(hit);
-    const ang = (Math.atan2(loc.y, loc.x) * 180) / Math.PI;
-    const r = -2 * (ang + 60);
+    if (Math.hypot(loc.x, loc.y) < 0.25) return null;
+    return (Math.atan2(loc.y, loc.x) * 180) / Math.PI;
+  };
+  const dragTo = (e: React.PointerEvent) => {
+    const g = grabRef.current;
+    const ang = pointerAngle(e);
+    if (!g || ang === null) return;
+    let d = ang - g.ang;
+    while (d > 180) d -= 360;
+    while (d < -180) d += 360;
+    const r = g.reading - 2 * d;
     setReading(Math.max(0, Math.min(120, Math.round(r * 10) / 10)));
   };
   const params = useMemo<Params>(() => ({ reading, eye: eyeRef }), [reading]);
@@ -232,9 +245,11 @@ export default function SextantModel() {
           if (e.button !== 0 || !hitsArm(e)) return;
           e.stopPropagation();
           e.preventDefault();
+          const ang = pointerAngle(e);
+          if (ang === null) return;
+          grabRef.current = { ang, reading: readingRef.current };
           dragRef.current = e.pointerId;
           e.currentTarget.setPointerCapture(e.pointerId);
-          dragTo(e);
         }}
         onPointerMoveCapture={(e) => {
           if (dragRef.current === e.pointerId) {
@@ -474,7 +489,7 @@ export default function SextantModel() {
             const horLine = new T.Line(horGeo, ctx.lineMaterial('sky', { dashed: true, dash: 0.035, gap: 0.025 }));
             world.add(horLine);
 
-            pickRef.current = { T, camera: ctx.camera, inst, parts: [armBar, clamp, screw, knob, glassI, backI] };
+            pickRef.current = { T, camera: ctx.camera, inst, parts: [armBar, clamp, screw, knob] };
             return (_dt, t, p) => {
               texMats.forEach((m) => m.color.copy(inkFill.color));
               const roll = ctx.reduced ? 0 : ROLL_AMP * Math.sin((2 * Math.PI * t) / ROLL_PERIOD);
