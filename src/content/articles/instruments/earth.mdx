@@ -1,11 +1,320 @@
 ---
 title: 'Plumb Bob to GPS: How We Learned to Build Straight and Map the Earth'
-description: 'Plumb bobs, cubits, the groma, triangulation and the theodolite: how builders and surveyors learned to make things level, straight and to scale.'
+description: 'Plumb bobs, cubits, aqueducts, triangulation and the theodolite: how builders and surveyors learned to make things level, straight and to scale, and then to measure a whole country.'
 date: 2026-10-25
 tags: ['blog']
 series: instruments
 seriesOrder: 3
-draft: true
 ---
 
-Draft. This post is being written.
+import { Image } from 'astro:assets';
+import EqTip from '../../../components/EqTip.astro';
+import LevelPlate from '../../../components/interactives/instruments/earth/LevelPlate.tsx';
+import TriangulationPlate from '../../../components/interactives/instruments/earth/TriangulationPlate.tsx';
+import TheodolitePlate from '../../../components/interactives/instruments/earth/TheodolitePlate.tsx';
+import ArcsecondPlate from '../../../components/interactives/instruments/earth/ArcsecondPlate.tsx';
+import plumbLevels from '../../../assets/instruments/miniature-plumb-levels.jpg';
+import sinanPanel from '../../../assets/instruments/sinan-panel.jpg';
+import theodoliteBox from '../../../assets/instruments/theodolite-box.jpg';
+import doorDrawing from '../../../assets/instruments/mosque-door-drawing.jpg';
+
+The case that stopped me in this part of the exhibition held almost nothing: a few brass
+weights on threads and some small brass triangles, hung in front of a blown-up Ottoman miniature
+of a mausoleum courtyard. The labels called them *çekül* (plumb bob) and *havayi terazi*, the
+"aerial balance", 18th to 19th century.
+
+<div class="fx-figure">
+  <figure class="in-photos">
+    <Image
+      src={plumbLevels}
+      alt="Brass plumb bobs and brass triangles hanging on threads in front of a large reproduction of an Ottoman miniature showing a domed mausoleum and a funeral procession"
+      widths={[480, 800]}
+      sizes="(min-width: 62rem) 26rem, 50vw"
+    />
+    <Image
+      src={doorDrawing}
+      alt="An ink drawing of a double-leaf panelled door with dimension lines and Ottoman labels, with full-size joinery sections beside it"
+      widths={[480, 800]}
+      sizes="(min-width: 62rem) 26rem, 50vw"
+    />
+    <figcaption>
+      Left: plumb bobs and havayi terazi in front of a reproduced miniature. Right: a student's
+      drawing of a mosque door, 1910. Both from the same case.
+    </figcaption>
+  </figure>
+</div>
+
+A weight on a string is the oldest measuring instrument still sold in hardware shops. This post
+climbs from it to the satellites that now tell a surveyor where she stands to the centimetre.
+Every rung exists because the one below it hit a wall.
+
+## A string that knows which way is down
+
+Gravity gives you one free direction: down. A plumb line shows it, so it tells you whether a
+wall is vertical. Level is harder, because nothing points sideways for you.
+
+The Egyptian answer was the A-frame level: two legs, a crossbar, a plumb line from the apex. The
+surface is level when the line "bisected the crossbar of the A"
+([Britannica](https://britannica.com/technology/A-frame-level)). The frame is symmetric, so the
+line from the apex to the centre of the crossbar is square to the feet. The string agrees with it
+only when the feet are level. Tilt the frame by θ and the string lands $x = h\tan\theta$ from the
+centre mark, where $h$ is the drop from apex to crossbar. Mark the crossbar and the same tool
+reads slope.
+
+<div class="fx-figure">
+  <LevelPlate client:visible />
+</div>
+
+It was good enough. The pavement of the Great Pyramid slopes by about 15 mm from one corner to
+the opposite one, across some 325 m
+([Cole 1925](https://home.hiwaay.net/~jalison/cole2.html)). Europeans still used A-frames
+"until the mid-19th century"
+([Britannica](https://britannica.com/technology/A-frame-level)).
+
+The brass triangles in the case are the same idea in a better package. Hang one by its two
+hooks from a cord stretched between two poles, slide the far end of the cord until the bob sits
+on the mark, and the cord is level over many metres. Read the poles, move forward, repeat. The
+lineage runs from 11th-century Iraq through Ottoman texts to 1834
+([Jašarević](https://godisnjak.anubih.ba/index.php/godisnjak/article/download/214/212/339)), and
+the Pera Museum's teacher booklet says Sinan used one to build the Kırkçeşme water line
+([Pera Museum](https://www.peramuzesi.org.tr/Images/pdf/ogretmen-kitapcik/aavok-copy.pdf)).
+
+The wall: a level tells you that two points are at the same height. It does not tell you how far
+apart they are.
+
+## A length you can hold
+
+For that you need a unit, and a stick that carries it. The Egyptian royal cubit was 7 palms or
+28 digits, and surviving cubit rods are about 52.5 cm long
+([Ancient Egyptian units](https://en.wikipedia.org/wiki/Ancient_Egyptian_units_of_measurement)).
+
+Ottoman architects had their own: the *mimar arşını*, the architect's cubit, which averages
+75.774 cm across surviving buildings, by Aptullah Özdural's survey
+([Arshin](https://en.wikipedia.org/wiki/Arshin_%28length%29)). That is about 1.45 Egyptian
+cubits. The panel beside the levels points to a miniature of 1579 that shows Sinan at Süleyman's tomb holding his (Chester Beatty Library, T 413).
+
+<div class="fx-figure">
+  <figure style="margin: 0; max-width: 26rem;">
+    <Image
+      src={sinanPanel}
+      alt="An exhibition panel titled Mikyas-ı Tam, Full-Scale: Masters and their Apprentices, quoting Sinan, with a wooden drawing compass below it"
+      widths={[480, 800]}
+      sizes="26rem"
+      style="border: 1px solid var(--color-line-strong);"
+    />
+    <figcaption style="font-family: var(--font-display); font-style: italic; font-size: 0.95rem; color: var(--color-muted); margin-top: 0.5rem;">
+      The panel next to the levels, with a wooden drawing compass in front of it.
+    </figcaption>
+  </figure>
+</div>
+
+The panel quotes Sinan's memoirs. In the exhibition's translation he says he "worked resolute
+like the fixed arm of a compass" and "observed the center and the periphery" (Sâî Mustafa
+Çelebi, *Tezkiretü'l-Ebniye*, as translated on the panel). A builder describing himself as a
+drawing instrument is my favourite thing in the whole exhibition.
+
+The wall: rods and levels work at the scale of a building. Carry them across 50 km of hills
+and the small errors add up.
+
+## Rome: holding a slope for 50 km
+
+Roman surveyors had the groma (a cross on a pole with four plumb lines, for straight lines and
+right angles) and the chorobates, a 20-foot bench with plumb lines and a water channel cut into
+its top for windy days. Vitruvius preferred it, because "dioptrae and levels are deceptive"
+([Vitruvius 8.5.1](https://lexundria.com/vitr/8.5/cf)).
+
+The aqueduct that crosses the Pont du Gard to Nîmes falls about 12 m over 50 km, roughly 25 cm
+per kilometre
+([techno-science](https://www.techno-science.net/fr/definitions/pont-du-gard)). That slope is
+an angle of under one arcminute, held on average over the whole route. Estimates of the total
+drop range from about 11 to 13 m.
+
+Earlier, on Samos, Eupalinos had a tunnel dug from both ends through a mountain. The two
+crews met with an offset of about 60 cm over a kilometre
+([Stiros, FIG 2008](https://fig.net/resources/proceedings/fig_proceedings/fig2008/papers/hs02/hs02_03_stiros_2837.pdf)).
+
+The wall: all of this is step by step. Every leapfrog of the poles adds a little error, and you
+cannot pace across a river or up a minaret.
+
+## Triangulation: one length, then only angles
+
+The trick is to stop measuring lengths. Measure one baseline carefully, then measure the angles
+from both ends to a far point. A triangle with one known side and two known angles is fixed.
+
+<EqTip note="d_A is the distance from end A of the baseline to the target. b is the baseline length. α and β are the angles at A and B between the baseline and the sight lines. The third angle of the triangle is 180° minus both, and its sine is sin(α+β).">
+
+$$
+d_A = b\,\frac{\sin\beta}{\sin(\alpha+\beta)}
+$$
+
+</EqTip>
+
+Each new side becomes the baseline of the next triangle. Willebrord Snellius chained 33 of them
+across Holland in 1615 and got his distance about 3.5% too short
+([Triangulation](https://en.wikipedia.org/wiki/Triangulation_%28surveying%29)). The Cassinis
+covered France, and their map came out in 181 sheets at 1:86,400
+([Cartography of France](https://en.wikipedia.org/wiki/Cartography_of_France)).
+
+The same idea measures a height. Stand at two points in line with a minaret, a baseline $b$
+apart, and read the elevation angle at each.
+
+<EqTip note="h is the height. b is the baseline walked toward the minaret. α is the elevation angle from the far station, β from the near one. When the two angles are close, the bottom line is tiny and any error in them is magnified.">
+
+$$
+h = \frac{b\,\tan\alpha\,\tan\beta}{\tan\beta-\tan\alpha}
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <TriangulationPlate client:visible />
+</div>
+
+Note the honest twist. Snellius's 3.5% is far worse than the pyramid builders' level. Precision
+does not climb in a straight line; it depends on the job. Long distances lagged until the angles
+got good.
+
+## The theodolite
+
+Getting the angles good is the theodolite's job. The word first appears in Leonard Digges's
+*Pantometria* of 1571, and nobody knows where it comes from
+([Theodolite](https://en.wikipedia.org/wiki/Theodolite)). The idea is two graduated circles on
+two axes: turn the telescope around the vertical axis to read a horizontal angle, tip it about
+the horizontal axis to read a vertical one.
+
+<div class="fx-figure">
+  <TheodolitePlate client:visible />
+</div>
+
+The one in the exhibition still sits in its wooden box. The label inside the door is from J.
+Verdoux, "Instruments de précision", successor of L. Poirier, at Place du Tunnel and the Grande
+Rue de Péra. Tünel, the funicular, opened in 1875
+([lepetitjournal](https://lepetitjournal.com/istanbul/le-tunel-distanbul-ou-le-plus-petit-metro-du-monde-340929)),
+so the label is from after that. The shop stood at the Tünel end of today's İstiklal Caddesi.
+
+<div class="fx-figure">
+  <figure style="margin: 0; max-width: 26rem;">
+    <Image
+      src={theodoliteBox}
+      alt="A theodolite with a brass horizontal circle standing inside an open dovetailed wooden box, with a printed shop label on the inside of the door"
+      widths={[480, 800]}
+      sizes="26rem"
+      style="border: 1px solid var(--color-line-strong);"
+    />
+    <figcaption style="font-family: var(--font-display); font-style: italic; font-size: 0.95rem; color: var(--color-muted); margin-top: 0.5rem;">
+      The theodolite from J. Verdoux's shop in Pera, Constantinople, in its travelling box.
+    </figcaption>
+  </figure>
+</div>
+
+The high point of hand-made circles was Jesse Ramsden's great theodolite of about 1787: a 36-inch
+circle, horizontal angles to within one arcsecond
+([Ramsden](https://en.wikipedia.org/wiki/Ramsden_surveying_instruments)). One arcsecond is a 2.4 cm coin seen from 5 km away. It still matters, because the error grows with
+distance, and over long sights the Earth itself curves away.
+
+<EqTip note="The miss is how far sideways a sight line ends up at distance d if its angle is off by ε. The drop is how far the Earth's surface falls below a level line after distance d. R is the Earth's radius, about 6,371 km.">
+
+$$
+\text{miss} = d\tan\varepsilon \qquad \text{drop} \approx \frac{d^2}{2R}
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <ArcsecondPlate client:visible />
+</div>
+
+That is the problem the Great Trigonometrical Survey of India took on. It began on 10 April 1802
+with a baseline of about 12 km near Madras
+([GTS](https://en.wikipedia.org/wiki/Great_Trigonometrical_Survey)). Its big theodolite
+reportedly weighed about half a tonne and took twelve men to carry
+([GPS World](https://www.gpsworld.com/peak-xv-the-framework-that-measured-mount-everest/)).
+In 1856 the survey announced that Peak XV was 29,002 ft, measured from stations more than 100
+miles away, after correcting for curvature, refraction and the pull of the mountains on the
+plumb line (same source). The 2020 Nepal-China figure is 8,848.86 m, or 29,032 ft
+([AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements/)).
+A team with brass circles and log tables was off by about 30 ft, or 0.1%.
+
+## From measuring to building: the scale drawing
+
+Measuring is half the story. The other half is carrying a measurement from paper to stone. The
+second photo above is a drawing of a mosque door by Mehmed Nuri, a student at the
+Mekteb-i Sanayi-i Osmani, the Ottoman vocational school founded in Istanbul in 1868-69
+([TDV](https://islamansiklopedisi.org.tr/islahhane)). The label dates it 16 May 1326 in the Rumi
+calendar, which is 29 May 1910
+([Rumi calendar](https://en.wikipedia.org/wiki/Rumi_calendar)).
+
+The door is drawn reduced. The joinery sections beside it are much larger: as far as I can read
+the Ottoman, they are marked *mikyas ½*, half full size, because a carpenter needs the profile
+itself, not a picture of it. A scale drawing is a theodolite run backwards: the measurements go
+from the paper out into the world.
+
+## Total stations, satellites, lasers
+
+A modern total station is a theodolite with a laser rangefinder and a computer. A Leica TS13
+reads angles to 1″ in its best version, the same as Ramsden's giant, and distances to a prism
+to 1 mm plus 1 mm per kilometre
+([Leica](https://cm.leica-geosystems.com/-/media/files/leicageosystems/products/datasheets/leica-ts13-lr-ds.ashx)).
+
+Then the baseline moved into orbit. RTK satellite receivers give a position to about 8 mm plus
+1 ppm horizontally, within 30 km of a base station
+([Trimble](https://spaces.awi.de/download/attachments/183566393/Trimble_SPS855_specification.pdf?api=v2)).
+No line of sight, no triangle chain. And airborne LiDAR sweeps the ground with laser pulses,
+at least 8 points per square metre with 10 cm vertical accuracy in the USGS's QL1 standard
+([USGS](https://www.usgs.gov/3d-elevation-program/topographic-data-quality-levels-qls)). A
+plane can survey in an afternoon what took Lambton's men years.
+
+The plumb bob is still in the kit.
+
+## The end of the ladder
+
+That closes the series. Three ladders, one for [time, the sky and the ground](/articles/instruments),
+and the same shape every time: a crude method that worked, a wall, a better instrument. They
+also meet at the top. GPS is a clock problem, an angle problem and a surveying problem at once:
+satellites carrying atomic clocks, read like stars, used to find where you stand on the Earth.
+
+## Sources
+
+- [A-frame level](https://britannica.com/technology/A-frame-level) (Britannica), for the plumb
+  line bisecting the crossbar and use "until the mid-19th century".
+- J.H. Cole, [Determination of the exact size and orientation of the Great Pyramid](https://home.hiwaay.net/~jalison/cole2.html)
+  (1925, transcript), for the 15 mm pavement slope. The 325 m diagonal is computed from his side
+  lengths.
+- Jašarević, [Triangle from the Past](https://godisnjak.anubih.ba/index.php/godisnjak/article/download/214/212/339),
+  for the havayi terazi's use and lineage; Pera Museum
+  [teacher booklet](https://www.peramuzesi.org.tr/Images/pdf/ogretmen-kitapcik/aavok-copy.pdf)
+  (Turkish), for the Sinan and Kırkçeşme attribution.
+- [Ancient Egyptian units of measurement](https://en.wikipedia.org/wiki/Ancient_Egyptian_units_of_measurement)
+  and [Arshin](https://en.wikipedia.org/wiki/Arshin_%28length%29) (Wikipedia, citing Özdural,
+  "Sinan's Arşın", *Muqarnas* 15, 1998), for the two cubits.
+- Sinan's words are the exhibition panel's English translation of Sâî Mustafa Çelebi's
+  *Tezkiretü'l-Ebniye*. The standard published edition is Crane and Akın,
+  [Sinan's Autobiographies](https://archnet.org/publications/13431) (Brill, 2006).
+- Vitruvius, *De architectura* 8.5, Morgan translation
+  ([Lexundria](https://lexundria.com/vitr/8.5/cf)).
+- Nîmes aqueduct: [techno-science.net](https://www.techno-science.net/fr/definitions/pont-du-gard)
+  (12.6 m over 49.7 km) and [ROMAQ](https://romaq.org/the-project/aqueducts/178-nemausus.html)
+  (11.2 m). The slope as an angle is computed.
+- S. Stiros, [Ancient tunnels and aqueducts](https://fig.net/resources/proceedings/fig_proceedings/fig2008/papers/hs02/hs02_03_stiros_2837.pdf)
+  (FIG 2008), for the Eupalinos tunnel.
+- [Triangulation (surveying)](https://en.wikipedia.org/wiki/Triangulation_%28surveying%29),
+  [Cartography of France](https://en.wikipedia.org/wiki/Cartography_of_France),
+  [Theodolite](https://en.wikipedia.org/wiki/Theodolite) and
+  [Ramsden surveying instruments](https://en.wikipedia.org/wiki/Ramsden_surveying_instruments)
+  (Wikipedia).
+- [Great Trigonometrical Survey](https://en.wikipedia.org/wiki/Great_Trigonometrical_Survey)
+  (Wikipedia) and [Peak XV](https://www.gpsworld.com/peak-xv-the-framework-that-measured-mount-everest/)
+  (GPS World), for the baseline, the theodolite and the 1856 height; the 2020 height from
+  [AP](https://www.clickondetroit.com/news/world/2020/12/08/china-nepal-say-everest-a-bit-higher-than-past-measurements/).
+- Minaret height (76 m with finial) for the triangulation plate:
+  [ancient-history-sites](https://www.ancient-history-sites.com/sites/suleymaniye-mosque/); the
+  Bosphorus's narrowest width (about 700 m):
+  [Openwaterpedia](https://openwaterpedia.com/wiki/Bosphorus). Both are round figures for the
+  drawing.
+- Mekteb-i Sanayi: [TDV İslâm Ansiklopedisi](https://islamansiklopedisi.org.tr/islahhane)
+  (1868) and Semiz and Kuş (2004, 1869). Date conversion via the
+  [Rumi calendar](https://en.wikipedia.org/wiki/Rumi_calendar). My readings of the drawing's
+  Ottoman labels are unconfirmed.
+- [Leica TS13 datasheet](https://cm.leica-geosystems.com/-/media/files/leicageosystems/products/datasheets/leica-ts13-lr-ds.ashx),
+  [Trimble SPS855 specification](https://spaces.awi.de/download/attachments/183566393/Trimble_SPS855_specification.pdf?api=v2),
+  [USGS 3DEP quality levels](https://www.usgs.gov/3d-elevation-program/topographic-data-quality-levels-qls).
