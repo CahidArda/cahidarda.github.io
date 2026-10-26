@@ -4,6 +4,7 @@
  * highlighted for the current step. Geometry: ./skyGeom.ts (swept).
  */
 import { C, InkText, useMeasuredWidth, type Role } from '../shared';
+import { noteSize } from './astro';
 import { dome, type DomeOpts, type Run } from './skyGeom';
 
 export type DomeHi = 'horizon' | 'alm' | 'day' | 'sun' | 'h' | 'hour' | 'pole' | 'star' | 'equator' | 'meridian';
@@ -99,7 +100,7 @@ export function Dome({ opts, hi = [], note, caption }: { opts: DomeOpts; hi?: Do
         {lab('sun', 'ink', 'sun')}
         {lab('h', 'sky', 'h')}
         {caption && (
-          <InkText x={g.W / 2} y={g.H - 8} anchor="middle" size={12} role="soft">
+          <InkText x={g.W / 2} y={g.H - 8} anchor="middle" size={noteSize(caption, g.W)} role="soft">
             {caption}
           </InkText>
         )}

@@ -16,6 +16,7 @@ import * as J from './projGeom.ts';
 import * as M from './armGeom.ts';
 import * as Q from './quadGeom.ts';
 import * as Z from './sapheaGeom.ts';
+import { clockState } from './clockGeom.ts';
 
 const D = Math.PI / 180;
 const WIDTHS = [320, 340, 360, 400, 440, 520, 600, 700];
@@ -229,6 +230,7 @@ for (const W of [320, 400, 520, 700])
         const pts = [...g.meridian, ...g.horizon, ...g.equator, ...g.ecliptic].flatMap((r) => r.pts);
         ok(pts.every((p) => p.x >= 0 && p.x <= W && p.y >= 0 && p.y <= g.H - 20), 'armillary inside (above the note)', () => `${W} ${axis}`);
         ok(g.ticks.every((t) => t.lab.x > 6 && t.lab.x < W - 6 && t.lab.y > 6 && t.lab.y < g.H - 24), 'armillary hour labels inside');
+        ok(g.stand.foot.y <= g.H - 12 - 12 && g.stand.top.y < g.stand.foot.y, 'armillary stand above the note', () => `${W} ${axis}`);
       }
 for (const doy of DAYS)
   for (const m of A.MOMENTS) {
@@ -330,6 +332,13 @@ for (const doy of DAYS)
 for (let days = 0; days <= 365; days += 5) {
   const gain = days * 1440 * (A.SIDEREAL_RATE - 1);
   ok(Math.abs(gain / days - 3.943) < 0.01 || days === 0, 'sidereal gain 3.94 min/day');
+}
+for (let days = 0; days <= 365; days++) {
+  const c = clockState(days);
+  // the printed rete turn is the drawn one and stays within the equation of time (a few
+  // degrees) of the mean gain: never wraps to 0° at a full year
+  ok(Math.abs(c.turned - c.gain / 4) < 6, 'clock: printed rete turn ≈ gain', () => `${days} ${c.turned} ${c.gain / 4}`);
+  ok(Math.abs(((c.turned % 360) + 360) % 360 - A.wrap360(c.lst - clockState(0).lst)) < 1e-6 || Math.abs(((c.turned % 360) + 360) % 360 - A.wrap360(c.lst - clockState(0).lst)) > 359.99, 'clock: printed turn = drawn turn', () => `${days}`);
 }
 
 /* ── 11. formatting ── */

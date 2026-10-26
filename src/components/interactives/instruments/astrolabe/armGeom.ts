@@ -16,6 +16,8 @@ export const ARM_H_MIN = -150;
 export const ARM_H_MAX = 150;
 export const ARM_TOL = 0.3; // degrees of altitude: "the bead is on the measured height"
 
+/** Height of the strip at the bottom kept for the status note. */
+export const NOTE_BAND = 28;
 export const armH = (W: number) => Math.round(Math.max(270, Math.min(380, W * 0.82)));
 
 export function armScene(W: number, o: { axis: number; lam: number; H: number }) {
@@ -46,7 +48,8 @@ export function armScene(W: number, o: { axis: number; lam: number; H: number })
     const lab = q(1.13);
     ticks.push({ a: { x: p.x, y: p.y }, b: q(1.05), lab, text: `${12 + k}`, front: p.front });
   }
-  const stand = { top: cam.proj({ w: 0, s: 0, z: -1.08 }), foot: { x: cam.cx, y: H - 8 } };
+  // the stand ends above the status note (baseline H − 12, about 12 px tall)
+  const stand = { top: cam.proj({ w: 0, s: 0, z: -1.08 }), foot: { x: cam.cx, y: H - NOTE_BAND } };
   const alt = altitude(dec, o.H, phi);
   return { W, H, cam, meridian, horizon, equator, ecliptic, hourCircle, sunDay, poleN, poleS, sun, foot, ticks, stand, dec, alt, R: cam.R, cx: cam.cx, cy: cam.cy };
 }

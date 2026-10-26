@@ -4,6 +4,7 @@
  * steps where a reading has to be crisp. Geometry: ./plateGeom.ts, ./faceGeom.ts (swept).
  */
 import { C, InkText, useMeasuredWidth, type Role } from '../shared';
+import { noteSize } from './astro';
 import { PrimsSvg } from './Prims';
 import { almucantarRuns, backPrims, limbPrims, platePrims, retePrims, type UV } from './plateGeom';
 import { backScene, frontScene } from './faceGeom';
@@ -64,7 +65,7 @@ export function FrontView({
           <circle cx={g.f.cx} cy={g.f.cy} r={3} style={{ fill: C.ink }} />
         </g>
         {note && (
-          <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={noteRole}>
+          <InkText x={W / 2} y={g.H - 10} anchor="middle" size={noteSize(note, W)} role={noteRole}>
             {note}
           </InkText>
         )}
@@ -101,7 +102,7 @@ export function BackView({ ali, mark, zoom = 1, focus, note, noteRole = 'soft' }
           <circle cx={g.f.cx} cy={g.f.cy} r={3} style={{ fill: C.ink }} />
         </g>
         {note && (
-          <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={noteRole}>
+          <InkText x={W / 2} y={g.H - 10} anchor="middle" size={noteSize(note, W)} role={noteRole}>
             {note}
           </InkText>
         )}

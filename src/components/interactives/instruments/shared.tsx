@@ -63,7 +63,7 @@
  *     <Controls><Slider label="length" value={length} min={0.2} max={1} step={0.01}
  *       onChange={setLength} format={(v) => `${v.toFixed(2)} m`} /></Controls>
  *   </Plate>
- *   Worked example: ./ArmillaryDemo.tsx (landing, Plate 2). SVG example: ./PrecisionLadder.tsx.
+ *   Worked examples: ./time/PendulumModel.tsx, ./sky/SextantModel.tsx. SVG example: ./PrecisionLadder.tsx.
  *
  * ── Step-by-step plates: <StepPlate> ──────────────────────────────────────────────────────
  *   A procedure: numbered steps ("Point at the sun", "Read the arc", "Put it into the
@@ -166,7 +166,12 @@ export function useMeasuredWidth<T extends Element = HTMLDivElement>(initial = 6
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([e]) => setW(Math.round(e.contentRect.width)));
+    // a hidden ancestor (display: none) reports 0: keep the last real width instead of laying
+    // the drawing out at zero (which gives negative rect sizes)
+    const ro = new ResizeObserver(([e]) => {
+      const w = Math.round(e.contentRect.width);
+      if (w > 0) setW(w);
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);

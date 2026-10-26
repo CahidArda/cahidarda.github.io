@@ -206,6 +206,19 @@ export const dlBox = (l: DLabel) => {
   return { x0, x1: x0 + w, y0: l.y - l.size * 0.55, y1: l.y + l.size * 0.45, name: l.id };
 };
 
+/** The north arrow in the dial's top-right corner (screen units) and the box it occupies. */
+export function northMark(W: number) {
+  const f = dialFrame(W);
+  const ax = f.x1 - 14;
+  return {
+    ax,
+    yTop: f.y0 + 10,
+    yBot: f.y0 + 34,
+    label: { x: f.x1 - 24, y: f.y0 + 16 },
+    box: { x0: f.x1 - 32, x1: f.x1 - 8, y0: f.y0 + 6, y1: f.y0 + 36, name: 'north' },
+  };
+}
+
 /** Hour numerals: at the outer end of each hour line, pulled inside the plate. */
 export function hourLabels(mode: Mode, W: number) {
   const f = dialFrame(W);
@@ -231,6 +244,14 @@ export function hourLabels(mode: Mode, W: number) {
     const w = text.length * size * 0.6;
     x = Math.max(f.x0 + w / 2 + 2, Math.min(f.x1 - w / 2 - 2, x));
     y = Math.max(f.y0 + size * 0.6 + 2, Math.min(f.y1 - size * 0.5 - 2, y));
+    // keep clear of the north arrow in the top-right corner: slide the numeral down the
+    // plate's edge until it no longer touches the arrow's box
+    const nb = northMark(W).box;
+    const hit = () => {
+      const b = dlBox({ id: '', x, y, text, size, anchor: 'middle' });
+      return b.x1 > nb.x0 && b.x0 < nb.x1 && b.y1 > nb.y0 && b.y0 < nb.y1;
+    };
+    while (hit()) y += 1;
     out.push({ id: `h${line.key}`, x, y, text, size, anchor: 'middle' });
   }
   return out;

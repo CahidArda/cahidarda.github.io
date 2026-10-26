@@ -29,6 +29,7 @@ import {
   T_MIN,
   dayCurve,
   dialFrame,
+  northMark,
   hourLabels,
   hourLines,
   sundial,
@@ -40,6 +41,7 @@ const ink = (role: Role, w = 1) => ({ fill: 'none', stroke: C[role], strokeWidth
 
 function Dial({ s, cloud }: { s: Sundial; cloud: boolean }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
+  const nm = northMark(W);
   const f = dialFrame(W);
   const lines = hourLines(s.mode);
   const labs = hourLabels(s.mode, W);
@@ -90,9 +92,9 @@ function Dial({ s, cloud }: { s: Sundial; cloud: boolean }) {
         <circle cx={o.x} cy={o.y} r={4} style={{ fill: C.ink }} />
         {/* north arrow */}
         <g>
-          <line x1={f.x1 - 14} y1={f.y0 + 34} x2={f.x1 - 14} y2={f.y0 + 12} style={ink('soft', 1)} />
-          <path d={`M ${f.x1 - 18} ${f.y0 + 18} L ${f.x1 - 14} ${f.y0 + 10} L ${f.x1 - 10} ${f.y0 + 18}`} style={ink('soft', 1)} />
-          <InkText x={f.x1 - 24} y={f.y0 + 16} kind="label" anchor="end" size={11} role="soft">N</InkText>
+          <line x1={nm.ax} y1={nm.yBot} x2={nm.ax} y2={nm.yTop + 2} style={ink('soft', 1)} />
+          <path d={`M ${nm.ax - 4} ${nm.yTop + 8} L ${nm.ax} ${nm.yTop} L ${nm.ax + 4} ${nm.yTop + 8}`} style={ink('soft', 1)} />
+          <InkText x={nm.label.x} y={nm.label.y} kind="label" anchor="end" size={11} role="soft">N</InkText>
         </g>
         {cloud && s.up && (
           <rect x={f.x0} y={f.y0} width={f.x1 - f.x0} height={f.y1 - f.y0} style={{ fill: C.deep, opacity: 0.55 }} />

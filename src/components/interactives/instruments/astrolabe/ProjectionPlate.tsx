@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { C, Eq, InkText, Known, Slider, StepPlate, Sym, Working, useMeasuredWidth, type StepDef } from '../shared';
-import { PHI, deg0, num3, tand } from './astro';
+import { PHI, deg0, noteSize, num3, tand } from './astro';
 import { almucantar, RC, RCAN } from './plateGeom';
 import { ALT_MAX, ALT_MIN, DEC_MAX, DEC_MIN, projScene } from './projGeom';
 import { Dome, type DomeHi } from './Dome';
@@ -74,7 +74,7 @@ function Construction({ mode, dec, h, step }: { mode: Mode; dec: number; h: numb
         {showCross && g.pts.filter((p) => Math.abs(p.x) <= RC).map((p, i) => <circle key={i} cx={p.planPt.x} cy={p.planPt.y} r={3.5} style={{ fill: C.red }} />)}
         <circle cx={g.pc.x} cy={g.pc.y} r={2.5} style={{ fill: C.ink }} />
         <InkText x={g.pc.x + 6} y={g.pc.y + 12} size={10} role="soft">pole</InkText>
-        <InkText x={W / 2} y={g.H - 10} anchor="middle" size={12} role={showCircle ? 'sky' : 'soft'}>{note}</InkText>
+        <InkText x={W / 2} y={g.H - 10} anchor="middle" size={noteSize(note, W)} role={showCircle ? 'sky' : 'soft'}>{note}</InkText>
       </svg>
     </div>
   );

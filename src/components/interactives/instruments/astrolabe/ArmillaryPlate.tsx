@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { C, Eq, InkText, Known, Slider, StepPlate, Sym, Working, useMeasuredWidth, type StepDef } from '../shared';
-import { DOY_DEFAULT, PHI, deg1, eclDec, hm, sunLambda, sunAt, type MomentId } from './astro';
+import { DOY_DEFAULT, PHI, deg1, noteSize, eclDec, hm, sunLambda, sunAt, type MomentId } from './astro';
 import { ARM_H_MAX, ARM_H_MIN, ARM_TOL, armReading, armScene, AXIS_MAX, AXIS_MIN } from './armGeom';
 import { Dome, type DomeHi } from './Dome';
 import { DateMoment, lamText, momentT } from './common';
@@ -64,7 +64,7 @@ function Sphere({ axis, lam, H, step, h }: { axis: number; lam: number; H: numbe
           <circle cx={g.sun.x} cy={g.sun.y} r={6} style={{ fill: C.brass, stroke: step === 3 && onH ? C.sky : C.paper, strokeWidth: step === 3 && onH ? 2.5 : 1.2, opacity: g.sun.front ? 1 : 0.5 }} />
         )}
         <circle cx={g.cx} cy={g.cy} r={2.5} style={{ fill: C.ink }} />
-        <InkText x={W / 2} y={g.H - 12} anchor="middle" size={12} role={step === 3 && onH ? 'sky' : 'soft'}>
+        <InkText x={W / 2} y={g.H - 12} anchor="middle" size={noteSize(note, W)} role={step === 3 && onH ? 'sky' : 'soft'}>
           {note}
         </InkText>
       </svg>

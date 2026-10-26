@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { C, Eq, InkText, Known, Segmented, StepPlate, Sym, Working, useMeasuredWidth, type StepDef } from '../shared';
-import { DOY_DEFAULT, PHI, altitude, deg1, dmin, eclRA, hm, sunAt, wrap360, type MomentId } from './astro';
+import { DOY_DEFAULT, PHI, altitude, deg1, dmin, eclRA, hm, sunAt, noteSize, wrap360, type MomentId } from './astro';
 import { Dome, type DomeHi } from './Dome';
 import { FrontView } from './Faces';
 import { DateMoment, isMorning, momentT } from './common';
@@ -42,7 +42,7 @@ function Saphea({ lat, dec, name }: { lat: number; dec: number; name: string }) 
         <circle cx={s.x} cy={s.y} r={5} style={{ fill: C.red }} />
         <InkText x={cx} y={cy - R - 4} anchor="middle" size={11} role="soft">north pole</InkText>
         <InkText x={b.x + (b.x > cx ? -4 : 4)} y={b.y + (b.y > cy ? 14 : -6)} anchor={b.x > cx ? 'end' : 'start'} size={11} role="ink">{`horizon at ${lat.toFixed(1)}°`}</InkText>
-        <InkText x={W / 2} y={H - 10} anchor="middle" size={12} role="red">{`${name}: the sun sets at ${hm(ss.t)} sun time`}</InkText>
+        <InkText x={W / 2} y={H - 10} anchor="middle" size={noteSize(`${name}: the sun sets at ${hm(ss.t)} sun time`, W)} role="red">{`${name}: the sun sets at ${hm(ss.t)} sun time`}</InkText>
       </svg>
     </div>
   );

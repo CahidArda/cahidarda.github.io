@@ -13,7 +13,7 @@
  * sun's image and the horizon both sit `tilt` degrees off the telescope axis together, and the
  * gap between them is (sun's altitude − reading), constant over the tilt.
  */
-import { EYE, H, NH, TEL_FROM, optics, reflect, rot, type V2 } from './sextantGeom';
+import { EYE, H, NH, TEL_FROM, optics, reflect, rot, type V2 } from './sextantGeom.ts';
 
 /** The noon sun over Istanbul on 25 October 2026 (USNO approximate solar coordinates). */
 export const SUN_ALT = 36.82;

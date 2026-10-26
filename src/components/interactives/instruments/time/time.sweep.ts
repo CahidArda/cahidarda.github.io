@@ -118,6 +118,8 @@ for (const d of DEVICES) ok(d.lo <= d.hi && d.lo >= GAUGE_LO && d.hi <= GAUGE_HI
       const labs = SD.hourLabels(mode, W);
       const boxes = labs.map(SD.dlBox);
       for (const b of boxes) ok(b.x0 >= f.x0 && b.x1 <= f.x1 && b.y0 >= f.y0 && b.y1 <= f.y1, `sundial: hour numeral inside (${mode})`, () => `W=${W} ${b.name}`);
+      const nb = SD.northMark(W).box;
+      for (const b of boxes) ok(!overlap(b, nb, 0), `sundial: hour numeral on the north arrow (${mode})`, () => `W=${W} ${b.name}`);
       for (let i = 0; i < boxes.length; i++)
         for (let j = i + 1; j < boxes.length; j++) ok(!overlap(boxes[i], boxes[j], 0), `sundial: hour numerals collide (${mode})`, () => `W=${W} ${boxes[i].name} ${boxes[j].name}`);
       for (const l of SD.hourLines(mode)) for (const r of l.runs) for (const p of r) ok(SD.onPlate(p, -1e-9), 'sundial: hour line on plate', () => `${l.key}`);
@@ -222,6 +224,12 @@ for (const d of DEVICES) ok(d.lo <= d.hi && d.lo >= GAUGE_LO && d.hi <= GAUGE_HI
 }
 
 /* ───────────── 4 verge and foliot ───────────── */
+for (const W of WIDTHS)
+  for (const th of range(-VG.A_SWING, VG.A_SWING, VG.A_SWING / 20))
+    for (const r of [VG.R_MIN, VG.R_MAX]) {
+      const g = VG.foliotScene(th, r, W);
+      for (const e of g.ends) ok(e.y > 24 && e.y < g.H - 8 && e.x > 8 && e.x < W - 8, 'verge: foliot bar clear of the note and inside the drawing', () => `W=${W} th=${th}`);
+    }
 {
   for (const r of range(VG.R_MIN, VG.R_MAX, VG.R_STEP))
     for (const drive of range(VG.DRIVE_MIN, VG.DRIVE_MAX, 0.01)) {

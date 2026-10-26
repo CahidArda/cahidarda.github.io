@@ -5,9 +5,12 @@ interface Props {
   tag: TagKey;
   /** When true the badge is a link to the tag page. */
   href?: string;
+  /** Which edge the tooltip lines up with; 'end' for badges at the right edge of a row, so the
+   *  tooltip opens leftwards and never runs off a phone screen. */
+  align?: 'start' | 'end';
 }
 
-const { tag, href } = Astro.props;
+const { tag, href, align = 'start' } = Astro.props;
 const meta = tags[tag];
 const Tag = href ? 'a' : 'span';
 ---
@@ -23,7 +26,7 @@ const Tag = href ? 'a' : 'span';
   <span
     id={`tip-${tag}`}
     role="tooltip"
-    class="pointer-events-none absolute top-full left-0 z-20 mt-2 w-56 translate-y-1 border border-line bg-paper-raised px-3 py-2 text-left text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-all duration-150 group-hover/tag:translate-y-0 group-hover/tag:opacity-100 group-focus-within/tag:translate-y-0 group-focus-within/tag:opacity-100"
+    class:list={["pointer-events-none absolute top-full z-20 mt-2 w-56 translate-y-1 border border-line bg-paper-raised px-3 py-2 text-left text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-all duration-150 group-hover/tag:translate-y-0 group-hover/tag:opacity-100 group-focus-within/tag:translate-y-0 group-focus-within/tag:opacity-100", align === 'end' ? 'right-0' : 'left-0']}
   >
     {meta.blurb}
   </span>

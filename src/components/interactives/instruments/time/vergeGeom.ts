@@ -60,9 +60,11 @@ export function crownTeeth(t: number, T: number) {
 
 /** Top view of the foliot: a bar through the verge with a weight at ±r. */
 export function foliotScene(theta: number, r: number, W: number) {
-  const H = 170;
+  // the bar swings ±40°, so its tip rises L·sin 40° (77 px) above the pivot: keep it below
+  // the "the foliot, from above" note (baseline 16, so clear of y = 24)
+  const H = 196;
   const cx = W < 420 ? W / 2 : W * 0.3;
-  const cy = 84;
+  const cy = 104;
   const L = Math.min(cx - 16, 120); // bar half-length in px
   const end = (s: 1 | -1) => ({ x: cx + s * L * Math.cos(theta), y: cy - s * L * Math.sin(theta) });
   const wpos = (s: 1 | -1) => ({ x: cx + s * r * L * Math.cos(theta), y: cy - s * r * L * Math.sin(theta) });

@@ -6,22 +6,10 @@
  */
 import { useState } from 'react';
 import { C, Eq, InkText, Plate, Slider, Sym, V, Working, useMeasuredWidth } from '../shared';
-import { PHI, SIDEREAL_RATE, dayLabel, eclRA, sunLambda, wrap360 } from './astro';
+import { PHI, dayLabel, noteSize } from './astro';
+import { clockState } from './clockGeom';
 import { PrimsSvg } from './Prims';
 import { RC, RM, eclipticPoint, limbAngle, limbPrims, platePrims, retePrims } from './plateGeom';
-
-const START = 80; // 21 March
-const CLOCK_T = 21; // 21:00 sun time every evening
-
-export const clockState = (days: number) => {
-  const doy = ((START - 1 + days) % 365) + 1;
-  const lam = sunLambda(doy);
-  const H = (CLOCK_T - 12) * 15;
-  const lst = wrap360(H + eclRA(lam));
-  const lst0 = wrap360(H + eclRA(sunLambda(START)));
-  const gain = days * (24 * 60) * (SIDEREAL_RATE - 1); // minutes of sidereal gain at the same sun time
-  return { doy, lam, H, lst, turned: wrap360(lst - lst0), gain };
-};
 
 function Dial({ days }: { days: number }) {
   const [ref, W] = useMeasuredWidth<HTMLDivElement>(420);
@@ -31,6 +19,7 @@ function Dial({ days }: { days: number }) {
   const s = clockState(days);
   const sunP = eclipticPoint(s.lam, s.lst);
   const a = (limbAngle(s.H) * Math.PI) / 180;
+  const note = `${dayLabel(s.doy)}, 21:00 sun time: the hand stays put, the stars do not`;
   const hand = { x: f.cx + RC * 1.05 * k * Math.cos(a), y: f.cy - RC * 1.05 * k * Math.sin(a) };
   return (
     <div ref={ref}>
@@ -43,7 +32,7 @@ function Dial({ days }: { days: number }) {
         <line x1={f.cx} y1={f.cy} x2={hand.x} y2={hand.y} style={{ stroke: C.red, strokeWidth: 2 }} />
         <circle cx={f.cx + sunP.u * k} cy={f.cy - sunP.v * k} r={5} style={{ fill: C.brass, stroke: C.paper, strokeWidth: 1 }} />
         <circle cx={f.cx} cy={f.cy} r={3} style={{ fill: C.ink }} />
-        <InkText x={W / 2} y={H - 10} anchor="middle" size={12} role="soft">{`${dayLabel(s.doy)}, 21:00 sun time: the hand stays put, the stars do not`}</InkText>
+        <InkText x={W / 2} y={H - 10} anchor="middle" size={noteSize(note, W)} role="soft">{note}</InkText>
       </svg>
     </div>
   );
@@ -73,7 +62,7 @@ export default function ClockPlate() {
           rete gain = <Sym>days</Sym> × 24 h × (1.0027379 − 1)
         </Eq>
         <Eq>
-          <V role="red">{`${Math.floor(s.gain / 60)} h ${String(Math.round(s.gain % 60)).padStart(2, '0')} min`}</V> = <V>{`${days}`}</V> × 3.94 min ={' '}
+          <V role="red">{`${Math.floor(s.gain / 60)} h ${String(Math.round(s.gain % 60)).padStart(2, '0')} min`}</V> = <V>{`${days}`}</V> × 3.94 min ≈{' '}
           <V role="red">{`${s.turned.toFixed(0)}°`}</V> of rete turn
         </Eq>
       </Working>

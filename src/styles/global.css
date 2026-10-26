@@ -392,6 +392,14 @@ html {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
 }
+/* Display math wider than a phone scrolls inside its own box instead of widening the page. */
+.prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.2em;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
 .prose pre::-webkit-scrollbar {
   height: 8px;
 }

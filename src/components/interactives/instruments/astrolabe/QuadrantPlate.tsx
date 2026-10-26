@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { C, Eq, InkText, Known, Slider, StepPlate, Sym, Working, useMeasuredWidth, type StepDef } from '../shared';
-import { DOY_DEFAULT, PHI, altitude, deg1, hm, sunAt, type MomentId } from './astro';
+import { DOY_DEFAULT, PHI, altitude, deg1, hm, noteSize, sunAt, type MomentId } from './astro';
 import { Dome, type DomeHi } from './Dome';
 import { DateMoment, isMorning, momentT } from './common';
 import { PrimsSvg } from './Prims';
@@ -28,7 +28,7 @@ function Board({ step, dec, absH, hMeas }: { step: number; dec: number; absH: nu
   const on = Math.abs(hb - hMeas) <= THREAD_TOL;
   const note =
     step === 0
-      ? 'the 41° plate: morning on the left, afternoon on the right, mirror images'
+      ? '41° plate: morning left, afternoon right, mirror images'
       : step === 1
         ? 'keep one quarter: the pole at the corner, noon along the upright edge'
         : step === 2
@@ -80,7 +80,7 @@ function Board({ step, dec, absH, hMeas }: { step: number; dec: number; absH: nu
             <InkText x={f.cx + RC * k} y={f.cy + 16} anchor="end" size={11} role="soft">90°: 6 hours from noon</InkText>
           </>
         )}
-        <InkText x={W / 2} y={H - 10} anchor="middle" size={12} role={step === 4 ? 'red' : 'soft'}>{note}</InkText>
+        <InkText x={W / 2} y={H - 10} anchor="middle" size={noteSize(note, W)} role={step === 4 ? 'red' : 'soft'}>{note}</InkText>
       </svg>
     </div>
   );

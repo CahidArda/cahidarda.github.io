@@ -159,3 +159,8 @@ export const ZONE_LON = 45;
 export const lonMinutes = (ZONE_LON - IST_LON) * 4;
 /** Sidereal rate from the USNO GMST formula (factor 1.0027379 per unit of solar time). */
 export const SIDEREAL_RATE = 1.0027379;
+
+/** Font size for a one-line italic note centred under a drawing W wide: the base size, shrunk
+ *  (down to 9.5) when the text would run off the edges (serif italic ≈ 0.5 em per character). */
+export const noteSize = (text: string, W: number, base = 12) =>
+  Math.max(9.5, Math.min(base, (W - 16) / (Math.max(1, [...text].length) * 0.5)));
