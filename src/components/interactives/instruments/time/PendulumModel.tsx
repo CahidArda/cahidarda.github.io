@@ -8,7 +8,7 @@
  */
 import { useMemo } from 'react';
 import { BlueprintCanvas, C, type BlueprintCtx, type THREE } from '../shared';
-import { AMP, PALLETS, PIVOT, R_ROOT, initialState, palletsAt, stepMovement, wheelOutline, type Pt } from './deadbeat';
+import { AMP, ARMS, PALLETS, PIVOT, R_ROOT, initialState, palletsAt, stepMovement, wheelOutline, type Pt } from './deadbeat';
 import { SECONDS_L, period, rodWorld } from './pendulumGeom';
 
 const BOB_R = 0.3;
@@ -20,51 +20,9 @@ const rotPt = (p: Pt, c: Pt, a: number): Pt => {
   return [c[0] + (p[0] - c[0]) * k - (p[1] - c[1]) * n, c[1] + (p[0] - c[0]) * n + (p[1] - c[1]) * k];
 };
 
-/* ───────────────────────── geometry helpers (anchor body) ───────────────────────── */
+/* the anchor body (arms) lives in ./deadbeat.ts, where the sweep checks it clears the teeth */
+export { ARMS };
 
-const add = (a: Pt, b: Pt): Pt => [a[0] + b[0], a[1] + b[1]];
-const sub = (a: Pt, b: Pt): Pt => [a[0] - b[0], a[1] - b[1]];
-const mul = (a: Pt, k: number): Pt => [a[0] * k, a[1] * k];
-const norm = (a: Pt): Pt => {
-  const l = Math.hypot(a[0], a[1]) || 1;
-  return [a[0] / l, a[1] / l];
-};
-
-/** A curved arm from the pivot hub out to a pallet's back, as a closed polygon. */
-function armPoly(to: Pt, bulge: number, width = 0.075, n = 14): Pt[] {
-  const p0 = PIVOT;
-  const mid = mul(add(p0, to), 0.5);
-  const dir = norm(sub(to, p0));
-  const nrm: Pt = [-dir[1], dir[0]];
-  const ctrl = add(mid, mul(nrm, bulge));
-  const pts: Pt[] = [];
-  for (let i = 0; i <= n; i++) {
-    const t = i / n;
-    const a = mul(p0, (1 - t) * (1 - t));
-    const b = mul(ctrl, 2 * t * (1 - t));
-    const c = mul(to, t * t);
-    pts.push(add(add(a, b), c));
-  }
-  const left: Pt[] = [];
-  const right: Pt[] = [];
-  pts.forEach((p, i) => {
-    const q = pts[Math.min(i + 1, n)];
-    const r = pts[Math.max(i - 1, 0)];
-    const d = norm(sub(q, r));
-    const k: Pt = [-d[1], d[0]];
-    const w = width * (1 - 0.25 * (i / n));
-    left.push(add(p, mul(k, w / 2)));
-    right.push(add(p, mul(k, -w / 2)));
-  });
-  return [...left, ...right.reverse()];
-}
-const centroid = (p: Pt[]): Pt => mul(p.reduce(add, [0, 0] as Pt), 1 / p.length);
-const ARM_ENDS = PALLETS.map((p) => {
-  // aim at the pallet's outer end (its two arcs' outer points), clear of the wheel
-  const c = centroid([p[0], p[p.length - 1]]);
-  return add(c, mul(norm(c), 0.02));
-});
-export const ARMS = [armPoly(ARM_ENDS[0], 0.22), armPoly(ARM_ENDS[1], -0.22)];
 
 /* ───────────────────────── the SVG poster (front elevation) ───────────────────────── */
 

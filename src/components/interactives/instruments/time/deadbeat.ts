@@ -382,3 +382,46 @@ export function contactInfo(w: number, a: number) {
   }
   return { pallet: c.pallet as 0 | 1, face, gap: c.gap, tipGap: best, tooth, point };
 }
+
+/* ───────────────────────────── anchor body ───────────────────────────── */
+/*
+ * The arms from the pivot hub to each pallet's outer end, as closed polygons (anchor frame at
+ * a = 0). They bow OUTWARD, away from the wheel: an arm bowed inward would sweep over the tooth
+ * tips (the sweep asserts no tooth ever enters an arm, at any anchor angle).
+ */
+const addP = (a: Pt, b: Pt): Pt => [a[0] + b[0], a[1] + b[1]];
+const subP = (a: Pt, b: Pt): Pt => [a[0] - b[0], a[1] - b[1]];
+const mulP = (a: Pt, k: number): Pt => [a[0] * k, a[1] * k];
+const normP = (a: Pt): Pt => {
+  const l = Math.hypot(a[0], a[1]) || 1;
+  return [a[0] / l, a[1] / l];
+};
+function armPoly(to: Pt, bulge: number, width = 0.075, n = 14): Pt[] {
+  const mid = mulP(addP(PIVOT, to), 0.5);
+  const dir = normP(subP(to, PIVOT));
+  const ctrl = addP(mid, mulP([-dir[1], dir[0]], bulge));
+  const pts: Pt[] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    pts.push(addP(addP(mulP(PIVOT, (1 - t) * (1 - t)), mulP(ctrl, 2 * t * (1 - t))), mulP(to, t * t)));
+  }
+  const left: Pt[] = [];
+  const right: Pt[] = [];
+  pts.forEach((p, i) => {
+    const d = normP(subP(pts[Math.min(i + 1, n)], pts[Math.max(i - 1, 0)]));
+    const k: Pt = [-d[1], d[0]];
+    const w = width * (1 - 0.25 * (i / n));
+    left.push(addP(p, mulP(k, w / 2)));
+    right.push(addP(p, mulP(k, -w / 2)));
+  });
+  return [...left, ...right.reverse()];
+}
+const ARM_ENDS = PALLETS.map((p) => {
+  const c = mulP(addP(p[0], p[p.length - 1]), 0.5);
+  return addP(c, mulP(normP(c), 0.02));
+});
+/** Left (entry) arm bows up-left, right (exit) arm up-right: both away from the wheel. */
+export const ARMS: Pt[][] = [armPoly(ARM_ENDS[0], -0.15), armPoly(ARM_ENDS[1], 0.15)];
+export function armsAt(a: number): Pt[][] {
+  return ARMS.map((p) => p.map((q) => rot(q, PIVOT, a)));
+}

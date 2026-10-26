@@ -350,6 +350,29 @@ for (const d of DEVICES) ok(d.lo <= d.hi && d.lo >= GAUGE_LO && d.hi <= GAUGE_HI
         ok(near(cp.x, z.cx, 1e-9) && near(cp.y, z.cy, 1e-9), 'escapement view: close-up centred on the contact', () => `W=${W}`);
       }
     }
+  // the anchor's arms never pass over a tooth (Arda saw the 3D arms run across the tips)
+  {
+    const inPoly = (p: DB.Pt, poly: DB.Pt[]) => {
+      let c = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const a = poly[i];
+        const b = poly[j];
+        if (a[1] > p[1] !== b[1] > p[1] && p[0] < ((b[0] - a[0]) * (p[1] - a[1])) / (b[1] - a[1]) + a[0]) c = !c;
+      }
+      return c;
+    };
+    for (const T of [PG.period(PG.L_MIN), 2, PG.period(PG.L_MAX)]) {
+      let s = DB.initialState();
+      for (let f = 0; f < 60 * T * 2; f++) {
+        const n = DB.stepMovement(s, 1 / 60, T);
+        s = { phase: n.phase, w: n.w };
+        const a = DB.AMP * Math.sin(s.phase);
+        const arms = DB.armsAt(a);
+        for (const q of DB.wheelOutline(s.w)) for (const arm of arms) ok(!inPoly(q, arm), 'deadbeat: arms clear of the teeth', () => `T=${T} f=${f}`);
+        for (const arm of arms) for (const q of arm) ok(Math.hypot(q[0], q[1]) > DB.R_TIP + 0.03, 'deadbeat: arms outside the tip circle', () => `T=${T} f=${f}`);
+      }
+    }
+  }
   // tilt (out of beat): small tilts keep going, large ones stop it
   ok(DB.teethPerPeriod(0.5 * D) > 0.99 && DB.teethPerPeriod(-0.5 * D) > 0.99, 'deadbeat: in beat within 0.5°');
 }

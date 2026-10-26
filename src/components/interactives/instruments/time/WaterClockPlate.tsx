@@ -193,7 +193,7 @@ export default function WaterClockPlate() {
       text: (
         <>
           Make the bowl wider at the top. The Karnak clock (Amenhotep III, c. 1390 to 1350 BCE) is 46 cm across at the
-          top and 26 cm at the bottom: the wide top drains slowly, so the level falls more evenly.
+          top and 26 cm at the bottom: near the top the same outflow takes a thinner slice off a wider surface, so the level falls more evenly.
         </>
       ),
       controls: vesselSeg(['cyl', 'slope']),

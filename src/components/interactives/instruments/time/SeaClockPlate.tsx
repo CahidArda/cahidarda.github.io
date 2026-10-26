@@ -311,7 +311,7 @@ export default function SeaClockPlate() {
             ep={i === 5 && vi.clock === 'balance' ? 5 : 4}
             t={12}
             dec={0}
-            dateText={`at sea, day ${Math.round(di)}`}
+            dateText={i === 0 ? 'in Portsmouth, on land' : `at sea, day ${Math.round(di)}`}
             read={12 + e / 3600}
             gapSec={Math.abs(e)}
             gapNote={i === 0 ? 'on land' : undefined}
@@ -353,7 +353,11 @@ export default function SeaClockPlate() {
           </Eq>
           <Eq>
             <span style={{ fontSize: '0.88em' }}>
-              {prize ? `Wins the £${prize.pounds.toLocaleString('en-GB')} prize.` : 'Wins nothing: worse than 1° of longitude.'}
+              {step < 4
+                ? 'Prize: worked out in step 5.'
+                : prize
+                  ? `Wins the £${prize.pounds.toLocaleString('en-GB')} prize.`
+                  : 'Wins nothing: worse than 1° of longitude.'}
             </span>
           </Eq>
         </Working>
