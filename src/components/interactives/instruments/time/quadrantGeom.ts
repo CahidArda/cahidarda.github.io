@@ -1,91 +1,154 @@
 /**
- * Pure geometry of the sine-quadrant plate, so the drawing and the numbers come from one place
- * (and can be swept by a script). Board coordinates: apex at (AX, AY), y down, the gridded
- * quarter has radius R = 60 parts. The thread at altitude h hangs at maths angle (h − 90°).
+ * Episode 3, the sine quadrant (rubʿ al-mujayyab, rubu tahtası) as a procedure: the numbers and
+ * every drawn coordinate of QuadrantPlate.tsx, swept by time.sweep.ts.
  *
- * The board only handles magnitudes 0..60. The muvakkit's rule for the date term
- * sin φ sin δ: subtract it from sin h when the sun is north of the equator, ADD its size when
- * the sun is south (sin h = sin φ sin δ + cos φ cos δ cos H, so cos H grows when δ < 0). On the
- * drawing that is a brass segment starting at the thread's reading and running left
- * (subtract) or right (add); it never leaves the grid, because the sum is at most cos φ cos δ.
+ * The board. Apex at the top-left corner, the sight edge along the TOP, the other straight edge
+ * down the LEFT, the 90° rim between them; radius = 60 parts. A thread at angle θ from the left
+ * edge (θ = 0 hangs straight down the left edge) crosses radius r at
+ *     x = r sin θ   (read on the TOP scale, 0..60 to the right)
+ *     y = r cos θ   (read on the LEFT scale, 0..60 downward).
+ * So one thread does a sine on the top scale and a cosine on the left scale, and a bead at
+ * distance r along the thread multiplies: x = r · sin θ. That is all the board needs.
+ *
+ * The muvakkit's working for the hour angle H, from  sin h = sin φ sin δ + cos φ cos δ cos H :
+ *   1 sight the sun: the plumb thread falls at θ = h, the sun's altitude;
+ *   2 read 60 sin h on the top scale;
+ *   3 date terms, with the thread at the board's latitude θ = φ = 41° (fixed: "made for the 41st
+ *     parallel"): a bead at r = 60|sin δ| gives the date term 60 sin φ |sin δ| on the TOP scale;
+ *     a bead at r = 60 cos δ gives the divisor 60 cos φ cos δ on the LEFT scale;
+ *   4 subtract the date term when δ > 0 (sun north of the equator), add it when δ < 0;
+ *   5 divide: set the thread so the bead at r = divisor sits over the difference (its x equals
+ *     it): sin θ = difference / divisor = cos H, so H = 90° − θ (when the difference is negative,
+ *     the sun is below the "six o'clock" height: H = 90° + θ, θ from |difference|).
+ * All in parts of 60. Time from noon = H / 15° per hour.
+ *
+ * The WORLD (true time, date) is set in step 1 and only there. The reader's measured altitude
+ * is their own input and is NEVER changed by another control: when it does not match the sun,
+ * or exceeds the day's noon height, it is flagged, not moved.
+ *
+ * Screen: y DOWN, viewBox units = CSS px of the measured width W.
  */
-import { PHI, acosd, cosd, declination, noonAltitude, sind } from './astro';
+import { PHI, acosd, altitudeAt, cosd, declination, noonAltitude, sind } from './astro.ts';
 
-export const W = 440;
-export const H = 440;
-export const BAND = 22;
-export const AX = 30 + BAND;
-export const AY = 22 + BAND;
-export const R = 350;
-export const U = R / 60;
+export const H_MIN = 0;
+export const H_MAX = 90;
+export const H_STEP = 0.1;
+/** The sight counts as "on the sun" within this many degrees (about half the sun's width). */
+export const SIGHT_TOL = 0.25;
+/** True-time slider range, morning only (the board gives the same H in the afternoon). */
+export const T_MIN = 5;
+export const T_MAX = 11.75;
 
-export const polarPt = (r: number, deg: number) => ({
-  x: AX + r * Math.cos((deg * Math.PI) / 180),
-  y: AY - r * Math.sin((deg * Math.PI) / 180),
-});
-/** Where the thread meets radius r, for altitude h. */
-export const threadAt = (h: number, r = R) => polarPt(r, h - 90);
-
-/** Highest altitude the slider may take on a day: the noon altitude, to 0.1°, rounded down. */
-export const maxAltitude = (day: number) => Math.floor(noonAltitude(declination(day)) * 10) / 10;
-
-export function quadrant(hIn: number, day: number) {
+export function quadrant(day: number, tTrue: number, hMeas: number) {
   const dec = declination(day);
-  const hMax = maxAltitude(day);
-  const h = Math.max(0, Math.min(hIn, hMax));
-  const sinh = sind(h);
-  const a = sind(PHI) * sind(dec); // the date term, signed
-  const b = cosd(PHI) * cosd(dec); // the divisor
-  const diff = sinh - a; // what the brass segment ends on
-  const cosH = Math.max(-1, Math.min(1, diff / b));
-  const Hdeg = acosd(cosH);
-  const tip = threadAt(h);
-  const xRead = AX + 60 * sinh * U; // 60·sin h on the top scale (same x as the rim crossing)
-  const xDiffRaw = AX + 60 * diff * U;
-  const diffClipped = diff < 0; // sun below the "6 o'clock" altitude: past the apex
-  const xDiff = Math.max(AX, xDiffRaw);
-  const xA = AX + 60 * Math.abs(a) * U; // the date term as a length from the apex
-  const xAbs = AX + 60 * Math.abs(diff) * U; // |difference|: where the bead must sit
-  // the brass shift on its row: from the sine reading to the difference (or, past the apex,
-  // the segment a − sin h, whose length is |difference|)
-  const shift: [number, number] = diff >= 0 ? [xRead, xDiff] : [xRead, xA];
-  const xCos = AX + 60 * Math.abs(cosH) * U; // 60·|cos H| on the top scale
-  // read H back: the rim point under 60·|cos H| sits at (90° − H') from the left edge
-  const Hp = acosd(Math.abs(cosH)); // = H, or 180° − H when cos H < 0
-  const rimH = threadAt(90 - Hp);
-  const theta = 90 - Hp; // dividing thread, from the left edge
-  const bead = polarPt(60 * b * U, theta - 90);
-  const divTip = threadAt(theta);
-  return { dec, hMax, h, sinh, a, b, diff, cosH, Hdeg, tip, xRead, xDiff, xDiffRaw, diffClipped, xA, xAbs, shift, xCos, Hp, rimH, theta, bead, divTip };
+  const hNoon = noonAltitude(dec);
+  const hTrue = altitudeAt(tTrue, dec);
+  const sunUp = hTrue > 0;
+  const tooHigh = hMeas > hNoon + 1e-9;
+  const onSun = sunUp && Math.abs(hMeas - hTrue) <= SIGHT_TOL;
+  const sinh = sind(hMeas);
+  const a = sind(PHI) * sind(dec); // signed date term
+  const b = cosd(PHI) * cosd(dec); // divisor
+  const diff = sinh - a;
+  const valid = !tooHigh && hMeas >= 0 && Math.abs(diff) <= b + 1e-12;
+  const cosH = valid ? Math.max(-1, Math.min(1, diff / b)) : NaN;
+  const Hdeg = valid ? acosd(cosH) : NaN;
+  const theta = valid ? 90 - acosd(Math.abs(cosH)) : NaN; // dividing thread angle, from the left edge
+  const read = valid ? 12 - Hdeg / 15 : null; // morning
+  const errSec = read === null ? null : (read - tTrue) * 3600;
+  return { day, dec, hNoon, tTrue, hTrue, sunUp, hMeas, tooHigh, onSun, sinh, a, b, diff, valid, cosH, Hdeg, theta, read, errSec };
 }
+export type Quadrant = ReturnType<typeof quadrant>;
 
-/** Approximate text box (SVG units) for collision checks: mono ~0.62em per char. */
-export const textBox = (x: number, y: number, s: string, size: number, anchor: 'start' | 'middle' | 'end') => {
-  const w = s.length * size * 0.62;
-  const x0 = anchor === 'start' ? x : anchor === 'middle' ? x - w / 2 : x - w;
-  return { x0, x1: x0 + w, y0: y - size * 0.8, y1: y + size * 0.25 };
+/* ───────────────────────────── screen layout ───────────────────────────── */
+
+export type QLabel = { id: string; x: number; y: number; text: string; size: number; anchor: 'start' | 'middle' | 'end'; role: 'ink' | 'soft' | 'red' | 'brass' | 'sky' };
+export const qBox = (l: QLabel) => {
+  const w = [...l.text].length * l.size * 0.6;
+  const x0 = l.anchor === 'start' ? l.x : l.anchor === 'middle' ? l.x - w / 2 : l.x - w;
+  return { x0, x1: x0 + w, y0: l.y - l.size * 0.62, y1: l.y + l.size * 0.38, name: l.id };
 };
 
-/** Every label the plate draws, with its anchor, so the sweep can check overlaps. */
-export function quadrantLabels(q: ReturnType<typeof quadrant>) {
-  // keep each label inside the quarter at its own height
-  const clampX = (x: number, s: string, size: number, y: number) => {
-    const w = s.length * size * 0.62;
-    const right = AX + Math.sqrt(R * R - (y - AY) ** 2) - 6;
-    return Math.max(AX + 4 + w / 2, Math.min(right - w / 2, x));
-  };
-  const sinTxt = (60 * q.sinh).toFixed(1);
-  const dTxt =
-    q.diff >= 0
-      ? `${q.a >= 0 ? '−' : '+'} ${(60 * Math.abs(q.a)).toFixed(1)}`
-      : `${(60 * q.a).toFixed(1)} − ${(60 * q.sinh).toFixed(1)}`;
-  const cTxt = `${(60 * Math.abs(q.cosH)).toFixed(1)}`;
-  const midD = (q.shift[0] + q.shift[1]) / 2;
-  return {
-    sin: { x: clampX(q.xRead, sinTxt, 11.5, AY + 17), y: AY + 17, s: sinTxt, size: 11.5 },
-    date: { x: clampX(midD, dTxt, 11, AY + 47), y: AY + 47, s: dTxt, size: 11 },
-    cos: { x: clampX(q.xCos, cTxt, 11.5, AY + 64), y: AY + 64, s: cTxt, size: 11.5 },
-  };
+export function board(W: number) {
+  const BAND = 20; // numbered border band on the top and left edges
+  const side = Math.min(W, 470);
+  const ox = (W - side) / 2;
+  const AX = ox + 14 + BAND;
+  const AY = 30 + BAND;
+  const R = side - 14 - BAND - 46;
+  const U = R / 60;
+  const H = AY + R + 58;
+  /** Point at radius r (parts) on a thread at θ (degrees from the left edge). */
+  const at = (r: number, th: number) => ({ x: AX + r * U * sind(th), y: AY + r * U * cosd(th) });
+  return { W, H, BAND, AX, AY, R, U, at, side, ox };
 }
-/** Rows: both readings are dots on the top scale; the date shift runs along its own row. */
-export const ROW = { sin: AY, date: AY + 31, cos: AY };
+export type Board = ReturnType<typeof board>;
+
+/** Everything drawn at step `i` (0..4) of the procedure. */
+export function quadScene(q: Quadrant, step: number, W: number) {
+  const g = board(W);
+  const { AX, AY, U, at } = g;
+  const p = (v: number) => v * 60; // parts
+  const L: QLabel[] = [];
+  const small = W < 400 ? 10 : 11;
+
+  // the noon-height limit on the rim: the thread can go past it, but the sun cannot
+  const noonMark = q.hNoon > 0 ? { a: at(60, q.hNoon), b: at(66, q.hNoon) } : null;
+  // the sun's true direction (for the sighting step), only when the sun is up
+  const sunDir = q.sunUp ? { a: at(60, q.hTrue), b: at(65, q.hTrue) } : null;
+  // the plumb thread at the measured altitude
+  const thread = { a: { x: AX, y: AY }, b: at(60, q.hMeas), bob: at(65, q.hMeas) };
+
+  const sinX = AX + p(q.sinh) * U; // 60 sin h on the top scale
+  const latEnd = at(60, PHI);
+  const beadA = at(p(Math.abs(sind(q.dec))), PHI); // r = 60|sin δ|
+  const beadB = at(p(cosd(q.dec)), PHI); // r = 60 cos δ
+  const aX = AX + p(Math.abs(q.a)) * U;
+  const bY = AY + p(q.b) * U;
+  const shiftY = AY + 16; // the row the subtraction runs along
+  const diffX = AX + p(Math.abs(q.diff)) * U;
+  const divEnd = q.valid ? at(60, q.theta) : null;
+  const divBead = q.valid ? at(p(q.b), q.theta) : null;
+  const rimH = q.valid ? at(60, q.theta) : null;
+
+  // labels
+  if (step >= 2 && !q.tooHigh) {
+    const text = `60 sin h = ${p(q.sinh).toFixed(1)}`;
+    const w = text.length * small * 0.6;
+    const x = Math.max(AX - g.BAND + w / 2, Math.min(AX + g.R - w / 2, sinX));
+    L.push({ id: 'sin', x, y: AY - g.BAND - 7, text, size: small, anchor: 'middle', role: 'sky' });
+  }
+  if (step >= 3) {
+    const lp = at(30, PHI - 6);
+    L.push({ id: 'lat', x: lp.x, y: lp.y, text: 'φ 41°', size: small, anchor: 'middle', role: 'brass' });
+  }
+  const out = {
+    g,
+    noonMark,
+    sunDir,
+    thread,
+    sinX,
+    latEnd,
+    beadA,
+    beadB,
+    aX,
+    bY,
+    shiftY,
+    diffX,
+    divEnd,
+    divBead,
+    rimH,
+    labels: L,
+  };
+  return out;
+}
+export type QuadScene = ReturnType<typeof quadScene>;
+
+/** Status line of the sighting step: honest about what is wrong. */
+export function sightSay(q: Quadrant) {
+  if (!q.sunUp) return 'The sun is down: nothing to sight.';
+  if (q.tooHigh) return `The sun never gets this high today: its noon height is ${q.hNoon.toFixed(1)}°.`;
+  if (q.onSun) return 'Sunlight passes through both sights: the thread gives the altitude.';
+  const d = q.hMeas - q.hTrue;
+  return `The edge points ${Math.abs(d).toFixed(1)}° ${d > 0 ? 'above' : 'below'} the sun: tilt it ${d > 0 ? 'down' : 'up'}.`;
+}

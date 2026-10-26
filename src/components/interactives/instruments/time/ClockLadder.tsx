@@ -6,7 +6,7 @@ import { CLOCK_LADDER } from './timeLadder';
 export default function ClockLadder() {
   return (
     <PrecisionLadder
-      n={1}
+      n={10}
       config={CLOCK_LADDER}
       title="How clock accuracy improved, 1500 BCE to today"
       caption={

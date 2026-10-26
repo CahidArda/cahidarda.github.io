@@ -21,7 +21,22 @@ export function hourAngle(h: number, dec: number, phi = PHI) {
   return acosd(c);
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** Sun's altitude (degrees) at hour angle H (degrees, 0 = noon) on a day of declination dec. */
+export const altitude = (Hdeg: number, dec: number, phi = PHI) =>
+  Math.asin(
+    Math.max(-1, Math.min(1, sind(phi) * sind(dec) + cosd(phi) * cosd(dec) * cosd(Hdeg))),
+  ) / R;
+
+/** Altitude at local solar time t (hours, 12 = noon). */
+export const altitudeAt = (t: number, dec: number, phi = PHI) => altitude(15 * (t - 12), dec, phi);
+
+/** Sunrise and sunset, local solar hours (centre of the sun on the horizon, no refraction). */
+export const sunTimes = (dec: number, phi = PHI) => {
+  const h0 = halfDay(dec, phi) / 15;
+  return { rise: 12 - h0, set: 12 + h0 };
+};
+
+const MONTHS =['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 export function dayLabel(n: number) {
   let d = Math.round(n);
