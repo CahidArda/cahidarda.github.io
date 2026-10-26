@@ -41,8 +41,15 @@ interface Props {
   activeNav?: string;
   /** Article headings - rendered as a table of contents with scroll-spy. */
   headings?: { depth: number; slug: string; text: string }[];
+  /** Wide article layout (see BaseLayout): the ToC, links and ⌘K hint form a "dock" that
+   *  sticks to the top on scroll while the profile and nav above it scroll away. */
+  wide?: boolean;
 }
-const { activeNav, headings = [] } = Astro.props;
+const { activeNav, headings = [], wide = false } = Astro.props;
+// Only the wide layout wraps the lower half of the sidebar in a dock; ordinary pages get
+// exactly the markup they always had.
+const Dock = wide ? 'div' : Fragment;
+const dockProps = wide ? { class: 'sidebar-dock flex flex-col gap-6', 'data-dock': '' } : {};
 
 // `build.format: 'file'` gives build-time paths like `/index.html` and `/articles.html`;
 // normalize to the clean form so the active nav item matches in production too.
@@ -62,7 +69,7 @@ const blogSources = await getBlogSources();
 const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.name);
 ---
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6" data-sidebar={wide ? '' : undefined}>
   <div class="min-w-0">
     <a href="/" class="sidebar-home group block" aria-label="Home">
       <h1 class="sidebar-name">{profile.name}</h1>
@@ -106,7 +113,7 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
                 <span
                   id={`navtip-${item.key}`}
                   role="tooltip"
-                  class="pointer-events-none absolute top-full left-0 z-30 mt-2 w-56 border border-line bg-paper-raised px-3 py-2 text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-opacity duration-150 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100"
+                  class="pointer-events-none absolute top-full left-0 z-30 mt-2 hidden w-56 side:block border border-line bg-paper-raised px-3 py-2 text-xs leading-snug text-ink-soft opacity-0 shadow-sm transition-opacity duration-150 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100"
                 >
                   {blurb}
                 </span>
@@ -118,42 +125,44 @@ const [taglineBefore, taglineAfter] = profile.tagline.split(profile.employer.nam
     </ul>
   </nav>
 
-  {
-    headings.length > 0 && (
-      <nav aria-label="On this page" class="hidden border-t border-line pt-4 side:block">
-        <p class="label mb-3">On this page</p>
-        <ul class="flex flex-col gap-1.5">
-          {headings.map((h) => (
-            <li>
-              <a
-                href={`#${h.slug}`}
-                data-toc={h.slug}
-                class:list={[
-                  'toc-link block border-l-2 border-transparent text-sm leading-snug text-muted transition-colors hover:text-accent',
-                  h.depth === 3 ? 'pl-6' : 'pl-3',
-                ]}
-              >
-                {h.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    )
-  }
+  <Dock {...dockProps}>
+    {
+      headings.length > 0 && (
+        <nav aria-label="On this page" class="hidden border-t border-line pt-4 side:block">
+          <p class="label mb-3">On this page</p>
+          <ul class="flex flex-col gap-1.5">
+            {headings.map((h) => (
+              <li>
+                <a
+                  href={`#${h.slug}`}
+                  data-toc={h.slug}
+                  class:list={[
+                    'toc-link block border-l-2 border-transparent text-sm leading-snug text-muted transition-colors hover:text-accent',
+                    h.depth === 3 ? 'pl-6' : 'pl-3',
+                  ]}
+                >
+                  {h.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
 
-  <div class="flex flex-wrap items-center gap-1 border-t border-line pt-4">
-    <SocialLinks />
-    <ThemeToggle client:load />
-  </div>
+    <div class="flex flex-wrap items-center gap-1 border-t border-line pt-4">
+      <SocialLinks />
+      <ThemeToggle client:load />
+    </div>
 
-  <p class="hidden items-center gap-2 side:flex">
-    <span class="label">Press</span>
-    <kbd
-      class="inline-flex items-center border border-line px-1.5 py-0.5 font-mono text-xs text-ink-soft"
-      >⌘ + K</kbd
-    >
-  </p>
+    <p class="hidden items-center gap-2 side:flex">
+      <span class="label">Press</span>
+      <kbd
+        class="inline-flex items-center border border-line px-1.5 py-0.5 font-mono text-xs text-ink-soft"
+        >⌘ + K</kbd
+      >
+    </p>
+  </Dock>
 </div>
 
 <script is:inline>

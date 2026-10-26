@@ -110,6 +110,17 @@ html {
 
   /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
   --color-dk-ink: var(--dk-ink);
+
+  /* Instruments series ("the blueprint"): parchment, sepia ink in three weights, one
+     red-ochre accent line, brass for metal parts, a muted indigo for sky and water. */
+  --color-in-paper: var(--in-paper);
+  --color-in-paper-deep: var(--in-paper-deep);
+  --color-in-ink: var(--in-ink);
+  --color-in-ink-soft: var(--in-ink-soft);
+  --color-in-ink-faint: var(--in-ink-faint);
+  --color-in-red: var(--in-red);
+  --color-in-brass: var(--in-brass);
+  --color-in-sky: var(--in-sky);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -378,6 +389,14 @@ html {
   overflow-x: auto;
   line-height: 1.5;
   /* Theme-aware horizontal scrollbar (the default light track is too bright in dark mode). */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+/* Display math wider than a phone scrolls inside its own box instead of widening the page. */
+.prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.2em;
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
 }
@@ -872,3 +891,648 @@ html {
 .dark {
   --dk-ink: #e8dccb;
 }
+
+/* ==========================================================================
+   Instruments series: "the blueprint". Every widget is a plate from an old
+   technical drawing: parchment, sepia ink, hairline dimension lines, one
+   red-ochre accent. Dark mode is the same drawing inverted (dark paper, light
+   ink), still warm. Components live in
+   src/components/interactives/instruments/shared.tsx.
+   ========================================================================== */
+:root {
+  --in-paper: #f1e8d4;
+  --in-paper-deep: #e3d4b4;
+  --in-ink: #3a2a1c;
+  --in-ink-soft: #6e5843;
+  --in-ink-faint: #ab9a7f;
+  --in-red: #b04a2c;
+  --in-brass: #9a7426;
+  --in-sky: #4c5a88;
+  /* fine paper grain, tinted to the ink (feTurbulence, tiled; ~1KB) */
+  --in-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .23 0 0 0 0 .16 0 0 0 0 .1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark {
+  --in-paper: #1c1813;
+  --in-paper-deep: #241e17;
+  --in-ink: #ecdfc6;
+  --in-ink-soft: #c2b092;
+  --in-ink-faint: #6f604b;
+  --in-red: #dc7d58;
+  --in-brass: #d2aa55;
+  --in-sky: #93a2d4;
+  --in-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .87 0 0 0 0 .78 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Wide figure. Below the two-column breakpoint it is an ordinary .fx-figure. On the
+   desktop grid (18rem sidebar | 52rem reading column | empty minmax(0,18rem) column;
+   the table of contents lives in the LEFT sidebar) it grows to the right into the
+   empty space beside the reading column: by however much exists at this viewport,
+   up to the gap + the full third column (21rem), and always leaving the page's 2rem
+   right padding. NOTE: inside calc() 1rem = 12px here (html is 75%), unlike in media
+   queries. Room to the right of <main> = 100vw - scrollbar - (2 + 18 + 3 + 52)rem, so
+   minus 2rem padding and ~1.5rem for a classic scrollbar gives 100vw - 78.5rem. It never
+   causes horizontal page scroll. Use <div class="fx-figure fx-wide"> or <Plate wide>. */
+@media (min-width: 62rem) {
+  .fx-wide {
+    margin-right: calc(-1 * clamp(0rem, 100vw - 78.5rem, 21rem));
+  }
+}
+
+/* The plate: a bordered sheet of parchment with a double rule and registration marks. */
+.prose .in-plate,
+.in-plate {
+  position: relative;
+  margin: 0;
+  padding: 1.1rem 1.15rem 1rem;
+  color: var(--in-ink);
+  background-color: var(--in-paper);
+  background-image:
+    var(--in-grain),
+    radial-gradient(
+      ellipse 120% 90% at 50% 45%,
+      transparent 60%,
+      color-mix(in srgb, var(--in-paper-deep) 85%, transparent) 100%
+    );
+  border: 1px solid var(--in-ink-soft);
+  box-shadow:
+    inset 0 0 0 4px var(--in-paper),
+    inset 0 0 0 5px color-mix(in srgb, var(--in-ink-faint) 70%, transparent);
+}
+@media (min-width: 40rem) {
+  .prose .in-plate,
+  .in-plate {
+    padding: 1.4rem 1.6rem 1.25rem;
+  }
+}
+.in-plate .in-reg {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.in-plate .in-reg circle,
+.in-plate .in-reg path {
+  fill: none;
+  stroke: var(--in-ink-soft);
+  stroke-width: 0.8;
+}
+.in-plate-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.9rem;
+  row-gap: 0.2rem;
+  padding-bottom: 0.55rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid var(--in-ink-soft);
+  box-shadow: 0 3px 0 -2px color-mix(in srgb, var(--in-ink-faint) 70%, transparent);
+}
+.in-plate-no {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--in-red);
+  white-space: nowrap;
+}
+.in-plate-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  color: var(--in-ink);
+}
+.in-plate-kicker {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--in-ink-soft);
+}
+.in-plate-cap {
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed color-mix(in srgb, var(--in-ink-faint) 80%, transparent);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--in-ink-soft);
+}
+
+/* Controls: thin ink borders, mono numerals, a red-ochre diamond for slider thumbs. */
+.in-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.85rem;
+}
+.in-seg {
+  display: inline-flex;
+  border: 1px solid var(--in-ink);
+}
+.in-seg button {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  color: var(--in-ink);
+  background: transparent;
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.in-seg button + button {
+  border-left: 1px solid var(--in-ink);
+}
+.in-seg button:hover {
+  background: color-mix(in srgb, var(--in-ink) 10%, transparent);
+}
+.in-seg button[aria-pressed='true'] {
+  background: var(--in-ink);
+  color: var(--in-paper);
+}
+.in-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--in-ink-soft);
+}
+/* Instruments: worked equations (shared.tsx Working/Eq/Sym/V) */
+.in-working {
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 2px solid var(--in-ink-faint);
+  display: grid;
+  gap: 0.25rem;
+}
+.in-eq {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--in-ink-soft);
+}
+.in-sym {
+  font-style: italic;
+}
+.in-v {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Dragging on a plate must not select its labels (the selection highlight read as a bug). */
+.in-plate svg,
+.in-plate canvas,
+.in-plate .in-controls {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.in-readout {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--in-ink);
+}
+.in-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9rem;
+  height: 1.4rem;
+  background: transparent;
+  cursor: pointer;
+}
+.in-range:focus-visible {
+  outline: 1px dashed var(--in-red);
+  outline-offset: 2px;
+}
+.in-range::-webkit-slider-runnable-track {
+  height: 5px;
+  border-bottom: 1px solid var(--in-ink);
+  background: repeating-linear-gradient(
+      to right,
+      var(--in-ink-soft) 0 1px,
+      transparent 1px calc(10% - 0.1px)
+    )
+    bottom / 100% 4px no-repeat;
+}
+.in-range::-moz-range-track {
+  height: 5px;
+  border-bottom: 1px solid var(--in-ink);
+  background: repeating-linear-gradient(
+      to right,
+      var(--in-ink-soft) 0 1px,
+      transparent 1px calc(10% - 0.1px)
+    )
+    bottom / 100% 4px no-repeat;
+}
+.in-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: 0;
+  background: var(--in-paper);
+  border: 1.5px solid var(--in-red);
+  transform: rotate(45deg);
+}
+.in-range::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border-radius: 0;
+  background: var(--in-paper);
+  border: 1.5px solid var(--in-red);
+  transform: rotate(45deg);
+}
+
+/* 3D canvas: never steals vertical scroll on touch; drag sideways to turn. */
+.in-canvas {
+  position: relative;
+  width: 100%;
+}
+.in-canvas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  cursor: grab;
+  outline: none;
+}
+.in-canvas canvas:active {
+  cursor: grabbing;
+}
+.in-canvas:focus-visible {
+  outline: 1px dashed var(--in-red);
+  outline-offset: 3px;
+}
+.in-canvas .in-poster {
+  position: absolute;
+  inset: 0;
+  transition: opacity 300ms;
+}
+.in-canvas .in-poster > svg {
+  width: 100%;
+  height: 100%;
+}
+.in-canvas .in-hint {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--in-ink-faint);
+  pointer-events: none;
+  transition: opacity 400ms;
+}
+
+/* Photo pair on the series landing: two museum photos side by side, one under the other on phones. */
+.prose .in-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0;
+}
+.prose .in-photos img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--color-line-strong);
+}
+.prose .in-photos figcaption {
+  grid-column: 1 / -1;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+@media (max-width: 30rem) {
+  .prose .in-photos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Wide article layout (frontmatter `wideLayout: true`) ==================================
+   Owned by the layout; see BaseLayout.astro (`wide` prop + scroll script). Pages without the
+   flag never get `.layout-wide`, so none of this applies to them.
+   - Columns are symmetric (18rem | 52rem | 18rem, total 94rem) and centred, so the reading
+     column sits exactly at the viewport centre once the page is wider than 94rem + gutters.
+   - #content is an inline-size container, so 100cqw = viewport minus scrollbar: exact centring.
+   - `.fx-wide` grows by g on BOTH sides. The sidebar can slide as far as the 2rem page edge
+     (so it ends at 20rem) and the plate must start 2rem after it; the reading column starts at
+     50cqw - 26rem, so g = (100cqw - 96rem) / 2, capped at 10.5rem (max plate width 73rem, as
+     before). g is 0 below 1152px, where plates keep the column width. 1rem = 12px in calc().
+   - The sidebar's head (name, nav) scrolls away with the page; the dock (ToC, links) sticks.
+   Below 62rem nothing changes. */
+@media (min-width: 62rem) {
+  #content:has(> .layout-wide) {
+    container-type: inline-size;
+  }
+  .layout-wide {
+    justify-content: center;
+    grid-template-columns: 18rem 52rem minmax(0, 18rem);
+  }
+  .layout-wide > header {
+    position: relative;
+    top: auto;
+    height: auto;
+  }
+  .layout-wide > header > [data-sidebar] {
+    height: 100%;
+  }
+  .layout-wide .sidebar-dock {
+    position: sticky;
+    top: 3.5rem;
+  }
+}
+@media (min-width: 62rem) {
+  .layout-wide .fx-wide {
+    --wide-g: clamp(0rem, (100cqw - 96rem) / 2, 10.5rem);
+    margin-left: calc(-1 * var(--wide-g));
+    margin-right: calc(-1 * var(--wide-g));
+  }
+  /* <div class="fx-figure fx-wide"><Plate wide /></div>: only the outer one grows. */
+  .layout-wide .fx-wide .fx-wide {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+/* ===== end wide article layout ===== */
+
+/* ==========================================================================
+   in-step: StepPlate (shared.tsx), the step-by-step procedure plate.
+   Owned by the StepPlate component; keep edits inside this block.
+   Narrow (plate body < 700px): one column, rail shows numbers only.
+   Wide: view | reference side by side; controls + nav under the view,
+   the equation under the reference.
+   ========================================================================== */
+.in-step {
+  container-type: inline-size;
+}
+.in-step-settings {
+  margin: 0 0 0.8rem;
+}
+.prose .fx ol.in-step-rail,
+.in-step-rail {
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--in-ink-soft);
+  border-bottom: 1px solid var(--in-ink-soft);
+}
+.prose .fx .in-step-rail > li,
+.in-step-rail > li {
+  margin: 0;
+  padding: 0;
+}
+.prose .fx .in-step-rail > li::before,
+.prose .fx .in-step-rail > li::marker {
+  content: none;
+}
+.in-step-rail > li + li {
+  border-left: 1px dashed color-mix(in srgb, var(--in-ink-faint) 80%, transparent);
+}
+.in-step-rail button {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem 0.45rem 0.55rem;
+  text-align: left;
+  color: var(--in-ink-soft);
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+.in-step-rail button:disabled {
+  cursor: not-allowed;
+  color: var(--in-ink-faint);
+}
+.in-step-rail button:not(:disabled):hover {
+  background: color-mix(in srgb, var(--in-ink) 7%, transparent);
+}
+.in-step-rail button:focus-visible {
+  outline: 1px dashed var(--in-red);
+  outline-offset: -3px;
+}
+.in-step-no {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+.in-step-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  padding-top: 0.1rem;
+}
+.in-step-rail li[data-state='done'] button {
+  color: var(--in-ink);
+}
+.in-step-rail li[data-state='done'] .in-step-no {
+  border-color: var(--in-ink);
+}
+.in-step-rail li[data-state='current'] button {
+  color: var(--in-ink);
+  box-shadow: inset 0 -3px 0 var(--in-red);
+}
+.in-step-rail li[data-state='current'] .in-step-no {
+  background: var(--in-red);
+  border-color: var(--in-red);
+  color: var(--in-paper);
+}
+.in-step-rail li[data-preview] button {
+  background: color-mix(in srgb, var(--in-ink) 7%, transparent);
+  box-shadow: inset 0 -3px 0 var(--in-ink-faint);
+}
+
+.in-step-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'text' 'view' 'ctrl' 'nav' 'ref' 'eq';
+  gap: 0.7rem 1.4rem;
+}
+.in-step-text {
+  grid-area: text;
+  min-height: 4.2em;
+}
+.in-step-view {
+  grid-area: view;
+  min-width: 0;
+}
+.in-step-ref {
+  grid-area: ref;
+  min-width: 0;
+}
+.in-step-ctrl {
+  grid-area: ctrl;
+}
+.in-step-ctrl .in-controls {
+  margin-top: 0;
+}
+.in-step-nav {
+  grid-area: nav;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.7rem;
+}
+.in-step-eq {
+  grid-area: eq;
+  min-width: 0;
+}
+.in-step-eq .in-working {
+  margin-top: 0;
+}
+.in-step-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--in-red);
+}
+.in-step-pv {
+  color: var(--in-ink-faint);
+}
+.in-step-say {
+  margin-top: 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  line-height: 1.45;
+  color: var(--in-ink);
+}
+.in-step-label {
+  margin-bottom: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--in-ink-soft);
+}
+.in-step-view > .in-step-anim,
+.in-step-ref > svg,
+.in-step-ref > div {
+  border: 1px solid color-mix(in srgb, var(--in-ink-faint) 80%, transparent);
+}
+.in-step-anim {
+  animation: in-step-fade 220ms ease-out;
+}
+@keyframes in-step-fade {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.in-step-pvnote,
+.in-step-hint {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--in-ink-soft);
+}
+.in-btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--in-ink);
+  color: var(--in-ink);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.in-btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--in-ink) 10%, transparent);
+}
+.in-btn:focus-visible {
+  outline: 1px dashed var(--in-red);
+  outline-offset: 2px;
+}
+.in-btn:disabled {
+  cursor: not-allowed;
+  border-color: var(--in-ink-faint);
+  color: var(--in-ink-faint);
+}
+.in-btn-next:not(:disabled) {
+  background: var(--in-ink);
+  color: var(--in-paper);
+}
+.in-btn-next:not(:disabled):hover {
+  background: var(--in-red);
+  border-color: var(--in-red);
+}
+.in-btn-skip {
+  margin-left: auto;
+  border-style: dashed;
+  color: var(--in-ink-soft);
+}
+.in-unknown {
+  display: inline-block;
+  min-width: 1.6em;
+  text-align: center;
+  border-bottom: 1px dotted currentColor;
+}
+/* narrow: the rail shows numbers only (the kicker names the step) */
+@container (max-width: 699px) {
+  .in-step-title {
+    display: none;
+  }
+  .in-step-rail button {
+    justify-content: center;
+    padding: 0.45rem 0;
+  }
+  .in-step-say {
+    font-size: 1.02rem;
+  }
+}
+@container (min-width: 700px) {
+  .in-step-body {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'text text'
+      'view ref'
+      'ctrl eq'
+      'nav eq';
+    grid-template-rows: auto auto auto 1fr;
+  }
+  .in-step-kicker-title {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .in-step-anim {
+    animation: none;
+  }
+  .in-step-rail button,
+  .in-btn {
+    transition: none;
+  }
+}
+/* ==================== end in-step ==================== */

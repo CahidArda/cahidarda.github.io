@@ -34,10 +34,12 @@
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "sharp": "^0.34.5",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@types/three": "^0.186.0",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1"
   }

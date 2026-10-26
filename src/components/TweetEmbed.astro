@@ -31,6 +31,10 @@ const { url, fallback } = Astro.props;
   }
   .tweet-embed :global(.twitter-tweet) {
     margin-inline: auto;
+    /* the pre-hydration fallback holds a long bare URL: let it wrap on phones */
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 </style>
 

@@ -49,7 +49,7 @@ const { title, date, tags, href, external, source, stars } = entry;
     </div>
 
     <div class="relative z-10 flex gap-1.5">
-      {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} />)}
+      {tags.map((tag) => <TagBadge tag={tag} href={tagHref(tag)} align="end" />)}
     </div>
   </div>
 </article>

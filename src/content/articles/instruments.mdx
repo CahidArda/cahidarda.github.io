@@ -1,0 +1,60 @@
+---
+title: 'Measuring Instruments, From Sundials to GPS'
+description: 'A four-part series on the instruments people built to measure time, latitude and distance, from sundials and the astrolabe to GPS, starting from a museum case in Istanbul.'
+date: 2026-10-25
+tags: ['blog']
+wideLayout: true
+seriesLanding: instruments
+---
+
+import { Image } from 'astro:assets';
+import SeriesList from '../../components/SeriesList.astro';
+import semiClock from '../../assets/instruments/semi-clock.jpg';
+import rubuDrawing from '../../assets/instruments/rubu-drawing-1848.jpg';
+
+I walked into an exhibition of old instruments in Istanbul expecting to look at some brass for
+twenty minutes. I stayed for most of the afternoon. There was a wood-and-brass pendulum clock by
+Mustafa Şem'i, a pair of quadrants for telling the time from the sun, a sextant next to an
+engineer's treatise on how to use it, a theodolite still in its box with a Constantinople
+maker's label, and a hand-drawn quadrant from 1848 with one red line across the grid.
+
+The labels said what each object was. They did not say how it worked, or what people did before
+it existed, or what replaced it. Those were the questions I kept asking, so this series is my
+attempt to answer them, with drawings you can move.
+
+<div class="fx-figure fx-wide">
+  <figure class="in-photos">
+    <Image
+      src={semiClock}
+      alt="A brass-faced pendulum clock with a long wooden rod and a large brass bob, in a glass case"
+      widths={[480, 800]}
+      sizes="(min-width: 62rem) 26rem, 50vw"
+    />
+    <Image
+      src={rubuDrawing}
+      alt="An 1848 ink drawing of a sine quadrant: a quarter circle filled with a fine grid, one red diagonal line"
+      widths={[480, 800]}
+      sizes="(min-width: 62rem) 26rem, 50vw"
+    />
+    <figcaption>
+      Left: Mustafa Şem'i's pendulum clock. Right: a sine quadrant drawn in 1848. The red line is
+      the one I could not stop looking at.
+    </figcaption>
+  </figure>
+</div>
+
+There are four posts:
+
+- **Time.** From sundials and water clocks to pendulum clocks, marine chronometers and atomic
+  clocks.
+- **Latitude.** How far north or south you are, from the noon shadow of a stick to the sextant.
+- **The astrolabe.** How a brass plate holds the turning sky, and how to tell the time with one.
+- **Heights and distances.** How tall a minaret is and how far away the other shore is, from
+  plumb bobs and triangles to GPS.
+
+Each one starts with the crudest method that worked and climbs to the current state of the art.
+The museum objects are rungs on the way up.
+
+## The posts
+
+<SeriesList series="instruments" />

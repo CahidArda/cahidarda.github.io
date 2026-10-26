@@ -6,7 +6,8 @@ description: >-
   src/content/articles, building a widget under src/components/interactives, or touching KaTeX,
   SVG/canvas diagrams, or widget animations. Encodes hard-won pitfalls (display-math fences,
   SVG/HTML alignment, arrow direction, node fill state, box text overflow, z-order, CSS vars in
-  SVG/canvas) so we don't re-learn them.
+  SVG/canvas, plates whose drawing must match their numbers and controls) so we don't re-learn
+  them. Pair with the verify-interactives skill for any parameter-driven plate.
 ---
 
 # Interactive articles, charts & diagrams
@@ -218,6 +219,10 @@ Then grep the built page (`dist/articles/<slug>/index.html`):
   confirm line endpoints land exactly on box edges (catches §4.2 regressions without a browser).
 - Optionally `pnpm preview` and `curl` the page + each `/_astro/<Widget>.*.js` for `200`.
 
+Parameter-driven widgets (sliders, toggles, animation): also run the `verify-interactives` skill
+(pure geometry module, sweep script with assertions, screenshots at the extremes, 390px and dark).
+A plate that only looks right at its default is not verified.
+
 Quick logic checks: Node 22 runs `.ts` directly with `node --experimental-strip-types file.ts`
 (type-only imports are stripped, so pure logic modules run without their React deps). Add `.ts`
 extensions to relative imports when doing this.
@@ -376,3 +381,125 @@ A reusable "collection" sits on top of the single `articles` collection:
 - House-style: scrubbed em-dashes from widget captions/labels; dropped a filler opener ("A fair
   question at this point"); internal links carry no trailing slash (§1).
 - Reflowed all code snippets to ≤75 chars and added the CI check (§12); theme-aware code scrollbar.
+
+## 14. Plates that compute something: drawing, numbers and controls must agree
+
+Lessons from the instruments series, where Arda caught each of these on a live preview. They apply
+to any widget with sliders or toggles. Check them with the `verify-interactives` skill
+(`.claude/skills/verify-interactives/SKILL.md`): pure geometry module, parameter sweep, screenshots.
+
+### 14.1 Worked equations with colour-matched live numbers
+
+Scattered readouts ("α 15.45°" in one corner, "RESULT ±18.1 m" in another) are hard to connect to
+the drawing. Show the formula, then the same formula with the current numbers, updating live:
+
+```tsx
+<Working>
+  <Eq><Sym role="red">h</Sym> = <Sym>b</Sym> · sin <Sym role="sky">α</Sym> · sin <Sym role="brass">β</Sym> / …</Eq>
+  <Eq><V role="red">76.0 m</V> = <V>120 m</V> · sin <V role="sky">15.45°</V> · sin <V role="brass">…</V> / …</Eq>
+</Working>
+```
+
+(Real example: the minaret working in `instruments/earth/TriangulationPlate.tsx`: α's sight line,
+arc and label are `sky` in the drawing, so α is `sky` in the equation.)
+
+- Each quantity gets ONE colour role, used for its arc, label, point and line in the drawing AND
+  its symbol and number in the equation. Red is reserved for the result (the thing to look at).
+- Keep each `Eq` line under ~45 characters (they wrap at 380px). Delete a readout that says the same
+  thing as the working; keep one only if it adds something.
+- Format numbers explicitly (`toFixed`, a `fmtLen` helper). `toPrecision` leaks `1.5e+2 nm`.
+
+### 14.2 Plain titles
+
+Post titles, `##` headings and plate titles are signposts: say what it is about in plain words.
+Rejected: "Catching the Sun in a Mirror", "Where am I", "A shadow and a walk". Accepted: "How to Find
+Your Latitude: From Shadows to Sextants", "Latitude from the noon sun", "Eratosthenes measures the
+Earth". The voice lives in the prose. Update `description` and cross-link text with the title.
+
+### 14.3 One fixed world, one geometry function for every view
+
+- **Fixed things stay fixed.** The sun, the horizon, the ground do not move when the reader turns
+  a mirror or rolls the instrument. The reader moves the instrument; the world stays put. Draw
+  world objects in world coordinates, never in the instrument's (rolled) frame.
+- **One function feeds every view of a state**: main drawing, inset (eyepiece), status text,
+  worked equation, SVG poster, 3D rays. An inset with its own hand-written formula always looks
+  aligned, so it hides the bug in the main view (`sky/sextantView.ts` is the fix for exactly this).
+- A ray that misses a mirror or aperture stops there (or runs on past it). Never draw it reaching
+  the eye anyway. One tolerance constant decides "aligned" for the status AND the drawing.
+
+### 14.4 Honest numbers on the drawing
+
+- Draw positions, lengths, angles, dimension lines and error bands on the SAME scale as the
+  computed values. The minaret tip must sit at 76 m on the height scale if the result is 76 m.
+- Error regions: draw the exact region (e.g. the overlap of two error wedges), not a min..max
+  rectangle. Asymmetric ranges are stated as such: "63.5 to 94.1 m (12.5 low, 18.1 high)", never
+  "±18.1 m". If the region leaves the drawing, clip it and mark the cut (an arrow), don't clamp it.
+- Decide how negative and zero values are drawn (research how the real instrument handles them)
+  instead of letting a mark fall outside the grid.
+
+### 14.5 Controls say what they are; slider range = valid range
+
+- No bare numbers as options. `157.5 m / 176.4 m / 184.8 m` meant nothing; it needs a group label
+  ("length of one stadion") and named options, plus one caption sentence on why there are several.
+  Slider labels are plain words ("index mirror turned θ", "roll the instrument").
+- A slider must never show a value the drawing refuses. Set `min`/`max` to the physically valid
+  range (export it from the geometry module, e.g. `maxAltitude(day)`, `THETA_MIN`) and clamp the
+  stored value when another control shrinks the range. Don't let the reader reach impossible states
+  (telescope through the plate, ray missing the mirror) and then draw them.
+
+### 14.6 Drag hygiene and SSR width
+
+- Dragging selects text and paints red selection boxes over labels. `global.css` sets
+  `user-select: none` on `.in-plate svg, canvas, .in-controls`; give any new widget family the
+  same rule.
+- Islands SSR at a default width (`useMeasuredWidth(640)`), so a fixed `width={W}` overflows a
+  phone before hydration. Use `width="100%"` plus a `viewBox`, and lay out from the measured width.
+- Astro cannot pass functions as island props from MDX. Wrap a config with a function (e.g. a
+  ladder's `fmt`) in a tiny component inside the widget folder.
+- In `calc()` 1rem = 12px on this site (root font-size 75%); in media queries 1rem = 16px.
+
+### 14.7 Series landing and demo plates
+
+An overview chart about one post's topic belongs in that post, not on the series landing. A plate
+that teaches nothing ("armillary sphere, for the road") gets cut or turned into a teaching plate.
+
+## 15. The instruments blueprint design system
+
+`src/components/interactives/instruments/shared.tsx` is the third worked example (after `fugu/` and
+`dataplat/`). Read its header comment before building with it. In short:
+
+- **Look:** each widget is a numbered plate from an old technical drawing: parchment, sepia ink,
+  hairline dimension lines, serif italic notes, mono numbers, one red-ochre accent.
+- **Colour roles** `ink · soft · faint · paper · deep · red · brass · sky` → `C[role]` for SVG
+  styles; `readInk()` resolves literals for canvas/WebGL; `onThemeChange` re-reads on toggle.
+- **Frame and controls:** `Plate` (`n`, `title`, `kicker`, `caption`, `wide`, `label="Levha"`),
+  `Controls`, `Segmented` (with `preview` from `useHoverPreview`), `Slider`, `Readout`.
+- **Worked equations:** `Working` / `Eq` / `Sym` / `V` (§14.1).
+- **SVG primitives:** `DimLine`, `ArcScale`, `Leader`, `InkText` (paper halo), `HatchDefs`,
+  `polar`/`arcPath` (degrees, 0° = +x, counter-clockwise on screen), `useMeasuredWidth`.
+- **3D:** `BlueprintCanvas` renders three.js meshes as an engraved line drawing (`ctx.inkify`,
+  `ctx.lineMaterial`), loads three dynamically, renders on demand, never captures wheel or vertical
+  touch. `build(THREE, ctx)` runs ONCE: pass live values through `params` and read them in
+  `update(dt, t, params)`. Every 3D plate needs a real SVG `poster` (SSR, no-WebGL and first paint).
+- Geometry lives in pure `*Geom.ts` modules beside the plates (§14.3), swept by scripts (see the
+  `verify-interactives` skill).
+
+## 16. Log: instruments series (Oct 2026)
+
+- Arda's review (dark, desktop): minaret height drawn in the wrong place with a ±-labelled
+  rectangle band; unlabelled stadion buttons; sextant eyepiece always aligned while the 3D view
+  was not; the sun moving with the mirror; poetic titles. Fixed per §14.1 to §14.5.
+- Replaced scattered readouts with colour-matched worked equations across all plates (§14.1).
+- Retitled the landing and all three posts plainly (§14.2).
+- Sextant rebuilt on one `sextantView` function, checked against an independent 3D model (§14.3).
+- Minaret: exact wedge-overlap error region, clipped and marked, asymmetric range text (§14.4).
+- Sine quadrant: slider max follows `maxAltitude(day)`; negative date term drawn as an addition
+  per the muvakkit's rule (§14.4, §14.5).
+- Red selection boxes while dragging: shared `user-select: none` (§14.6).
+- Parameter sweeps and screenshots caught a further dozen bugs (escapement running backwards,
+  pendulum bob swinging the wrong way, label collisions, off-plate labels at 330px, exponent
+  notation): full list in the `verify-interactives` skill §5.
+- Sourcing: reviewers spot-checked 6 to 10 claims per post and found 1 or 2 errors each (an
+  unsourced "81 days", a 1.45 that was 1.44, a wrong solar declination in a dossier, caught by
+  recomputing it). Drop or hedge anything a research dossier marks unverified, and recompute
+  derived numbers instead of copying them (§7).
