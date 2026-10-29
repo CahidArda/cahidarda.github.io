@@ -22,7 +22,21 @@ const GAPS = [
   { era: '2100s', d: 14 },
 ];
 
-function Box({ cx, y, w, title, sub, color }: { cx: number; y: number; w: number; title: string; sub: string; color: string }) {
+function Box({
+  cx,
+  y,
+  w,
+  title,
+  sub,
+  color,
+}: {
+  cx: number;
+  y: number;
+  w: number;
+  title: string;
+  sub: string;
+  color: string;
+}) {
   return (
     <g>
       <rect
@@ -73,7 +87,14 @@ export default function JulianShift() {
             <Label x={(J.cx + J.w / 2 + G.cx - G.w / 2) / 2} y={r.y - 9} size={10} color={ACCENT}>
               +13
             </Label>
-            <Box cx={J.cx} y={r.y} w={J.w} title={r.j} sub={r.js} color="var(--color-line-strong)" />
+            <Box
+              cx={J.cx}
+              y={r.y}
+              w={J.w}
+              title={r.j}
+              sub={r.js}
+              color="var(--color-line-strong)"
+            />
             <Box cx={G.cx} y={r.y} w={G.w} title={r.g} sub={r.gs} color={r.color} />
           </g>
         ))}
@@ -96,7 +117,12 @@ export default function JulianShift() {
                   strokeWidth: 1.5,
                 }}
               />
-              <Label x={x + (segW - 4) / 2} y={178} size={9.5} color={g.now ? 'var(--color-paper)' : undefined}>
+              <Label
+                x={x + (segW - 4) / 2}
+                y={178}
+                size={9.5}
+                color={g.now ? 'var(--color-paper)' : undefined}
+              >
                 {g.era}
               </Label>
               <Label

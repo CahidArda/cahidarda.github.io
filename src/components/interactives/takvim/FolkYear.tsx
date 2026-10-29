@@ -32,11 +32,26 @@ const EVENTS: Ev[] = [
     target: doy(2, 27),
     dots: [doy(2, 20), doy(2, 27), doy(3, 6)],
   },
-  { title: 'Nevruz · "new day"', sub: '21 Mar · equinox, Persian new year', target: doy(3, 21), dots: [doy(3, 21)] },
+  {
+    title: 'Nevruz · "new day"',
+    sub: '21 Mar · equinox, Persian new year',
+    target: doy(3, 21),
+    dots: [doy(3, 21)],
+  },
   { title: 'Hıdırellez', sub: '6 May · summer half begins', target: doy(5, 6), dots: [doy(5, 6)] },
   { title: 'Eyyam-ı bahur', sub: '1 to 8 Aug · the hottest days', target: doy(8, 4) },
-  { title: 'Kasım · "divider"', sub: '8 Nov · winter half begins', target: doy(11, 8), dots: [doy(11, 8)] },
-  { title: 'Erbain begins', sub: '22 Dec · the longest night', target: doy(12, 22), dots: [doy(12, 22)] },
+  {
+    title: 'Kasım · "divider"',
+    sub: '8 Nov · winter half begins',
+    target: doy(11, 8),
+    dots: [doy(11, 8)],
+  },
+  {
+    title: 'Erbain begins',
+    sub: '22 Dec · the longest night',
+    target: doy(12, 22),
+    dots: [doy(12, 22)],
+  },
 ];
 
 // spread labels top-down so consecutive blocks keep MIN_GAP
@@ -64,14 +79,33 @@ export default function FolkYear() {
     <Widget title="The folk year" kicker="named days and spans">
       <svg
         viewBox={`0 0 ${VB.w} ${VB.h}`}
-        className="w-full"
+        className="mx-auto w-full"
+        style={{ maxWidth: 520 }}
         role="img"
         aria-label="A vertical year from January to December. Erbain, 22 December to 30 January. Hamsin, 31 January to 21 March. Three cemre, 20 February, 27 February, 6 March. Nevruz, 21 March. Hidirellez, 6 May. Eyyam-i bahur, 1 to 8 August. Kasim, 8 November."
       >
         {/* the year bar, coloured by the two halves */}
-        <rect x={BAR.x} y={y(0)} width={BAR.w} height={y(HIDIR) - y(0)} style={{ fill: KASIM, opacity: 0.8 }} />
-        <rect x={BAR.x} y={y(HIDIR)} width={BAR.w} height={y(KAS) - y(HIDIR)} style={{ fill: HIZIR, opacity: 0.8 }} />
-        <rect x={BAR.x} y={y(KAS)} width={BAR.w} height={y(365) - y(KAS)} style={{ fill: KASIM, opacity: 0.8 }} />
+        <rect
+          x={BAR.x}
+          y={y(0)}
+          width={BAR.w}
+          height={y(HIDIR) - y(0)}
+          style={{ fill: KASIM, opacity: 0.8 }}
+        />
+        <rect
+          x={BAR.x}
+          y={y(HIDIR)}
+          width={BAR.w}
+          height={y(KAS) - y(HIDIR)}
+          style={{ fill: HIZIR, opacity: 0.8 }}
+        />
+        <rect
+          x={BAR.x}
+          y={y(KAS)}
+          width={BAR.w}
+          height={y(365) - y(KAS)}
+          style={{ fill: KASIM, opacity: 0.8 }}
+        />
 
         {/* month ticks + names */}
         {MONTHS.map((m, i) => {

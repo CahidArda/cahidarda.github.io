@@ -81,11 +81,7 @@ export function Legend({ items }: { items: { color: string; label: string }[] })
     <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 font-mono text-[0.7rem] text-muted">
       {items.map((it) => (
         <li key={it.label} className="flex items-center gap-1.5">
-          <span
-            aria-hidden
-            className="inline-block h-2.5 w-2.5"
-            style={{ background: it.color }}
-          />
+          <span aria-hidden className="inline-block h-2.5 w-2.5" style={{ background: it.color }} />
           {it.label}
         </li>
       ))}

@@ -11,7 +11,10 @@ const R_OUT = 104;
 const R_IN = 76;
 
 const ang = (d: number) => (d / 365) * Math.PI * 2 - Math.PI / 2;
-const pt = (d: number, r: number) => ({ x: C.x + r * Math.cos(ang(d)), y: C.y + r * Math.sin(ang(d)) });
+const pt = (d: number, r: number) => ({
+  x: C.x + r * Math.cos(ang(d)),
+  y: C.y + r * Math.sin(ang(d)),
+});
 
 function arc(d0: number, d1: number) {
   const large = d1 - d0 > 365 / 2 ? 1 : 0;
@@ -70,7 +73,12 @@ export default function YearSplit() {
         </Label>
 
         {/* hinge: Hıdırellez (lower right) */}
-        <circle cx={hA.x} cy={hA.y} r={4.5} style={{ fill: 'var(--color-paper)', stroke: ACCENT, strokeWidth: 2 }} />
+        <circle
+          cx={hA.x}
+          cy={hA.y}
+          r={4.5}
+          style={{ fill: 'var(--color-paper)', stroke: ACCENT, strokeWidth: 2 }}
+        />
         <polyline
           points={`${hA.x + 4},${hA.y + 3} ${308},${232} ${318},${232}`}
           style={{ fill: 'none', stroke: 'var(--color-line-strong)', strokeWidth: 1 }}
@@ -86,7 +94,12 @@ export default function YearSplit() {
         </Label>
 
         {/* hinge: Kasım (upper left) */}
-        <circle cx={kA.x} cy={kA.y} r={4.5} style={{ fill: 'var(--color-paper)', stroke: ACCENT, strokeWidth: 2 }} />
+        <circle
+          cx={kA.x}
+          cy={kA.y}
+          r={4.5}
+          style={{ fill: 'var(--color-paper)', stroke: ACCENT, strokeWidth: 2 }}
+        />
         <polyline
           points={`${kA.x - 4},${kA.y - 3} ${92},${62} ${82},${62}`}
           style={{ fill: 'none', stroke: 'var(--color-line-strong)', strokeWidth: 1 }}

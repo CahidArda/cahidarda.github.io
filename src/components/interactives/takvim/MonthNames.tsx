@@ -27,7 +27,12 @@ const L = (n: string): Name => ({ n, s: 'latin' });
 const T = (n: string, g: string): Name => ({ n, s: 'turk', g });
 
 const ROWS: Row[] = [
-  { en: 'Jan', ott: A('Kânûn-ı Sânî', '2nd Kânûn'), tr: T('Ocak', 'stove'), lev: A('Kānūn al-Thānī') },
+  {
+    en: 'Jan',
+    ott: A('Kânûn-ı Sânî', '2nd Kânûn'),
+    tr: T('Ocak', 'stove'),
+    lev: A('Kānūn al-Thānī'),
+  },
   { en: 'Feb', ott: A('Şubat'), tr: A('Şubat'), lev: A('Shubāṭ') },
   { en: 'Mar', ott: L('Mart'), tr: L('Mart'), lev: A('Ādhār') },
   { en: 'Apr', ott: A('Nisan'), tr: A('Nisan'), lev: A('Naysān') },
@@ -36,9 +41,24 @@ const ROWS: Row[] = [
   { en: 'Jul', ott: A('Temmuz', 'god Tammuz'), tr: A('Temmuz'), lev: A('Tammūz') },
   { en: 'Aug', ott: L('Ağustos'), tr: L('Ağustos'), lev: A('Āb') },
   { en: 'Sep', ott: A('Eylül'), tr: A('Eylül'), lev: A('Aylūl') },
-  { en: 'Oct', ott: A('Teşrin-i Evvel', '1st Teşrin'), tr: T('Ekim', 'sowing'), lev: A('Tishrīn al-Awwal') },
-  { en: 'Nov', ott: A('Teşrin-i Sânî', '2nd Teşrin'), tr: T('Kasım', 'divider'), lev: A('Tishrīn al-Thānī') },
-  { en: 'Dec', ott: A('Kânûn-ı Evvel', '1st Kânûn'), tr: T('Aralık', 'gap'), lev: A('Kānūn al-Awwal') },
+  {
+    en: 'Oct',
+    ott: A('Teşrin-i Evvel', '1st Teşrin'),
+    tr: T('Ekim', 'sowing'),
+    lev: A('Tishrīn al-Awwal'),
+  },
+  {
+    en: 'Nov',
+    ott: A('Teşrin-i Sânî', '2nd Teşrin'),
+    tr: T('Kasım', 'divider'),
+    lev: A('Tishrīn al-Thānī'),
+  },
+  {
+    en: 'Dec',
+    ott: A('Kânûn-ı Evvel', '1st Kânûn'),
+    tr: T('Aralık', 'gap'),
+    lev: A('Kānūn al-Awwal'),
+  },
 ];
 
 function Cell({ x, strong }: { x: Name; strong?: boolean }) {
@@ -69,10 +89,15 @@ export default function MonthNames() {
         ))}
         {ROWS.map((r) => {
           const renamed = r.tr.s === 'turk';
-          const bg = renamed ? 'color-mix(in srgb, var(--color-tk-turk) 12%, transparent)' : undefined;
+          const bg = renamed
+            ? 'color-mix(in srgb, var(--color-tk-turk) 12%, transparent)'
+            : undefined;
           return (
             <div key={r.en} className="contents">
-              <div className="flex items-center font-mono text-[0.7rem] text-muted" style={{ background: bg }}>
+              <div
+                className="flex items-center font-mono text-[0.7rem] text-muted"
+                style={{ background: bg }}
+              >
                 {r.en}
               </div>
               <div style={{ background: bg }}>
