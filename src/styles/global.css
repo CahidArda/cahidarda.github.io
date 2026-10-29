@@ -110,6 +110,15 @@ html {
 
   /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
   --color-dk-ink: var(--dk-ink);
+
+  /* Ottoman-calendar widget palette - the two halves of the folk year (Hizir = summer
+     green, Kasim = winter blue) and the three sources of the month names
+     (Mesopotamian via Aramaic, Latin, the 1945 Turkish renames). */
+  --color-tk-hizir: var(--tk-hizir);
+  --color-tk-kasim: var(--tk-kasim);
+  --color-tk-aram: var(--tk-aram);
+  --color-tk-latin: var(--tk-latin);
+  --color-tk-turk: var(--tk-turk);
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -871,4 +880,22 @@ html {
 }
 .dark {
   --dk-ink: #e8dccb;
+}
+
+/* The Ottoman-calendar cast. Hizir (summer half) a leaf green, Kasim (winter half) a
+   cold blue; month-name sources: Aramaic a sand ochre, Latin a muted violet, the 1945
+   Turkish names the site's terracotta. Tuned for light paper and dark ground. */
+:root {
+  --tk-hizir: #3f8a4f;
+  --tk-kasim: #3466a8;
+  --tk-aram: #a8742a;
+  --tk-latin: #7a5aa0;
+  --tk-turk: #bd5227;
+}
+.dark {
+  --tk-hizir: #6fbf7e;
+  --tk-kasim: #6f9fd8;
+  --tk-aram: #d9a95a;
+  --tk-latin: #a98fd0;
+  --tk-turk: #e2905a;
 }
