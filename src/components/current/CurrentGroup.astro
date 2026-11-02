@@ -1,0 +1,42 @@
+---
+/**
+ * One category of a month's links, as the editorial bullet list the Current posts use:
+ * bold linked title, italic byline/date, then the description. The bullet takes the
+ * category colour so the list matches its markers on `CurrentTimeline`. Pass the whole
+ * month (`data`) so the colour comes from the category's position in the file.
+ *
+ *   ## Security
+ *   <CurrentGroup data={october} category="Security" />
+ */
+import { parseCurrent } from '@/lib/current-schema';
+import { categoryColor, descriptionHtml, formatItemDate, itemId } from '@/lib/current';
+
+interface Props {
+  data: unknown;
+  category: string;
+}
+
+const { data, category } = Astro.props;
+const groups = parseCurrent(data);
+const index = groups.findIndex((g) => g.category === category);
+if (index === -1) throw new Error(`CurrentGroup: no category "${category}" in data`);
+const group = groups[index];
+---
+
+<ul class="cur-list" style={`--cur-c: ${categoryColor(index)}`}>
+  {
+    group.items.map((item) => (
+      <li id={itemId(item)} class="cur-item">
+        {/* keep the comma on the </strong> line, or the newline renders as a space */}
+        <strong><a href={item.link}>{item.title}</a></strong>,{' '}
+        <em>
+          {item.source && `${item.source}, `}
+          {formatItemDate(item.date)}
+        </em>
+        <ul>
+          <li set:html={descriptionHtml(item.description)} />
+        </ul>
+      </li>
+    ))
+  }
+</ul>
