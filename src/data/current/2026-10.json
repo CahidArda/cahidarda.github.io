@@ -99,11 +99,11 @@
         "description": "Two trojanized versions of a \"Claude Code\" extension (not built by Anthropic) sat on Cursor's marketplace for about eleven hours, adding an attacker SSH key, a reverse tunnel, and persistence."
       },
       {
-        "title": "North Korea steals $6.36 billion from Binance",
+        "title": "Binance hot wallets drained of $6.36 billion",
         "source": "TRM Labs",
         "link": "https://www.trmlabs.com/resources/blog/north-korea-steals-usd-6-36-billion-from-binance-in-the-largest-hack-in-history",
         "date": "2026-10-29",
-        "description": "Hot wallets drained across ten chains in about twenty minutes, the largest crypto theft on record. TRM attributes it to TraderTraitor with high confidence; Binance has not published a root cause."
+        "description": "Funds left Binance wallets on ten chains, most of it in about twenty minutes, the largest crypto theft on record. On Ethereum, one transaction with 50 pre-signed EIP-7702 authorizations turned a hot wallet into a sweeper. Binance first pointed to a compromised DevOps laptop, later found more points of breach, and has not published a root cause."
       }
     ]
   },
@@ -143,7 +143,7 @@
         "source": "BeyondTrust",
         "link": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-05",
         "date": "2026-10-15",
-        "description": "CVE-2026-102764 (CVSS 9.3), exploited as a zero-day since late August by a China-nexus actor according to [Mandiant](https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-beyondtrust)."
+        "description": "CVE-2026-102764 (CVSS 9.3), exploited as a zero-day since late August according to [Mandiant](https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-beyondtrust)."
       },
       {
         "title": "Oracle Critical Patch Update, October 2026",
