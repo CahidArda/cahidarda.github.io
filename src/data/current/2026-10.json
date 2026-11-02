@@ -85,6 +85,13 @@
         "description": "All eight of eMudhra's P-384 intermediate CA private keys turned out to be integers below 256, blamed on a broken key-generation script. Revoked within a day, and Mozilla and Chrome moved to distrust the root ([Bugzilla](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449))."
       },
       {
+        "title": "Unauthorized access to Onamae.com Desktop Cloud (7th report)",
+        "source": "GMO Internet Group",
+        "link": "https://group.gmo/info/alert/2026102602/",
+        "date": "2026-10-26",
+        "description": "After a break-in at its hosted desktop service, GMO got an extortion email on 21 Oct asking for about ¥8 billion (roughly $50 million), with a threat to publish customer data and launch ransomware on 27 Oct. The notice says GMO will not pay, because paying would not guarantee the stolen data is deleted or kept from misuse. It is compensating customers instead. [English coverage](https://bleepingcomputer.com/news/security/japans-gmo-urges-customers-to-shut-down-pcs-amid-ransomware-threat). In Japanese."
+      },
+      {
         "title": "Claude Code extension security notice",
         "source": "Cursor",
         "link": "https://cursor.com/blog/claude-code-extension-security-notice",
