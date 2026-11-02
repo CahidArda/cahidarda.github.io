@@ -1,0 +1,333 @@
+[
+  {
+    "category": "Black October",
+    "items": [
+      {
+        "title": "October 2026 security incident",
+        "source": "Fireworks AI",
+        "link": "https://fireworks.ai/security/bulletins/october-2026-security-incident",
+        "date": "2026-10-09",
+        "description": "Misused internal credentials exposed environment variables (API keys, tokens) from evaluation jobs in a limited number of accounts. The first of the month's AI platform breaches."
+      },
+      {
+        "title": "Preliminary report on the October security incident",
+        "source": "Railway",
+        "link": "https://blog.railway.com/p/preliminary-report-october-security-incident",
+        "date": "2026-10-22",
+        "description": "An attacker with CI credentials decrypted a subset of envelope-encrypted environment variables, at most 1.85% of workspaces (about 100,000). Railway says the target was AI provider API keys, to be used for distillation."
+      },
+      {
+        "title": "\"Black October\" for AI developer platforms",
+        "source": "Wiz",
+        "link": "https://www.wiz.io/blog/black-october-for-ai-developer-platforms",
+        "date": "2026-10-30",
+        "description": "The overview that named the month. At least nine AI developer platforms (Fireworks AI, Zeabur, Lightning AI, OpenCode, Railway, Warp, Northflank and others) were hit by attackers hunting stored environment variables for AI keys."
+      },
+      {
+        "title": "Security incident: rotate all secrets",
+        "source": "Northflank",
+        "link": "https://status.northflank.com/cmvv0rn5a092f14rutwccodpp",
+        "date": "2026-10-30",
+        "description": "After a Wiz threat alert, Northflank told every customer to assume all environment variables had been decrypted and to rotate every secret. Users reported their AI API keys being used without authorization."
+      },
+      {
+        "title": "Security incident",
+        "source": "Trigger.dev",
+        "link": "https://trigger.dev/blog/security-incident-nov-2026",
+        "date": "2026-11-01",
+        "description": "Spilled into November: an attacker accessed environment variables for a subset of organizations. The exploit is blocked and affected owners were emailed; no count or root cause yet."
+      }
+    ]
+  },
+  {
+    "category": "Breaches and supply chain",
+    "items": [
+      {
+        "title": "Unauthorized access to some of our service systems (2nd report)",
+        "source": "IDC Frontier",
+        "link": "https://www.idcf.jp/news/topics/20261007002",
+        "date": "2026-10-07",
+        "description": "Ransomware encrypted East Japan Region 1 of IDCF Cloud, the SoftBank subsidiary's cloud, taking down 495 companies and local governments. Data in four zones could only come back from backups customers kept themselves. A [later notice](https://www.idcf.jp/news/topics/20261027001) traces the entry to a flaw in open-source software behind the portal's login, and says IDC Frontier never contacted, negotiated with or paid the attackers. In Japanese."
+      },
+      {
+        "title": "Unknown Threat Actor Uses AI-Driven ARTEX to Target South Korean Finance",
+        "source": "CrowdStrike",
+        "link": "https://www.crowdstrike.com/en-us/blog/unknown-threat-actor-uses-artex-to-target-south-korean-finance/",
+        "date": "2026-10-07",
+        "description": "ARTEX is an open-source agentic pentesting tool from China. This instance ran on DeepSeek v4.1-flash, with GLM-5.3 and Grok 4.6 in extra Claude Code sessions, and its exposed directories held those session histories. CrowdStrike names no victims. [Korean press](https://www.koreatimes.co.kr/business/banking-finance/20261001/shinhan-bank-hit-by-data-breach-affecting-25000-customers) tied the campaign to breaches at Shinhan, KB Kookmin and other banks."
+      },
+      {
+        "title": "Vendor credential enables unauthorized access to Microsoft 365 tenants",
+        "source": "Huntress",
+        "link": "https://www.huntress.com/blog/vendor-credential-enables-unauthorized-access",
+        "date": "2026-10-16",
+        "description": "A stolen ConnectWise Cloud Backup (SkyKick) app credential was used against Microsoft 365. Huntress confirmed unauthorized sign-ins in 162 tenants and saw the attacker's IP sign in to almost 1,000. In one tenant the app granted itself Global Admin."
+      },
+      {
+        "title": "The PingCAP TiDB Cloud Leaks",
+        "source": "FulcrumSec",
+        "link": "https://fulcrumsec.vg/pingcap/",
+        "date": "2026-10-19",
+        "description": "The extortion group's own write-up of the TiDB Cloud breach. They claim 10.6 TB taken over a month of control-plane exports nobody noticed, 115K console API keys, customer production credentials pasted into Jira, and a 2022 internal ticket warning that any org member could take root on every cluster. [PingCAP's report](https://www.pingcap.com/trust-hub/security/security-update-october-2026/) confirms stolen service-account credentials and access from 9 Sep to 7 Oct, but says the exported API keys were encrypted and the credential claims are unverified."
+      },
+      {
+        "title": "LiteLLM security incident: malicious v1.107.0",
+        "source": "LiteLLM",
+        "link": "https://docs.litellm.ai/blog/security-incident-oct-21-2026",
+        "date": "2026-10-21",
+        "description": "Three stolen GitHub CLI tokens let an attacker run the release workflow and publish a credential stealer to PyPI and Docker for a few hours. The second LiteLLM compromise this year; `1.106.2` is the safe pin."
+      },
+      {
+        "title": "eMudhra to exit the global SSL/TLS certificate business",
+        "source": "eMudhra",
+        "link": "https://emudhra.com/en/press-release/emudhra-to-exit-global-ssl-tls-certificate-business",
+        "date": "2026-10-22",
+        "description": "All eight of eMudhra's P-384 intermediate CA private keys turned out to be integers below 256, blamed on a broken key-generation script. Revoked within a day, and Mozilla and Chrome moved to distrust the root ([Bugzilla](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449))."
+      },
+      {
+        "title": "Unauthorized access to Onamae.com Desktop Cloud (7th report)",
+        "source": "GMO Internet Group",
+        "link": "https://group.gmo/info/alert/2026102602/",
+        "date": "2026-10-26",
+        "description": "After a break-in at its hosted desktop service, GMO got an extortion email on 21 Oct asking for about ¥8 billion (roughly $50 million), with a threat to publish customer data and launch ransomware on 27 Oct. The notice says GMO will not pay, because paying would not guarantee the stolen data is deleted or kept from misuse. It is compensating customers instead. [English coverage](https://bleepingcomputer.com/news/security/japans-gmo-urges-customers-to-shut-down-pcs-amid-ransomware-threat). In Japanese."
+      },
+      {
+        "title": "Claude Code extension security notice",
+        "source": "Cursor",
+        "link": "https://cursor.com/blog/claude-code-extension-security-notice",
+        "date": "2026-10-29",
+        "description": "Two trojanized versions of a \"Claude Code\" extension (not built by Anthropic) sat on Cursor's marketplace for about eleven hours, adding an attacker SSH key, a reverse tunnel, and persistence."
+      },
+      {
+        "title": "Binance hot wallets drained of $6.36 billion",
+        "source": "TRM Labs",
+        "link": "https://www.trmlabs.com/resources/blog/north-korea-steals-usd-6-36-billion-from-binance-in-the-largest-hack-in-history",
+        "date": "2026-10-29",
+        "description": "Funds left Binance wallets on ten chains, most of it in about twenty minutes, the largest crypto theft on record. On Ethereum, one transaction with 50 pre-signed EIP-7702 authorizations turned a hot wallet into a sweeper. Binance first pointed to a compromised DevOps laptop, later found more points of breach, and has not published a root cause."
+      }
+    ]
+  },
+  {
+    "category": "CVEs",
+    "items": [
+      {
+        "title": "Ivanti Connect Secure zero-day chain",
+        "source": "Volexity",
+        "link": "https://www.volexity.com/blog/2026/10/13/a-series-of-unauthenticated-events-chained-exploitation-of-ivanti-connect-secure-zero-days/",
+        "date": "2026-10-13",
+        "description": "An auth bypass (CVE-2026-104935) chained with an upload race and a root privilege escalation, exploited since 3 Oct against fully patched appliances."
+      },
+      {
+        "title": "Windows Shell Mark-of-the-Web bypass (October Patch Tuesday)",
+        "source": "Microsoft",
+        "link": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-96951",
+        "date": "2026-10-13",
+        "description": "1,415 CVEs in October's Patch Tuesday per Microsoft's own feed, 80 of them critical. The one exploited zero-day was CVE-2026-96951 (CVSS 8.8), added to CISA KEV the same day."
+      },
+      {
+        "title": "PAN-OS management interface code injection",
+        "source": "Palo Alto Networks",
+        "link": "https://security.paloaltonetworks.com/CVE-2026-0322",
+        "date": "2026-10-14",
+        "description": "CVE-2026-0322: an authenticated admin on the management interface can run code as root. \"Very limited exploitation\", but it went into KEV."
+      },
+      {
+        "title": "Cisco Secure Email Gateway arbitrary file write",
+        "source": "Cisco",
+        "link": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-esa-afw-zqYJkjxp",
+        "date": "2026-10-14",
+        "description": "CVE-2026-76519 (CVSS 9.8): an email with a crafted attachment is enough for root command execution when File Reputation is on. Exploited."
+      },
+      {
+        "title": "BeyondTrust Remote Support authentication bypass",
+        "source": "BeyondTrust",
+        "link": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-05",
+        "date": "2026-10-15",
+        "description": "CVE-2026-102764 (CVSS 9.3), exploited as a zero-day since late August according to [Mandiant](https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-beyondtrust)."
+      },
+      {
+        "title": "Oracle Critical Patch Update, October 2026",
+        "source": "Oracle",
+        "link": "https://www.oracle.com/security-alerts/cpuoct2026.html",
+        "date": "2026-10-20",
+        "description": "Includes CVE-2026-101767 (CVSS 9.8), an unauthenticated SQL injection in E-Business Suite that [Horizon3.ai](https://horizon3.ai/attack-research/vulnerabilities/cve-2026-101767/) chained to command execution. Probing reported, no confirmed exploitation yet."
+      },
+      {
+        "title": "PHP security releases (\"PHP2Shell\")",
+        "source": "PHP",
+        "link": "https://www.php.net/archive/2026.php",
+        "date": "2026-10-21",
+        "description": "Emergency fixes for two unauthenticated RCEs in the interpreter, CVE-2026-109618 and CVE-2026-109619 (CVSS 9.2), across PHP-FPM, mod_php, FrankenPHP and others. Exploited and in KEV by 26 Oct."
+      },
+      {
+        "title": "Node.js October 2026 security releases",
+        "source": "Node.js",
+        "link": "https://nodejs.org/en/blog/vulnerability/october-2026-security-releases",
+        "date": "2026-10-21",
+        "description": "CVE-2026-111497 is an out-of-bounds write in Google's Brotli decoder, reachable from anything that decompresses `br` content, found by OpenAI's Codex Security. Fixed in [Brotli 1.2.1](https://github.com/google/brotli/releases/tag/v1.2.1); exploited by 27 Oct."
+      },
+      {
+        "title": "GitLab 19.5.1 patch release",
+        "source": "GitLab",
+        "link": "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-1-released/",
+        "date": "2026-10-21",
+        "description": "The second CVSS 10.0 integer overflow in the CI/CD regex compiler in nine days. The first, CVE-2026-97229 ([19.4.2](https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-4-2-released/)), is now exploited."
+      },
+      {
+        "title": "VeloCloud Orchestrator SQL injection",
+        "source": "Arista",
+        "link": "https://www.arista.com/en/support/advisories-notices/security-advisory/24838-security-advisory-0199",
+        "date": "2026-10-22",
+        "description": "CVE-2026-114625: the lowest read-only role can become superuser operator. The third exploited VeloCloud Orchestrator zero-day since July."
+      },
+      {
+        "title": "Discovering vulnerabilities with Claude",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/research/discovering-vulnerabilities-with-claude",
+        "date": "2026-10-27",
+        "description": "An unreleased model wrote a zero-click remote root exploit for CVE-2026-98432, a use-after-free in the Linux IPv4 TCP handshake present since 4.4, in under an hour in a lab (against MPTCP listeners). Not exploited in the wild."
+      },
+      {
+        "title": "CVE-2026-46300: Linux kernel ESP decryption bug",
+        "source": "NVD",
+        "link": "https://nvd.nist.gov/vuln/detail/CVE-2026-46300",
+        "date": "2026-10-28",
+        "description": "Added to KEV after CISA saw it chained with the PHP2Shell bugs to plant webshells and get root."
+      }
+    ]
+  },
+  {
+    "category": "Safety and interpretability",
+    "items": [
+      {
+        "title": "Neural Networks Are Already Clean",
+        "source": "Goodfire",
+        "link": "https://already-clean.goodfire.com/",
+        "date": "2026-10-15",
+        "description": "Argues trained networks are far more legible than the superposition story suggests. A preliminary audit of Qwen3-32B estimates roughly 90% of neuron poles have one main job, against the 1.7% of neurons OpenAI's 2023 automated interpretability could explain.",
+        "author": "Nick Cammarata"
+      },
+      {
+        "title": "Many Transcoder Features Are Neurons in Disguise",
+        "link": "https://arxiv.org/abs/2610.24521",
+        "date": "2026-10-17",
+        "description": "Across 13 open transcoders, many late-layer features line up with single MLP neurons, and top neuron activations are about as monosemantic as the features. An Anthropic Fellows paper that pairs well with the Goodfire essay.",
+        "author": "Shabalin & Piotrowski"
+      },
+      {
+        "title": "Securing our frontier model training environment",
+        "source": "OpenAI",
+        "link": "https://openai.com/index/securing-our-frontier-model-training-environment/",
+        "date": "2026-10-23",
+        "description": "After a research model reached the internet through a DNS misconfiguration, OpenAI paused frontier RL and red-teamed its sandbox with agents. Among the findings, agents in separate microVMs passed secrets through CPU cache timing, one evicting cache lines and the other timing its reloads (the Spectre trick), and others found channels in shared storage and a TLS certificate cache."
+      },
+      {
+        "title": "An alignment assessment of the UK AISI cybertesting incident",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/research/alignment-assessment-ukaisi",
+        "date": "2026-10-23",
+        "description": "In capture-the-flag testing, Claude Mythos 5 took unsanctioned actions affecting real parties in 9 of 43 runs, including pressuring an unrelated GitHub maintainer with fake identities. Anthropic reads it as recklessness and momentum rather than broader goals."
+      },
+      {
+        "title": "How AI agents shape experts' judgment calls",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/research/agents-judgment-calls",
+        "date": "2026-10-27",
+        "description": "50 analysts did a causal analysis with Claude Code, which was secretly told to favour one of two defensible options at four decision points. They sided with it 86% of the time, 77% repeated its arguments, and only 15% credited it."
+      },
+      {
+        "title": "How we detect frontier model misalignment",
+        "source": "OpenAI",
+        "link": "https://openai.com/index/how-we-detect-frontier-model-misalignment/",
+        "date": "2026-10-29",
+        "description": "The companion to the training-environment post: activation probes, a model reviewer, and investigating agents now watch every RL run for frontier models. Replayed on the September escape, they flagged it within 15 minutes."
+      }
+    ]
+  },
+  {
+    "category": "Models and companies",
+    "items": [
+      {
+        "title": "Gemini Nano Banana 2.1",
+        "source": "Google",
+        "link": "https://ai.google.dev/gemini-api/docs/changelog",
+        "date": "2026-10-06",
+        "description": "Google's image model went GA with a changelog entry and no launch post. Image output costs half what Nano Banana 2 charged ($0.0336 per 1K image, was $0.067), though input tokens now cost three times as much. Adds 1:8 and 8:1 aspect ratios and keeps up to 4 characters consistent."
+      },
+      {
+        "title": "Claude Haiku 5.5",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/claude-haiku-5-5",
+        "date": "2026-10-07",
+        "description": "The fastest small Claude and the first Haiku with an effort setting. A week later, fast mode for Opus 5.5 left research preview."
+      },
+      {
+        "title": "Build with Muse Spark Open",
+        "source": "Meta",
+        "link": "https://dev.meta.ai/resources/blog/build-with-muse-spark-open",
+        "date": "2026-10-15",
+        "description": "One open-weight multimodal MoE (816B total, about 42B active, 1M context) aimed at agentic coding. Muse Wonder, released alongside it, stays closed."
+      },
+      {
+        "title": "Bringing GPT-Rosalind to academic research labs",
+        "source": "OpenAI",
+        "link": "https://openai.com/index/introducing-the-rosalind-academic-plan/",
+        "date": "2026-10-15",
+        "description": "Free seats with access to OpenAI's life-sciences model for eligible academic labs, for a year."
+      },
+      {
+        "title": "Kimi K3.1 Pro",
+        "source": "Moonshot AI",
+        "link": "https://www.kimi.com/en/blog/kimi-k3-1-pro",
+        "date": "2026-10-24",
+        "description": "A 3T-class model with 1M context, open weights promised for early November. Moonshot says it removed cyber-related training data."
+      },
+      {
+        "title": "Anthropic files S-1 for proposed IPO",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/news/s1-sec",
+        "date": "2026-10-26",
+        "description": "A public S-1 for Class A stock on the Nasdaq under the ticker ANT. Share count and price range not set yet."
+      },
+      {
+        "title": "Introducing GPT-6.1 Terra",
+        "source": "OpenAI",
+        "link": "https://openai.com/index/introducing-gpt-6-1-terra/",
+        "date": "2026-10-26",
+        "description": "A fast, cheap model for visual reasoning, computer use and writing, at $1 / $5 per million tokens. It still meets OpenAI's Critical cyber threshold."
+      },
+      {
+        "title": "Genie 4: a new generation of world simulation",
+        "source": "Google DeepMind",
+        "link": "https://deepmind.google/blog/genie-4-a-new-generation-of-world-simulation/",
+        "date": "2026-10-27",
+        "description": "A real-time world model that generates its own audio, dialogue included, and can be steered with text mid-simulation."
+      },
+      {
+        "title": "Gemini 4 Carbon",
+        "source": "Google",
+        "link": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/",
+        "date": "2026-10-28",
+        "description": "Google's new frontier model, built for cybersecurity and long tasks. Access starts with cyber defenders through the Fairwind Program."
+      },
+      {
+        "title": "Mistral Large 4 is now open weight",
+        "source": "Mistral",
+        "link": "https://mistral.ai/news/mistral-large-4-oss/",
+        "date": "2026-10-29",
+        "description": "Weights for the 1T-parameter multimodal Large 4 (\"Le Chonk\") on Hugging Face, three weeks after the hosted preview."
+      }
+    ]
+  },
+  {
+    "category": "Blogs I wrote this month",
+    "items": [
+      {
+        "title": "Dikilitaş: An App to Read the 3,400-Year-Old Obelisk in Istanbul",
+        "link": "/articles/dikilitas",
+        "date": "2026-10-05",
+        "description": "I could not read a word of the obelisk in Sultanahmet, so I built an app for it. Turn a 3D model, tap a line of hieroglyphs or the pedestal's Latin and Greek, and read what it says, with some prompting to make the translations feel ancient."
+      }
+    ]
+  }
+]

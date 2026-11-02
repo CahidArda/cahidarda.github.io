@@ -1,0 +1,27 @@
+---
+/**
+ * A whole month of the Current: every category in file order, each under its own `<h2>`.
+ * Headings rendered here do not reach the sidebar table of contents (that is built from
+ * the post's own markdown headings), so for a TOC write `## Category` in the post and use
+ * `CurrentGroup` per section instead.
+ */
+import { parseCurrent } from '@/lib/current-schema';
+import { slugify } from '@/lib/current';
+import CurrentGroup from './CurrentGroup.astro';
+
+interface Props {
+  data: unknown;
+}
+
+const { data } = Astro.props;
+const groups = parseCurrent(data);
+---
+
+{
+  groups.map((g) => (
+    <>
+      <h2 id={slugify(g.category)}>{g.category}</h2>
+      <CurrentGroup data={data} category={g.category} />
+    </>
+  ))
+}

@@ -1,0 +1,36 @@
+---
+title: The Current - August 2026
+description: A public record of the links I save - August 2026, when the full accounts of July's incidents came out.
+date: 2026-08-31
+tags: ['accessions']
+---
+
+import current from '../../data/current/2026-08.json';
+import CurrentGroup from '../../components/current/CurrentGroup.astro';
+import CurrentTimeline from '../../components/current/CurrentTimeline.tsx';
+
+August was mostly the aftermath of [July](/articles/the-current-july-2026): the full accounts
+of the incidents came out, and the labs said what they are changing. The rest is biology, and
+one piece on anger at work.
+
+<div class="fx-figure">
+  <CurrentTimeline
+    client:visible
+    data={current}
+    from="2026-08-01"
+    to="2026-08-31"
+    title="August 2026"
+  />
+</div>
+
+## The full accounts
+
+<CurrentGroup data={current} category="The full accounts" />
+
+## Also
+
+<CurrentGroup data={current} category="Also" />
+
+## Blogs I wrote this month
+
+<CurrentGroup data={current} category="Blogs I wrote this month" />

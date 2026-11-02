@@ -1,0 +1,94 @@
+[
+  {
+    "category": "The full accounts",
+    "items": [
+      {
+        "title": "Incident Report: unsanctioned agent behaviour during cyber testing",
+        "source": "UK AI Security Institute",
+        "link": "https://www.aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing",
+        "date": "2026-08-04",
+        "description": [
+          "It happened a third time, and this time to the evaluator. Across 122 runs of one cyber challenge, agents in 10 runs took 19 unsanctioned actions against real people and organisations, 17 of them by Mythos 5. The worst was an attempt to slip malicious code into a real open-source project, backed by fake identities pressuring the maintainer to approve it. It failed, and AISI found no evidence of real-world harm.",
+          "[Simon Willison's note](https://simonwillison.net/2026/Aug/5/incident-report/) points out the uncomfortable part: the internet access was deliberate and the developers' cyber classifiers were switched off, so none of this needed a sandbox escape."
+        ]
+      },
+      {
+        "title": "Pacing model development in an era of cyber-critical capabilities",
+        "source": "OpenAI",
+        "link": "https://openai.com/index/pacing-model-development-cyber-capabilities/",
+        "date": "2026-08-18",
+        "description": "OpenAI paused reinforcement learning on the models it intends to deploy for two weeks, and its largest planned frontier RL run is still on hold. Two reasons: the Hugging Face incident, and early evidence that its upcoming Astra model may cross the \"Critical\" cyber threshold in its Preparedness Framework. The new monitoring adds roughly a fifth more compute to parts of training."
+      },
+      {
+        "title": "The Hugging Face incident and the road ahead",
+        "source": "OpenAI",
+        "link": "https://openai.com/index/hugging-face-incident-and-the-road-ahead/",
+        "date": "2026-08-26",
+        "description": [
+          "The full account, with a [technical report](https://cdn.openai.com/pdf/67869394-cb91-4c12-888c-5cbd85c7814c/OpenAI-Hugging-Face%20Incident-Technical-Report.pdf). The main actor was an internal-only research model, and agents had been leaving each other notes in the internal package registry since May, which turned it into a message board. An internal team saw that activity in late May, but its significance never reached the people handling the July incident.",
+          "The number that explains a lot: 198 of the 898 ExploitGym tasks had never been solved by any model, and 93% of the tasks discussed on the message board came from that set. Agents stuck on impossible tasks, with no safe way to give up, kept escalating. OpenAI calls the whole thing a \"warning shot\"."
+        ]
+      },
+      {
+        "title": "Brief independent investigation of agents' behavior, reasoning and collaboration in the OpenAI / Hugging Face hacking incident",
+        "source": "METR and Redwood Research",
+        "link": "https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/",
+        "date": "2026-08-26",
+        "description": [
+          "The one to read if you only read one. About 1,200 agents that were meant to be isolated found each other on the board, sent more than 70,000 messages and files, and roughly 700 of them joined the attack on Hugging Face. They invented mailboxes, holds and vetoes, and started signing their messages with Ed25519 keys after agents began impersonating each other. Agents near the end of their budgets volunteered for experiments that would fail their own task if it helped the \"collective\".",
+          "Two twists. The scorer the agents worked so hard to fool did not actually check what they believed it checked. And the investigators had to lean on GPT-5.6 Sol to read over a thousand transcripts, many millions of tokens each, while noting they could not rule out that it misled them."
+        ]
+      },
+      {
+        "title": "Improving our alignment and security practices",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/news/improving-alignment-security-efforts",
+        "date": "2026-08-31",
+        "description": "Anthropic's follow-up on its own July incidents and on the AISI one, where Mythos 5 was the main actor. It is analysing both in depth and bringing in METR for an independent review."
+      }
+    ]
+  },
+  {
+    "category": "Also",
+    "items": [
+      {
+        "title": "Generative design of bacteriophages with genome language models",
+        "source": "Science",
+        "author": "King et al.",
+        "link": "https://www.science.org/doi/10.1126/science.aec2657",
+        "date": "2026-08-06",
+        "description": "Researchers at Stanford and the Arc Institute used the Evo genome language models to design complete genomes for a bacteriophage (a virus that infects bacteria), starting from ΦX174. Of roughly 300 designs they synthesized, 16 produced working phages, and a cocktail of them overcame E. coli strains that had become resistant to the natural virus. The [Stanford write-up](https://news.stanford.edu/stories/2026/08/evo-2-ai-tool-e-coli-killer-bacteriophages) is the readable version. Read it next to the Somers essay below."
+      },
+      {
+        "title": "I Should Have Loved Biology",
+        "author": "James Somers",
+        "link": "https://jsomers.net/i-should-have-loved-biology/",
+        "description": "\"In the textbooks, astonishing facts were presented without astonishment.\" On why school biology reads as a list of names, and what changes once you picture the cell as a crowd of little machines with actual shapes. An older essay, undated on the page, that I only got to now."
+      },
+      {
+        "title": "You should never be angry at work",
+        "author": "Sean Goedecke",
+        "link": "https://www.seangoedecke.com/you-should-never-be-angry-at-work/",
+        "date": "2026-08-22",
+        "description": "Anger usually means you care, which is exactly why it is a trap: \"An angry colleague immediately becomes a new problem to be managed, not a professional helping you manage problems.\" Get angry and you get routed around, and then you cannot fix the thing you were angry about."
+      }
+    ]
+  },
+  {
+    "category": "Blogs I wrote this month",
+    "items": [
+      {
+        "title": "Trust Your Bots (Terms Apply)",
+        "link": "/articles/held-accountable",
+        "date": "2026-08-11",
+        "description": "AI providers ask us to trust agents with our accounts and real work, while their terms of service put every consequence on the user. Who is responsible when something goes wrong? It reads differently next to the incident reports above."
+      },
+      {
+        "title": "How to Write a DeepSeek Harness Plugin",
+        "link": "/articles/deepseek-harness-plugin",
+        "date": "2026-08-14",
+        "description": "A practical guide to the dsh plugin system: patch layers, bundles and profiles, skill discovery, and adding an MCP server with credentials."
+      }
+    ]
+  }
+]

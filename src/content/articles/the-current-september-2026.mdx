@@ -1,0 +1,71 @@
+---
+title: The Current - September 2026
+description: A public record of the links I save - September 2026, when both big labs said out loud that the frontier needs a brake, and then shipped new models anyway.
+date: 2026-09-29
+tags: ['accessions']
+---
+
+import current from '../../data/current/2026-09.json';
+import CurrentGroup from '../../components/current/CurrentGroup.astro';
+import CurrentTimeline from '../../components/current/CurrentTimeline.tsx';
+
+In September both big labs said they want the frontier to slow down, then shipped new models
+within weeks. Mathematicians pushed back against AI being aimed at their field. The last of
+the July incident reports came out, and I spent too much time thinking about lawyers because of
+a TV show.
+
+<div class="fx-figure">
+  <CurrentTimeline
+    client:visible
+    data={current}
+    from="2026-09-01"
+    to="2026-09-30"
+    title="September 2026"
+  />
+</div>
+
+## Both labs ask to slow down
+
+<CurrentGroup data={current} category="Both labs ask to slow down" />
+
+## New models: Opus 5.5, GPT-6, Sonnet 5.5
+
+<CurrentGroup data={current} category="New models: Opus 5.5, GPT-6, Sonnet 5.5" />
+
+## AI solves a Millennium Prize problem, mathematicians object
+
+After [July's](/articles/the-current-july-2026) Jacobian counterexample, OpenAI's
+[Navier-Stokes result](https://www.quantamagazine.org/ai-has-solved-one-of-maths-1-million-millennium-prize-problems-20260908/)
+took a Millennium Prize problem. The replies were more interesting than the proof.
+
+<CurrentGroup
+  data={current}
+  category="AI solves a Millennium Prize problem, mathematicians object"
+/>
+
+## AI does science: a new enzyme and a nine-loop amplitude
+
+<CurrentGroup data={current} category="AI does science: a new enzyme and a nine-loop amplitude" />
+
+## AI agents hacked Hugging Face, humans with AI hacked OpenAI
+
+<CurrentGroup
+  data={current}
+  category="AI agents hacked Hugging Face, humans with AI hacked OpenAI"
+/>
+
+## No Harvey Specter after AI
+
+Lately I have been watching Suits, and for about half the series I kept thinking an AI could
+already do what these people do. It is a bit of a shame. There is no Harvey Specter in a
+post-AI world.
+
+<CurrentGroup data={current} category="No Harvey Specter after AI" />
+
+## Ancient tombs and old warships
+
+<CurrentGroup data={current} category="Ancient tombs and old warships" />
+
+## Blogs I wrote this month
+
+<CurrentGroup data={current} category="Blogs I wrote this month" />

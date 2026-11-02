@@ -1,0 +1,138 @@
+[
+  {
+    "category": "This month",
+    "items": [
+      {
+        "title": "When AI builds itself",
+        "source": "Anthropic",
+        "link": "https://www.anthropic.com/institute/recursive-self-improvement",
+        "date": "2026-06",
+        "description": "Anthropic's own account of AI starting to automate AI research, and why recursive self-improvement is the thing they say they are now watching most closely."
+      },
+      {
+        "title": "Writing is Thinking",
+        "source": "Nature",
+        "link": "https://www.nature.com/articles/s44222-025-00323-4",
+        "date": "2025-06-16",
+        "description": "A Nature editorial on why you should not hand your writing to a model wholesale: the act of writing is where the thinking actually happens, not a chore around it."
+      },
+      {
+        "title": "The Kaiser and a \"Mediocre Man\" Theory of History",
+        "link": "https://www.deadcarl.com/p/the-kaiser-and-a-mediocre-man-theory",
+        "date": "2024-04-04",
+        "description": [
+          "A case that Wilhelm II mattered precisely because he was mediocre, and that history sometimes turns on the ordinary failings of whoever happens to hold power.",
+          "It reminded me of Mark Twain's [\"Luck\"](https://americanliterature.com/author/mark-twain/short-story/luck), though the two stories work in opposite directions. Twain's fool is carried upward by chance and mistaken for a hero, so the error is in how we read him. The Kaiser is no genius either, yet he really does bend events, so the mediocrity itself is the cause."
+        ]
+      },
+      {
+        "title": "Nobody Ever Gets Credit for Fixing Problems that Never Happened",
+        "author": "Repenning & Sterman",
+        "link": "https://web.mit.edu/nelsonr/www/Repenning=Sterman_CMR_su01_.pdf",
+        "date": "2001",
+        "description": "The classic systems paper on why organizations get stuck firefighting: fixing root causes is invisible, so the work that prevents crises is never the work that gets rewarded."
+      },
+      {
+        "title": "A backdoor in a LinkedIn job offer",
+        "link": "https://roman.pt/posts/linkedin-backdoor/",
+        "date": "2026-06-15",
+        "description": "A developer walks through a fake recruiter's \"coding task\" that would have run a remote backdoor on `npm install`. A tidy anatomy of a social-engineered supply-chain attack."
+      },
+      {
+        "title": "Has AI Already Killed How-To Nonfiction?",
+        "link": "https://tim.blog/2026/06/12/has-ai-already-killed-nonfiction/",
+        "date": "2026-06-12",
+        "description": "Tim Ferriss shows his own catalog's sales falling off a cliff as models commoditize how-to information, and argues the survivors will sell transformation and community rather than facts."
+      },
+      {
+        "title": "1,000 True Fans",
+        "author": "Kevin Kelly",
+        "link": "https://kk.org/thetechnium/1000-true-fans/",
+        "date": "2008-03-04",
+        "description": "The essay that keeps getting more relevant: you do not need millions, just a thousand people who will buy whatever you make. Read it next to the Ferriss piece above."
+      },
+      {
+        "title": "The Wholesale Plagiarism of Obscure Sorrows",
+        "author": "Andy Baio",
+        "link": "https://waxy.org/2026/06/the-wholesale-plagiarism-of-obscure-sorrows/",
+        "date": "2026-06-18",
+        "description": "An agency AI-cloned John Koenig's entire Dictionary of Obscure Sorrows into a slicker, better-ranked site and monetized it. The new shape of plagiarism."
+      },
+      {
+        "title": "Why Coding Is Solved, and What Comes Next",
+        "source": "Anthropic",
+        "author": "Boris Cherny",
+        "link": "https://www.youtube.com/watch?v=SlGRN8jh2RI",
+        "description": "The Claude Code lead argues the bottleneck has moved off writing code and onto everything around it: taste, review, and deciding what to build."
+      },
+      {
+        "title": "Coding is no longer the constraint: scaling devex to teams and agents",
+        "source": "Spotify",
+        "link": "https://www.youtube.com/watch?v=zFslvuvYifQ",
+        "description": "How a large org rebuilds its developer platform once both humans and agents are shipping code, and coding stops being the thing that limits you."
+      },
+      {
+        "title": "How Lovable vibecodes production software at scale",
+        "source": "Lovable",
+        "link": "https://www.youtube.com/watch?v=mhW-XXnDFSU",
+        "description": "A look inside how one of the fastest-growing AI products actually ships, from prompt to production."
+      },
+      {
+        "title": "Stanford Leadership Forum 2026: a conversation with Ken Griffin",
+        "source": "Stanford",
+        "author": "Ken Griffin",
+        "link": "https://youtu.be/Csjy_A3Kj9s",
+        "description": "The Citadel founder on markets, talent, and the long work of building an institution."
+      },
+      {
+        "title": "We Need an International Treaty to Ban Superintelligence",
+        "author": "Andrea Miotti",
+        "link": "https://www.persuasion.community/p/time-for-a-global-moratorium-on-superintelligenc",
+        "date": "2026-06-24",
+        "description": "A case for a verifiable international ban on building superintelligence, on the nuclear-nonproliferation model, while monitoring the compute is still feasible and the window is still open."
+      },
+      {
+        "title": "Half-Baked Product",
+        "link": "https://weli.dev/blog/half-baked-product/",
+        "date": "2026-07-02",
+        "description": "A parable of an oven startup that bolts on feature after feature to chase every sale while never fixing its core algorithm. On quietly trading the mission for short-term revenue."
+      },
+      {
+        "title": "My Antichrist Lecture",
+        "author": "Scott Alexander",
+        "link": "https://www.astralcodexten.com/p/my-antichrist-lecture",
+        "date": "2025-10-22",
+        "description": "We were discussing with friends how the world feels like it is accelerating toward something, the way technology did in the run-up to WWII, which got me wondering whether there is any resemblance between AI and the Antichrist. To my surprise, the first result when I searched on Google was a Scott Alexander blog post (which I assume is satirical) on similarities between Anthropic and the Antichrist."
+      }
+    ]
+  },
+  {
+    "category": "Blogs I wrote this month",
+    "items": [
+      {
+        "title": "Your New Personal Website Is a Few Prompts Away",
+        "link": "/articles/rebuilding-this-site",
+        "date": "2026-06-02",
+        "description": "How this site was rebuilt without learning the framework it runs on, by focusing on the look and letting the agent handle the rest."
+      },
+      {
+        "title": "Vercel Eve: A Guide",
+        "link": "/articles/vercel-eve-guide",
+        "date": "2026-06-18",
+        "description": "Notes from building a small demo agent on Vercel Eve: project layout, the dev TUI, tools and skills, scheduling, channels and deployment."
+      },
+      {
+        "title": "Sakana Fugu: Multi-Agent Orchestration Explained in Detail",
+        "link": "/articles/sakana-fugu",
+        "date": "2026-06-22",
+        "description": "A guided tour of the two engines behind Sakana's Fugu, the evolved TRINITY router and the RL-trained Conductor, with interactive diagrams of both."
+      },
+      {
+        "title": "Building a Local Data Platform on Kubernetes",
+        "link": "/articles/data-platform",
+        "date": "2026-06-25",
+        "description": "A series on building an end-to-end data platform on one k3d cluster on a laptop: streaming ingest, the right storage shape per access pattern, observability and resilience."
+      }
+    ]
+  }
+]

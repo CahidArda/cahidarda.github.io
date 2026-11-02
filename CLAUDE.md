@@ -27,6 +27,14 @@ pnpm format    # prettier --write .
 - `src/styles/global.css` — design tokens (CSS vars, light/dark), Tailwind `@theme`, `.prose`
   typography, and per-topic widget styles.
 - `src/layouts/`, `src/lib/og.ts` — article layout; per-slug OG images are generated at build.
+- `src/data/current/YYYY-MM.json` — links for a monthly "The Current" post (tag `accessions`): a list
+  of `{ category, items: [{ title, link, description, date?, source?, author? }] }` (`source` = company,
+  shown as "Title (Anthropic)"; `author` = person, shown before the date; `date` may be YYYY-MM or
+  YYYY, and only full dates inside the month go on the timeline; `description` may be a list of
+  bullets; `link` may be a site path like `/articles/x`). Every Current post since May uses this. Render with
+  `src/components/current/`: `CurrentGroup` (one category, put a `## Category` heading above it so
+  it reaches the TOC), `CurrentList` (all categories), `CurrentTimeline` (React island, one swimlane per category, one marker per day with a count;
+  hover lists the links, click jumps to the item). Types/helpers in `src/lib/current.ts`.
 
 ## Conventions
 

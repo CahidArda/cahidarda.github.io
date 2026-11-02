@@ -5,6 +5,10 @@ date: 2026-05-31
 tags: ['accessions']
 ---
 
+import current from '../../data/current/2026-05.json';
+import CurrentGroup from '../../components/current/CurrentGroup.astro';
+import CurrentTimeline from '../../components/current/CurrentTimeline.tsx';
+
 I already keep a running list of links in Notion - things I read and want to come
 back to. Keeping it private costs me nothing, but sharing it as a public record
 might be useful to someone else, so here it is. I plan to post one of these every
@@ -14,17 +18,19 @@ The format is shamelessly borrowed from [Scott Alexander](https://www.astralcode
 whose [monthly links posts](https://www.astralcodexten.com/p/links-for-april-2026) I
 look forward to every time.
 
+<div class="fx-figure">
+  <CurrentTimeline
+    client:visible
+    data={current}
+    from="2026-05-01"
+    to="2026-05-31"
+    title="May 2026"
+  />
+</div>
+
 ## This month
 
-- **[Morale](https://www.lesswrong.com/posts/53ZAzbdzGJHGeE5rs/morale)**, _12 Apr 2026_
-  - On morale as a resource you spend and have to replenish, not a mood you
-  happen to be in.
-- **[The Dead Economy Theory](https://www.owenmcgrann.com/p/the-dead-economy-theory)**, _1 May 2026_
-  - An essay arguing the economy looks alive on the surface while the
-  parts that actually create value have quietly stalled.
-- **[Magnifica Humanitas](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)**, _15 May 2026_
-  - Encyclical letter of Pope Leo XIV - worth reading whatever your
-  priors, for the framing of technology and human dignity.
+<CurrentGroup data={current} category="This month" />
 
 ## Blogs I wrote this month
 

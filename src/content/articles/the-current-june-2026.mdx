@@ -1,0 +1,33 @@
+---
+title: The Current - June 2026
+description: A monthly public record of the links I save - some of what I read this month.
+date: 2026-07-05
+tags: ['accessions']
+---
+
+import current from '../../data/current/2026-06.json';
+import CurrentGroup from '../../components/current/CurrentGroup.astro';
+import CurrentTimeline from '../../components/current/CurrentTimeline.tsx';
+
+The second monthly link post. Same idea as
+[last month](/articles/the-current-may-2026): the links I saved in June. Heavier on AI
+than I expected going in, but there is some history, a security writeup, and a couple of
+older classics worth revisiting.
+
+<div class="fx-figure">
+  <CurrentTimeline
+    client:visible
+    data={current}
+    from="2026-06-01"
+    to="2026-06-30"
+    title="June 2026"
+  />
+</div>
+
+## This month
+
+<CurrentGroup data={current} category="This month" />
+
+## Blogs I wrote this month
+
+<CurrentGroup data={current} category="Blogs I wrote this month" />

@@ -1,0 +1,59 @@
+---
+title: The Current - October 2026
+description: A public record of the links I save - October 2026, a month that was mostly about security.
+date: 2026-11-02
+tags: ['accessions']
+---
+
+import october from '../../data/current/2026-10.json';
+import CurrentGroup from '../../components/current/CurrentGroup.astro';
+import CurrentTimeline from '../../components/current/CurrentTimeline.tsx';
+
+October was mostly security. Wiz called it
+["Black October"](https://www.wiz.io/blog/black-october-for-ai-developer-platforms): one AI
+developer platform after another lost the environment variables its customers stored there,
+and the attackers were after AI provider keys. Around that came a Patch Tuesday with 1,415 CVEs, two
+interpreter-level RCEs in PHP, a CA whose private keys fit in a single byte, and the largest
+crypto theft on record.
+
+The AI side had its own security thread. OpenAI wrote up how its agents broke out of, and
+talked across, its training sandbox, and Anthropic showed a model writing a remote root
+exploit for the Linux kernel. On interpretability, two pieces argued from different angles
+that plain neurons are more legible than we assumed.
+
+This month the links live on a timeline too. Hover a marker for the titles, click it to jump
+to the note below.
+
+<div class="fx-figure">
+  <CurrentTimeline
+    client:visible
+    data={october}
+    from="2026-10-01"
+    to="2026-11-01"
+    title="October 2026"
+  />
+</div>
+
+## Black October
+
+<CurrentGroup data={october} category="Black October" />
+
+## Breaches and supply chain
+
+<CurrentGroup data={october} category="Breaches and supply chain" />
+
+## CVEs
+
+<CurrentGroup data={october} category="CVEs" />
+
+## Safety and interpretability
+
+<CurrentGroup data={october} category="Safety and interpretability" />
+
+## Models and companies
+
+<CurrentGroup data={october} category="Models and companies" />
+
+## Blogs I wrote this month
+
+<CurrentGroup data={october} category="Blogs I wrote this month" />
