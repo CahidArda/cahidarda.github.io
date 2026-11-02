@@ -50,6 +50,13 @@
         "description": "A stolen ConnectWise Cloud Backup (SkyKick) app credential was used against Microsoft 365. Huntress confirmed unauthorized sign-ins in 162 tenants and saw the attacker's IP sign in to almost 1,000. In one tenant the app granted itself Global Admin."
       },
       {
+        "title": "The PingCAP TiDB Cloud Leaks",
+        "source": "FulcrumSec",
+        "link": "https://fulcrumsec.vg/pingcap/",
+        "date": "2026-10-19",
+        "description": "The extortion group's own write-up of the TiDB Cloud breach. They claim 10.6 TB taken over a month of control-plane exports nobody noticed, 115K console API keys, customer production credentials pasted into Jira, and a 2022 internal ticket warning that any org member could take root on every cluster. [PingCAP's report](https://www.pingcap.com/trust-hub/security/security-update-october-2026/) confirms stolen service-account credentials and access from 9 Sep to 7 Oct, but says the exported API keys were encrypted and the credential claims are unverified."
+      },
+      {
         "title": "eMudhra to exit the global SSL/TLS certificate business",
         "source": "eMudhra",
         "link": "https://emudhra.com/en/press-release/emudhra-to-exit-global-ssl-tls-certificate-business",
