@@ -12,8 +12,10 @@ export interface CurrentItem {
   description: string;
   /** ISO date (YYYY-MM-DD): when the linked piece was published. */
   date: string;
-  /** Optional byline shown before the date, e.g. "Kevin Kelly". */
+  /** Publishing company or org, shown after the title: "Claude Haiku 5.5 (Anthropic)". */
   source?: string;
+  /** Person who wrote it, shown before the date: "Nick Cammarata, 15 Oct 2026". */
+  author?: string;
 }
 
 export interface CurrentGroup {
@@ -46,6 +48,13 @@ export function itemId(item: CurrentItem): string {
   return `cur-${slugify(item.title)}`;
 }
 
+/** The "(Anthropic)" after a title, left out when the title already names the source. */
+export function sourceSuffix(item: CurrentItem): string {
+  const { source, title } = item;
+  if (!source || title.toLowerCase().includes(source.toLowerCase())) return '';
+  return ` (${source})`;
+}
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** "2026-10-21" -> "21 Oct 2026". Parsed by hand so no timezone can shift the day. */
@@ -72,6 +81,15 @@ export function dayToIso(day: number): string {
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/**
+ * The bold linked title plus its source and trailing comma, as one HTML string. Rendered with
+ * `set:html` so formatting the markup can never put a space before the comma.
+ */
+export function titleHtml(item: CurrentItem): string {
+  const href = escapeHtml(item.link);
+  return `<strong><a href="${href}">${escapeHtml(item.title)}</a></strong>${escapeHtml(sourceSuffix(item))}, `;
+}
 
 /** Renders a description's `[text](url)` links and `code` spans to HTML; escapes the rest. */
 export function descriptionHtml(text: string): string {

@@ -9,7 +9,7 @@
  *   <CurrentGroup data={october} category="Security" />
  */
 import { parseCurrent } from '@/lib/current-schema';
-import { categoryColor, descriptionHtml, formatItemDate, itemId } from '@/lib/current';
+import { categoryColor, descriptionHtml, formatItemDate, itemId, titleHtml } from '@/lib/current';
 
 interface Props {
   data: unknown;
@@ -27,10 +27,9 @@ const group = groups[index];
   {
     group.items.map((item) => (
       <li id={itemId(item)} class="cur-item">
-        {/* keep the comma on the </strong> line, or the newline renders as a space */}
-        <strong><a href={item.link}>{item.title}</a></strong>,{' '}
+        <Fragment set:html={titleHtml(item)} />
         <em>
-          {item.source && `${item.source}, `}
+          {item.author && `${item.author}, `}
           {formatItemDate(item.date)}
         </em>
         <ul>

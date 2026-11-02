@@ -8,6 +8,7 @@ const itemSchema = z.object({
   description: z.string(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   source: z.string().optional(),
+  author: z.string().optional(),
 });
 
 const schema = z.array(z.object({ category: z.string(), items: z.array(itemSchema) }));

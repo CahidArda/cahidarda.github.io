@@ -180,17 +180,18 @@
     "items": [
       {
         "title": "Neural Networks Are Already Clean",
-        "source": "Nick Cammarata, Goodfire",
+        "source": "Goodfire",
         "link": "https://already-clean.goodfire.com/",
         "date": "2026-10-15",
-        "description": "Argues trained networks are far more legible than the superposition story suggests. A preliminary audit of Qwen3-32B estimates roughly 90% of neuron poles have one main job, against the 1.7% of neurons OpenAI's 2023 automated interpretability could explain."
+        "description": "Argues trained networks are far more legible than the superposition story suggests. A preliminary audit of Qwen3-32B estimates roughly 90% of neuron poles have one main job, against the 1.7% of neurons OpenAI's 2023 automated interpretability could explain.",
+        "author": "Nick Cammarata"
       },
       {
         "title": "Many Transcoder Features Are Neurons in Disguise",
-        "source": "Shabalin & Piotrowski",
         "link": "https://arxiv.org/abs/2610.24521",
         "date": "2026-10-17",
-        "description": "Across 13 open transcoders, many late-layer features line up with single MLP neurons, and top neuron activations are about as monosemantic as the features. An Anthropic Fellows paper that pairs well with the Goodfire essay."
+        "description": "Across 13 open transcoders, many late-layer features line up with single MLP neurons, and top neuron activations are about as monosemantic as the features. An Anthropic Fellows paper that pairs well with the Goodfire essay.",
+        "author": "Shabalin & Piotrowski"
       },
       {
         "title": "Securing our frontier model training environment",
