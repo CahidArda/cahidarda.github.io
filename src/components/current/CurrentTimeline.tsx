@@ -186,8 +186,12 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
                   {active.items.map((item) => (
                     <li key={itemId(item)} className="flex items-baseline justify-between gap-2">
                       <span>
+                        {/* opens the piece in a new tab and brings its note into view here */}
                         <a
                           href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => jumpTo(item)}
                           className="font-medium text-ink underline decoration-line-strong underline-offset-2 hover:text-accent hover:decoration-accent"
                         >
                           {item.title}
@@ -208,7 +212,7 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
                 </ul>
                 {active.items.length === 1 && (
                   <div className="mt-1 font-mono text-[0.6rem] text-muted">
-                    click the marker to read the note
+                    opens in a new tab, the note is below
                   </div>
                 )}
               </div>

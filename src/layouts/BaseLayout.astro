@@ -175,5 +175,20 @@ const gtagSnippet = `
     </div>
 
     <CommandPalette items={paletteItems} client:idle />
+
+    <!-- Links to other sites open in a new tab. Delegated so it also covers links that
+         React islands render later (tooltips, the command palette). -->
+    <script is:inline>
+      document.addEventListener(
+        'click',
+        (e) => {
+          const a = e.target instanceof Element && e.target.closest('a[href]');
+          if (!a || !/^https?:$/.test(a.protocol) || a.origin === location.origin) return;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+        },
+        true,
+      );
+    </script>
   </body>
 </html>
