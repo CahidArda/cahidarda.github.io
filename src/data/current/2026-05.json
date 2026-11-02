@@ -1,0 +1,25 @@
+[
+  {
+    "category": "This month",
+    "items": [
+      {
+        "title": "Morale",
+        "link": "https://www.lesswrong.com/posts/53ZAzbdzGJHGeE5rs/morale",
+        "date": "2026-04-12",
+        "description": "On morale as a resource you spend and have to replenish, not a mood you happen to be in."
+      },
+      {
+        "title": "The Dead Economy Theory",
+        "link": "https://www.owenmcgrann.com/p/the-dead-economy-theory",
+        "date": "2026-05-01",
+        "description": "An essay arguing the economy looks alive on the surface while the parts that actually create value have quietly stalled."
+      },
+      {
+        "title": "Magnifica Humanitas",
+        "link": "https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html",
+        "date": "2026-05-15",
+        "description": "Encyclical letter of Pope Leo XIV - worth reading whatever your priors, for the framing of technology and human dignity."
+      }
+    ]
+  }
+]

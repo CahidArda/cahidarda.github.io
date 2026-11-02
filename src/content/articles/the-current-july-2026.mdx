@@ -1,0 +1,44 @@
+---
+title: The Current - July 2026
+description: A public record of the links I save - July 2026, the month frontier models started turning up on systems they were never meant to reach.
+date: 2026-07-31
+tags: ['accessions']
+---
+
+import current from '../../data/current/2026-07.json';
+import CurrentGroup from '../../components/current/CurrentGroup.astro';
+import CurrentTimeline from '../../components/current/CurrentTimeline.tsx';
+
+July had three big stories: the Bun rewrite, AI models getting out of their cybersecurity
+evaluations and into other companies' systems, and an 87-year-old conjecture in mathematics
+falling to a counterexample found with an AI model.
+
+<div class="fx-figure">
+  <CurrentTimeline
+    client:visible
+    data={current}
+    from="2026-07-01"
+    to="2026-07-31"
+    title="July 2026"
+  />
+</div>
+
+## The Bun rewrite, from three sides
+
+<CurrentGroup data={current} category="The Bun rewrite, from three sides" />
+
+## Out of the sandbox
+
+<CurrentGroup data={current} category="Out of the sandbox" />
+
+## Mathematics
+
+<CurrentGroup data={current} category="Mathematics" />
+
+## Who gets to ship the frontier
+
+<CurrentGroup data={current} category="Who gets to ship the frontier" />
+
+## Blogs I wrote this month
+
+<CurrentGroup data={current} category="Blogs I wrote this month" />

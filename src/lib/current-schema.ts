@@ -4,9 +4,13 @@ import type { Current } from './current';
 
 const itemSchema = z.object({
   title: z.string(),
-  link: z.url(),
-  description: z.string(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  // An absolute URL, or a path to a page on this site.
+  link: z.union([z.url(), z.string().regex(/^\/[^/]/)]),
+  description: z.union([z.string(), z.array(z.string()).min(1)]),
+  date: z
+    .string()
+    .regex(/^\d{4}(-\d{2}(-\d{2})?)?$/)
+    .optional(),
   source: z.string().optional(),
   author: z.string().optional(),
 });

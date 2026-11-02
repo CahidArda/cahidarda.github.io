@@ -16,6 +16,7 @@ import {
   dayToIso,
   formatItemDate,
   formatShortDate,
+  hasDay,
   itemId,
   sourceSuffix,
   type Current,
@@ -36,6 +37,8 @@ interface Marker {
   key: string;
   category: string;
   catIndex: number;
+  /** Row on the timeline (categories with nothing on the axis get no row). */
+  lane: number;
   date: string;
   items: CurrentItem[];
   /** 0..1 along the axis. */
@@ -48,7 +51,10 @@ const SQ = 12; // marker size, px
 const HIDE_DELAY = 140; // ms, so the pointer can travel from marker into the tooltip
 
 export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: Props) {
-  const { markers, start, span, count } = useMemo(() => layout(data, from, to), [data, from, to]);
+  const { markers, lanes, start, span, count } = useMemo(
+    () => layout(data, from, to),
+    [data, from, to],
+  );
   const ticks = useMemo(() => weekTicks(start, span), [start, span]);
 
   const [hover, setHover] = useState<number | null>(null);
@@ -71,10 +77,10 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const height = data.length * LANE;
+  const height = lanes.length * LANE;
   const active = hover === null ? null : markers[hover];
   const lineY = (i: number) => i * LANE + LABEL;
-  const laneTop = (m: Marker) => lineY(m.catIndex) - SQ / 2;
+  const laneTop = (m: Marker) => lineY(m.lane) - SQ / 2;
 
   return (
     <div className="fx not-prose border border-line-strong bg-paper-raised">
@@ -86,7 +92,7 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
       <div className="px-4 pt-4 pb-4 sm:px-6">
         <div className="relative" style={{ height: height + 22 }}>
           {/* lanes: label above, dashed line through the markers */}
-          {data.map((g, i) => (
+          {lanes.map((g, i) => (
             <div key={g.category}>
               <div
                 className="absolute left-0 flex items-center gap-1.5 font-mono text-[0.62rem] leading-none text-ink-soft"
@@ -95,9 +101,9 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
                 <span
                   aria-hidden
                   className="inline-block h-2 w-2"
-                  style={{ background: categoryColor(i) }}
+                  style={{ background: categoryColor(g.catIndex) }}
                 />
-                {g.category} <span className="text-muted">{g.items.length}</span>
+                {g.category} <span className="text-muted">{g.count}</span>
               </div>
               <div
                 className="absolute right-0 left-0 border-t border-dashed border-line"
@@ -169,12 +175,12 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
               role="tooltip"
               onMouseEnter={() => show(hover!)}
               onMouseLeave={hideSoon}
-              className="absolute z-20 w-64"
+              className="absolute z-20 w-max max-w-[min(22rem,85vw)]"
               style={tooltipPos(active.x, laneTop(active))}
             >
               {/* inner box animates; the outer one owns the positioning transform */}
               <div className="fx-fly-in border border-line bg-paper px-3 py-2 text-xs leading-snug shadow-sm">
-                <div className="mb-1 flex items-center gap-1.5 font-mono text-[0.62rem] text-muted">
+                <div className="mb-1 flex items-center gap-1.5 font-mono text-[0.62rem] whitespace-nowrap text-muted">
                   <span
                     aria-hidden
                     className="inline-block h-2 w-2"
@@ -210,11 +216,6 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
                     </li>
                   ))}
                 </ul>
-                {active.items.length === 1 && (
-                  <div className="mt-1 font-mono text-[0.6rem] text-muted">
-                    opens in a new tab, the note is below
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -234,17 +235,28 @@ function jumpTo(item: CurrentItem) {
   el.classList.add('cur-flash');
 }
 
-/** One marker per category per day, placed on the axis. */
+/**
+ * One marker per category per day, placed on the axis. Items without a full date, or dated
+ * outside the axis (an older piece saved this month), stay in the list but off the timeline.
+ */
 function layout(data: Current, from?: string, to?: string) {
-  const days = data.flatMap((g) => g.items.map((item) => dayNumber(item.date)));
+  const days = data.flatMap((g) =>
+    g.items.filter((i) => hasDay(i.date)).map((i) => dayNumber(i.date!)),
+  );
   const start = from ? dayNumber(from) : Math.min(...days);
   const end = to ? dayNumber(to) : Math.max(...days);
   const span = Math.max(1, end - start);
 
   const byKey = new Map<string, Marker>();
+  const lanes: { category: string; catIndex: number; count: number }[] = [];
   data.forEach((g, catIndex) => {
-    for (const item of g.items) {
-      const day = Math.min(Math.max(dayNumber(item.date), start), end);
+    const placed = g.items.filter(
+      (item) => hasDay(item.date) && dayNumber(item.date) >= start && dayNumber(item.date) <= end,
+    );
+    if (!placed.length) return;
+    const lane = lanes.push({ category: g.category, catIndex, count: placed.length }) - 1;
+    for (const item of placed) {
+      const day = dayNumber(item.date!);
       const key = `${catIndex}:${day}`;
       const m = byKey.get(key);
       if (m) m.items.push(item);
@@ -253,14 +265,16 @@ function layout(data: Current, from?: string, to?: string) {
           key,
           category: g.category,
           catIndex,
-          date: item.date,
+          lane,
+          date: item.date!,
           items: [item],
           x: (day - start) / span,
         });
     }
   });
   const markers = [...byKey.values()].sort((a, b) => a.x - b.x || a.catIndex - b.catIndex);
-  return { markers, start, span, count: days.length };
+  const count = lanes.reduce((n, l) => n + l.count, 0);
+  return { markers, lanes, start, span, count };
 }
 
 /** One tick per week from the axis start. */

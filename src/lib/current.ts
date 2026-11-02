@@ -8,10 +8,16 @@
 export interface CurrentItem {
   title: string;
   link: string;
-  /** Short summary. Supports `[text](url)` links and `code` spans. */
-  description: string;
-  /** ISO date (YYYY-MM-DD): when the linked piece was published. */
-  date: string;
+  /**
+   * Short summary. Supports `[text](url)` links and `code` spans. A list renders one bullet
+   * per entry.
+   */
+  description: string | string[];
+  /**
+   * When the linked piece was published: YYYY-MM-DD, or YYYY-MM / YYYY when that is all that
+   * is known. Only full dates go on the timeline.
+   */
+  date?: string;
   /** Publishing company or org, shown after the title: "Claude Haiku 5.5 (Anthropic)". */
   source?: string;
   /** Person who wrote it, shown before the date: "Nick Cammarata, 15 Oct 2026". */
@@ -57,10 +63,25 @@ export function sourceSuffix(item: CurrentItem): string {
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** "2026-10-21" -> "21 Oct 2026". Parsed by hand so no timezone can shift the day. */
+/**
+ * "2026-10-21" -> "21 Oct 2026", "2026-09" -> "Sep 2026", "2001" -> "2001". Parsed by hand
+ * so no timezone can shift the day.
+ */
 export function formatItemDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number);
+  if (!m) return `${y}`;
+  if (!d) return `${MONTHS[m - 1]} ${y}`;
   return `${d} ${MONTHS[m - 1]} ${y}`;
+}
+
+/** True for a full YYYY-MM-DD date, the only kind the timeline can place. */
+export function hasDay(date: string | undefined): date is string {
+  return !!date && /^\d{4}-\d{2}-\d{2}$/.test(date);
+}
+
+/** "Nick Cammarata, 15 Oct 2026": author and date, whichever exist. */
+export function byline(item: CurrentItem): string {
+  return [item.author, item.date && formatItemDate(item.date)].filter(Boolean).join(', ');
 }
 
 /** "2026-10-21" -> "Oct 21", for axis ticks. */
@@ -83,12 +104,23 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /**
- * The bold linked title plus its source and trailing comma, as one HTML string. Rendered with
- * `set:html` so formatting the markup can never put a space before the comma.
+ * The bold linked title plus its source, then the comma and italic byline when there is
+ * one, as one HTML string. Rendered with `set:html` so formatting the markup can never put a
+ * space before the comma.
  */
 export function titleHtml(item: CurrentItem): string {
   const href = escapeHtml(item.link);
-  return `<strong><a href="${href}">${escapeHtml(item.title)}</a></strong>${escapeHtml(sourceSuffix(item))}, `;
+  const by = byline(item);
+  return (
+    `<strong><a href="${href}">${escapeHtml(item.title)}</a></strong>` +
+    escapeHtml(sourceSuffix(item)) +
+    (by ? `, <em>${escapeHtml(by)}</em>` : '')
+  );
+}
+
+/** A description as a list of bullet texts. */
+export function descriptionParts(item: CurrentItem): string[] {
+  return typeof item.description === 'string' ? [item.description] : item.description;
 }
 
 /** Renders a description's `[text](url)` links and `code` spans to HTML; escapes the rest. */
