@@ -318,5 +318,16 @@
         "description": "Weights for the 1T-parameter multimodal Large 4 (\"Le Chonk\") on Hugging Face, three weeks after the hosted preview."
       }
     ]
+  },
+  {
+    "category": "Blogs I wrote this month",
+    "items": [
+      {
+        "title": "Dikilitaş: An App to Read the 3,400-Year-Old Obelisk in Istanbul",
+        "link": "/articles/dikilitas",
+        "date": "2026-10-05",
+        "description": "I could not read a word of the obelisk in Sultanahmet, so I built an app for it. Turn a 3D model, tap a line of hieroglyphs or the pedestal's Latin and Greek, and read what it says, with some prompting to make the translations feel ancient."
+      }
+    ]
   }
 ]
