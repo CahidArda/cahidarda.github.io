@@ -2,8 +2,8 @@
  * A month of the Current as swimlanes: one row per category on a shared date axis. Each
  * day with links in a category gets one square marker, with the count printed on it when
  * there are several. Hovering (or focusing) a marker shows a tooltip listing that day's
- * links in the category, each with a link to the piece and a jump to its note. Clicking the
- * marker itself scrolls to the first of them in the list below (rendered by
+ * links in the category; clicking a title scrolls to its entry. Clicking the marker itself
+ * scrolls to the first of them in the list below (rendered by
  * `CurrentGroup` / `CurrentList`) and flashes it.
  *
  * Lane names sit in a fixed column on the left, so the axis starts at the same place every
@@ -200,29 +200,16 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
                 </div>
                 <ul className={active.items.length > 1 ? 'space-y-1.5' : ''}>
                   {active.items.map((item) => (
-                    <li key={itemId(item)} className="flex items-baseline justify-between gap-2">
-                      <span>
-                        {/* opens the piece in a new tab and brings its note into view here */}
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => jumpTo(item)}
-                          className="font-medium text-ink underline decoration-line-strong underline-offset-2 hover:text-accent hover:decoration-accent"
-                        >
-                          {item.title}
-                        </a>
-                        <span className="text-muted">{sourceSuffix(item)}</span>
-                      </span>
-                      {active.items.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => jumpTo(item)}
-                          className="shrink-0 font-mono text-[0.6rem] text-muted hover:text-accent"
-                        >
-                          note ↓
-                        </button>
-                      )}
+                    <li key={itemId(item)}>
+                      {/* jumps to the entry in the list below; the entry links out */}
+                      <button
+                        type="button"
+                        onClick={() => jumpTo(item)}
+                        className="text-left font-medium text-ink underline decoration-line-strong underline-offset-2 hover:text-accent hover:decoration-accent"
+                      >
+                        {item.title}
+                      </button>
+                      <span className="text-muted">{sourceSuffix(item)}</span>
                     </li>
                   ))}
                 </ul>
