@@ -180,6 +180,29 @@ html {
   --cb-hedge: #a9a493;
 }
 
+/* The Current: one colour per link category, by its position in the month's JSON
+   (src/lib/current.ts). Earthy, distinct hues that sit on the paper tone. */
+:root {
+  --cur-1: #b14a2a;
+  --cur-2: #2f6db0;
+  --cur-3: #1f8a6d;
+  --cur-4: #a8841c;
+  --cur-5: #7d6a9c;
+  --cur-6: #2a8f86;
+  --cur-7: #c0392b;
+  --cur-8: #6b7180;
+}
+.dark {
+  --cur-1: #d4794f;
+  --cur-2: #69a0e0;
+  --cur-3: #3fae8c;
+  --cur-4: #d6b551;
+  --cur-5: #a892c4;
+  --cur-6: #54bdb2;
+  --cur-7: #e2675a;
+  --cur-8: #9aa1b2;
+}
+
 @layer base {
   html {
     background-color: var(--color-paper);
@@ -336,6 +359,34 @@ html {
 }
 .prose li::marker {
   color: var(--color-muted);
+}
+/* The Current lists: category-coloured bullets (matching the timeline markers), and a
+   flash when the timeline jumps to an item. */
+.prose .cur-list > li::marker {
+  color: var(--cur-c, var(--color-muted));
+}
+.cur-item {
+  scroll-margin-top: 5rem;
+}
+@keyframes cur-flash {
+  from {
+    background-color: color-mix(in srgb, var(--cur-c, var(--color-accent)) 22%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+.cur-item.cur-flash,
+.cur-item:target {
+  animation: cur-flash 1.6s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cur-item.cur-flash,
+  .cur-item:target {
+    animation: none;
+    outline: 1px solid var(--cur-c, var(--color-accent));
+    outline-offset: 4px;
+  }
 }
 .prose blockquote {
   border-left: 2px solid var(--color-accent);
