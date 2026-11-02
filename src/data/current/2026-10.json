@@ -43,6 +43,20 @@
     "category": "Breaches and supply chain",
     "items": [
       {
+        "title": "Unauthorized access to some of our service systems (2nd report)",
+        "source": "IDC Frontier",
+        "link": "https://www.idcf.jp/news/topics/20261007002",
+        "date": "2026-10-07",
+        "description": "Ransomware encrypted East Japan Region 1 of IDCF Cloud, the SoftBank subsidiary's cloud, taking down 495 companies and local governments. Data in four zones could only come back from backups customers kept themselves. A [later notice](https://www.idcf.jp/news/topics/20261027001) traces the entry to a flaw in open-source software behind the portal's login, and says IDC Frontier never contacted, negotiated with or paid the attackers. In Japanese."
+      },
+      {
+        "title": "Unknown Threat Actor Uses AI-Driven ARTEX to Target South Korean Finance",
+        "source": "CrowdStrike",
+        "link": "https://www.crowdstrike.com/en-us/blog/unknown-threat-actor-uses-artex-to-target-south-korean-finance/",
+        "date": "2026-10-07",
+        "description": "ARTEX is an open-source agentic pentesting tool from China. This instance ran on DeepSeek v4.1-flash, with GLM-5.3 and Grok 4.6 in extra Claude Code sessions, and its exposed directories held those session histories. CrowdStrike names no victims. [Korean press](https://www.koreatimes.co.kr/business/banking-finance/20261001/shinhan-bank-hit-by-data-breach-affecting-25000-customers) tied the campaign to breaches at Shinhan, KB Kookmin and other banks."
+      },
+      {
         "title": "Vendor credential enables unauthorized access to Microsoft 365 tenants",
         "source": "Huntress",
         "link": "https://www.huntress.com/blog/vendor-credential-enables-unauthorized-access",
@@ -57,18 +71,18 @@
         "description": "The extortion group's own write-up of the TiDB Cloud breach. They claim 10.6 TB taken over a month of control-plane exports nobody noticed, 115K console API keys, customer production credentials pasted into Jira, and a 2022 internal ticket warning that any org member could take root on every cluster. [PingCAP's report](https://www.pingcap.com/trust-hub/security/security-update-october-2026/) confirms stolen service-account credentials and access from 9 Sep to 7 Oct, but says the exported API keys were encrypted and the credential claims are unverified."
       },
       {
-        "title": "eMudhra to exit the global SSL/TLS certificate business",
-        "source": "eMudhra",
-        "link": "https://emudhra.com/en/press-release/emudhra-to-exit-global-ssl-tls-certificate-business",
-        "date": "2026-10-22",
-        "description": "All eight of eMudhra's P-384 intermediate CA private keys turned out to be integers below 256, blamed on a broken key-generation script. Revoked within a day, and Mozilla and Chrome moved to distrust the root ([Bugzilla](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449))."
-      },
-      {
         "title": "LiteLLM security incident: malicious v1.107.0",
         "source": "LiteLLM",
         "link": "https://docs.litellm.ai/blog/security-incident-oct-21-2026",
         "date": "2026-10-21",
         "description": "Three stolen GitHub CLI tokens let an attacker run the release workflow and publish a credential stealer to PyPI and Docker for a few hours. The second LiteLLM compromise this year; `1.106.2` is the safe pin."
+      },
+      {
+        "title": "eMudhra to exit the global SSL/TLS certificate business",
+        "source": "eMudhra",
+        "link": "https://emudhra.com/en/press-release/emudhra-to-exit-global-ssl-tls-certificate-business",
+        "date": "2026-10-22",
+        "description": "All eight of eMudhra's P-384 intermediate CA private keys turned out to be integers below 256, blamed on a broken key-generation script. Revoked within a day, and Mozilla and Chrome moved to distrust the root ([Bugzilla](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449))."
       },
       {
         "title": "Claude Code extension security notice",
@@ -226,6 +240,13 @@
   {
     "category": "Models and companies",
     "items": [
+      {
+        "title": "Gemini Nano Banana 2.1",
+        "source": "Google",
+        "link": "https://ai.google.dev/gemini-api/docs/changelog",
+        "date": "2026-10-06",
+        "description": "Google's image model went GA with a changelog entry and no launch post. Image output costs half what Nano Banana 2 charged ($0.0336 per 1K image, was $0.067), though input tokens now cost three times as much. Adds 1:8 and 8:1 aspect ratios and keeps up to 4 characters consistent."
+      },
       {
         "title": "Claude Haiku 5.5",
         "source": "Anthropic",
