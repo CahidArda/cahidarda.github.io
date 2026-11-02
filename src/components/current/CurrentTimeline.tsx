@@ -6,7 +6,8 @@
  * marker itself scrolls to the first of them in the list below (rendered by
  * `CurrentGroup` / `CurrentList`) and flashes it.
  *
- * Layout: x is a percentage of the lane width (reflows with the column), y is in px (a
+ * Lane names sit in a fixed column on the left, so the axis starts at the same place every
+ * month. Layout: x is a percentage of the lane width (reflows with the column), y is in px (a
  * marker stays the same size at any width), so markers and tooltip share one frame.
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
@@ -45,8 +46,7 @@ interface Marker {
   x: number;
 }
 
-const LANE = 36; // row height, px
-const LABEL = 22; // from the top of a lane to its line, leaves room for the lane label
+const LANE = 28; // row height, px (fits a lane name wrapped to two lines)
 const SQ = 12; // marker size, px
 const HIDE_DELAY = 140; // ms, so the pointer can travel from marker into the tooltip
 
@@ -79,7 +79,7 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
 
   const height = lanes.length * LANE;
   const active = hover === null ? null : markers[hover];
-  const lineY = (i: number) => i * LANE + LABEL;
+  const lineY = (i: number) => i * LANE + LANE / 2;
   const laneTop = (m: Marker) => lineY(m.lane) - SQ / 2;
 
   return (
@@ -89,27 +89,35 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
         <span className="font-mono text-[0.65rem] text-muted">{count} links</span>
       </div>
 
-      <div className="px-4 pt-4 pb-4 sm:px-6">
-        <div className="relative" style={{ height: height + 22 }}>
-          {/* lanes: label above, dashed line through the markers */}
-          {lanes.map((g, i) => (
-            <div key={g.category}>
-              <div
-                className="absolute left-0 flex items-center gap-1.5 font-mono text-[0.62rem] leading-none text-ink-soft"
-                style={{ top: i * LANE }}
-              >
-                <span
-                  aria-hidden
-                  className="inline-block h-2 w-2"
-                  style={{ background: categoryColor(g.catIndex) }}
-                />
-                {g.category} <span className="text-muted">{g.count}</span>
-              </div>
-              <div
-                className="absolute right-0 left-0 border-t border-dashed border-line"
-                style={{ top: lineY(i) }}
+      <div className="flex gap-4 px-4 pt-4 pb-4 sm:px-6">
+        {/* lane names: a fixed column so every month gets the same axis; long names wrap */}
+        <ul className="w-28 shrink-0 sm:w-44">
+          {lanes.map((g) => (
+            <li
+              key={g.category}
+              title={g.category}
+              className="flex items-center gap-1.5 font-mono text-[0.62rem] text-ink-soft"
+              style={{ height: LANE }}
+            >
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 shrink-0"
+                style={{ background: categoryColor(g.catIndex) }}
               />
-            </div>
+              <span className="line-clamp-2 min-w-0 flex-1 leading-tight">{g.category}</span>
+              <span className="w-4 shrink-0 text-right text-muted">{g.count}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="relative min-w-0 flex-1" style={{ height: height + 22 }}>
+          {/* a dashed line per lane, through its markers */}
+          {lanes.map((g, i) => (
+            <div
+              key={g.category}
+              className="absolute right-0 left-0 border-t border-dashed border-line"
+              style={{ top: lineY(i) }}
+            />
           ))}
           {/* axis */}
           <div
@@ -180,13 +188,15 @@ export default function CurrentTimeline({ data, from, to, title = 'Timeline' }: 
             >
               {/* inner box animates; the outer one owns the positioning transform */}
               <div className="fx-fly-in border border-line bg-paper px-3 py-2 text-xs leading-snug shadow-sm">
+                {/* one line: a long category is cut short, the date always shows */}
                 <div className="mb-1 flex items-center gap-1.5 font-mono text-[0.62rem] whitespace-nowrap text-muted">
                   <span
                     aria-hidden
                     className="inline-block h-2 w-2"
                     style={{ background: categoryColor(active.catIndex) }}
                   />
-                  {active.category} · {formatItemDate(active.date)}
+                  <span className="min-w-0 truncate">{active.category}</span>
+                  <span className="shrink-0">· {formatItemDate(active.date)}</span>
                 </div>
                 <ul className={active.items.length > 1 ? 'space-y-1.5' : ''}>
                   {active.items.map((item) => (
