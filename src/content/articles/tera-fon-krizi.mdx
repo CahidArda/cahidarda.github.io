@@ -1,0 +1,210 @@
+---
+title: "Turkey's 2026 Fund Crisis"
+description: 'In September 2026 Turkey froze and began liquidating 131 investment funds across seven managers. Notes from reading into one question: could something like this happen by mistake, without anyone planning it?'
+date: 2026-10-02
+tags: ['blog']
+---
+
+import ReflexiveLoop from '../../components/interactives/tera/ReflexiveLoop.tsx';
+import CrisisTimeline from '../../components/interactives/tera/CrisisTimeline.tsx';
+import Concentration from '../../components/interactives/tera/Concentration.tsx';
+import MarkVsExit from '../../components/interactives/tera/MarkVsExit.tsx';
+import EvidenceBalance from '../../components/interactives/tera/EvidenceBalance.tsx';
+import CaseCompare from '../../components/interactives/tera/CaseCompare.tsx';
+import ProvenanceNote from '../../components/interactives/tera/ProvenanceNote.tsx';
+
+On 17 September 2026 Turkey's capital markets regulator, the
+[Sermaye Piyasası Kurulu](https://en.wikipedia.org/wiki/Capital_Markets_Board_of_Turkey) or Capital
+Markets Board, broadly the Turkish counterpart of the SEC, suspended trading in 131 investment
+funds belonging to seven portfolio management companies and began liquidating them. Six days later
+it put the number of people holding units in those funds at 455,758
+([SPK, via Diken](https://www.diken.com.tr/tasfiye-edilen-131-fon-455-bin-758-kisi-yatirim-yapmis/)).
+
+I knew nothing about any of this three days ago. The coverage I read was mostly about the
+investigation and the arrests, which is where the news is. I was curious about something narrower:
+whether a thing like this can happen by mistake. Not whether it did here, which I have no way to
+judge, but whether a fund can end up reporting a five-year return of 762,829% without anybody
+setting out to make that happen.
+
+These are notes from reading into that. It turns out to be a question with a research literature
+behind it.
+
+Lira figures below are converted at roughly ₺49 to the dollar, the rate in early October 2026
+([Trading Economics](https://tradingeconomics.com/turkey/currency)). The lira lost about 18% against
+the dollar over the preceding year, so older lira amounts bought more at the time than that rate
+implies.
+
+## Could it happen by mistake?
+
+The research says a fund can inflate its own reported returns without anyone misreporting
+anything, provided it holds a large enough share of a thinly traded stock. That is a claim about
+what is possible, not about what occurred in Turkey.
+
+The loop below is not mine. It is my drawing of the mechanism set out in van der Beck, Bouchaud and
+Villamaina's *Ponzi Funds* ([arXiv:2405.12768](https://arxiv.org/pdf/2405.12768)), discussed in more
+detail further down. The steps and the claim that they feed back on each other come from that
+paper; splitting it into four boxes is mine, and any clumsiness in the split is too.
+
+<div class="fx-figure">
+  <ReflexiveLoop client:visible />
+</div>
+
+Each step is permitted. A fund takes in money. It buys more of what it already holds. Because that
+holding has little free float, meaning few of its shares are actually available to trade, the
+buying moves the price. The fund then marks its entire position at the new price, which is what the
+valuation rules require, so its net asset value, the per-unit figure investors see, rises by more
+than the money that arrived, since the new price revalues every share it already held. That NAV
+becomes a published return, and the published return attracts the next investor.
+
+So the answer to the question I started with is yes, in principle: the returns can inflate without
+anyone misreporting a number. That does not tell you whether it is what happened in any particular
+case, including this one.
+
+## The stages Kindleberger described
+
+Reading into this led me to [Charles Kindleberger](https://en.wikipedia.org/wiki/Charles_P._Kindleberger),
+an economic historian I had not encountered before. His *Manias, Panics, and Crashes* sets out
+financial crises as a recurring sequence rather than a series of unrelated events: structural
+conditions, a *displacement* that sets things moving, euphoria, distress as conditions turn, then
+revulsion. A later working paper from the National Bureau of Economic Research, a US economics
+research organisation, restates that model and keeps his distinction between the background
+conditions and the event that sets things off, and puts the discovery of fraud near the end, during
+the cleanup
+([Kindleberger Cycles, NBER WP 28411](https://www.nber.org/system/files/working_papers/w28411/w28411.pdf)).
+
+The timeline below arranges the documented dates by those stages. A framework this general fits
+many episodes, so the arrangement organises events; it does not establish that Kindleberger's
+mechanism produced this one.
+
+<div class="fx-figure">
+  <CrisisTimeline client:visible />
+</div>
+
+Two structural conditions are documented. Turkish hedge funds, *serbest fonlar*, are restricted to
+qualified investors, and for individuals that status turns largely on a financial-asset threshold.
+The threshold was ₺1m, about \$20,000 at today's rate, and it was not indexed to inflation. SPK
+raised it to ₺10m on 18 December 2025
+([Finansopia](https://www.finansopia.com/ekonomi/spkdan-fonlarda-manipulasyon-duzenlemesi/)).
+
+The second is distribution. TEFAS, the platform through which Turkish funds are bought and sold,
+is reachable inside the standard bank apps. When hedge funds became available there, a product
+written for a professional audience became accessible to retail buyers.
+
+## What the fund held
+
+At the end of August 2026, Tera's flagship fund TLY held roughly ₺244bn, about \$5bn, for 102,616
+investors ([fon.org.tr](https://fon.org.tr/fon/TLY)). Its disclosed portfolio weights:
+
+<div class="fx-figure">
+  <Concentration client:visible />
+</div>
+
+Concentrated portfolios are common. What the disclosures additionally show is the relationship
+between the fund and its holdings. Just under 29% of the fund sat in three companies chaired by
+Emre Tezmen, Tera's founder and main shareholder, two of which are the group's own listed holding
+companies ([Tera Finansal Yatırımlar](https://terafinansalyatirimlar.com/sayfa-yonetim-kurulu-22)).
+The largest single position, just under a quarter of the fund, was Destek Finans Faktoring, whose
+January 2025 IPO was underwritten by Tera Yatırım Menkul Değerler, and and the single largest buyer at
+flotation was TLY itself, taking 15.42% of the offering
+([halkarz.com](https://halkarz.com/destek-finans-faktoring-a-s/)).
+
+Destek Holding's owner, Altunç Kumova, told prosecutors that his company's rise from about ₺15bn at
+flotation to ₺1.3tn, a factor of more than 80, was <q>anormal bir rakam</q>, an abnormal figure
+([NTV](https://www.ntv.com.tr/turkiye/destek-holding-patronu-savciya-anlatti-hisselerin-yukselisi-hosuma-gidiyordu-1742669)).
+These are disclosures and testimony. They do not establish intent, which is what the courts have to
+determine.
+
+## Why a NAV is not an exit price
+
+A fund's unit value is computed by marking its holdings at the last traded price. Where the fund is
+a small participant in a liquid market, that approximates what the holdings would fetch. Where the
+fund's own buying set the last price, the mark describes one share rather than all of them.
+
+<div class="fx-figure">
+  <MarkVsExit client:visible />
+</div>
+
+This has been studied directly. In *Ponzi Funds*, van der Beck, Bouchaud and Villamaina decompose
+fund returns into a fundamental component and a self-inflated component produced by the fund's own
+price impact, and find that investors allocate capital without distinguishing between them, which
+closes the loop into a feedback cycle that transfers wealth to early investors and unwinds when the
+price pressure reverts ([arXiv:2405.12768](https://arxiv.org/pdf/2405.12768)). They estimate that
+roughly half of a day's price impact reverts within five to ten days, and attribute about 2% of all
+daily fund flows, rising to 8-12% among the tenth of funds holding the least liquid assets, to flows chasing a fund's own impact.
+Their data is American and European, not Turkish.
+
+The title is a borrowing. "Ponzi finance" is
+[Hyman Minsky](https://en.wikipedia.org/wiki/Hyman_Minsky)'s term for the stage at which obligations
+can be met only through new financing rather than from an asset's own returns.
+
+The consequence for unit holders is a timing effect. A unit redeemed at the marked NAV is a claim
+on a price the fund has not tested, so early redeemers are paid at a figure later ones may not
+reach. The UK's Financial Conduct Authority described this first-mover advantage in its own work on
+illiquid funds, where the cost of providing liquidity to those who transact falls on those who stay
+([FCA Occasional Paper 48](https://www.fca.org.uk/publication/occasional-papers/occasional-paper-48.pdf)).
+
+## Orchestrated or emergent
+
+Asking whether something could happen by mistake invites the follow-up of whether it did. I cannot
+answer that, and neither can anyone outside the investigation. What can be set out is what points
+each way.
+
+<div class="fx-figure">
+  <EvidenceBalance client:visible />
+</div>
+
+Kindleberger treats these as sequential rather than competing. He puts swindles inside a mania
+rather than before it: the boom generates the appetite, the appetite generates the fraud, and the
+panic exposes it. In his chapter on frauds and the credit cycle he writes that crashes are often
+precipitated by the revelation of some misfeasance rather than caused by it.
+[John Kenneth Galbraith](https://en.wikipedia.org/wiki/John_Kenneth_Galbraith) made a related
+observation about what he called the bezzle, the stock of undiscovered embezzlement that grows in
+good times, when people are trusting and money is plentiful, and shrinks in bad ones, when audits
+become thorough (*The Great Crash 1929*, Chapter VIII).
+
+That is a framework, not a finding about Tera. One consequence of it is procedural, though:
+manipulation requires intent and a feedback loop does not, which is a reason regulators reach for
+structural limits, such as a cap at 8% of free float, rather than for findings about what anyone
+meant.
+
+## Earlier cases
+
+Three collapses came up repeatedly while reading, and they differ from each other more than the
+coverage suggested.
+
+<div class="fx-figure">
+  <CaseCompare client:visible />
+</div>
+
+The pattern across them is that the mechanism and the victims are separate questions. Archegos is
+the closest on how prices moved and the furthest on who paid; Woodford is the reverse; the 1982
+Turkish case shares neither mechanism, only the ending.
+
+## What happens to the money
+
+The liquidation window was set at three months and extended to six. Assets are sold and the proceeds split in
+proportion to what each investor holds, so what they receive depends on what the holdings fetch
+rather than on the last published unit value. On 1 October SPK authorised interim payments of up to ₺1m per investor,
+about \$20,000, against net investment as calculated by MKK, Turkey's central securities
+depository, with money market funds paid first
+([Hürriyet](https://www.hurriyet.com.tr/gundem/spkdan-tasfiye-edilen-fonlar-icin-karar-ara-odemeler-yapilacak-43325364)).
+
+On 30 September the
+[Banking Regulation and Supervision Agency](https://en.wikipedia.org/wiki/Banking_Regulation_and_Supervision_Agency)
+(BDDK) transferred three investment banks and two factoring companies in the Tera and Destek groups
+to the
+[Savings Deposit Insurance Fund](https://en.wikipedia.org/wiki/Savings_Deposit_Insurance_Fund_of_Turkey)
+(TMSF), Turkey's bank resolution body and rough counterpart of the FDIC. The three banks hold 0.22%
+of Turkish banking sector assets
+([FinansınGündemi](https://www.finansingundemi.com/haber/tera-destek-ve-hedef-yatirim-bankalari-tmsfye-devredildi/1910039)),
+which is the basis for official statements that the episode is contained at the system level.
+
+One detail is worth recording. The first Tera product to default was not the hedge fund with the
+762,829% five-year return. It was a *para piyasası fonu*, a money market fund, the product savers
+use as a deposit substitute.
+
+---
+
+<div class="fx-figure">
+  <ProvenanceNote client:visible />
+</div>
