@@ -5,6 +5,11 @@ date: 2026-11-08
 tags: ['blog']
 ---
 
+<p class="text-sm text-muted" style="border-left: 3px solid var(--color-line); padding: 0.4rem 0.8rem;">
+  Made by Cahid Arda Öz with Claude. The app and this post were prepared with AI, so details
+  may be wrong. The historical content was written by the agent; it isn't my claim or opinion.
+</p>
+
 I made a small app called [Rical 1876](https://rical-1876.vercel.app). It is a timeline
 of the late Ottoman and early Republican statesmen (the _ricâl-i devlet_), from the
 Young Ottomans to the first years of the Republic. Each person is a vertical line and
@@ -15,52 +20,27 @@ The code is on GitHub: [CahidArda/rical-1876](https://github.com/CahidArda/rical
 
 ## Where it came from
 
-I was in Macedonia recently, and I spent the trip reading about the events of the early
-20th century: Resen, Manastır, 1908. Back home I kept thinking about Çerkes Hasan, the
-officer who burst into a cabinet meeting in 1876, and about who he shot and why.
+I was in Macedonia recently and spent the trip reading about the events of the early
+20th century: Resen, Manastır, 1908. Somewhere along the way the Çerkes Hasan incident
+came up, and I wondered who he had shot and why.
 
 We hear these names all through history class: Midhat Paşa, Enver, Talât, Niyazi,
 Mahmud Şevket Paşa. But since we didn't live back then, they feel like characters who
 appear out of nowhere, do one thing and leave. Who were they really, once you put them in
-context? Who stood next to whom, and who turned on whom later? This timeline is my answer
-to that: the statesmen of the period, placed in relation to each other.
+context? Who stood next to whom, and who turned on whom later? This timeline is an attempt
+at that: the statesmen of the period, placed in relation to each other.
 
 <figure class="fx-figure">
   <img
-    src="/articles/rical-1876/1908-1913.jpg"
-    alt="A section of the timeline from 1908 to 1913: coloured lines for each person meet in boxes for events such as the 31 Mart uprising, the Action Army, the Salonika congress and the Bab-ı Ali raid"
+    src="/articles/rical-1876/1908-1909-dark.jpg"
+    alt="A section of the timeline from July 1908 to April 1909: coloured lines for each person meet in boxes for the restored constitution, the reopened parliament, the 31 Mart uprising, the Action Army and the deposition of Abdülhamid II"
     loading="lazy"
     style="width: 100%; height: auto; border: 1px solid var(--color-line);"
   />
   <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
-    1908 to 1913. Each event box is split into the parties involved: raiders and
-    government, mutineers and the Action Army, dissidents and leadership.
+    July 1908 to April 1909. Each event box is split into the parties involved.
   </figcaption>
 </figure>
-
-## How it is drawn
-
-The page is a single HTML file with no build step: the data (people, events, who was on
-which side) and the code that draws it as an SVG. The interesting part is the layout. A
-chart like this turns into spaghetti fast, so I borrowed the method used for
-"storyline" visualizations, the charts that show which characters of a film share a
-scene:
-
-- **Order the lines to avoid crossings.** Every event is a layer. In each layer the
-  lines, the event and the parties inside it are sorted by the average position of the
-  same people in the layer above, then again using the layer below, back and forth. This
-  is the barycenter heuristic from layered graph drawing. After a few dozen sweeps the
-  order with the fewest crossings wins.
-- **Straighten them.** With the order fixed, every line should move sideways as little as
-  possible while keeping a minimum gap from its neighbours and staying out of boxes it is
-  not part of. In each layer that is a small least-squares problem with ordering
-  constraints, which isotonic regression solves exactly. Iterating over the layers
-  settles the whole picture.
-- **Keep bystanders still.** A final pass keeps a line that is not part of an event
-  exactly where it was, so it only bends when a box needs the room.
-
-The lines carry the names, and tapping (or hovering over) a line, a box or a ✕ explains
-it.
 
 ## What surprised me
 
@@ -73,5 +53,20 @@ sultan he helped depose.
 
 I had learned all of these events separately. Seeing who was who, and what they did,
 laid out in one picture made them much easier to follow than any list of dates.
+
+## How it is drawn
+
+It is a single HTML file with no build step. This kind of chart is a
+[storyline visualization](https://ieeevis.org/year/2012/paper/infovis/design-considerations-optimizing-storyline-visualizations),
+first drawn by hand in xkcd's [Movie Narrative Charts](https://xkcd.com/657/), and it turns
+into spaghetti fast. The layout follows the two steps of
+[StoryFlow](https://shixialiu.com/publications/storyflow/index.html) (Liu et al., 2013):
+
+- **Order** the lines in each event to minimize crossings, with the barycenter heuristic
+  from [layered graph drawing](https://en.wikipedia.org/wiki/Layered_graph_drawing).
+- **Straighten** them: move each line sideways as little as possible while keeping gaps
+  and staying out of boxes it isn't part of, solved per event with
+  [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Lines that
+  aren't in an event don't move at all.
 
 Try it here: [rical-1876.vercel.app](https://rical-1876.vercel.app).
