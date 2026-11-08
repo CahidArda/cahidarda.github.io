@@ -1,0 +1,77 @@
+---
+title: 'Rical 1876: Putting Late Ottoman Statesmen in Context'
+description: 'An interactive timeline of the late Ottoman and early Republican statesmen, drawn as a storyline: one line per person, one box per event, so you can see who was who and what they did together.'
+date: 2026-11-08
+tags: ['blog']
+---
+
+I made a small app called [Rical 1876](https://rical-1876.vercel.app). It is a timeline
+of the late Ottoman and early Republican statesmen (the _ricâl-i devlet_), from the
+Young Ottomans to the first years of the Republic. Each person is a vertical line and
+time flows down. When people take part in the same event, their lines meet in a box, each
+sitting with the side they were on. A line ends where the person dies.
+
+The code is on GitHub: [CahidArda/rical-1876](https://github.com/CahidArda/rical-1876).
+
+## Where it came from
+
+I was in Macedonia recently, and I spent the trip reading about the events of the early
+20th century: Resen, Manastır, 1908. Back home I kept thinking about Çerkes Hasan, the
+officer who burst into a cabinet meeting in 1876, and about who he shot and why.
+
+We hear these names all through history class: Midhat Paşa, Enver, Talât, Niyazi,
+Mahmud Şevket Paşa. But since we didn't live back then, they feel like characters who
+appear out of nowhere, do one thing and leave. Who were they really, once you put them in
+context? Who stood next to whom, and who turned on whom later? This timeline is my answer
+to that: the statesmen of the period, placed in relation to each other.
+
+<figure class="fx-figure">
+  <img
+    src="/articles/rical-1876/1908-1913.jpg"
+    alt="A section of the timeline from 1908 to 1913: coloured lines for each person meet in boxes for events such as the 31 Mart uprising, the Action Army, the Salonika congress and the Bab-ı Ali raid"
+    loading="lazy"
+    style="width: 100%; height: auto; border: 1px solid var(--color-line);"
+  />
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    1908 to 1913. Each event box is split into the parties involved: raiders and
+    government, mutineers and the Action Army, dissidents and leadership.
+  </figcaption>
+</figure>
+
+## How it is drawn
+
+The page is a single HTML file with no build step: the data (people, events, who was on
+which side) and the code that draws it as an SVG. The interesting part is the layout. A
+chart like this turns into spaghetti fast, so I borrowed the method used for
+"storyline" visualizations, the charts that show which characters of a film share a
+scene:
+
+- **Order the lines to avoid crossings.** Every event is a layer. In each layer the
+  lines, the event and the parties inside it are sorted by the average position of the
+  same people in the layer above, then again using the layer below, back and forth. This
+  is the barycenter heuristic from layered graph drawing. After a few dozen sweeps the
+  order with the fewest crossings wins.
+- **Straighten them.** With the order fixed, every line should move sideways as little as
+  possible while keeping a minimum gap from its neighbours and staying out of boxes it is
+  not part of. In each layer that is a small least-squares problem with ordering
+  constraints, which isotonic regression solves exactly. Iterating over the layers
+  settles the whole picture.
+- **Keep bystanders still.** A final pass keeps a line that is not part of an event
+  exactly where it was, so it only bends when a box needs the room.
+
+The lines carry the names, and tapping (or hovering over) a line, a box or a ✕ explains
+it.
+
+## What surprised me
+
+How often it was the same people. The man who goes to the mountains in 1908 marches on
+Istanbul in 1909, storms the Sublime Porte in 1913 and runs the war in 1914. The officer
+sent off to Sofia in 1913, a polite way of getting him out of the capital, is the one
+landing at Samsun in 1919. The opposition of 1912 is the government that loses the
+Balkan War, and the man behind the 1876 constitution is later tried for the death of the
+sultan he helped depose.
+
+I had learned all of these events separately. Seeing who was who, and what they did,
+laid out in one picture made them much easier to follow than any list of dates.
+
+Try it here: [rical-1876.vercel.app](https://rical-1876.vercel.app).
