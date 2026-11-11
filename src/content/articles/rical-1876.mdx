@@ -1,36 +1,43 @@
 ---
-title: 'Rical 1876: Putting Late Ottoman Statesmen in Context'
-description: 'An interactive timeline of the late Ottoman and early Republican statesmen, drawn as a storyline: one line per person, one box per event, so you can see who was who and what they did together.'
+title: 'Rical 1876: Who Stood Next to Whom'
+description: 'Interactive storyline timelines of late Ottoman statesmen, the late Roman Republic, the United States, the French Revolution and the Bolsheviks: one line per person, one box per event. Plus the story of an agent, a rule and some paintings.'
 date: 2026-11-08
 tags: ['blog']
 ---
 
 <aside class="text-sm text-muted" style="border-left: 3px solid var(--color-line); padding: 0.4rem 0.8rem; margin-bottom: 1.5rem;">The app and this post were prepared with Claude, so details may be wrong. The historical content was written by the agent; it isn't my claim or opinion.</aside>
 
-I made a small app called [Rical 1876](https://rical-1876.vercel.app). It is a timeline
-of the late Ottoman and early Republican statesmen (the _ricâl-i devlet_), from the
-Young Ottomans to the first years of the Republic. Each person is a vertical line and
-time flows down. When people take part in the same event, their lines meet in a box, each
-sitting with the side they were on. A line ends where the person dies.
+[Rical 1876](https://rical-1876.vercel.app) is a set of timelines where each person is a
+vertical line and time flows down. When people take part in the same event, their lines
+meet in a box, each sitting with the side they were on. A line ends where the person dies.
+Hover a name or a box for details, or tap on a phone.
 
-The code is on GitHub: [CahidArda/rical-1876](https://github.com/CahidArda/rical-1876).
+It started with the late Ottoman statesmen (the _ricâl-i devlet_), from the Young Ottomans
+to the early Republic, and later grew more tabs. The code is on GitHub: [CahidArda/rical-1876](https://github.com/CahidArda/rical-1876).
+
+<video
+  controls
+  muted
+  playsInline
+  preload="metadata"
+  src="https://cdn.jsdelivr.net/gh/CahidArda/rical-1876@main/docs/promo.mp4"
+  style="width: 100%; border-radius: 4px;"
+>
+  Your browser does not support the video tag.
+</video>
 
 ## Where it came from
 
-I was in Macedonia recently and spent the trip reading about the events of the early
-20th century: Resen, Manastır, 1908. Somewhere along the way the Çerkes Hasan incident
-came up, and I wondered who he had shot and why.
-
-We hear these names all through history class: Midhat Paşa, Enver, Talât, Niyazi,
-Mahmud Şevket Paşa. But since we didn't live back then, they feel like characters who
-appear out of nowhere, do one thing and leave. Who were they really, once you put them in
-context? Who stood next to whom, and who turned on whom later? This timeline is an attempt
-at that: the statesmen of the period, placed in relation to each other.
+I was in Macedonia recently and spent the trip reading about early 20th century Ottoman
+history. We hear these names all through history class: Midhat Paşa, Enver, Talât, Niyazi,
+Mahmud Şevket Paşa. But they tend to feel like characters who appear out of nowhere, do one thing
+and leave, because it's hard to connect the same names across several events. I wanted to
+see them next to each other.
 
 <figure class="fx-figure">
   <img
     src="/articles/rical-1876/1908-1909-dark.jpg"
-    alt="A section of the timeline from July 1908 to April 1909: coloured lines for each person meet in boxes for the restored constitution, the reopened parliament, the 31 Mart uprising, the Action Army and the deposition of Abdülhamid II"
+    alt="A section of the Ottoman timeline from July 1908 to April 1909: coloured lines for each person meet in boxes for the restored constitution, the reopened parliament, the 31 Mart uprising, the Action Army and the deposition of Abdülhamid II"
     loading="lazy"
     style="width: 100%; height: auto; border: 1px solid var(--color-line);"
   />
@@ -41,14 +48,45 @@ at that: the statesmen of the period, placed in relation to each other.
 
 ## What surprised me
 
-How often it was the same people. The man who goes to the mountains in 1908 marches on
-Istanbul in 1909, storms the Sublime Porte in 1913 and runs the war in 1914. The officer
-posted to Sofia in 1913 is the one landing at Samsun in 1919. The opposition of 1912 is the government that loses the
-Balkan War, and the man behind the 1876 constitution is later tried for the death of the
-sultan he helped depose.
+How often it was the same people. Names I knew from separate chapters of the history
+books (1908, the Balkan Wars, the First World War, the War of Independence) turned out to
+be a fairly small group who kept crossing paths over a few decades, sometimes on the same
+side and sometimes not.
 
 I had learned all of these events separately. Seeing who was who, and what they did,
 laid out in one picture made them much easier to follow than any list of dates.
+
+Once the Ottoman one worked, I added more tabs with the same habit of allies turning into
+enemies. There are five now:
+
+- **Roman Republic** (133 to 27 BC): from the Gracchi to Octavian becoming Augustus, through Marius and Sulla,
+  Caesar and Pompey, and the triumvirates.
+- **United States** (1765 to 1865): the founders, the feuds between them, and on to the
+  Civil War.
+- **French Revolution** (1789 to 1850): the factions of the Revolution, Napoleon, and the
+  coalition wars, with who won each one.
+- **Ottoman Empire** (1865 to 1964): the original tab, from the Young Ottomans to the early
+  Republic.
+- **Bolsheviks** (1903 to 1953): from the 1903 party split to 1953.
+
+Each tab also marks its periods as shaded bands behind the lines: wars, coalitions,
+presidencies, constitutional eras. They nest inside each other, so you can see at a glance
+that a given event happened in the middle of the Balkan Wars, or during Jefferson's presidency.
+
+## The photo rule
+
+I ran into an unexpected blocker while building the app. I wanted pictures of the people and
+events in the tooltips, and my agent refused to add them because of a rule in its
+instructions:
+
+> Claude doesn't download a photo of a public figure that it finds on the web, or put it
+> into a slide, document or other file it makes for the person, whether as a copy or as a
+> link.
+
+It suggested I find the image URLs myself, which isn't realistic for hundreds of images. I
+ended up convincing it by pointing out that what I wanted weren't photos but paintings,
+busts and engravings, which it accepted, thankfully. Photographs stayed out, so most of the
+Ottoman cast, who lived in the age of the studio photograph, still has no picture.
 
 ## How it is drawn
 
@@ -64,5 +102,13 @@ into spaghetti fast. The layout follows the two steps of
   and staying out of boxes it isn't part of, solved per event with
   [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Lines that
   aren't in an event don't move at all.
+
+## The video
+
+The video at the top is the real app, not a mockup. A script loads the page in headless
+Chrome with Playwright and moves a camera over it frame by frame, revealing the chart in
+story order; the cursor is a real mouse, so the hover cards are the app's own. ffmpeg stitches
+the frames, and the sound effects are synthesized in Python with numpy. Claude wrote all of it,
+and I gave notes over a few rounds until it felt right.
 
 Try it here: [rical-1876.vercel.app](https://rical-1876.vercel.app).
