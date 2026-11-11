@@ -1,6 +1,6 @@
 ---
 title: 'Rical 1876: Who Stood Next to Whom'
-description: 'Interactive storyline timelines of late Ottoman statesmen, the late Roman Republic and the French Revolution: one line per person, one box per event. Plus the story of an agent, a rule and some paintings.'
+description: 'Interactive storyline timelines of late Ottoman statesmen, the late Roman Republic, the United States, the French Revolution and the Bolsheviks: one line per person, one box per event. Plus the story of an agent, a rule and some paintings.'
 date: 2026-11-08
 tags: ['blog']
 ---
@@ -14,6 +14,17 @@ Hover a name or a box for details, or tap on a phone.
 
 It started with the late Ottoman statesmen (the _ricâl-i devlet_), from the Young Ottomans
 to the early Republic, and later grew more tabs. The code is on GitHub: [CahidArda/rical-1876](https://github.com/CahidArda/rical-1876).
+
+<video
+  controls
+  muted
+  playsInline
+  preload="metadata"
+  src="https://cdn.jsdelivr.net/gh/CahidArda/rical-1876@main/docs/promo.mp4"
+  style="width: 100%; border-radius: 4px;"
+>
+  Your browser does not support the video tag.
+</video>
 
 ## Where it came from
 
@@ -46,8 +57,21 @@ I had learned all of these events separately. Seeing who was who, and what they 
 laid out in one picture made them much easier to follow than any list of dates.
 
 Once the Ottoman one worked, I added more tabs with the same habit of allies turning into
-enemies: the late Roman Republic, the United States from the Revolution to the Civil War, the
-French Revolution and the Bolsheviks.
+enemies. There are five now:
+
+- **Roman Republic** (133 to 27 BC): from the Gracchi to Octavian becoming Augustus, through Marius and Sulla,
+  Caesar and Pompey, and the triumvirates.
+- **United States** (1765 to 1865): the founders, the feuds between them, and on to the
+  Civil War.
+- **French Revolution** (1789 to 1850): the factions of the Revolution, Napoleon, and the
+  coalition wars, with who won each one.
+- **Ottoman Empire** (1865 to 1964): the original tab, from the Young Ottomans to the early
+  Republic.
+- **Bolsheviks** (1903 to 1953): from the 1903 party split to 1953.
+
+Each tab also marks its periods as shaded bands behind the lines: wars, coalitions,
+presidencies, constitutional eras. They nest inside each other, so you can see at a glance
+that a given event happened in the middle of the Balkan Wars, or during Jefferson's presidency.
 
 ## The photo rule
 
@@ -78,5 +102,13 @@ into spaghetti fast. The layout follows the two steps of
   and staying out of boxes it isn't part of, solved per event with
   [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Lines that
   aren't in an event don't move at all.
+
+## The video
+
+The video at the top is the real app, not a mockup. A script loads the page in headless
+Chrome with Playwright and moves a camera over it frame by frame, revealing the chart in
+story order; the cursor is a real mouse, so the hover cards are the app's own. ffmpeg stitches
+the frames, and the sound effects are synthesized in Python with numpy. Claude wrote all of it,
+and I gave notes over a few rounds until it felt right.
 
 Try it here: [rical-1876.vercel.app](https://rical-1876.vercel.app).
