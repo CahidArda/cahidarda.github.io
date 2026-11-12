@@ -90,7 +90,12 @@ Ottoman cast, who lived in the age of the studio photograph, still has no pictur
 
 ## How it is drawn
 
-It is a single HTML file with no build step. This kind of chart is a
+There is no framework: one HTML file, plus a data file per timeline. Solving the layout takes
+a moment, so a small script (`bake.py`) solves it ahead of time in headless Chrome and writes
+the finished charts into the page, which then draws instantly. A GitHub Action re-bakes on every
+push, and the page swaps in the interactive version once it loads.
+
+This kind of chart is a
 [storyline visualization](https://ieeevis.org/year/2012/paper/infovis/design-considerations-optimizing-storyline-visualizations),
 first drawn by hand in xkcd's [Movie Narrative Charts](https://xkcd.com/657/), and it turns
 into spaghetti fast. The layout follows the two steps of
@@ -101,7 +106,7 @@ into spaghetti fast. The layout follows the two steps of
 - **Straighten** them: move each line sideways as little as possible while keeping gaps
   and staying out of boxes it isn't part of, solved per event with
   [isotonic regression](https://en.wikipedia.org/wiki/Isotonic_regression). Lines that
-  aren't in an event don't move at all.
+  aren't in an event stay where they were, unless they have to make room.
 
 ## The video
 
