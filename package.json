@@ -13,7 +13,8 @@
     "astro": "astro",
     "check": "astro check",
     "check:code-lines": "node scripts/check-code-line-length.mjs",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "tweets": "node scripts/tweets.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.1",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@xeet/core": "0.1.0",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1"
   }
