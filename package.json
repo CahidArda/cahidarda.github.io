@@ -7,14 +7,14 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/tweets.mjs && astro dev",
+    "build": "node scripts/tweets.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
     "check:code-lines": "node scripts/check-code-line-length.mjs",
     "format": "prettier --write .",
-    "tweets": "node scripts/tweets.mjs"
+    "tweets": "node scripts/tweets.mjs --refresh"
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.1",

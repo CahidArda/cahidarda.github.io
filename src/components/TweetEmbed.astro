@@ -2,14 +2,15 @@
 /**
  * Shows an X post as a static image that links to the post.
  *
- * The images are rendered ahead of time by `pnpm tweets` (scripts/tweets.mjs),
+ * The images are rendered before each build and dev server by scripts/tweets.mjs,
  * which writes a light and a dark WebP to public/tweets/ and the post's metadata
- * to src/data/tweets/<id>.json. Nothing is loaded from X when the page is viewed,
+ * to src/data/tweets/<id>.json (not committed; cached between deploys in CI).
+ * Nothing is loaded from X when the page is viewed,
  * so there is no third-party script and no layout shift. The site theme (the
  * `.dark` class on <html>) picks which image shows.
  *
- * A post without rendered images falls back to a plain quote with a link; run
- * `pnpm tweets` to render it.
+ * A post that could not be fetched and has no earlier render falls back to a
+ * plain quote with a link.
  */
 interface Props {
   url: string;
@@ -37,7 +38,7 @@ const rendered = import.meta.glob<TweetMeta>('../data/tweets/*.json', {
 const meta = id ? rendered[`../data/tweets/${id}.json`] : undefined;
 
 if (!meta) {
-  console.warn(`[TweetEmbed] ${url} has no rendered image. Run \`pnpm tweets\`.`);
+  console.warn(`[TweetEmbed] ${url} has no rendered image; showing a plain quote.`);
 }
 
 const alt = meta ? `Post by ${meta.name} (@${meta.handle}) on X: ${meta.text}` : '';

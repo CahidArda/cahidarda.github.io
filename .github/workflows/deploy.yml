@@ -24,6 +24,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # X post renders from the last deploy. The build fetches every post again
+      # (scripts/tweets.mjs); when a fetch fails, the cached render is used. A new
+      # key each run saves this run's renders; restore-keys picks the latest.
+      - name: Restore X post renders
+        uses: actions/cache@v4
+        with:
+          path: |
+            public/tweets
+            src/data/tweets
+          key: tweets-${{ github.run_id }}
+          restore-keys: tweets-
       - name: Build with Astro
         uses: withastro/action@v3
         with:

@@ -45,8 +45,8 @@ pnpm format    # prettier --write .
 - **Article prose & widget text: no em-dashes** (use `.`, `:`, `,`, or parentheses), and do a quick
   signs-of-AI-writing pass. Cite quotes to the exact source document (link the PDF, not a landing page)
   and fact-check quotes/equations/benchmark numbers against primary sources before publishing. Reusable
-  helpers: `EqTip.astro` (equation hover-tooltip), `TweetEmbed.astro` (X posts are pre-rendered to images: after adding
-  one, run `pnpm tweets` and commit the new files). See the skill for details.
+  helpers: `EqTip.astro` (equation hover-tooltip), `TweetEmbed.astro` (X posts become images rendered before every build/dev
+  run by `scripts/tweets.mjs`; the renders are gitignored, `pnpm tweets` refreshes them). See the skill for details.
 - Don't commit/push to the default branch; branch first. Only open a PR when asked.
 
 ## Writing interactive articles, charts, and diagrams

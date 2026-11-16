@@ -25,8 +25,8 @@ most of it is failures we already hit and fixed.
   there is the source of truth; default `['blog']`). `draft: true` excludes a post from the build.
 - React islands don't share state across mounts. Cross-widget messaging → a `window` `CustomEvent`.
 - Reusable blocks already in `src/components/`: `EqTip.astro` (hover tooltip explaining a display
-  equation, modeled on `TagBadge.astro`'s CSS tooltip), `TweetEmbed.astro` (X post as a static image;
-  after adding one, run `pnpm tweets` to render it and commit `public/tweets/` + `src/data/tweets/`). Prefer these over re-inventing.
+  equation, modeled on `TagBadge.astro`'s CSS tooltip), `TweetEmbed.astro` (X post as a static image,
+  rendered automatically before build/dev; give it a text `fallback` for when X can't be reached). Prefer these over re-inventing.
 
 ## 1. Article shell
 
