@@ -150,41 +150,6 @@ function reassign(cars: Car[], from: Route, to: Route, n: number): Car[] {
   return next;
 }
 
-/**
- * The bridge closes: nobody can use it from this instant. Cars on A-C keep going via C-B
- * (top), cars on D-B are already on the bottom route, a car on the bridge itself is put on
- * the road leaving its nearer end, and nobody plans a trip over it any more. Future trips are
- * then balanced so the drawn cars match the 2000 / 2000 split.
- */
-function closeBridge(cars: Car[]): Car[] {
-  const next = cars.map((c) => ({ ...c, next: c.next === 'zig' ? undefined : c.next }));
-  for (const c of next) {
-    if (c.route !== 'zig') continue;
-    const e = PATHS.zig[c.seg];
-    if (e === 'CD') {
-      const toTop = c.u < 0.5;
-      c.route = toTop ? 'top' : 'bot';
-      c.seg = 1; // C-B or D-B
-      c.u = 0;
-    } else {
-      const r: Route = PATHS.top.indexOf(e) >= 0 ? 'top' : 'bot';
-      c.route = r;
-      c.seg = PATHS[r].indexOf(e);
-    }
-  }
-  const plan = (c: Car) => c.next ?? c.route;
-  let diff =
-    next.filter((c) => plan(c) === 'top').length - next.filter((c) => plan(c) === 'bot').length;
-  for (const c of next) {
-    if (Math.abs(diff) <= 1) break;
-    const from: Route = diff > 0 ? 'top' : 'bot';
-    if (plan(c) !== from) continue;
-    c.next = from === 'top' ? 'bot' : 'top'; // takes the other road from its next trip
-    diff += from === 'top' ? -2 : 2;
-  }
-  return next;
-}
-
 const fmt = (v: number) =>
   Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1);
 
@@ -200,6 +165,8 @@ export default function NewRoad() {
   const [, setTick] = useState(0);
   const touched = useRef(false);
   const flowRef = useRef(flow);
+  const wasOpen = useRef(false);
+  const fadeFrom = useRef(-1e9); // when the current set of cars started fading in
   flowRef.current = flow;
 
   const avg = useTween(average(flow), reduced, 8);
@@ -221,13 +188,20 @@ export default function NewRoad() {
     if (!open) {
       // closing is instant: everyone is back on the two old roads at once
       const eq = equilibrium(flowRef.current, false);
-      carsRef.current = closeBridge(carsRef.current);
+      // the old cars were all bunched on the bridge route: spread a fresh, even set over the
+      // two old roads (none on the bridge) and fade it in, so nothing visibly jumps
+      if (wasOpen.current) {
+        carsRef.current = initialCars(eq);
+        fadeFrom.current = performance.now();
+      }
+      wasOpen.current = false;
       flowRef.current = eq;
       setFlow(eq);
       setMove(null);
       setSettled(true);
       return;
     }
+    wasOpen.current = true;
     setSettled(false);
     setMove(null);
     const id = setInterval(() => {
@@ -432,6 +406,10 @@ export default function NewRoad() {
 
         {/* cars, drawn under the towns */}
         {carsRef.current.map((c, i) => {
+          const fade =
+            typeof performance === 'undefined'
+              ? 1
+              : Math.min(1, (performance.now() - fadeFrom.current) / 400);
           const p = carXY(c);
           return (
             <rect
@@ -440,7 +418,7 @@ export default function NewRoad() {
               y={p.y - 3}
               width={6}
               height={6}
-              style={{ fill: ROUTE_COLOR[c.route] }}
+              style={{ fill: ROUTE_COLOR[c.route], opacity: fade }}
             />
           );
         })}
