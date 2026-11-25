@@ -217,7 +217,7 @@ export default function WeakTies() {
       hint="click anyone to start a rumour; cut weak or strong ties"
       footer={
         <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
-          <Chip color={GT.ink}>close friend</Chip>
+          <Chip color={GT.lineStrong}>close friend</Chip>
           <Chip color={GT.alt}>acquaintance</Chip>
           <Chip color={GT.eq}>has heard</Chip>
         </span>

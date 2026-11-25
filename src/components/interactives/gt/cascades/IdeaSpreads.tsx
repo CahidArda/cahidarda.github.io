@@ -273,10 +273,10 @@ export default function IdeaSpreads() {
           a triangle
         </T>
         <T
-          x={500}
-          y={352}
+          x={505}
+          y={354}
           anchor="middle"
-          size={13}
+          size={12}
           color={holdouts.includes(19) ? GT.a : GT.muted}
         >
           a tight-knit group

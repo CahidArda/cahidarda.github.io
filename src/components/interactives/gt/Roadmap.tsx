@@ -212,12 +212,12 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
             <text x={604} y={200} transform="rotate(90 604 200)" textAnchor="middle" style={{ fill: GT.opt, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
               NETWORK LINE
             </text>
-            <text x={stories.length ? 236 : 200} y={364} style={{ fill: GT.b, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
+            <text x={stories.length ? 410 : 200} y={stories.length ? 299 : 364} style={{ fill: GT.b, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
               CROWD LINE
             </text>
             {stories.length > 0 && (
               <text
-                x={212}
+                x={224}
                 y={392}
                 style={{ fill: GT.alt, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}
               >

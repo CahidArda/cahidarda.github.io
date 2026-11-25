@@ -147,13 +147,20 @@ export default function HouseBallots() {
           </T>
           {TALLY_1800.map((c, i) => {
             const y = 20 + i * rowT;
-            const col = c.side === 'R' ? (i === 0 ? GT.b : GT.alt) : i === 2 ? GT.a : GT.aSoft;
+            const col = c.side === 'R' ? (i === 0 ? GT.b : GT.alt) : GT.a;
+            const op = c.side === 'F' && i > 2 ? 0.5 : 1;
             return (
               <g key={c.name}>
                 <T x={lx - 8} y={y + 7} anchor="end" size={11} color={GT.inkSoft}>
                   {c.name}
                 </T>
-                <rect x={lx} y={y} width={bx(c.votes) - lx} height={14} style={{ fill: col }} />
+                <rect
+                  x={lx}
+                  y={y}
+                  width={bx(c.votes) - lx}
+                  height={14}
+                  style={{ fill: col, opacity: op }}
+                />
                 <T
                   x={bx(c.votes) + 5}
                   y={y + 7.5}

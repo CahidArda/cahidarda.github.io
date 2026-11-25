@@ -58,7 +58,7 @@ export default function SecondBallots() {
 
   // geometry
   const W = compact ? 380 : 640;
-  const H = compact ? 300 : 262;
+  const H = compact ? 300 : 236;
   const s = compact ? 8 : 13; // square
   const g = compact ? 1.6 : 2.4; // gap
   const p = s + g;
@@ -78,7 +78,7 @@ export default function SecondBallots() {
   const labelW = compact ? 92 : 132;
   const rowH = compact ? 21 : 19;
   const top = 14;
-  const perRow = compact ? Math.floor((W - labelW - 6) / p) : 40;
+  const perRow = compact ? 17 : 40;
   const nameRowIdx = useMemo(() => {
     const m: Record<string, number> = {};
     RECIPIENTS.forEach((r, i) => (m[r.id] = i));

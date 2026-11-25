@@ -16,12 +16,13 @@ import EqTip from '../../../components/EqTip.astro';
 Picture a ballot where you write two names and both count the same. The name with the most votes becomes
 President, the runner-up Vice President. That was the rule for the first four presidential elections: electors
 "vote by Ballot for two Persons" ([Article II, Section 1](https://www.archives.gov/founding-docs/constitution-transcript)),
-with no line saying which name is meant for which job.
+with no line saying which name is meant for which job. Candidates fight over where to stand ([Why Rivals Huddle](/articles/logic-of-crowds/hotelling)); this is
+about the electors, and how they cast their votes.
 
 ## Allies in the way of each other
 
 In 1789 everyone expected Washington, and the Federalists wanted John Adams second. If every elector wrote
-Washington + Adams, the two would tie and the House would choose. Worse, a few electors leaving Washington off
+Washington + Adams, the two would tie. Worse, a few electors leaving Washington off
 would put Adams first. Alexander Hamilton: "Every body is aware of that defect in the constitution which renders
 it possible that the man intended for Vice President may in fact turn up President"
 ([Hamilton to James Wilson, 25 Jan 1789](https://founders.archives.gov/documents/Hamilton/01-05-02-0075)).
@@ -46,7 +47,7 @@ only if enough of the others do not.
 ## Throwing votes away
 
 Hamilton's answer was "to throw away a few votes say 7 or 8": two in Connecticut, two in New Jersey, three or
-four in Pennsylvania (same letter). Connecticut reported back: "Our Votes were given agreeably to your wishes
+four in Pennsylvania. Connecticut reported back: "Our Votes were given agreeably to your wishes
 Washington 7—Adams 5. Governor Huntington 2."
 ([Wadsworth to Hamilton, Feb 1789](https://founders.archives.gov/documents/Hamilton/01-05-02-0079)).
 Easley and Kleinberg call this "strategic misreporting of preferences"
@@ -67,8 +68,8 @@ Perjury" ([Adams to John Trumbull, 25 Apr 1790](https://founders.archives.gov/do
 
 By 1800 there were parties with running mates. One Rhode Island Federalist wrote John Jay instead of Charles
 Pinckney, which kept Adams (65) above Pinckney (64). No Republican elector did the same for Aaron Burr, so
-Jefferson and Burr tied at 73 ([National Archives](https://www.archives.gov/electoral-college/1800)). The
-outgoing House had to choose, one vote per state.
+Jefferson and Burr tied at 73 ([National Archives](https://www.archives.gov/electoral-college/1800)), and the
+House had to choose.
 
 <div class="fx-figure">
   <HouseBallots client:visible />
@@ -91,22 +92,38 @@ President, and in distinct ballots the person voted for as Vice-President"
       </span>
       <span class="shrink-0 font-mono text-[0.65rem] text-muted">open the app ↗</span>
     </div>
-    <img
-      src="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-light.webp"
-      alt="Rical's United States timeline around 1800: Jefferson's and Burr's lines meet in the 'Election of 1800' box under 'tied', Hamilton under 'tipped it', Adams under 'lost', with the event card open."
-      width="2400"
-      height="1050"
-      loading="lazy"
-      class="block h-auto w-full dark:hidden"
-    />
-    <img
-      src="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-dark.webp"
-      alt="Rical's United States timeline around 1800, dark theme."
-      width="2400"
-      height="1050"
-      loading="lazy"
-      class="hidden h-auto w-full dark:block"
-    />
+    <picture class="block dark:hidden">
+      <source
+        media="(max-width: 560px)"
+        srcset="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-light-narrow.webp"
+        width="1400"
+        height="820"
+      />
+      <img
+        src="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-light.webp"
+        alt="Rical's United States timeline around 1800: Jefferson's and Burr's lines meet in the 'Election of 1800' box under 'tied', Hamilton under 'tipped it', Adams under 'lost', with the event card open."
+        width="2400"
+        height="1050"
+        loading="lazy"
+        class="block h-auto w-full"
+      />
+    </picture>
+    <picture class="hidden dark:block">
+      <source
+        media="(max-width: 560px)"
+        srcset="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-dark-narrow.webp"
+        width="1400"
+        height="820"
+      />
+      <img
+        src="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-dark.webp"
+        alt="Rical's United States timeline around 1800 (dark theme), with the Election of 1800 card open."
+        width="2400"
+        height="1050"
+        loading="lazy"
+        class="block h-auto w-full"
+      />
+    </picture>
   </a>
   <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
     The same years in <a href="https://rical-1876.cahidarda.com/#america">Rical</a>, a timeline of

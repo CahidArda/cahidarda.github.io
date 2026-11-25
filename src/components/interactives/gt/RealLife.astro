@@ -1,0 +1,25 @@
+---
+// "In real life" strip at the end of a concept page: points forward to an example page
+// that tells a true story built on the same mechanism.
+interface Props {
+  href: string;
+  code: string;
+  title: string;
+  blurb: string;
+}
+const { href, code, title, blurb } = Astro.props;
+---
+
+<a
+  href={href}
+  class="gt-reallife group mt-6 grid grid-cols-[auto_1fr] items-baseline gap-x-4 border border-line-strong bg-paper-raised px-4 py-3 transition-colors hover:border-ink"
+>
+  <span class="font-mono text-[0.65rem] tracking-[0.12em] text-accent">{code}</span>
+  <span class="min-w-0">
+    <span class="label block">In real life</span>
+    <span class="mt-0.5 block font-display text-lg leading-tight text-ink group-hover:text-accent">
+      {title} →
+    </span>
+    <span class="mt-0.5 block text-[0.85rem] leading-snug text-ink-soft">{blurb}</span>
+  </span>
+</a>

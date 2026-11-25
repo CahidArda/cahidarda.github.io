@@ -279,7 +279,7 @@ export default function RewireRing() {
             <T x={cx(0.0013)} y={cy(1.0) - 8} anchor="start" size={9.5} color={GT.opt}>
               clustering
             </T>
-            <T x={cx(0.2)} y={cy(0.43) - 10} anchor="middle" size={9.5} color={GT.ink}>
+            <T x={cx(0.12)} y={cy(0.43) + 12} anchor="end" size={9.5} color={GT.ink}>
               distance
             </T>
             {p > 0 && (

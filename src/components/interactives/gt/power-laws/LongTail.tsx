@@ -147,7 +147,7 @@ export default function LongTail() {
             <rect x={M.l} y={0} width={cx - M.l} height={H} />
           </clipPath>
         </defs>
-        <T x={M.l} y={TOP.y - 12} anchor="start" size={9.5} color={GT.inkSoft}>
+        <T x={M.l + 14} y={TOP.y - 12} anchor="start" size={9.5} color={GT.inkSoft}>
           links to each page, most-linked first
         </T>
         <T x={W - M.r} y={TOP.y - 12} anchor="end" size={9.5}>
@@ -177,7 +177,7 @@ export default function LongTail() {
           </>
         )}
 
-        <T x={M.l} y={BOT.y - 12} anchor="start" size={9.5} color={GT.inkSoft}>
+        <T x={M.l + 14} y={BOT.y - 12} anchor="start" size={9.5} color={GT.inkSoft}>
           height of each man, tallest first
         </T>
         <path d={heightPath} style={{ fill: GT.b, opacity: 0.22 }} />

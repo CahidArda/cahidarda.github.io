@@ -72,7 +72,7 @@ export default function BellVsPower() {
   const narrow = useNarrow(boxRef);
   const W = narrow ? 370 : 600;
   const H = narrow ? 330 : 300;
-  const M = { l: 46, r: 12, t: 14, b: 38 };
+  const M = { l: 56, r: 12, t: 14, b: 38 }; // room for 10⁻⁶ ticks beside the rotated axis title
   const PW = W - M.l - M.r;
   const PH = H - M.t - M.b;
 
@@ -215,7 +215,7 @@ export default function BellVsPower() {
           <T x={M.l + PW / 2} y={H - 8} size={10} color={GT.inkSoft}>
             value, in multiples of the average
           </T>
-          <g transform={`translate(12 ${M.t + PH / 2}) rotate(-90)`}>
+          <g transform={`translate(10 ${M.t + PH / 2}) rotate(-90)`}>
             <T x={0} y={0} size={10} color={GT.inkSoft}>
               how common
             </T>

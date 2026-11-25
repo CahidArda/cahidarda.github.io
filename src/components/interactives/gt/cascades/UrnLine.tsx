@@ -172,7 +172,7 @@ export default function UrnLine() {
                 borderTopWidth: on && t.following ? 3 : 1,
               }}
             >
-              <span className="font-mono text-[0.6rem] text-muted">
+              <span className="font-mono text-[0.65rem] text-muted">
                 {String(i + 1).padStart(2, '0')}
               </span>
               {/* public guess: big */}
@@ -205,7 +205,7 @@ export default function UrnLine() {
                     />
                   )}
                 </span>
-                <span className="font-mono text-[0.55rem] text-muted">
+                <span className="font-mono text-[0.62rem] text-muted">
                   {on ? (ign ? 'ignored' : 'ball') : 'ball'}
                 </span>
               </span>
