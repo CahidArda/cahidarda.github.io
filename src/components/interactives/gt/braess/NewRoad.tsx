@@ -245,7 +245,15 @@ export default function NewRoad() {
     const y = my + (up ? -1 : 1) * (26 + 18 * (k - 1));
     const variable = e === 'AC' || e === 'DB';
     return (
-      <g key={e}>
+      <g
+        key={e}
+        style={{
+          stroke: GT.paperRaised,
+          strokeWidth: 4,
+          strokeLinejoin: 'round',
+          paintOrder: 'stroke',
+        }}
+      >
         <T x={x} y={y - 7 * k} size={15 * k} font="display" color={GT.ink}>
           {fmt(et[e])} min
         </T>

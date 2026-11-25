@@ -257,21 +257,21 @@ export default function ParetoPlane() {
                     paintOrder: 'stroke',
                   }}
                 >
-                <T
-                  x={left ? -16 : 16}
-                  y={ly}
-                  anchor={left ? 'end' : 'start'}
-                  size={13}
-                  color={GT.ink}
-                  weight={600}
-                >
-                  {first ? twins.map(label).join(' or ') : ''}
-                </T>
-                {first && (
-                  <T x={left ? -16 : 16} y={ly + 16} anchor={left ? 'end' : 'start'} size={11}>
-                    {`(${fmt(a)}, ${fmt(b)})${eq ? ' Nash' : ''}`}
+                  <T
+                    x={left ? -16 : 16}
+                    y={ly}
+                    anchor={left ? 'end' : 'start'}
+                    size={13}
+                    color={GT.ink}
+                    weight={600}
+                  >
+                    {first ? twins.map(label).join(' or ') : ''}
                   </T>
-                )}
+                  {first && (
+                    <T x={left ? -16 : 16} y={ly + 16} anchor={left ? 'end' : 'start'} size={11}>
+                      {`(${fmt(a)}, ${fmt(b)})${eq ? ' Nash' : ''}`}
+                    </T>
+                  )}
                 </g>
               </g>
             );

@@ -175,7 +175,7 @@ export default function RandomSurfer() {
       code="GT-06.1"
       title="the random surfer"
       kicker={`s = ${s.toFixed(2)}`}
-      hint="press play, then change the speed or s"
+      hint="press play, then change the speed or drag s"
       footer="Easley & Kleinberg, sec. 14.3"
     >
       <div className="mb-3 flex flex-wrap items-center gap-3">

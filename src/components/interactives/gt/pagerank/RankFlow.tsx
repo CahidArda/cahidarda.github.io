@@ -306,15 +306,25 @@ export default function RankFlow() {
               <T x={p.x} y={p.y - 14} size={15} font="display" color={GT.ink}>
                 {NAMES[i]}
               </T>
-              <T
-                x={p.x}
-                y={p.y + TH / 2 + 10 * Math.min(k, 1.4)}
-                size={10 * Math.min(k, 1.4)}
-                color={GT.ink}
-                weight={700}
+              {/* paper halo: links leaving the box bottom pass under the value */}
+              <g
+                style={{
+                  stroke: GT.paperRaised,
+                  strokeWidth: 5,
+                  strokeLinejoin: 'round',
+                  paintOrder: 'stroke',
+                }}
               >
-                {shown[i].toFixed(2)}
-              </T>
+                <T
+                  x={p.x}
+                  y={p.y + TH / 2 + 10 * Math.min(k, 1.4)}
+                  size={10 * Math.min(k, 1.4)}
+                  color={GT.ink}
+                  weight={700}
+                >
+                  {shown[i].toFixed(2)}
+                </T>
+              </g>
             </g>
           );
         })}

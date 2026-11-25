@@ -90,7 +90,7 @@ function Bar({ label, n, color, y }: { label: string; n: number; color: string; 
       />
       <rect x={bx0} y={y} width={Math.max(0, x(n) - bx0)} height={18} style={{ fill: color }} />
       <T
-        x={Math.min(x(n) + 4, bx1 - 2)}
+        x={x(n) > bx1 - 30 ? x(n) - 4 : x(n) + 4}
         y={y + 9.5}
         anchor={x(n) > bx1 - 30 ? 'end' : 'start'}
         size={11}
@@ -263,9 +263,14 @@ export default function SecondVotes() {
             y2={ky(KMAX)}
             style={{ stroke: GT.b, strokeWidth: 2 }}
           />
-          <T x={ax(40)} y={ky(17.2)} size={10.5} color={GT.b} weight={600}>
+          <text
+            transform={`translate(${ax(47.6)} ${ky(12.2)}) rotate(50.9)`}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{ fill: GT.b, fontFamily: GT.mono, fontSize: 10, fontWeight: 600 }}
+          >
             Adams level or ahead
-          </T>
+          </text>
           <T x={ax(20)} y={ky(9)} size={10.5} color={GT.muted}>
             Washington safe
           </T>

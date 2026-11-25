@@ -213,9 +213,6 @@ export default function SelfishOptimal() {
           best: 45 min
         </T>
         <circle cx={px(1)} cy={py(60)} r={6} style={{ fill: GT.eq }} />
-        <T x={px(1) - 8} y={py(60) - 16 * k} anchor="end" size={10 * k} color={GT.eq} weight={700}>
-          selfish: 60 min
-        </T>
 
         {/* the reader's split */}
         <line
@@ -225,6 +222,26 @@ export default function SelfishOptimal() {
           y2={PB}
           style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '2 3' }}
         />
+        {/* drawn after the split line, with a paper halo, so the line never cuts it */}
+        <g
+          style={{
+            stroke: GT.paperRaised,
+            strokeWidth: 5,
+            strokeLinejoin: 'round',
+            paintOrder: 'stroke',
+          }}
+        >
+          <T
+            x={px(1) - 8}
+            y={py(60) - 16 * k}
+            anchor="end"
+            size={10 * k}
+            color={GT.eq}
+            weight={700}
+          >
+            selfish: 60 min
+          </T>
+        </g>
         <g
           tabIndex={0}
           role="slider"
