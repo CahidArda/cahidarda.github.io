@@ -180,21 +180,7 @@ export default function RewireRing() {
             role="img"
             aria-label={`Ring of ${N} people with ${g.rewired} random links; the chain from A to B is ${path.length - 1} steps`}
           >
-            {/* the chain: a soft band under the links it uses, so each link keeps its own colour */}
-            {path.slice(1).map((b, i) => {
-              const a = path[i];
-              return (
-                <line
-                  key={`h${i}`}
-                  data-chain={`${a}-${b}`}
-                  x1={pos[a].x}
-                  y1={pos[a].y}
-                  x2={pos[b].x}
-                  y2={pos[b].y}
-                  style={{ stroke: GT.a, strokeWidth: 8, strokeLinecap: 'round', opacity: 0.3 }}
-                />
-              );
-            })}
+            {/* every link; a shortcut the chain rides is drawn wide in orange so it still reads as a shortcut */}
             {g.edges.map((e, i) => {
               const a = Math.min(e.a, e.b);
               const b = Math.max(e.a, e.b);
@@ -208,12 +194,37 @@ export default function RewireRing() {
                   x2={pos[e.b].x}
                   y2={pos[e.b].y}
                   style={{
-                    stroke: e.rewired ? GT.eq : hot ? GT.a : GT.lineStrong,
-                    strokeWidth: hot ? 2.6 : e.rewired ? 1.6 : 1,
+                    stroke: e.rewired ? GT.eq : GT.lineStrong,
+                    strokeWidth: e.rewired ? (hot ? 8 : 1.6) : 1,
+                    strokeLinecap: 'round',
                   }}
                 />
               );
             })}
+            {/* the chain from A to B: one solid line on top, along the ring and over the shortcut */}
+            {path.length > 1 && (
+              <polyline
+                points={path.map((n) => `${pos[n].x},${pos[n].y}`).join(' ')}
+                style={{
+                  fill: 'none',
+                  stroke: GT.a,
+                  strokeWidth: 3,
+                  strokeLinejoin: 'round',
+                  strokeLinecap: 'round',
+                }}
+              />
+            )}
+            {path.slice(1).map((b, i) => (
+              <line
+                key={`h${i}`}
+                data-chain={`${path[i]}-${b}`}
+                x1={pos[path[i]].x}
+                y1={pos[path[i]].y}
+                x2={pos[b].x}
+                y2={pos[b].y}
+                style={{ stroke: 'none' }}
+              />
+            ))}
             {pos.map((q, i) => {
               const isEnd = i === ends[0] || i === ends[1];
               return (
