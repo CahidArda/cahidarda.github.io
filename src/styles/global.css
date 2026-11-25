@@ -1007,9 +1007,8 @@ html {
 /* The lesson card that closes each page. */
 .prose .gt-lesson {
   margin-top: 2.5rem;
-  border-top: 2px solid var(--color-ink);
-  border-bottom: 1px solid var(--color-line-strong);
-  padding: 1.25rem 0 1.4rem;
+  border-left: 3px solid var(--color-accent);
+  padding: 0.2rem 0 0.2rem 1.1rem;
 }
 .prose .gt-lesson p {
   margin: 0;

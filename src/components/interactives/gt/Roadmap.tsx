@@ -37,22 +37,25 @@ const BASE_LINES: Line[] = [
   },
 ];
 
-/* Desktop geometry: blue along the top, green down the right, red along the bottom. */
+/* Desktop geometry: a snake. Stations 01-05 run left to right along the top (strategy),
+   the route drops at Braess and runs back right to left (network, then crowd), and the
+   story line drops from station 10 into a third row. Columns are shared by all rows. */
 const W = 640;
-const H_BASE = 380;
-const H_STORY = 480;
+const COLS = [100, 215, 330, 445, 560];
+const ROW = [90, 220, 350];
+const H = 410;
 type Pos = { x: number; y: number; label: 'above' | 'below' | 'left' };
 const BASE_POS: Record<string, Pos> = {
-  nash: { x: 60, y: 80, label: 'above' },
-  'prisoners-dilemma': { x: 175, y: 80, label: 'above' },
-  hotelling: { x: 290, y: 80, label: 'above' },
-  auctions: { x: 405, y: 80, label: 'above' },
-  braess: { x: 560, y: 80, label: 'above' },
-  pagerank: { x: 560, y: 175, label: 'left' },
-  'small-worlds': { x: 560, y: 245, label: 'left' },
-  cascades: { x: 560, y: 315, label: 'below' },
-  segregation: { x: 380, y: 315, label: 'below' },
-  'power-laws': { x: 200, y: 315, label: 'below' },
+  nash: { x: COLS[0], y: ROW[0], label: 'above' },
+  'prisoners-dilemma': { x: COLS[1], y: ROW[0], label: 'above' },
+  hotelling: { x: COLS[2], y: ROW[0], label: 'above' },
+  auctions: { x: COLS[3], y: ROW[0], label: 'above' },
+  braess: { x: COLS[4], y: ROW[0], label: 'above' },
+  pagerank: { x: COLS[4], y: ROW[1], label: 'below' },
+  'small-worlds': { x: COLS[3], y: ROW[1], label: 'below' },
+  cascades: { x: COLS[2], y: ROW[1], label: 'below' },
+  segregation: { x: COLS[1], y: ROW[1], label: 'below' },
+  'power-laws': { x: COLS[0], y: ROW[1], label: 'below' },
 };
 const SHORT: Record<string, string> = {
   nash: 'Nash',
@@ -70,15 +73,16 @@ const INTERCHANGE = new Set(['braess', 'cascades']);
 
 /** Example ("story") pages hang off station 10 on a fourth line along the bottom. */
 function buildMap(order: string[], bySlug: Record<string, Station>) {
-  const stories = order.filter((s) => (bySlug[s]?.n ?? 0) > 10);
+  const stories = order.filter((x) => (bySlug[x]?.n ?? 0) > 10);
   const pos: Record<string, Pos> = { ...BASE_POS };
   const lines: Line[] = [...BASE_LINES];
   if (stories.length) {
-    pos['power-laws'] = { ...pos['power-laws'], label: 'left' };
-    stories.forEach((s, i) => (pos[s] = { x: 200 + i * 150, y: 420, label: 'below' }));
+    // the story line leaves station 10 downwards, so its name goes above it
+    pos['power-laws'] = { ...pos['power-laws'], label: 'above' };
+    stories.forEach((x, i) => (pos[x] = { x: COLS[i] ?? COLS[0] + i * 115, y: ROW[2], label: 'below' }));
     lines.push({ id: 'story', name: 'story line', color: GT.alt, stops: ['power-laws', ...stories] });
   }
-  return { pos, lines, stories, H: stories.length ? H_STORY : H_BASE };
+  return { pos, lines, stories, H };
 }
 function shortTitle(slug: string, s: Station) {
   return SHORT[slug] ?? s.title.split(':')[0];
@@ -112,7 +116,7 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
   const bySlug = Object.fromEntries(stations.map((s) => [s.slug, s]));
   const order = [...stations].sort((a, b) => a.n - b.n).map((s) => s.slug);
 
-  const { pos: POS, lines: LINES, stories, H } = buildMap(order, bySlug);
+  const { pos: POS, lines: LINES, stories } = buildMap(order, bySlug);
   const linePoints = (stops: string[]) => stops.map((x) => POS[x]);
   const [sel, setSel] = useState<string>(order[0] ?? 'nash');
   const [touched, setTouched] = useState(false);
@@ -191,38 +195,26 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
                   />
                 );
               })}
-            {/* poster title in the open middle of the map */}
-            <text x={60} y={190} style={{ fill: GT.ink, fontFamily: GT.display, fontSize: 38 }}>
-              The Logic
-            </text>
-            <text x={60} y={232} style={{ fill: GT.ink, fontFamily: GT.display, fontSize: 38 }}>
-              of Crowds
+            {/* poster title, bottom right */}
+            <text x={600} y={ROW[2] - 4} textAnchor="end" style={{ fill: GT.ink, fontFamily: GT.display, fontSize: 30 }}>
+              The Logic of Crowds
             </text>
             <text
-              x={62}
-              y={258}
+              x={600}
+              y={ROW[2] + 22}
+              textAnchor="end"
               style={{ fill: GT.muted, fontFamily: GT.mono, fontSize: 9.5, letterSpacing: '0.14em' }}
             >
               A ROUTE MAP IN TEN STOPS
             </text>
-            {/* line names */}
-            <text x={60} y={36} style={{ fill: GT.a, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
-              STRATEGY LINE
-            </text>
-            <text x={604} y={200} transform="rotate(90 604 200)" textAnchor="middle" style={{ fill: GT.opt, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
-              NETWORK LINE
-            </text>
-            <text x={stories.length ? 410 : 200} y={stories.length ? 299 : 364} style={{ fill: GT.b, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
-              CROWD LINE
-            </text>
+            {/* line names, each sitting on its own stretch of track */}
+            <LineName x={(COLS[0] + COLS[1]) / 2} y={ROW[0] + 18} color={GT.a}>STRATEGY LINE</LineName>
+            <LineName x={(COLS[3] + COLS[4]) / 2} y={ROW[1] - 14} color={GT.opt}>NETWORK LINE</LineName>
+            <LineName x={(COLS[1] + COLS[2]) / 2} y={ROW[1] - 14} color={GT.b}>CROWD LINE</LineName>
             {stories.length > 0 && (
-              <text
-                x={224}
-                y={392}
-                style={{ fill: GT.alt, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}
-              >
+              <LineName x={COLS[0] + 14} y={(ROW[1] + ROW[2]) / 2} color={GT.alt} anchor="start">
                 STORY LINE
-              </text>
+              </LineName>
             )}
             {/* stations */}
             {order.map((slug) => {
@@ -328,6 +320,32 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
         )}
       </div>
     </Specimen>
+  );
+}
+
+function LineName({
+  x,
+  y,
+  color,
+  anchor = 'middle',
+  children,
+}: {
+  x: number;
+  y: number;
+  color: string;
+  anchor?: 'start' | 'middle';
+  children: string;
+}) {
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={anchor}
+      dominantBaseline="middle"
+      style={{ fill: color, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}
+    >
+      {children}
+    </text>
   );
 }
 
