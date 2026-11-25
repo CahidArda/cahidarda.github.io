@@ -132,18 +132,37 @@ export function clustering(adj: number[][]) {
   return total / n;
 }
 
-/** L(p)/L(0) and C(p)/C(0) averaged over several worlds, on a log grid of p. */
-export function curves(n: number, k: number, seeds: number[], ps: number[]) {
-  const L0 = avgPathLength(adjacency(n, graphAt(makePlan(n, k, 1), 0)));
-  const C0 = clustering(adjacency(n, graphAt(makePlan(n, k, 1), 0)));
-  return ps.map((p) => {
-    let L = 0;
-    let C = 0;
-    for (const s of seeds) {
-      const adj = adjacency(n, graphAt(makePlan(n, k, s), p));
-      L += avgPathLength(adj);
-      C += clustering(adj);
-    }
-    return { p, L: L / seeds.length / L0, C: C / seeds.length / C0 };
-  });
+export type Step = { p: number; L: number; C: number };
+
+/**
+ * L(p)/L(0) and C(p)/C(0) for ONE world, exactly. The graph only changes when p passes one
+ * of the edges' fixed numbers u, so the curves are step functions: one step per rewired link.
+ * Each entry holds from its p up to the next entry's p. The first entry starts at p = 0.
+ */
+export function sweep(plan: Plan): Step[] {
+  const measure = (p: number) => {
+    const adj = adjacency(plan.n, graphAt(plan, p));
+    return { L: avgPathLength(adj), C: clustering(adj) };
+  };
+  const base = measure(0);
+  const steps: Step[] = [{ p: 0, L: 1, C: 1 }];
+  const us = [...new Set(plan.base.map((e) => e.u))].sort((x, y) => x - y);
+  for (const u of us) {
+    // at p just above u, every edge with e.u <= u is rewired
+    const m = measure(u + 1e-12);
+    steps.push({ p: u, L: m.L / base.L, C: m.C / base.C });
+  }
+  return steps;
+}
+
+/** The step of `sweep` that holds at p. */
+export function stepAt(steps: Step[], p: number): Step {
+  let lo = 0;
+  let hi = steps.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (steps[mid].p < p) lo = mid;
+    else hi = mid - 1;
+  }
+  return steps[lo];
 }
