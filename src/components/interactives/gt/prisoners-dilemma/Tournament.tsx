@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BigStat, Btn, Caption, GT, Specimen, T, useInView, useReducedMotion } from '../shared';
-import { useCompact } from '../hotelling/useCompact';
+import { useCompact } from '../useCompact';
 import { STRATS, roundRobin } from './pd';
 
 /* The field: five nice strategies, three that sometimes defect first. */

@@ -15,8 +15,8 @@ import {
   useReducedMotion,
 } from '../shared';
 import { cdfFromDensity, nudge, presetDensity, shares, type Preset } from './logic';
-import { useCompact } from './useCompact';
-import { Reserve } from '../nash/Reserve';
+import { useCompact } from '../useCompact';
+import { Reserve } from '../Reserve';
 
 const H = 250;
 const BASE = 190; // baseline of the density curve

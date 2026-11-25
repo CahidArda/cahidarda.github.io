@@ -28,6 +28,7 @@ const PL = 44;
 const PR = 496;
 const PT = 26;
 const PB = 206;
+const H = PB + 56; // room for the axis title at the largest phone text boost
 const Y0 = 30;
 const Y1 = 64;
 const px = (x: number) => PL + x * (PR - PL);
@@ -118,7 +119,7 @@ export default function SelfishOptimal() {
     >
       <svg
         ref={svgRef}
-        viewBox={`0 0 ${W} ${Math.round(PB + 30 * k + 12)}`}
+        viewBox={`0 0 ${W} ${H}`}
         className="block w-full touch-none select-none"
         role="img"
         aria-label="Two roads and a chart of average travel time against the share of drivers on the variable road"

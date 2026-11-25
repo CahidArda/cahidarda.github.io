@@ -13,8 +13,8 @@ import {
   useReducedMotion,
 } from '../shared';
 import { meanWalk, nudge, shares } from './logic';
-import { useCompact } from './useCompact';
-import { Reserve } from '../nash/Reserve';
+import { useCompact } from '../useCompact';
+import { Reserve } from '../Reserve';
 
 /** The longest captions, stacked invisibly so the caption never changes height. */
 const LONGEST = [
@@ -247,7 +247,6 @@ export default function Beach() {
     moveTo(who, clamp(pos[who] + d, 0, 1));
   };
 
-  const sh = shares(show);
   const walk = meanWalk(show, PEOPLE);
   const owners = PEOPLE.map((x, i) => owner(show, x, i));
   const colors = [GT.a, GT.b];

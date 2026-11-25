@@ -15,8 +15,8 @@ import {
   useReducedMotion,
 } from '../shared';
 import { EVO_IDS, STRATS, evolve } from './pd';
-import { useCompact } from '../hotelling/useCompact';
-import { Reserve } from '../nash/Reserve';
+import { useCompact } from '../useCompact';
+import { Reserve } from '../Reserve';
 
 const GENS = 650;
 const H = 250;

@@ -10,7 +10,7 @@ import {
   type Cell,
   type GameId,
 } from './games';
-import { Reserve } from './Reserve';
+import { Reserve } from '../Reserve';
 
 const W = 420;
 const H = 300;
@@ -214,7 +214,7 @@ export default function ParetoPlane() {
             const [a, b] = u(c);
             const eq = isCell(eqs, c);
             const opt = isCell(po, c);
-            const left = px(a) > X1 - 70;
+            const left = px(a) > X1 - 40;
             // a point on the bottom axis puts its label above it, clear of the tick numbers
             const low = py(b) > Y0 - 24;
             const ly = low ? -30 : -2;

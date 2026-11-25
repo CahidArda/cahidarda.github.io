@@ -11,8 +11,8 @@ import {
   useReducedMotion,
 } from '../shared';
 import { bestResponse, shares } from './logic';
-import { useCompact } from './useCompact';
-import { Reserve } from '../nash/Reserve';
+import { useCompact } from '../useCompact';
+import { Reserve } from '../Reserve';
 
 const H = 132;
 const SAND = 80;

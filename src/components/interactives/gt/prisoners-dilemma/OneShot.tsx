@@ -11,7 +11,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
-import { Reserve } from '../nash/Reserve';
+import { Reserve } from '../Reserve';
 import { PAY, payoff, type Move } from './pd';
 
 /* one SVG coordinate system: the 2x2 matrix, your improvement arrow in each column */

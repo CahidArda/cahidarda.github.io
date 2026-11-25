@@ -12,7 +12,7 @@ import {
   useReducedMotion,
 } from '../shared';
 import { PAY } from './pd';
-import { useCompact } from '../hotelling/useCompact';
+import { useCompact } from '../useCompact';
 
 /*
  * Grim trigger. Each round, the game goes on with probability delta. Both cooperate

@@ -12,7 +12,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
-import { Reserve } from './Reserve';
+import { Reserve } from '../Reserve';
 
 /*
  * Matching Pennies. Blue (row) wins +1 when the coins match, red (column) wins +1 when

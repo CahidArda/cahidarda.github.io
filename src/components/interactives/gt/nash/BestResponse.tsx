@@ -22,7 +22,7 @@ import {
   type Cell,
   type GameId,
 } from './games';
-import { Reserve } from './Reserve';
+import { Reserve } from '../Reserve';
 
 /* ── geometry: one SVG coordinate system ── */
 const W = 420;
