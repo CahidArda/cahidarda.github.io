@@ -197,16 +197,16 @@ export default function Revenue() {
             bid = value
           </T>
           <T
-            x={bx(0.98)}
+            x={bx(1) + 3}
             y={r2((by(1) + by(slope)) / 2)}
-            anchor="end"
+            anchor="start"
             color={GT.b}
             size={10}
             weight={600}
           >
             shade
           </T>
-          <T x={bx(0.66)} y={by(slope * 0.66) + 14} anchor="start" color={GT.b} size={10}>
+          <T x={bx(0.45)} y={by(slope * 0.45) + 14} anchor="start" color={GT.b} size={10}>
             {`${n - 1}/${n} × value`}
           </T>
           {[0, 0.5, 1].map((t) => (

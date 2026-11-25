@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { BigStat, Btn, Caption, Chip, GT, Specimen, T, useInView, useReducedMotion } from '../shared';
+import {
+  BigStat,
+  Btn,
+  Caption,
+  Chip,
+  GT,
+  Specimen,
+  T,
+  useInView,
+  useReducedMotion,
+} from '../shared';
 import {
   BALLOTS,
   HOUSE_1801,
@@ -88,9 +98,27 @@ export default function HouseBallots() {
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <BigStat label="ballot" value={Math.max(1, n)} unit="/ 36" sub={done ? 'Feb 17, 1801' : 'from Feb 11, 1801'} />
-        <BigStat label="Jefferson" value={J} unit="states" color={GT.b} sub={`needs ${STATES_NEEDED}`} />
-        <BigStat label="Burr" value={B} unit="states" color={GT.alt} sub={done ? 'Delaware, S.C. blank' : 'Md., Vt. split'} align="right" />
+        <BigStat
+          label="ballot"
+          value={Math.max(1, n)}
+          unit="/ 36"
+          sub={done ? 'Feb 17, 1801' : 'from Feb 11, 1801'}
+        />
+        <BigStat
+          label="Jefferson"
+          value={J}
+          unit="states"
+          color={GT.b}
+          sub={`needs ${STATES_NEEDED}`}
+        />
+        <BigStat
+          label="Burr"
+          value={B}
+          unit="states"
+          color={GT.alt}
+          sub={done ? 'Delaware, S.C. blank' : 'Md., Vt. split'}
+          align="right"
+        />
       </div>
 
       <div ref={boxRef}>
@@ -101,7 +129,13 @@ export default function HouseBallots() {
           aria-label={`1800 electoral votes: Jefferson 73, Burr 73, Adams 65, Pinckney 64, Jay 1. House ballots 1 to 35: Jefferson 8 states, Burr 6, 2 divided. Ballot 36: Jefferson 10, Burr 4, 2 blank.`}
         >
           <defs>
-            <pattern id="ex3-div" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <pattern
+              id="ex3-div"
+              width="4"
+              height="4"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
               <rect width="4" height="4" style={{ fill: GT.bSoft }} />
               <line x1="0" y1="0" x2="0" y2="4" style={{ stroke: GT.alt, strokeWidth: 1.6 }} />
             </pattern>
@@ -120,7 +154,14 @@ export default function HouseBallots() {
                   {c.name}
                 </T>
                 <rect x={lx} y={y} width={bx(c.votes) - lx} height={14} style={{ fill: col }} />
-                <T x={bx(c.votes) + 5} y={y + 7.5} anchor="start" size={11} color={GT.ink} weight={600}>
+                <T
+                  x={bx(c.votes) + 5}
+                  y={y + 7.5}
+                  anchor="start"
+                  size={11}
+                  color={GT.ink}
+                  weight={600}
+                >
                   {c.votes}
                 </T>
               </g>
@@ -145,7 +186,13 @@ export default function HouseBallots() {
             const y = gTop + 12 + r * ch;
             return (
               <g key={st.id}>
-                <T x={labW - 5} y={y + ch / 2} anchor="end" size={compact ? 8.5 : 9.5} color={GT.inkSoft}>
+                <T
+                  x={labW - 5}
+                  y={y + ch / 2}
+                  anchor="end"
+                  size={compact ? 8.5 : 9.5}
+                  color={GT.inkSoft}
+                >
                   {st.id}
                 </T>
                 {Array.from({ length: BALLOTS }, (_, c) => {
@@ -171,7 +218,12 @@ export default function HouseBallots() {
           })}
           {/* ballot axis */}
           {[1, 10, 20, 30, 36].map((b) => (
-            <T key={b} x={labW + (b - 0.5) * cw} y={gTop + 12 + HOUSE_1801.length * ch + 9} size={9}>
+            <T
+              key={b}
+              x={labW + (b - 0.5) * cw}
+              y={gTop + 12 + HOUSE_1801.length * ch + 9}
+              size={9}
+            >
               {b}
             </T>
           ))}
@@ -195,7 +247,7 @@ export default function HouseBallots() {
       </div>
       <Caption>
         {done
-          ? 'Ballot 36: Federalists in Maryland and Vermont stop blocking, Delaware and South Carolina cast blanks, and Jefferson has 10 states.'
+          ? 'Ballot 36: Federalists in Maryland and Vermont abstain, which hands both states to Jefferson. Delaware and South Carolina cast blanks. Jefferson has 10.'
           : 'Eight states for Jefferson, one short. Thirty-five times.'}
       </Caption>
     </Specimen>

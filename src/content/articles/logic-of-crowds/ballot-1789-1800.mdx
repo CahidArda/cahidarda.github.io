@@ -1,0 +1,143 @@
+---
+title: 'Gaming the Ballot: 1789 and 1800'
+description: 'The first presidential elections gave every elector two equal votes. In 1789 the Federalists threw some away on purpose to keep Washington first. In 1800 nobody did, and the House needed 36 ballots.'
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 11
+---
+
+import SecondVotes from '../../../components/interactives/gt/ballot-1789-1800/SecondVotes.tsx';
+import SecondBallots from '../../../components/interactives/gt/ballot-1789-1800/SecondBallots.tsx';
+import HouseBallots from '../../../components/interactives/gt/ballot-1789-1800/HouseBallots.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+Picture a ballot where you write two names and both count the same. The name with the most votes becomes
+President, the runner-up Vice President. That was the rule for the first four presidential elections: electors
+"vote by Ballot for two Persons" ([Article II, Section 1](https://www.archives.gov/founding-docs/constitution-transcript)),
+with no line saying which name is meant for which job.
+
+## Allies in the way of each other
+
+In 1789 everyone expected Washington, and the Federalists wanted John Adams second. If every elector wrote
+Washington + Adams, the two would tie and the House would choose. Worse, a few electors leaving Washington off
+would put Adams first. Alexander Hamilton: "Every body is aware of that defect in the constitution which renders
+it possible that the man intended for Vice President may in fact turn up President"
+([Hamilton to James Wilson, 25 Jan 1789](https://founders.archives.gov/documents/Hamilton/01-05-02-0075)).
+
+<div class="fx-figure">
+  <SecondVotes client:visible />
+</div>
+
+With $a$ electors writing Washington + Adams and $k$ writing Adams + someone else:
+
+<EqTip note="Washington loses one vote for each elector who leaves him off; Adams gains one. Set A ≥ W and the 69s cancel into a + 2k ≥ 69. Each defector counts twice.">
+
+$$
+W = 69 - k \qquad A = a + k \qquad A \ge W \iff a + 2k \ge 69
+$$
+
+</EqTip>
+
+Every Federalist elector is in a [best-response](/articles/logic-of-crowds/nash) puzzle: writing Adams is right
+only if enough of the others do not.
+
+## Throwing votes away
+
+Hamilton's answer was "to throw away a few votes say 7 or 8": two in Connecticut, two in New Jersey, three or
+four in Pennsylvania (same letter). Connecticut reported back: "Our Votes were given agreeably to your wishes
+Washington 7—Adams 5. Governor Huntington 2."
+([Wadsworth to Hamilton, Feb 1789](https://founders.archives.gov/documents/Hamilton/01-05-02-0079)).
+Easley and Kleinberg call this "strategic misreporting of preferences"
+([_Networks, Crowds, and Markets_, ch. 23.4](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)).
+
+<div class="fx-figure">
+  <SecondBallots client:visible />
+</div>
+
+The count went far past 7 or 8. Not every stray vote was a throwaway: Clinton's 3 came from Anti-Federalists, and
+for others, such as Jay's 9, the letters do not settle it. Georgia's are clear: Madison heard its second votes were
+"all thrown away on individuals of the State"
+([Madison to Washington, 5 Mar 1789](https://founders.archives.gov/documents/Madison/01-12-02-0004)).
+Adams, with 34, took it badly: "Throwing Away a Vote is betraying a Trust, it is a Breach of Honour, it is a
+Perjury" ([Adams to John Trumbull, 25 Apr 1790](https://founders.archives.gov/documents/Adams/06-20-02-0193)).
+
+## 1800: nobody threw one away
+
+By 1800 there were parties with running mates. One Rhode Island Federalist wrote John Jay instead of Charles
+Pinckney, which kept Adams (65) above Pinckney (64). No Republican elector did the same for Aaron Burr, so
+Jefferson and Burr tied at 73 ([National Archives](https://www.archives.gov/electoral-college/1800)). The
+outgoing House had to choose, one vote per state.
+
+<div class="fx-figure">
+  <HouseBallots client:visible />
+</div>
+
+The fix was the 12th Amendment, ratified June 15, 1804: electors "name in their ballots the person voted for as
+President, and in distinct ballots the person voted for as Vice-President"
+([Amendment XII](https://www.archives.gov/founding-docs/amendments-11-27)).
+
+<figure class="fx-figure">
+  <a
+    href="https://rical-1876.cahidarda.com/#america"
+    class="fx block border border-line-strong bg-paper-raised"
+    style="text-decoration: none"
+  >
+    <div class="flex items-baseline justify-between gap-3 border-b border-line px-4 py-2.5">
+      <span class="flex min-w-0 items-baseline gap-3">
+        <span class="font-mono text-[0.65rem] tracking-[0.12em] text-accent">EX-01.4</span>
+        <span class="label truncate">rical · election of 1800</span>
+      </span>
+      <span class="shrink-0 font-mono text-[0.65rem] text-muted">open the app ↗</span>
+    </div>
+    <img
+      src="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-light.webp"
+      alt="Rical's United States timeline around 1800: Jefferson's and Burr's lines meet in the 'Election of 1800' box under 'tied', Hamilton under 'tipped it', Adams under 'lost', with the event card open."
+      width="2400"
+      height="1050"
+      loading="lazy"
+      class="block h-auto w-full dark:hidden"
+    />
+    <img
+      src="/articles/logic-of-crowds/ballot-1789-1800/rical-1800-dark.webp"
+      alt="Rical's United States timeline around 1800, dark theme."
+      width="2400"
+      height="1050"
+      loading="lazy"
+      class="hidden h-auto w-full dark:block"
+    />
+  </a>
+  <figcaption class="mt-3 font-mono text-[0.7rem] leading-relaxed text-muted">
+    The same years in <a href="https://rical-1876.cahidarda.com/#america">Rical</a>, a timeline of
+    who stood next to whom (<a href="/articles/rical-1876">how it was made</a>). Each line is a
+    person.
+  </figcaption>
+</figure>
+
+<Lesson>
+
+When two votes count the same, allies have to throw some away on purpose. In 1800 they did not, and it took the
+House 36 ballots.
+
+</Lesson>
+
+## Sources
+
+1. Tallies: National Archives, [1789](https://www.archives.gov/electoral-college/1789) and
+   [1800](https://www.archives.gov/electoral-college/1800) Electoral College results (state-by-state tables).
+2. Hamilton to James Wilson, 25 Jan 1789, [Founders Online](https://founders.archives.gov/documents/Hamilton/01-05-02-0075).
+   See also Hamilton to Madison, 23 Nov 1788, [Founders Online](https://founders.archives.gov/documents/Hamilton/01-05-02-0055).
+3. Jeremiah Wadsworth to Hamilton, Feb 1789, [Founders Online](https://founders.archives.gov/documents/Hamilton/01-05-02-0079).
+4. Madison to Washington, 5 Mar 1789, [Founders Online](https://founders.archives.gov/documents/Madison/01-12-02-0004).
+5. John Adams to John Trumbull, 25 Apr 1790, [Founders Online](https://founders.archives.gov/documents/Adams/06-20-02-0193).
+6. Maryland's six voting electors: Maryland State Archives,
+   [Meetings of Presidential Electors, vol. 207, p. 1](https://msa.maryland.gov/megafile/msa/speccol/sc2900/sc2908/000001/000207/html/am207--1.html).
+7. House ballots: [National Archives, Tally of Electoral Votes for 1800](https://www.archives.gov/legislative/features/1800-election/1800-election.html)
+   (36th ballot, Feb 17, 1801); ballot 36 by state, [A New Nation Votes](https://elections.lib.tufts.edu/catalog/gx41mj27q);
+   ballots 1 to 35 (8, 6 and 2 divided), [Britannica](https://www.britannica.com/event/United-States-presidential-election-of-1800).
+8. [U.S. Constitution](https://www.archives.gov/founding-docs/constitution-transcript) and
+   [Amendment XII](https://www.archives.gov/founding-docs/amendments-11-27), National Archives transcripts.
+9. Easley and Kleinberg, [_Networks, Crowds, and Markets_](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf) (2010), ch. 23, Voting.
+10. Further reading: _The Documentary History of the First Federal Elections_, 4 vols. (University of Wisconsin
+    Press, 1976-89); vol. 4 collects the letters on the vice presidency.

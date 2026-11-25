@@ -130,7 +130,13 @@ export default function SecondBallots() {
       <div className="mt-4 grid grid-cols-3 gap-3">
         <BigStat label="Washington" value="69" unit="/ 69" sub="every elector" />
         <BigStat label="Adams" value={adams} color={GT.a} sub="vice president" />
-        <BigStat label="elsewhere" value={69 - adams} color={GT.warn} sub="ten other names" align="right" />
+        <BigStat
+          label="elsewhere"
+          value={69 - adams}
+          color={GT.warn}
+          sub="ten other names"
+          align="right"
+        />
       </div>
 
       <div ref={boxRef}>
@@ -149,8 +155,20 @@ export default function SecondBallots() {
               const on = h ? h.state === i : false;
               return (
                 <g key={st.id}>
-                  <line x1={cx - colW / 2 + 3} y1={base + 3} x2={cx + colW / 2 - 3} y2={base + 3} style={{ stroke: GT.lineStrong }} />
-                  <T x={cx} y={base + 15} size={compact ? 10 : 11} color={on ? GT.ink : GT.inkSoft} weight={on ? 700 : 500}>
+                  <line
+                    x1={cx - colW / 2 + 3}
+                    y1={base + 3}
+                    x2={cx + colW / 2 - 3}
+                    y2={base + 3}
+                    style={{ stroke: GT.lineStrong }}
+                  />
+                  <T
+                    x={cx}
+                    y={base + 15}
+                    size={compact ? 10 : 11}
+                    color={on ? GT.ink : GT.inkSoft}
+                    weight={on ? 700 : 500}
+                  >
                     {st.id}
                   </T>
                   <T x={cx} y={base + 29} size={9.5}>
@@ -167,7 +185,14 @@ export default function SecondBallots() {
               const on = h ? h.rec === r.id : false;
               return (
                 <g key={r.id}>
-                  <T x={labelW - 8} y={y} anchor="end" size={compact ? 10 : 11} color={on ? GT.ink : GT.inkSoft} weight={on ? 700 : 500}>
+                  <T
+                    x={labelW - 8}
+                    y={y}
+                    anchor="end"
+                    size={compact ? 10 : 11}
+                    color={on ? GT.ink : GT.inkSoft}
+                    weight={on ? 700 : 500}
+                  >
                     {compact ? r.name.split(' ').slice(-1)[0] : r.name}
                   </T>
                   <T

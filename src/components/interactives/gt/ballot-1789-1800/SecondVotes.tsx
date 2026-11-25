@@ -81,9 +81,22 @@ function Bar({ label, n, color, y }: { label: string; n: number; color: string; 
       <T x={bx0 - 8} y={y + 9} anchor="end" size={11} color={color} weight={600}>
         {label}
       </T>
-      <rect x={bx0} y={y} width={bx1 - bx0} height={18} style={{ fill: GT.paper, stroke: GT.line }} />
+      <rect
+        x={bx0}
+        y={y}
+        width={bx1 - bx0}
+        height={18}
+        style={{ fill: GT.paper, stroke: GT.line }}
+      />
       <rect x={bx0} y={y} width={Math.max(0, x(n) - bx0)} height={18} style={{ fill: color }} />
-      <T x={Math.min(x(n) + 4, bx1 - 2)} y={y + 9.5} anchor={x(n) > bx1 - 30 ? 'end' : 'start'} size={11} color={x(n) > bx1 - 30 ? GT.paper : GT.ink} weight={600}>
+      <T
+        x={Math.min(x(n) + 4, bx1 - 2)}
+        y={y + 9.5}
+        anchor={x(n) > bx1 - 30 ? 'end' : 'start'}
+        size={11}
+        color={x(n) > bx1 - 30 ? GT.paper : GT.ink}
+        weight={600}
+      >
         {Math.round(n)}
       </T>
     </g>
@@ -193,14 +206,26 @@ export default function SecondVotes() {
           style={{ cursor: 'crosshair' }}
         >
           <defs>
-            <pattern id="ex1-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <pattern
+              id="ex1-hatch"
+              width="6"
+              height="6"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
               <line x1="0" y1="0" x2="0" y2="6" style={{ stroke: GT.line, strokeWidth: 2 }} />
             </pattern>
           </defs>
           {/* grid */}
           {[0, 5, 10, 15, 20].map((g) => (
             <g key={`k${g}`}>
-              <line x1={X0} y1={ky(g)} x2={X1} y2={ky(g)} style={{ stroke: GT.line, strokeWidth: 0.8 }} />
+              <line
+                x1={X0}
+                y1={ky(g)}
+                x2={X1}
+                y2={ky(g)}
+                style={{ stroke: GT.line, strokeWidth: 0.8 }}
+              />
               <T x={X0 - 6} y={ky(g)} anchor="end" size={10}>
                 {g}
               </T>
@@ -208,7 +233,13 @@ export default function SecondVotes() {
           ))}
           {[0, 10, 20, 30, 40, 50, 60, 69].map((g) => (
             <g key={`a${g}`}>
-              <line x1={ax(g)} y1={YT} x2={ax(g)} y2={YB} style={{ stroke: GT.line, strokeWidth: 0.8 }} />
+              <line
+                x1={ax(g)}
+                y1={YT}
+                x2={ax(g)}
+                y2={YB}
+                style={{ stroke: GT.line, strokeWidth: 0.8 }}
+              />
               <T x={ax(g)} y={YB + 11} size={10}>
                 {g}
               </T>
@@ -245,7 +276,12 @@ export default function SecondVotes() {
             { a: 61, k: 0, t: 'plan' },
           ].map((m) => (
             <g key={m.t}>
-              <circle cx={ax(m.a)} cy={ky(m.k)} r={3} style={{ fill: GT.paperRaised, stroke: GT.inkSoft, strokeWidth: 1.2 }} />
+              <circle
+                cx={ax(m.a)}
+                cy={ky(m.k)}
+                r={3}
+                style={{ fill: GT.paperRaised, stroke: GT.inkSoft, strokeWidth: 1.2 }}
+              />
               <T x={ax(m.a)} y={ky(m.k) - 9} size={9.5} color={GT.inkSoft}>
                 {m.t}
               </T>
@@ -253,13 +289,29 @@ export default function SecondVotes() {
           ))}
 
           {/* the reader's point */}
-          <line x1={ax(ta)} y1={ky(tk)} x2={ax(ta)} y2={YB} style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '3 3' }} />
-          <line x1={X0} y1={ky(tk)} x2={ax(ta)} y2={ky(tk)} style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '3 3' }} />
+          <line
+            x1={ax(ta)}
+            y1={ky(tk)}
+            x2={ax(ta)}
+            y2={YB}
+            style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '3 3' }}
+          />
+          <line
+            x1={X0}
+            y1={ky(tk)}
+            x2={ax(ta)}
+            y2={ky(tk)}
+            style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '3 3' }}
+          />
           <circle
             cx={ax(ta)}
             cy={ky(tk)}
             r={7}
-            style={{ fill: verdict === 'washington' ? GT.ink : verdict === 'tie' ? GT.warn : GT.b, stroke: GT.paperRaised, strokeWidth: 2 }}
+            style={{
+              fill: verdict === 'washington' ? GT.ink : verdict === 'tie' ? GT.warn : GT.b,
+              stroke: GT.paperRaised,
+              strokeWidth: 2,
+            }}
           />
 
           {/* axes titles */}
@@ -279,7 +331,13 @@ export default function SecondVotes() {
         <div>
           <div className="grid grid-cols-2 gap-3">
             <BigStat label="Washington" value={Math.round(tw)} sub={`on ${wv} of 69 ballots`} />
-            <BigStat label="Adams" value={Math.round(tav)} color={GT.a} sub={`needs ${MAJ_1789} for a majority`} align="right" />
+            <BigStat
+              label="Adams"
+              value={Math.round(tav)}
+              color={GT.a}
+              sub={`needs ${MAJ_1789} for a majority`}
+              align="right"
+            />
           </div>
           <svg viewBox="0 0 360 74" className="mt-3 block w-full" aria-hidden="true">
             <Bar label="Washington" n={tw} color={GT.ink} y={8} />

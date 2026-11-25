@@ -346,8 +346,8 @@ export default function Ballot() {
       </div>
 
       <div className="mt-2 flex flex-wrap gap-3">
-        <Chip color={GT.aSoft}>votes A</Chip>
-        <Chip color={GT.bSoft}>votes B</Chip>
+        <Chip color={GT.a}>votes A</Chip>
+        <Chip color={GT.b}>votes B</Chip>
         <Chip color={GT.eq}>median voter</Chip>
       </div>
       <Caption>{NOTES[preset]}</Caption>
