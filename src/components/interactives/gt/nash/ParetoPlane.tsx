@@ -225,6 +225,9 @@ export default function ParetoPlane() {
             const eq = isCell(eqs, c);
             const opt = isCell(po, c);
             const left = px(a) > X1 - 70;
+            // a point on the bottom axis puts its label above it, clear of the tick numbers
+            const low = py(b) > Y0 - 24;
+            const ly = low ? -30 : -2;
             // cells that land on the same point share one label (matching pennies)
             const twins = CELLS.filter((d) => u(d)[0] === a && u(d)[1] === b);
             const first = twins[0] === c;
@@ -245,9 +248,18 @@ export default function ParetoPlane() {
                     strokeWidth: 2,
                   }}
                 />
+                {/* paper halo so the dashed frontier never runs through a label */}
+                <g
+                  style={{
+                    stroke: GT.paperRaised,
+                    strokeWidth: 5,
+                    strokeLinejoin: 'round',
+                    paintOrder: 'stroke',
+                  }}
+                >
                 <T
                   x={left ? -16 : 16}
-                  y={-2}
+                  y={ly}
                   anchor={left ? 'end' : 'start'}
                   size={13}
                   color={GT.ink}
@@ -256,10 +268,11 @@ export default function ParetoPlane() {
                   {first ? twins.map(label).join(' or ') : ''}
                 </T>
                 {first && (
-                  <T x={left ? -16 : 16} y={14} anchor={left ? 'end' : 'start'} size={11}>
+                  <T x={left ? -16 : 16} y={ly + 16} anchor={left ? 'end' : 'start'} size={11}>
                     {`(${fmt(a)}, ${fmt(b)})${eq ? ' Nash' : ''}`}
                   </T>
                 )}
+                </g>
               </g>
             );
           })}

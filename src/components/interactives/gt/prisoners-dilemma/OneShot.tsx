@@ -114,7 +114,7 @@ export default function OneShot() {
               const best = me === 'C' && th === 'C';
               const lit = c === col;
               return (
-                <g key={me + th} style={{ opacity: lit ? 1 : 0.5, transition: 'opacity 300ms' }}>
+                <g key={me + th} style={{ opacity: lit ? 1 : 0.6, transition: 'opacity 300ms' }}>
                   <rect
                     x={cx(c) - CW / 2}
                     y={cy(r) - CH / 2}
@@ -163,7 +163,7 @@ export default function OneShot() {
             const gain = payoff('D', MOVES[c]) - payoff('C', MOVES[c]);
             const lit = c === col;
             return (
-              <g key={'a' + c} style={{ opacity: lit ? 1 : 0.35, transition: 'opacity 300ms' }}>
+              <g key={'a' + c} style={{ opacity: lit ? 1 : 0.45, transition: 'opacity 300ms' }}>
                 <line
                   x1={cx(c)}
                   y1={Y0 + CH + 5}
@@ -173,8 +173,8 @@ export default function OneShot() {
                   style={{ stroke: GT.a, strokeWidth: lit ? 4 : 2.5 }}
                 />
                 <T
-                  x={cx(c) + 12}
-                  y={Y0 + CH + GY / 2}
+                  x={cx(c) + 18}
+                  y={Y0 + CH + GY / 2 - 6}
                   anchor="start"
                   size={12}
                   color={GT.a}

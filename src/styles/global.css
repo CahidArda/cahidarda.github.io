@@ -1145,3 +1145,14 @@ html {
   overflow-y: hidden;
   padding: 0.15em 0;
 }
+
+/* Logic of Crowds: push red (GT.b) toward crimson so it never reads as the accent
+   (equilibrium), which sits next to it in almost every widget, especially in dark mode. */
+:root {
+  --gt-b: #c8243f;
+  --gt-b-soft: #f7d8de;
+}
+.dark {
+  --gt-b: #f06a7e;
+  --gt-b-soft: #3b1f27;
+}

@@ -294,7 +294,7 @@ export default function BestResponse() {
                       transition: 'stroke-width 200ms',
                     }}
                   />
-                  <T x={x + 10} y={(y1 + y2) / 2} anchor="start" size={10} color={GT.a}>
+                  <T x={x + 12} y={(y1 + y2) / 2 - 4} anchor="start" size={11} color={GT.a}>
                     +{a.gain}
                   </T>
                 </g>
@@ -318,7 +318,7 @@ export default function BestResponse() {
                     transition: 'stroke-width 200ms',
                   }}
                 />
-                <T x={(x1 + x2) / 2} y={y - 11} size={10} color={GT.b}>
+                <T x={(x1 + x2) / 2 - 4} y={y - 13} size={11} color={GT.b}>
                   +{a.gain}
                 </T>
               </g>

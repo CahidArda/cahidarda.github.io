@@ -165,7 +165,9 @@ export default function RandomSurfer() {
     caption = `The surfer follows a random link to ${NAMES[cur.current]}. Each visit is counted.`;
   else
     caption =
-      'The share of time spent on each page settles on its PageRank. B wins with two in-links, because one of them is from A.';
+      exact[1] >= exact[0]
+        ? 'The share of time spent on each page settles on its PageRank. B wins with two in-links, because one of them is from A.'
+        : 'The share of time spent on each page settles on its PageRank. With this many random jumps, A’s six in-links beat B’s one strong one.';
 
   return (
     <Specimen
