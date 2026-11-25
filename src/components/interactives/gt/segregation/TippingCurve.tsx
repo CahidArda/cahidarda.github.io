@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BigStat,
   Caption,
-  Chip,
   GT,
   Specimen,
   T,
@@ -84,30 +83,11 @@ export default function TippingCurve() {
       hint="drag across the chart to pick a bar"
       footer={`t = ${pct(cur)}`}
     >
-      <div className="mb-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <BigStat label="asked for" value={pct(cur)} color={GT.ink} sub="at least this alike" />
-        <BigStat
-          label="got"
-          value={pct(got)}
-          color={churn ? GT.warn : GT.eq}
-          sub={churn ? 'never settles' : 'once everyone settles'}
-        />
-        <div className="hidden sm:block">
-          <BigStat
-            label="gap"
-            value={`+${Math.max(0, Math.round((got - cur) * 100))}`}
-            unit="pts"
-            color={GT.muted}
-            sub="more alike than anyone asked"
-          />
-        </div>
-      </div>
-
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         className="mx-auto block w-full touch-none select-none"
-        style={{ cursor: 'ew-resize', maxHeight: 360 }}
+        style={{ cursor: 'ew-resize' }}
         onPointerDown={onPtr}
         onPointerMove={onPtr}
         role="img"
@@ -192,16 +172,33 @@ export default function TippingCurve() {
           style={{ fill: GT.paperRaised, stroke: GT.inkSoft, strokeWidth: 2 }}
         />
         <circle cx={x(cur)} cy={y(got)} r={6} style={{ fill: churn ? GT.warn : GT.eq }} />
+        {!churn && got - cur > 0.08 && (
+          <T
+            x={x(cur) + 10}
+            y={(y(cur) + y(got)) / 2}
+            anchor="start"
+            size={14}
+            color={GT.eq}
+            weight={600}
+          >
+            +{Math.round((got - cur) * 100)} pts
+          </T>
+        )}
       </svg>
 
-      <div className="mt-2 flex flex-wrap gap-3">
-        <Chip color={GT.eq}>what they got</Chip>
-        <Chip color={GT.inkSoft}>what they asked for</Chip>
-        <Chip color={GT.warn}>still moving after 300 rounds</Chip>
+      <div className="mt-3 flex flex-wrap items-end gap-x-10 gap-y-3 border-t border-line pt-4 sm:pl-[7.3%]">
+        <BigStat label="asked for" value={pct(cur)} color={GT.inkSoft} sub="at least this alike" />
+        <BigStat
+          label="got"
+          value={pct(got)}
+          size="lg"
+          color={churn ? GT.warn : GT.eq}
+          sub={churn ? 'never settles' : 'once everyone settles'}
+        />
       </div>
       <Caption>
-        Above about {pct(BREAK)} the bar is so high that some residents never find a spot and the
-        moving never stops. Push it a little further and nobody settles, so the city stays mixed.
+        Past about {pct(BREAK)} some residents never find a spot, the moving never stops, and the
+        city stays mixed.
       </Caption>
     </Specimen>
   );

@@ -1,15 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  BigStat,
-  Btn,
-  Caption,
-  Chip,
-  GT,
-  Specimen,
-  mulberry32,
-  useInView,
-  useReducedMotion,
-} from '../shared';
+import { BigStat, Btn, GT, Specimen, mulberry32, useInView, useReducedMotion } from '../shared';
 import { crowdAnswer, drawBalls, play, pooledAnswer, type Colour, type Turn } from './urn';
 import { prefersReduced } from './motion';
 
@@ -122,14 +112,9 @@ export default function UrnLine() {
   };
 
   const done = shown >= N;
-  const visible = turns.slice(0, shown);
-  const blueGuesses = visible.filter((t) => t.guess === 'blue').length;
-  const redGuesses = visible.length - blueGuesses;
-  const cascadeAt = turns.findIndex((t) => t.following);
   const blueBalls = balls.filter((b) => b === 'blue').length;
   const answer = crowdAnswer(turns);
   const wrong = answer !== urn;
-  const herders = turns.filter((t) => t.following).length;
   const ignored = turns.filter((t) => t.following && t.ball !== t.guess).length;
 
   return (
@@ -141,22 +126,7 @@ export default function UrnLine() {
       hint="play the line, then draw a new urn"
       footer={run === 0 ? 'line 1 (the urn is blue)' : `line ${run + 1}`}
     >
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Btn primary onClick={toggle}>
-          {playing && !done ? 'pause' : done ? 'replay' : 'play'}
-        </Btn>
-        <Btn onClick={step} disabled={done}>
-          step
-        </Btn>
-        <Btn onClick={fresh}>new urn</Btn>
-        <span className="ml-auto flex flex-wrap gap-3">
-          <Chip color={GT.a}>blue</Chip>
-          <Chip color={GT.b}>red</Chip>
-          <Chip color={GT.warn}>following the crowd</Chip>
-        </span>
-      </div>
-
-      {/* the line of people */}
+      {/* the line of people: the chart, first */}
       <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-12">
         {turns.map((t, i) => {
           const on = i < shown;
@@ -169,7 +139,8 @@ export default function UrnLine() {
               style={{
                 borderColor: current ? GT.ink : on && t.following ? GT.warn : GT.line,
                 borderStyle: on ? 'solid' : 'dashed',
-                borderTopWidth: on && t.following ? 3 : 1,
+                // constant box size: the "following" band is an inset shadow, not a thicker border
+                boxShadow: on && t.following ? `inset 0 3px 0 ${GT.warn}` : 'none',
               }}
             >
               <span className="font-mono text-[0.65rem] text-muted">
@@ -206,67 +177,61 @@ export default function UrnLine() {
                   )}
                 </span>
                 <span className="font-mono text-[0.62rem] text-muted">
-                  {on ? (ign ? 'ignored' : 'ball') : 'ball'}
+                  {on && ign ? 'ignored' : 'ball'}
                 </span>
               </span>
             </div>
           );
         })}
       </div>
-
-      {/* tally + narration */}
-      <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 font-mono text-[0.7rem]">
-        <span className="text-ink-soft">
-          public guesses: <span style={{ color: GT.a }}>blue {blueGuesses}</span> ·{' '}
-          <span style={{ color: GT.b }}>red {redGuesses}</span>
+      {/* direct key under the line, then the running story (fixed height: no reflow) */}
+      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 font-mono text-[0.68rem] text-muted">
+        <span>
+          big = said aloud · small = drawn in private ·{' '}
+          <span style={{ color: GT.warn }}>gold = following</span>
         </span>
-        <span className="text-muted">
-          {cascadeAt >= 0 && shown > cascadeAt
-            ? `cascade from person ${cascadeAt + 1}: ${herders} people follow`
-            : 'no cascade yet'}
+        <span className="tabular-nums">
+          balls <span style={{ color: GT.a }}>{blueBalls} blue</span> :{' '}
+          <span style={{ color: GT.b }}>{N - blueBalls} red</span>
         </span>
       </div>
-      <Caption>
+      <p className="mt-3 h-[4.2rem] overflow-hidden text-[0.85rem] leading-snug text-ink-soft sm:h-[2.6rem]">
         {done
           ? wrong
-            ? `The urn was ${urn}. ${ignored} people threw away a ${urn} ball to repeat the crowd.`
-            : `The urn was ${urn}. The crowd got it right this time, for the same reason it can get it wrong: the first few balls decided.`
+            ? `The urn was ${urn}. The crowd said ${answer}: ${ignored} people threw away a ${urn} ball to repeat it.`
+            : `The urn was ${urn} and the crowd got it right, for the same reason it can get it wrong: the first few balls decided.`
           : narrate(turns[shown - 1], shown - 1)}
-      </Caption>
+      </p>
 
-      {/* readouts */}
-      <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-line pt-4 sm:grid-cols-4">
-        <BigStat
-          label="balls in this line"
-          value={
-            <span>
-              <span style={{ color: GT.a }}>{blueBalls}</span>
-              <span className="text-muted">:</span>
-              <span style={{ color: GT.b }}>{N - blueBalls}</span>
+      {/* one supporting readout: over many lines */}
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-t border-line pt-4">
+        <div className="flex gap-8">
+          <BigStat
+            label="crowd wrong"
+            value={Math.round(SIM.crowd * 100)}
+            unit="%"
+            color={GT.warn}
+            sub="of 10,000 lines"
+          />
+          <BigStat
+            label="pooled balls wrong"
+            value={Math.round(SIM.pooled * 100)}
+            unit="%"
+            color={GT.opt}
+            sub="majority of all 12"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Btn primary onClick={toggle}>
+            <span className="inline-block w-[6ch] text-center">
+              {playing && !done ? 'pause' : done ? 'replay' : 'play'}
             </span>
-          }
-          sub="blue : red, all private"
-        />
-        <BigStat
-          label="the crowd says"
-          value={done ? answer : '…'}
-          color={done ? col(answer) : GT.muted}
-          sub={done ? `urn was ${urn}: ${wrong ? 'wrong' : 'right'}` : 'wait for the line'}
-        />
-        <BigStat
-          label="crowd wrong"
-          value={Math.round(SIM.crowd * 100)}
-          unit="%"
-          color={GT.warn}
-          sub="of 10,000 simulated lines"
-        />
-        <BigStat
-          label="pooling the balls"
-          value={Math.round(SIM.pooled * 100)}
-          unit="%"
-          color={GT.opt}
-          sub="wrong, by majority of 12"
-        />
+          </Btn>
+          <Btn onClick={step} disabled={done}>
+            step
+          </Btn>
+          <Btn onClick={fresh}>new urn</Btn>
+        </div>
       </div>
       <span className="sr-only">
         Urn colour {urn}. Guesses: {turns.map((t) => t.guess).join(', ')}.

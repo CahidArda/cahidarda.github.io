@@ -3,7 +3,6 @@ import {
   BigStat,
   Btn,
   Caption,
-  Chip,
   GT,
   Seg,
   Specimen,
@@ -17,6 +16,7 @@ import {
 } from '../shared';
 import { cdfFromDensity, nudge, presetDensity, shares, type Preset } from './logic';
 import { useCompact } from './useCompact';
+import { Reserve } from '../nash/Reserve';
 
 const H = 250;
 const BASE = 190; // baseline of the density curve
@@ -237,33 +237,14 @@ export default function Ballot() {
       title="the ballot"
       kicker="two candidates · one left-right axis"
       rootRef={rootRef}
-      hint="pick a crowd, drag a candidate (or use ← →), or rerun the race"
+      hint="pick a crowd or drag a candidate (or use ← →)"
       footer={`median ${dist.median.toFixed(2)} · mean ${dist.mean.toFixed(2)}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Seg options={PRESETS} value={preset} onChange={setSel} bind={bindPreset} label="voters" />
-        <Btn primary onClick={race}>
-          rerun the race
-        </Btn>
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <BigStat label="votes for A" value={fmtPct(sh[0])} unit="%" color={GT.a} />
-        <BigStat label="votes for B" value={fmtPct(sh[1])} unit="%" color={GT.b} />
-        <BigStat
-          label="dividing line"
-          value={mid.toFixed(2)}
-          color={GT.eq}
-          sub={`median voter ${dist.median.toFixed(2)}`}
-          align="right"
-        />
-      </div>
-
       <div ref={boxRef}>
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
-          className="mt-3 block w-full touch-none select-none"
+          className="block w-full touch-none select-none"
           role="img"
           aria-label={`Voter density, ${preset}. Candidate A at ${show[0].toFixed(2)}, B at ${show[1].toFixed(
             2,
@@ -345,12 +326,28 @@ export default function Ballot() {
         </svg>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-3">
-        <Chip color={GT.a}>votes A</Chip>
-        <Chip color={GT.b}>votes B</Chip>
-        <Chip color={GT.eq}>median voter</Chip>
+      <div className="mt-4 grid grid-cols-[6.5rem_6.5rem] items-end gap-x-4 gap-y-4 sm:grid-cols-[6.5rem_6.5rem_minmax(0,1fr)]">
+        <BigStat label="votes for A" value={fmtPct(sh[0])} unit="%" color={GT.a} />
+        <BigStat label="votes for B" value={fmtPct(sh[1])} unit="%" color={GT.b} />
+        <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:justify-end">
+          <Seg
+            options={PRESETS}
+            value={preset}
+            onChange={setSel}
+            bind={bindPreset}
+            label="voters"
+          />
+          <Btn primary onClick={race}>
+            rerun
+          </Btn>
+        </div>
       </div>
-      <Caption>{NOTES[preset]}</Caption>
+      <Reserve
+        items={PRESETS.map((x) => (
+          <Caption key={x.value}>{NOTES[x.value]}</Caption>
+        ))}
+        active={PRESETS.findIndex((x) => x.value === preset)}
+      />
     </Specimen>
   );
 }

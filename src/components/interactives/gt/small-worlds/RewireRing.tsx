@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  BigStat,
   Btn,
   Caption,
   Chip,
@@ -150,27 +149,6 @@ export default function RewireRing() {
         </span>
       }
     >
-      <div className="mb-4 grid grid-cols-3 gap-3">
-        <BigStat
-          label="chain A→B"
-          value={path.length ? path.length - 1 : '∞'}
-          unit="steps"
-          color={GT.a}
-          sub="click two people"
-        />
-        <BigStat
-          label="avg distance L"
-          value={g.L.toFixed(1)}
-          color={GT.ink}
-          sub={`${Math.round((g.L / L0) * 100)}% of the ring's ${L0.toFixed(1)}`}
-        />
-        <BigStat
-          label="clustering C"
-          value={g.C.toFixed(2)}
-          color={GT.opt}
-          sub={`${Math.round((g.C / C0) * 100)}% of the ring's ${C0.toFixed(2)}`}
-        />
-      </div>
       <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[1.25fr_1fr]">
         <svg
           viewBox={`0 0 ${RS} ${RS}`}
@@ -247,6 +225,22 @@ export default function RewireRing() {
               </T>
             );
           })}
+          {/* the chain length, in the middle of the ring */}
+          <g
+            style={{
+              stroke: GT.paperRaised,
+              strokeWidth: 6,
+              strokeLinejoin: 'round',
+              paintOrder: 'stroke',
+            }}
+          >
+            <T x={RS / 2} y={RS / 2 - 10} size={56} font="display" color={GT.a}>
+              {path.length ? path.length - 1 : '∞'}
+            </T>
+            <T x={RS / 2} y={RS / 2 + 30} size={11} color={GT.a}>
+              steps from A to B
+            </T>
+          </g>
         </svg>
         <div className="min-w-0">
           <svg
@@ -279,7 +273,7 @@ export default function RewireRing() {
             <T x={cx(0.0013)} y={cy(1.0) - 8} anchor="start" size={9.5} color={GT.opt}>
               clustering
             </T>
-            <T x={cx(0.12)} y={cy(0.43) + 12} anchor="end" size={9.5} color={GT.ink}>
+            <T x={cx(1)} y={cy(0.339) - 10} anchor="end" size={9.5} color={GT.ink}>
               distance
             </T>
             {p > 0 && (
@@ -294,11 +288,40 @@ export default function RewireRing() {
                 />
                 <circle cx={cx(p)} cy={cy(g.L / L0)} r={4.5} style={{ fill: GT.ink }} />
                 <circle cx={cx(p)} cy={cy(g.C / C0)} r={4.5} style={{ fill: GT.opt }} />
+                <g
+                  style={{
+                    stroke: GT.paperRaised,
+                    strokeWidth: 4,
+                    strokeLinejoin: 'round',
+                    paintOrder: 'stroke',
+                  }}
+                >
+                  <T
+                    x={cx(p) + (p > 0.2 ? -8 : 8)}
+                    y={cy(g.C / C0) - 10}
+                    anchor={p > 0.2 ? 'end' : 'start'}
+                    size={11}
+                    weight={700}
+                    color={GT.opt}
+                  >
+                    {`${Math.round((g.C / C0) * 100)}%`}
+                  </T>
+                  <T
+                    x={cx(p) + (p > 0.2 ? -8 : 8)}
+                    y={cy(g.L / L0) + 12}
+                    anchor={p > 0.2 ? 'end' : 'start'}
+                    size={11}
+                    weight={700}
+                    color={GT.ink}
+                  >
+                    {`${Math.round((g.L / L0) * 100)}%`}
+                  </T>
+                </g>
               </>
             )}
           </svg>
           <p className="mt-1 font-mono text-[0.62rem] text-muted">
-            lines: average of 40 rings · dots: this ring
+            % of the plain ring · lines: average of 40 rings · dots: this one
           </p>
         </div>
       </div>

@@ -3,7 +3,6 @@ import {
   BigStat,
   Btn,
   Caption,
-  Chip,
   GT,
   Seg,
   Specimen,
@@ -34,12 +33,14 @@ const WEB: Record<'open' | 'trap', Edge[]> = {
   trap: parse('AB AC BC BD CA DE ED'),
 };
 const N = 5;
-const TW = 54;
-const TH = 64;
+const TW = 60;
+const TH = 72;
 const VW = 540;
 const VH = 300;
 const STEP_MS = 750;
 const S_SCALED = 0.85;
+const FULL = 0.5; // rank that fills a tank to the brim
+const PLATE = 20; // label strip at the top of each tank
 
 type Web = 'open' | 'trap';
 type Rule = 'basic' | 'scaled';
@@ -156,63 +157,6 @@ export default function RankFlow() {
       hint="press step, or switch on the trap and play"
       footer="Easley & Kleinberg, sec. 14.3"
     >
-      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <Seg
-          options={[
-            { value: 'open', label: 'open web' },
-            { value: 'trap', label: 'spider trap' },
-          ]}
-          value={web}
-          onChange={(v) => {
-            touch();
-            setWeb(v);
-          }}
-        />
-        <Seg
-          options={[
-            { value: 'basic', label: 'basic, s = 1' },
-            { value: 'scaled', label: `scaled, s = ${S_SCALED}` },
-          ]}
-          value={rule}
-          onChange={(v) => {
-            touch();
-            setRule(v);
-          }}
-        />
-      </div>
-      <div className="mb-3 flex flex-wrap gap-2">
-        <Btn
-          primary
-          onClick={() => {
-            touch();
-            setPlaying(false);
-            advance();
-          }}
-        >
-          step
-        </Btn>
-        <Btn
-          onClick={() => {
-            touch();
-            setPlaying((p) => !p);
-          }}
-        >
-          {playing ? 'pause' : 'play'}
-        </Btn>
-        <Btn
-          onClick={() => {
-            touch();
-            setPlaying(false);
-            setR(uniform());
-            setPrev(uniform());
-            setStepN(0);
-            setPhase(1);
-          }}
-        >
-          reset
-        </Btn>
-      </div>
-
       <svg
         ref={svgRef}
         viewBox={`0 0 ${VW} ${VH}`}
@@ -250,7 +194,7 @@ export default function RankFlow() {
                 <circle
                   cx={drop.x}
                   cy={drop.y}
-                  r={2 + 16 * Math.sqrt(amt)}
+                  r={2 + 12 * Math.sqrt(amt)}
                   style={{ fill: GT.a, opacity: 0.85 }}
                 />
               )}
@@ -264,7 +208,7 @@ export default function RankFlow() {
           !reduced &&
           POS.map((p, i) => {
             const moving = stepN > 0 && phase < 1 && !reduced;
-            const y = moving ? p.y - TH / 2 - 26 + 22 * phase : p.y - TH / 2 - 10;
+            const y = moving ? p.y - TH / 2 - 18 + 16 * phase : p.y - TH / 2 - 10;
             return (
               <path
                 key={`rain${i}`}
@@ -274,7 +218,7 @@ export default function RankFlow() {
             );
           })}
         {POS.map((p, i) => {
-          const lvl = Math.min(1, shown[i]);
+          const lvl = Math.min(1, shown[i] / FULL);
           const inTrap = web === 'trap' && i >= 3;
           return (
             <g key={i}>
@@ -291,47 +235,53 @@ export default function RankFlow() {
               />
               <rect
                 x={p.x - TW / 2 + 1}
-                y={p.y + TH / 2 - 1 - (TH - 2) * lvl}
+                y={p.y + TH / 2 - 1 - (TH - PLATE - 2) * lvl}
                 width={TW - 2}
-                height={(TH - 2) * lvl}
+                height={(TH - PLATE - 2) * lvl}
                 style={{ fill: GT.aSoft }}
               />
               <line
                 x1={p.x - TW / 2 + 1}
                 x2={p.x + TW / 2 - 1}
-                y1={p.y + TH / 2 - 1 - (TH - 2) * lvl}
-                y2={p.y + TH / 2 - 1 - (TH - 2) * lvl}
+                y1={p.y + TH / 2 - 1 - (TH - PLATE - 2) * lvl}
+                y2={p.y + TH / 2 - 1 - (TH - PLATE - 2) * lvl}
                 style={{ stroke: GT.a, strokeWidth: 2 }}
               />
-              <T x={p.x} y={p.y - 14} size={15} font="display" color={GT.ink}>
+              {/* label plate: name and current rank, above the water */}
+              <line
+                x1={p.x - TW / 2}
+                x2={p.x + TW / 2}
+                y1={p.y - TH / 2 + PLATE}
+                y2={p.y - TH / 2 + PLATE}
+                style={{ stroke: GT.line }}
+              />
+              <T
+                x={p.x - TW / 2 + 6}
+                y={p.y - TH / 2 + PLATE / 2 + 1}
+                anchor="start"
+                size={14}
+                font="display"
+                color={GT.ink}
+              >
                 {NAMES[i]}
               </T>
-              {/* paper halo: links leaving the box bottom pass under the value */}
-              <g
-                style={{
-                  stroke: GT.paperRaised,
-                  strokeWidth: 5,
-                  strokeLinejoin: 'round',
-                  paintOrder: 'stroke',
-                }}
+              <T
+                x={p.x + TW / 2 - 5}
+                y={p.y - TH / 2 + PLATE / 2 + 1}
+                anchor="end"
+                size={10 * Math.min(k, 1.3)}
+                color={GT.ink}
+                weight={700}
               >
-                <T
-                  x={p.x}
-                  y={p.y + TH / 2 + 10 * Math.min(k, 1.4)}
-                  size={10 * Math.min(k, 1.4)}
-                  color={GT.ink}
-                  weight={700}
-                >
-                  {shown[i].toFixed(2)}
-                </T>
-              </g>
+                {shown[i].toFixed(2)}
+              </T>
             </g>
           );
         })}
         {web === 'trap' && (
           <T
             x={POS[4].x + TW / 2 + 12}
-            y={POS[3].y - TH / 2 - 26}
+            y={POS[4].y + TH / 2 + 24 + 10 * k}
             anchor="end"
             size={9 * k}
             color={GT.warn}
@@ -341,25 +291,80 @@ export default function RankFlow() {
         )}
       </svg>
 
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-        <Chip color={GT.a}>rank (full tank = 1)</Chip>
-        {rule === 'scaled' && (
-          <Chip
-            color={GT.alt}
-          >{`(1 - s)/5 = ${((1 - S_SCALED) / N).toFixed(2)} to every page`}</Chip>
-        )}
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4">
+        <Seg
+          options={[
+            { value: 'open', label: 'open web' },
+            { value: 'trap', label: 'spider trap' },
+          ]}
+          value={web}
+          onChange={(v) => {
+            touch();
+            setWeb(v);
+          }}
+        />
+        <Seg
+          options={[
+            { value: 'basic', label: 'basic, s = 1' },
+            { value: 'scaled', label: `scaled, s = ${S_SCALED}` },
+          ]}
+          value={rule}
+          onChange={(v) => {
+            touch();
+            setRule(v);
+          }}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Btn
+            primary
+            onClick={() => {
+              touch();
+              setPlaying(false);
+              advance();
+            }}
+          >
+            step
+          </Btn>
+          <Btn
+            onClick={() => {
+              touch();
+              setPlaying((p) => !p);
+            }}
+          >
+            {playing ? 'pause' : 'play'}
+          </Btn>
+          <Btn
+            onClick={() => {
+              touch();
+              setPlaying(false);
+              setR(uniform());
+              setPrev(uniform());
+              setStepN(0);
+              setPhase(1);
+            }}
+          >
+            reset
+          </Btn>
+        </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-4">
+
+      <div className="mt-4">
         <BigStat
           size="lg"
           label="rank held by D and E"
           value={`${Math.round((trapShare / total) * 100)}`}
           unit="%"
           color={web === 'trap' && trapShare > 0.5 ? GT.warn : GT.ink}
+          sub={
+            rule === 'scaled'
+              ? `every page also gets (1 - s)/5 = ${((1 - S_SCALED) / N).toFixed(2)} each step`
+              : `total rank stays ${total.toFixed(2)}: it only moves`
+          }
         />
-        <BigStat label="total rank" value={total.toFixed(2)} sub="nothing is created or lost" />
       </div>
-      <Caption>{caption}</Caption>
+      <div className="min-h-[2.8rem]">
+        <Caption>{caption}</Caption>
+      </div>
     </Specimen>
   );
 }

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BigStat,
   Btn,
-  Chip,
   GT,
   Slider,
   Specimen,
@@ -195,8 +194,8 @@ export default function City() {
       hint="drag the bar; watch the city re-sort itself"
       footer={`${moves.toLocaleString('en-US')} moves${settled ? ' · settled' : ''}`}
     >
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,15rem)]">
-        <div ref={wrapRef} className="relative mx-auto w-full max-w-[440px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 sm:grid-cols-[minmax(0,440px)_minmax(0,1fr)] sm:gap-8">
+        <div ref={wrapRef} className="relative mx-auto w-full max-w-[440px] sm:mx-0">
           {mounted ? (
             <canvas
               ref={canvasRef}
@@ -218,27 +217,22 @@ export default function City() {
           )}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-4">
-          <BigStat
-            label="you asked for"
-            value={pct(t)}
-            sub="at least this share alike"
-            color={GT.ink}
-          />
+        <div className="flex min-w-0 flex-col gap-4 sm:pt-1">
           <BigStat
             label="you got"
             value={pct(st.similarity)}
             size="lg"
             color={GT.eq}
-            sub="average share of alike neighbours"
+            sub={<span className="tabular-nums">neighbours alike, for a bar of {pct(t)}</span>}
           />
-          <BigStat
-            label="unhappy"
-            value={pct(st.unhappy)}
-            size="sm"
-            color={st.unhappy > 0 ? GT.warn : GT.opt}
-            sub={st.unhappy > 0 ? 'drawn hollow, still moving' : 'everyone is satisfied'}
-          />
+          <div
+            className="h-[1rem] font-mono text-[0.68rem] tabular-nums"
+            style={{ color: st.unhappy > 0 ? GT.warn : GT.opt }}
+          >
+            {st.unhappy > 0
+              ? `${pct(st.unhappy)} unhappy (hollow), moving`
+              : 'everyone is satisfied'}
+          </div>
           <Slider
             label="each resident needs"
             value={t}
@@ -251,14 +245,10 @@ export default function City() {
           />
           <div className="flex flex-wrap gap-2">
             <Btn primary onClick={() => setPlaying((p) => !p)} disabled={settled}>
-              {playing ? 'pause' : 'play'}
+              <span className="inline-block w-[5ch] text-center">{playing ? 'pause' : 'play'}</span>
             </Btn>
             <Btn onClick={() => reset(seed)}>reset</Btn>
             <Btn onClick={() => reset(seed + 1)}>new city</Btn>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Chip color={GT.a}>blue</Chip>
-            <Chip color={GT.b}>red</Chip>
           </div>
         </div>
       </div>

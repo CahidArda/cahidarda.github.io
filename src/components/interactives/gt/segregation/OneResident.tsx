@@ -1,15 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  BigStat,
-  Caption,
-  Chip,
-  GT,
-  Slider,
-  Specimen,
-  T,
-  useInView,
-  useReducedMotion,
-} from '../shared';
+import { BigStat, Caption, GT, Slider, Specimen, T, useInView, useReducedMotion } from '../shared';
 import { pct, prefersReduced, useSharedT } from './sharedT';
 
 // One resident (blue, in the middle) and the 8 cells around her. She counts the occupied
@@ -152,27 +142,21 @@ export default function OneResident() {
         </svg>
 
         <div className="min-w-0">
-          <div className="grid grid-cols-2 gap-4">
-            <BigStat
-              label="alike / occupied"
-              value={
-                <span>
-                  <span style={{ color: GT.a }}>{alike}</span>
-                  <span className="text-muted">/{occ}</span>
-                </span>
-              }
-              sub={`= ${pct(share)} alike`}
-            />
-            <BigStat
-              label="she"
-              value={ok ? 'stays' : 'moves'}
-              color={ok ? GT.opt : GT.warn}
-              sub={ok ? `${pct(share)} ≥ ${pct(t)}` : `${pct(share)} < ${pct(t)}`}
-            />
-          </div>
+          <BigStat
+            label="she"
+            value={ok ? 'stays' : 'moves'}
+            size="lg"
+            color={ok ? GT.opt : GT.warn}
+            sub={
+              <span className="tabular-nums">
+                <span style={{ color: GT.a }}>{alike}</span> of {occ} occupied alike = {pct(share)}{' '}
+                {ok ? '≥' : '<'} {pct(t)}
+              </span>
+            }
+          />
 
-          {/* meter: share alike against the threshold */}
-          <div className="mt-4">
+          {/* the bar she needs, drawn on the same track as her share */}
+          <div className="mt-5">
             <div className="relative h-3 border border-line-strong">
               <div
                 className="absolute inset-y-0 left-0 transition-all duration-300"
@@ -185,14 +169,14 @@ export default function OneResident() {
             </div>
             <div className="mt-1 flex justify-between font-mono text-[0.6rem] text-muted">
               <span>0%</span>
-              <span>share of neighbours like her</span>
+              <span>her alike share · tick = her bar</span>
               <span>100%</span>
             </div>
           </div>
 
           <div className="mt-4">
             <Slider
-              label="she needs at least"
+              label="her bar t"
               value={t}
               min={0}
               max={0.9}
@@ -203,13 +187,9 @@ export default function OneResident() {
           </div>
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap gap-3">
-        <Chip color={GT.a}>her kind</Chip>
-        <Chip color={GT.b}>the other kind</Chip>
-      </div>
       <Caption>
-        Empty lots do not count. With a bar of {pct(t)} and eight full neighbours she needs {need}{' '}
-        of them to be blue{need <= 3 ? ', so she is content to be outnumbered' : ''}.
+        Empty lots do not count. With eight full neighbours, a bar of {pct(t)} needs {need} of them
+        alike.
       </Caption>
     </Specimen>
   );

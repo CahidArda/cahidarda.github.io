@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from 'react';
 import {
   BigStat,
   Caption,
-  Chip,
   GT,
   Seg,
   Slider,
@@ -197,35 +196,11 @@ export default function BidPlot() {
       hint="drag anywhere on the plot (or focus it and use arrow keys)"
       footer={second ? 'you pay the rival bid' : 'you pay your own bid'}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Seg
-          options={FORMATS}
-          value={format}
-          onChange={(f) => (takeOver(), setSel(f))}
-          bind={bindFormat}
-          label="format"
-        />
-        <div className="w-44">
-          <Slider
-            label="your value"
-            value={v}
-            min={20}
-            max={90}
-            onChange={(x) => {
-              takeOver();
-              setV(x);
-            }}
-            format={(x) => `$${x}`}
-            color={GT.eq}
-          />
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,15rem)] md:items-center">
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,14rem)] md:items-center">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${S} ${S}`}
-          className="mx-auto block w-full max-w-[26rem] touch-none select-none"
+          className="mx-auto block w-full max-w-[30rem] touch-none select-none"
           role="img"
           tabIndex={0}
           aria-label={`Payoff map, ${second ? 'second' : 'first'}-price auction, your value $${v}. Your bid $${b}, rival bid $${r}. ${outcome(
@@ -397,7 +372,7 @@ export default function BidPlot() {
           </g>
         </svg>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <BigStat
             label="your gain"
             value={`${gain < 0 ? '−' : ''}$${Math.abs(gain)}`}
@@ -405,20 +380,38 @@ export default function BidPlot() {
             size="lg"
             sub={`bid $${b} · rival $${r} · value $${v}`}
           />
-          <p className="font-mono text-[0.72rem] leading-snug text-ink-soft">
+          <p className="min-h-[2.6rem] font-mono text-[0.72rem] leading-snug text-ink-soft md:min-h-[3.4rem]">
             {outcome(format, v, b, r)}
           </p>
-          <div className="flex flex-col gap-1.5">
-            <Chip color={GT.opt}>win, gain (darker = more)</Chip>
-            <Chip color={GT.b}>win, but pay more than value</Chip>
-            <Chip color={GT.muted}>lose a deal worth winning</Chip>
-            <Chip color={GT.eq}>bid exactly your value</Chip>
-          </div>
         </div>
       </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <Seg
+          options={FORMATS}
+          value={format}
+          onChange={(f) => (takeOver(), setSel(f))}
+          bind={bindFormat}
+          label="format"
+        />
+        <div className="w-44">
+          <Slider
+            label="your value"
+            value={v}
+            min={20}
+            max={90}
+            onChange={(x) => {
+              takeOver();
+              setV(x);
+            }}
+            format={(x) => `$${x}`}
+            color={GT.eq}
+          />
+        </div>
+      </div>
+
       <Caption>
         {second
-          ? 'The line bid = value never touches red or grey. No other bid does better, whatever the rival does.'
+          ? 'The line bid = value never enters overpay or missed. No other bid does better, whatever the rival does.'
           : 'Now the line bid = value earns $0 everywhere. To gain anything you must bid below your value.'}
       </Caption>
     </Specimen>

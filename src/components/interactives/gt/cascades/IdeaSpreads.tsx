@@ -1,17 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  BigStat,
-  Btn,
-  Caption,
-  Chip,
-  GT,
-  Slider,
-  Specimen,
-  T,
-  svgPoint,
-  useInView,
-  useReducedMotion,
-} from '../shared';
+import { BigStat, Btn, GT, Specimen, T, svgPoint, useInView, useReducedMotion } from '../shared';
 import { ADJ, EDGES, H, NODES, SEEDS, W, clusterDensity, runAll } from './network';
 import { prefersReduced } from './motion';
 
@@ -104,10 +92,6 @@ export default function IdeaSpreads() {
     setSeeds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
     restart();
   };
-  const step = () => {
-    setPlaying(false);
-    setShownRound((x) => Math.min(lastRound, Math.min(x, lastRound) + 1));
-  };
   const toggle = () => {
     if (stalled) restart();
     else setPlaying((p) => !p);
@@ -141,36 +125,6 @@ export default function IdeaSpreads() {
       hint="drag q, or click any person to make them an early adopter"
       footer={`${seeds.length} seed${seeds.length === 1 ? '' : 's'} · round ${r}`}
     >
-      <div className="mb-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-        <Slider
-          label="threshold q = b / (a + b)"
-          value={q}
-          min={0.05}
-          max={0.9}
-          step={0.05}
-          onChange={changeQ}
-          format={(v) => `q = ${fmt(v)}`}
-          color={GT.eq}
-        />
-        <div className="flex flex-wrap gap-2">
-          <Btn primary onClick={toggle}>
-            {playing && !stalled ? 'pause' : stalled ? 'replay' : 'play'}
-          </Btn>
-          <Btn onClick={step} disabled={stalled}>
-            step
-          </Btn>
-          <Btn
-            onClick={() => {
-              setSeeds(SEEDS);
-              setQ(Q0);
-              restart();
-            }}
-          >
-            reset
-          </Btn>
-        </div>
-      </div>
-
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="mx-auto block w-full"
@@ -283,113 +237,123 @@ export default function IdeaSpreads() {
         </T>
       </svg>
 
-      <div className="mt-1 min-h-[1.2rem] font-mono text-[0.7rem] text-ink-soft">
+      {/* status: fixed height so the figure never reflows while it plays */}
+      <div className="mt-1 h-[2.2rem] font-mono text-[0.7rem] leading-snug text-ink-soft sm:h-[1.2rem]">
         {hvInfo && hv !== null ? (
           <span>
             person {hv + 1}: {hvInfo.k} of {hvInfo.d} friends adopted = {Math.round(hvInfo.p * 100)}
             %{' '}
-            {adopted[hv] ? '(adopted)' : hvInfo.p >= q - 1e-9 ? `≥ q, switches next` : `< q, stays`}
+            {adopted[hv] ? '(adopted)' : hvInfo.p >= q - 1e-9 ? '≥ q, switches next' : '< q, stays'}
           </span>
         ) : stalled && holdouts.length ? (
           <span>
-            stuck: every holdout keeps more than {Math.round((1 - q) * 100)}% of its friends inside
-            the shaded group
+            stuck: the shaded group keeps {density !== null ? Math.round(density * 100) : ''}% of
+            its ties inside, more than 1 − q = {Math.round((1 - q) * 100)}%
           </span>
         ) : stalled ? (
           <span>everyone switched</span>
         ) : (
-          <span>round {r}: a person switches when at least q of their friends have</span>
+          <span>round {r}: a person switches once at least q of their friends have</span>
         )}
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-4 border-t border-line pt-4">
-        <BigStat
-          label="adopters"
-          value={
-            <span>
-              {nAdopted}
-              <span className="text-muted">/{NODES.length}</span>
-            </span>
-          }
-          color={GT.eq}
-          sub={stalled ? 'cascade stopped' : 'spreading…'}
-        />
-        <BigStat label="round" value={r} sub={`of ${lastRound}`} />
-        <BigStat
-          label="holdout density"
-          value={density !== null ? density.toFixed(2) : stalled ? '·' : '…'}
-          color={density !== null ? GT.a : GT.muted}
-          sub={
-            density !== null
-              ? `> 1 − q = ${(1 - q).toFixed(2)}`
-              : stalled
-                ? 'complete cascade'
-                : 'wait for the end'
-          }
-        />
-      </div>
-
-      {/* tipping strip: how far it gets for every q */}
-      <div className="mt-4 border-t border-line pt-3">
-        <div className="label mb-1">how far it gets, for every q (same seeds)</div>
-        <svg
-          ref={chartRef}
-          viewBox={`0 0 ${CW} ${CH}`}
-          className="block w-full touch-none select-none"
-          style={{ cursor: 'ew-resize', maxHeight: 140 }}
-          onPointerDown={onChart}
-          onPointerMove={onChart}
-          role="img"
-          aria-label="Step chart of final adopters against the threshold q"
-        >
-          {[0, NODES.length].map((n) => (
-            <g key={n}>
-              <line
-                x1={CP.l}
-                x2={CW - CP.r}
-                y1={cy(n)}
-                y2={cy(n)}
-                style={{ stroke: GT.line, strokeDasharray: '2 3' }}
-              />
-              <T x={CP.l - 6} y={cy(n)} anchor="end" size={13}>
-                {n}
+      {/* one supporting element: the threshold, as a draggable "how far it gets" strip */}
+      <div className="mt-3 grid items-end gap-x-6 gap-y-3 border-t border-line pt-4 sm:grid-cols-[auto_minmax(0,480px)] sm:justify-between">
+        <div className="flex items-end justify-between gap-4 sm:block">
+          <BigStat
+            label="adopted"
+            value={
+              <span>
+                {nAdopted}
+                <span className="text-muted">/{NODES.length}</span>
+              </span>
+            }
+            color={GT.eq}
+            sub={`at q = ${fmt(q)}`}
+          />
+          <div className="flex gap-2 sm:mt-3">
+            <Btn primary onClick={toggle}>
+              <span className="inline-block w-[6ch] text-center">
+                {playing && !stalled ? 'pause' : stalled ? 'replay' : 'play'}
+              </span>
+            </Btn>
+            <Btn
+              onClick={() => {
+                setSeeds(SEEDS);
+                setQ(Q0);
+                restart();
+              }}
+            >
+              reset
+            </Btn>
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="label mb-1" style={{ color: GT.eq }}>
+            drag to set q · final adopters for every q
+          </div>
+          <svg
+            ref={chartRef}
+            viewBox={`0 0 ${CW} ${CH}`}
+            className="block w-full touch-none select-none"
+            style={{ cursor: 'ew-resize' }}
+            onPointerDown={onChart}
+            onPointerMove={onChart}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                changeQ(Math.min(QMAX, Math.round((q + 0.05) * 20) / 20));
+              } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                changeQ(Math.max(QMIN, Math.round((q - 0.05) * 20) / 20));
+              }
+            }}
+            role="slider"
+            aria-label="threshold q"
+            aria-valuemin={QMIN}
+            aria-valuemax={QMAX}
+            aria-valuenow={q}
+          >
+            {[0, NODES.length].map((n) => (
+              <g key={n}>
+                <line
+                  x1={CP.l}
+                  x2={CW - CP.r}
+                  y1={cy(n)}
+                  y2={cy(n)}
+                  style={{ stroke: GT.line, strokeDasharray: '2 3' }}
+                />
+                <T x={CP.l - 6} y={cy(n)} anchor="end" size={13}>
+                  {n}
+                </T>
+              </g>
+            ))}
+            {[0.25, 0.5, 0.75].map((t) => (
+              <T key={t} x={cx(t)} y={CH - 8} size={13}>
+                {t.toFixed(2)}
               </T>
-            </g>
-          ))}
-          {[0.25, 0.5, 0.75].map((t) => (
-            <T key={t} x={cx(t)} y={CH - 8} size={13}>
-              {t.toFixed(2)}
+            ))}
+            <T x={CW - CP.r} y={CH - 8} anchor="end" size={13}>
+              q →
             </T>
-          ))}
-          <T x={CW - CP.r} y={CH - 8} anchor="end" size={13}>
-            q →
-          </T>
-          <path d={curvePath} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.2 }} />
-          <line
-            x1={cx(q)}
-            x2={cx(q)}
-            y1={CP.t - 6}
-            y2={CH - CP.b}
-            style={{ stroke: GT.ink, strokeWidth: 1 }}
-          />
-          <circle
-            cx={cx(q)}
-            cy={cy(curve.find(([qq]) => Math.abs(qq - q) < 1e-6)?.[1] ?? 0)}
-            r={5}
-            style={{ fill: GT.ink }}
-          />
-        </svg>
+            <path d={curvePath} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.2 }} />
+            <line
+              x1={cx(q)}
+              x2={cx(q)}
+              y1={CP.t - 6}
+              y2={CH - CP.b}
+              style={{ stroke: GT.ink, strokeWidth: 1.5 }}
+            />
+            <circle
+              cx={cx(q)}
+              cy={cy(curve.find(([qq]) => Math.abs(qq - q) < 1e-6)?.[1] ?? 0)}
+              r={6}
+              style={{ fill: GT.ink }}
+            />
+          </svg>
+        </div>
       </div>
-
-      <div className="mt-2 flex flex-wrap gap-3">
-        <Chip color={GT.eq}>new behaviour</Chip>
-        <Chip color={GT.inkSoft}>old behaviour</Chip>
-        <Chip color={GT.aSoft}>the cluster that blocks it</Chip>
-      </div>
-      <Caption>
-        With the three starting seeds: up to q = 0.20 everyone switches. From 0.25 the tight-knit
-        group holds out, and above 0.50 the idea never leaves the first three adopters.
-      </Caption>
     </Specimen>
   );
 }

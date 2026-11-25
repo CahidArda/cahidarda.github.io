@@ -12,9 +12,10 @@ import {
 } from '../shared';
 import { bestResponse, shares } from './logic';
 import { useCompact } from './useCompact';
+import { Reserve } from '../nash/Reserve';
 
-const H = 170;
-const SAND = 118;
+const H = 132;
+const SAND = 80;
 const GRIDSTEP = 0.05;
 const START = [0.2, 0.5, 0.8];
 const TURNS = 48;
@@ -97,7 +98,7 @@ export default function ThreeCarts() {
   const shown = cur.map((p, i) => (i === mover ? prev[i] + (p - prev[i]) * e : p));
   const lift = (i: number) =>
     i === mover
-      ? Math.sin(Math.PI * e) * Math.min(60, Math.abs(px(cur[i]) - px(prev[i])) * 0.9)
+      ? Math.sin(Math.PI * e) * Math.min(46, Math.abs(px(cur[i]) - px(prev[i])) * 0.9)
       : 0;
   const sh = shares(cur);
   const low = sh.indexOf(Math.min(...sh));
@@ -129,20 +130,9 @@ export default function ThreeCarts() {
       kicker="no resting point"
       rootRef={rootRef}
       hint="press step to move one cart at a time"
-      footer={`move ${moves}`}
     >
-      <div className="grid grid-cols-2 gap-3">
-        <BigStat
-          label="squeezed cart"
-          value={pct(sh[low])}
-          unit="%"
-          color={COLORS[low]}
-          sub={`cart ${NAMES[low]}`}
-        />
-        <BigStat label="moves without settling" value={moves} color={GT.eq} align="right" />
-      </div>
       <div ref={boxRef}>
-        <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 block w-full" role="img" aria-label={note}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={note}>
           {bounds.map(({ i, lo, hi }) => (
             <rect
               key={i}
@@ -195,13 +185,31 @@ export default function ThreeCarts() {
           </T>
         </svg>
       </div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        <Btn primary onClick={() => setPlaying((p) => !p)}>
-          {playing ? 'pause' : 'play'}
-        </Btn>
-        <Btn onClick={step}>step</Btn>
+      <div className="mt-4 grid grid-cols-[7rem_minmax(0,1fr)] items-end gap-x-6 gap-y-4 sm:grid-cols-[7rem_10rem_minmax(0,1fr)]">
+        <BigStat
+          label="squeezed"
+          value={pct(sh[low])}
+          unit="%"
+          color={COLORS[low]}
+          sub={`cart ${NAMES[low]}`}
+        />
+        <BigStat label="moves, no rest" value={moves} color={GT.eq} sub="it never settles" />
+        <div className="col-span-2 flex gap-2 sm:col-span-1 sm:justify-end">
+          <Btn primary onClick={() => setPlaying((p) => !p)}>
+            {playing ? 'pause' : 'play'}
+          </Btn>
+          <Btn onClick={step}>step</Btn>
+        </div>
       </div>
-      <Caption>{note}</Caption>
+      <Reserve
+        items={[
+          <Caption key="l">
+            A was squeezed between two rivals, so it leaps over one. Now it has 48%.
+          </Caption>,
+          <Caption key="n">{note}</Caption>,
+        ]}
+        active={1}
+      />
     </Specimen>
   );
 }

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BigStat,
   Caption,
-  Chip,
   GT,
   Seg,
   Specimen,
@@ -23,6 +22,7 @@ import {
   type Cell,
   type GameId,
 } from './games';
+import { Reserve } from './Reserve';
 
 /* ── geometry: one SVG coordinate system ── */
 const W = 420;
@@ -162,13 +162,8 @@ export default function BestResponse() {
     setHops(0);
   };
 
-  const status = resting
-    ? 'resting: nobody gains by moving alone'
-    : hops === 0
-      ? `someone wants to move`
-      : gid === 'pennies'
-        ? `hop ${hops}: circling forever`
-        : `hop ${hops}`;
+  const STATUS = ['someone wants to move', 'circling forever', 'resting: nobody gains alone'];
+  const statusIdx = resting ? 2 : gid === 'pennies' && hops > 0 ? 1 : 0;
 
   return (
     <Specimen
@@ -177,15 +172,8 @@ export default function BestResponse() {
       title="best-response arrows"
       kicker="2 players · 2 moves"
       hint="pick a game, then click any cell to drop the token there"
-      footer={`${eqs.length} pure equilibri${eqs.length === 1 ? 'um' : 'a'}`}
     >
-      <Seg
-        options={GAMES.map((x) => ({ value: x.id, label: x.name }))}
-        value={gid}
-        onChange={(v) => choose(v, true)}
-      />
-
-      <div className="mt-4 grid items-center gap-4 sm:grid-cols-[1fr_auto]">
+      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] sm:items-center">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="block w-full"
@@ -193,19 +181,31 @@ export default function BestResponse() {
           aria-label={`${g.name} payoff grid with improvement arrows`}
         >
           <SvgArrows />
+          {/* who moves which way, in the matrix corner */}
+          <text
+            x={X0 - 12}
+            y={Y0 - 16}
+            textAnchor="end"
+            dominantBaseline="middle"
+            style={{ fontFamily: GT.mono, fontSize: 10 }}
+          >
+            <tspan style={{ fill: GT.a }}>blue ↕</tspan>
+            <tspan style={{ fill: GT.b }} dx={6}>
+              red ↔
+            </tspan>
+          </text>
           {/* column labels (red player) and row labels (blue player) */}
           {g.cols.map((s, c) => (
-            <T key={'c' + s} x={cx(c)} y={Y0 - 16} color={GT.b} size={11}>
+            <T key={'c' + c} x={cx(c)} y={Y0 - 16} color={GT.b} size={11}>
               {s}
             </T>
           ))}
           {g.rows.map((s, r) => (
-            <T key={'r' + s} x={X0 - 12} y={cy(r)} anchor="end" color={GT.a} size={11}>
+            <T key={'r' + r} x={X0 - 12} y={cy(r)} anchor="end" color={GT.a} size={11}>
               {s}
             </T>
           ))}
 
-          {/* token sits behind the cells' text but above their fill: drawn per cell below */}
           {[0, 1].map((r) =>
             [0, 1].map((c) => {
               const eq = isCell(eqs, [r, c]);
@@ -271,28 +271,25 @@ export default function BestResponse() {
             }),
           )}
 
-          {/* improvement arrows across the gaps */}
+          {/* improvement arrows across the gaps; the one about to be taken stays bold */}
           {arr.map((a, i) => {
             const active =
               hop && a.from[0] === hop.from[0] && a.from[1] === hop.from[1] && a.who === hop.who;
+            const op = !hop || active ? 1 : 0.4;
             if (a.who === 'row') {
               const x = cx(a.from[1]);
               const down = a.to[0] > a.from[0];
               const y1 = down ? Y0 + CH + 5 : Y0 + CH + GY - 5;
               const y2 = down ? Y0 + CH + GY - 5 : Y0 + CH + 5;
               return (
-                <g key={i}>
+                <g key={i} style={{ opacity: op, transition: 'opacity 250ms' }}>
                   <line
                     x1={x}
                     y1={y1}
                     x2={x}
                     y2={y2}
                     markerEnd="url(#gt-arrow-a)"
-                    style={{
-                      stroke: GT.a,
-                      strokeWidth: active ? 4 : 2.5,
-                      transition: 'stroke-width 200ms',
-                    }}
+                    style={{ stroke: GT.a, strokeWidth: 2.5 }}
                   />
                   <T x={x + 12} y={(y1 + y2) / 2 - 4} anchor="start" size={11} color={GT.a}>
                     +{a.gain}
@@ -300,23 +297,19 @@ export default function BestResponse() {
                 </g>
               );
             }
-            const y = cy(a.from[0]) + 0;
+            const y = cy(a.from[0]);
             const right = a.to[1] > a.from[1];
             const x1 = right ? X0 + CW + 5 : X0 + CW + GX - 5;
             const x2 = right ? X0 + CW + GX - 5 : X0 + CW + 5;
             return (
-              <g key={i}>
+              <g key={i} style={{ opacity: op, transition: 'opacity 250ms' }}>
                 <line
                   x1={x1}
                   y1={y}
                   x2={x2}
                   y2={y}
                   markerEnd="url(#gt-arrow-b)"
-                  style={{
-                    stroke: GT.b,
-                    strokeWidth: active ? 4 : 2.5,
-                    transition: 'stroke-width 200ms',
-                  }}
+                  style={{ stroke: GT.b, strokeWidth: 2.5 }}
                 />
                 <T x={(x1 + x2) / 2 - 4} y={y - 13} size={11} color={GT.b}>
                   +{a.gain}
@@ -334,35 +327,39 @@ export default function BestResponse() {
           />
         </svg>
 
-        <div className="flex flex-row flex-wrap gap-6 sm:flex-col sm:gap-5">
+        <div>
           <BigStat
             label="pure equilibria"
             value={eqs.length}
             color={eqs.length ? GT.eq : GT.ink}
             size="lg"
-            sub={eqs.length ? 'cells with no arrow out' : 'every cell has an arrow out'}
           />
-          <BigStat
-            label="token"
-            value={
-              <span>
-                {g.rows[cell[0]].slice(0, 1)}
-                <span className="text-muted">,</span>
-                {g.cols[cell[1]].slice(0, 1)}
+          <Reserve
+            className="mt-2 font-mono text-[0.68rem] leading-snug text-muted"
+            items={STATUS.map((s, i) => (
+              <span key={i}>
+                <span className="text-ink">token: </span>
+                {s}
               </span>
-            }
-            size="md"
-            sub={status}
+            ))}
+            active={statusIdx}
           />
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <Chip color={GT.a}>blue picks a row</Chip>
-        <Chip color={GT.b}>red picks a column</Chip>
-        <Chip color={GT.eq}>Nash: no arrow leaves</Chip>
+      <div className="mt-4">
+        <Seg
+          options={GAMES.map((x) => ({ value: x.id, label: x.name }))}
+          value={gid}
+          onChange={(v) => choose(v, true)}
+        />
       </div>
-      <Caption>{g.note}</Caption>
+      <Reserve
+        items={GAMES.map((x) => (
+          <Caption key={x.id}>{x.note}</Caption>
+        ))}
+        active={GAMES.findIndex((x) => x.id === gid)}
+      />
     </Specimen>
   );
 }

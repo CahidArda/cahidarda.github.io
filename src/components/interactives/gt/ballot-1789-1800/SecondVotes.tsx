@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   BigStat,
-  Caption,
-  Chip,
   GT,
   Seg,
-  Slider,
   Specimen,
   T,
   clamp,
@@ -15,7 +12,7 @@ import {
   useReducedMotion,
   useTween,
 } from '../shared';
-import { MAJ_1789, N_1789, race } from './data';
+import { N_1789, race } from './data';
 
 const KMAX = 20;
 const W = 360;
@@ -68,40 +65,9 @@ const STEPS: { id: Step; label: string; a: number; k: number; text: string }[] =
 
 const VERDICT = {
   washington: { text: 'Washington first', color: GT.ink },
-  tie: { text: 'tie: the House decides', color: GT.warn },
+  tie: { text: 'a tie: House decides', color: GT.warn },
   adams: { text: 'Adams first', color: GT.b },
 } as const;
-
-function Bar({ label, n, color, y }: { label: string; n: number; color: string; y: number }) {
-  const bx0 = 92;
-  const bx1 = 344;
-  const x = (v: number) => bx0 + (v / N_1789) * (bx1 - bx0);
-  return (
-    <g>
-      <T x={bx0 - 8} y={y + 9} anchor="end" size={11} color={color} weight={600}>
-        {label}
-      </T>
-      <rect
-        x={bx0}
-        y={y}
-        width={bx1 - bx0}
-        height={18}
-        style={{ fill: GT.paper, stroke: GT.line }}
-      />
-      <rect x={bx0} y={y} width={Math.max(0, x(n) - bx0)} height={18} style={{ fill: color }} />
-      <T
-        x={x(n) > bx1 - 30 ? x(n) - 4 : x(n) + 4}
-        y={y + 9.5}
-        anchor={x(n) > bx1 - 30 ? 'end' : 'start'}
-        size={11}
-        color={x(n) > bx1 - 30 ? GT.paper : GT.ink}
-        weight={600}
-      >
-        {Math.round(n)}
-      </T>
-    </g>
-  );
-}
 
 export default function SecondVotes() {
   const reduced = useReducedMotion();
@@ -112,7 +78,6 @@ export default function SecondVotes() {
   const [step, setStep] = useState<Step | null>('all');
   const [hoverStep, bindStep] = useHoverPreview<Step | null>(step);
   const touched = useRef(false);
-  const playing = useRef(false);
   const dragging = useRef(false);
 
   // hovering a preset previews it; otherwise show the committed values
@@ -131,21 +96,21 @@ export default function SecondVotes() {
     setStep(s.id);
   };
 
-  // auto-play the five beats once, then hand over
+  // auto-play the five beats once, then hand over. The beat index survives the widget
+  // scrolling out of view (the timer pauses and resumes where it left off).
+  const beat = useRef(0);
   useEffect(() => {
-    if (!inView || playing.current || touched.current) return;
+    if (!inView || touched.current || beat.current >= STEPS.length - 1) return;
     if (reduced) {
+      beat.current = STEPS.length - 1;
       go(STEPS[STEPS.length - 1]);
       return;
     }
-    playing.current = true;
-    let i = 0;
     const id = setInterval(() => {
-      if (touched.current) return clearInterval(id);
-      i++;
-      if (i >= STEPS.length) return clearInterval(id);
-      go(STEPS[i]);
-    }, 2900);
+      if (touched.current || beat.current >= STEPS.length - 1) return clearInterval(id);
+      beat.current++;
+      go(STEPS[beat.current]);
+    }, 3200);
     return () => clearInterval(id);
   }, [inView, reduced]);
 
@@ -174,24 +139,14 @@ export default function SecondVotes() {
       title="two votes each"
       kicker="69 electors · 138 votes"
       rootRef={rootRef}
-      hint="drag the dot, use the sliders, or pick a scenario"
+      hint="drag the dot (or use arrow keys), or pick a scenario"
       footer="a + 2k ≥ 69 puts Adams level or ahead"
     >
-      <Seg
-        options={STEPS.map((s) => ({ value: s.id, label: s.label }))}
-        value={(step ?? '') as Step}
-        onChange={(id) => {
-          take();
-          go(STEPS.find((s) => s.id === id)!);
-        }}
-        bind={(id) => bindStep(id)}
-      />
-
-      <div className="mt-4 grid items-start gap-4 md:grid-cols-[1.15fr_1fr]">
+      <div className="grid items-start gap-x-8 gap-y-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
-          className="block w-full touch-none select-none"
+          className="block w-full touch-none select-none outline-none"
           role="img"
           aria-label={`${A0} electors write Washington and Adams, ${K0} write Adams and Clinton. ${v.text}.`}
           onPointerDown={(e) => {
@@ -204,6 +159,20 @@ export default function SecondVotes() {
           onPointerUp={() => (dragging.current = false)}
           onPointerCancel={() => (dragging.current = false)}
           style={{ cursor: 'crosshair' }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            const d: Record<string, [number, number]> = {
+              ArrowLeft: [-1, 0],
+              ArrowRight: [1, 0],
+              ArrowUp: [0, 1],
+              ArrowDown: [0, -1],
+            };
+            const m = d[e.key];
+            if (!m) return;
+            e.preventDefault();
+            take();
+            setAK(a + m[0], k + m[1]);
+          }}
         >
           <defs>
             <pattern
@@ -274,6 +243,12 @@ export default function SecondVotes() {
           <T x={ax(20)} y={ky(9)} size={10.5} color={GT.muted}>
             Washington safe
           </T>
+          <T x={ax(63)} y={ky(17.5)} size={9} color={GT.muted}>
+            too few
+          </T>
+          <T x={ax(63)} y={ky(16.3)} size={9} color={GT.muted}>
+            electors
+          </T>
 
           {/* landmarks */}
           {[
@@ -333,69 +308,39 @@ export default function SecondVotes() {
           </text>
         </svg>
 
-        <div>
+        {/* one supporting element: the count and what it means */}
+        <div className="min-w-0 md:pt-4">
           <div className="grid grid-cols-2 gap-3">
-            <BigStat label="Washington" value={Math.round(tw)} sub={`on ${wv} of 69 ballots`} />
-            <BigStat
-              label="Adams"
-              value={Math.round(tav)}
-              color={GT.a}
-              sub={`needs ${MAJ_1789} for a majority`}
-              align="right"
-            />
+            <BigStat label="Washington" value={Math.round(tw)} sub="votes" />
+            <BigStat label="Adams" value={Math.round(tav)} color={GT.a} sub="votes" />
           </div>
-          <svg viewBox="0 0 360 74" className="mt-3 block w-full" aria-hidden="true">
-            <Bar label="Washington" n={tw} color={GT.ink} y={8} />
-            <Bar label="Adams" n={tav} color={GT.a} y={36} />
-            <line
-              x1={92 + (MAJ_1789 / N_1789) * 252}
-              y1={2}
-              x2={92 + (MAJ_1789 / N_1789) * 252}
-              y2={60}
-              style={{ stroke: GT.muted, strokeWidth: 1, strokeDasharray: '2 2' }}
-            />
-            <T x={92 + (MAJ_1789 / N_1789) * 252} y={68} size={9.5}>
-              majority 35
-            </T>
-          </svg>
-          <div className="mt-2 border-t border-line pt-2">
+          <div className="mt-4 border-t border-line pt-3">
             <div className="label">result</div>
-            <div className="font-display text-2xl leading-tight" style={{ color: v.color }}>
+            <div
+              className="whitespace-nowrap font-display text-2xl leading-tight"
+              style={{ color: v.color }}
+            >
               {v.text}
             </div>
           </div>
-          <div className="mt-3 grid gap-3">
-            <Slider
-              label="a · Washington + Adams"
-              value={a}
-              min={0}
-              max={N_1789 - k}
-              onChange={(x) => {
-                take();
-                setAK(x, k);
-              }}
-              color={GT.a}
-            />
-            <Slider
-              label="k · Adams + Clinton"
-              value={k}
-              min={0}
-              max={KMAX}
-              onChange={(x) => {
-                take();
-                setAK(a, x);
-              }}
-              color={GT.b}
-            />
-          </div>
+          <p className="mt-3 h-[4rem] overflow-hidden text-[0.85rem] leading-snug text-ink-soft md:h-[5.2rem]">
+            {text}
+          </p>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <Chip color={GT.bSoft}>Adams level or ahead</Chip>
-        <Chip color={GT.line}>not enough electors</Chip>
+      <div className="mt-4 border-t border-line pt-3">
+        <Seg
+          label="scenario"
+          options={STEPS.map((s) => ({ value: s.id, label: s.label }))}
+          value={(step ?? '') as Step}
+          onChange={(id) => {
+            take();
+            go(STEPS.find((s) => s.id === id)!);
+          }}
+          bind={(id) => bindStep(id)}
+        />
       </div>
-      <Caption>{text}</Caption>
     </Specimen>
   );
 }

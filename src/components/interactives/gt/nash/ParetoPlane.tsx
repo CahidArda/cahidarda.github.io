@@ -1,15 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  BigStat,
-  Caption,
-  Chip,
-  GT,
-  Seg,
-  Specimen,
-  SvgArrows,
-  T,
-  useHoverPreview,
-} from '../shared';
+import { BigStat, Caption, GT, Seg, Specimen, SvgArrows, T, useHoverPreview } from '../shared';
 import {
   GAMES,
   GAME_BY_ID,
@@ -20,6 +10,7 @@ import {
   type Cell,
   type GameId,
 } from './games';
+import { Reserve } from './Reserve';
 
 const W = 420;
 const H = 300;
@@ -36,7 +27,7 @@ const CELLS: Cell[] = [
 ];
 
 const CAPTION: Record<GameId, string> = {
-  pd: 'The equilibrium (1, 1) sits inside the green box of outcomes that are better for both. Mutual cooperation is there, and nobody can reach it alone.',
+  pd: 'Green dots are Pareto-optimal: you cannot help one player without hurting the other. The equilibrium (1, 1) is not one of them, and nobody can reach (3, 3) alone.',
   stag: 'Both corners are equilibria, but only the stag hunt is on the frontier. The hare equilibrium is safe and worse for both.',
   chicken:
     'Both equilibria are on the frontier: they are efficient, just unfair. The crash (0, 0) is the outcome everyone fears.',
@@ -101,15 +92,8 @@ export default function ParetoPlane() {
       title="equilibrium vs everyone's best"
       kicker="payoff plane"
       hint="hover a game to preview it, click to keep it"
-      footer={`${dominatedEqs.length} equilibri${dominatedEqs.length === 1 ? 'um' : 'a'} beaten for both`}
     >
-      <Seg
-        options={GAMES.map((x) => ({ value: x.id, label: x.name }))}
-        value={gid}
-        onChange={commit}
-        bind={bind}
-      />
-      <div className="mt-4 grid items-center gap-4 sm:grid-cols-[1fr_auto]">
+      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] sm:items-center">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="block w-full"
@@ -167,6 +151,12 @@ export default function ParetoPlane() {
               />
             );
           })}
+
+          {dominatedEqs.length > 0 && (
+            <T x={X1 - 8} y={Y1 + 12} anchor="end" size={11} color={GT.opt} weight={600}>
+              better for both
+            </T>
+          )}
 
           {/* Pareto frontier */}
           {frontier.length > 1 && (
@@ -284,7 +274,7 @@ export default function ParetoPlane() {
             value={eqLo === eqHi ? fmt(eqLo) : `${fmt(eqLo)}–${fmt(eqHi)}`}
             color={GT.eq}
             size="lg"
-            sub={zeroSum ? 'mixed: 50:50 each' : 'blue + red at Nash'}
+            sub="blue + red at Nash"
           />
           <BigStat
             label="best total"
@@ -295,11 +285,20 @@ export default function ParetoPlane() {
           />
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <Chip color={GT.eq}>Nash equilibrium</Chip>
-        <Chip color={GT.opt}>Pareto-optimal: can't help one without hurting the other</Chip>
+      <div className="mt-4">
+        <Seg
+          options={GAMES.map((x) => ({ value: x.id, label: x.name }))}
+          value={gid}
+          onChange={commit}
+          bind={bind}
+        />
       </div>
-      <Caption>{CAPTION[gid]}</Caption>
+      <Reserve
+        items={GAMES.map((x) => (
+          <Caption key={x.id}>{CAPTION[x.id]}</Caption>
+        ))}
+        active={GAMES.findIndex((x) => x.id === gid)}
+      />
     </Specimen>
   );
 }

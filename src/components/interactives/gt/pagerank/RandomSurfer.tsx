@@ -3,7 +3,6 @@ import {
   BigStat,
   Btn,
   Caption,
-  Chip,
   GT,
   Seg,
   Slider,
@@ -163,6 +162,8 @@ export default function RandomSurfer() {
     caption = `Bored, the surfer jumps to a random page (${NAMES[h.to]}). This happens ${Math.round((1 - s) * 100)}% of the time.`;
   else if (speed === 'walk' && !reduced)
     caption = `The surfer follows a random link to ${NAMES[cur.current]}. Each visit is counted.`;
+  else if (gap !== null && gap > 0.02)
+    caption = 'Faster: each visit grows that page’s bar. Watch the bars close in on the ticks.';
   else
     caption =
       exact[1] >= exact[0]
@@ -178,41 +179,6 @@ export default function RandomSurfer() {
       hint="press play, then change the speed or drag s"
       footer="Easley & Kleinberg, sec. 14.3"
     >
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <Btn
-          primary
-          onClick={() => {
-            touch();
-            if (tot >= MAX_HOPS) resetCounts();
-            setPlaying((p) => !p);
-          }}
-        >
-          {playing ? 'pause' : 'play'}
-        </Btn>
-        <Seg
-          options={[
-            { value: 'walk', label: 'walk' },
-            { value: 'run', label: 'run' },
-            { value: 'sprint', label: 'sprint' },
-          ]}
-          value={speed}
-          onChange={(v) => {
-            touch();
-            setSpeed(v);
-            setPlaying(true);
-          }}
-        />
-        <Btn
-          onClick={() => {
-            touch();
-            resetCounts();
-            setTick((t) => t + 1);
-          }}
-        >
-          reset
-        </Btn>
-      </div>
-
       <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <svg
           ref={svgRef}
@@ -289,10 +255,13 @@ export default function RandomSurfer() {
         </svg>
 
         <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1">
-            <Chip color={GT.a}>time spent</Chip>
-            <Chip color={GT.eq}>exact PageRank</Chip>
-            <Chip color={GT.alt}>teleport</Chip>
+          <div className="mb-2 flex items-baseline justify-between gap-3 font-mono text-[0.68rem] text-muted">
+            <span>
+              <span style={{ color: GT.a }}>bar</span>: share of visits
+            </span>
+            <span>
+              <span style={{ color: GT.eq }}>tick</span>: PageRank
+            </span>
           </div>
           <div className="grid gap-1.5">
             {NAMES.map((nm, i) => (
@@ -319,33 +288,70 @@ export default function RandomSurfer() {
             ))}
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <BigStat label="clicks" value={tot.toLocaleString('en-US')} size="md" />
+            <BigStat label="clicks" value={tot.toLocaleString('en-US')} size="sm" />
             <BigStat
-              label="off from exact"
+              label="off from PageRank"
               value={gap === null ? '·' : `${(gap * 100).toFixed(1)}`}
-              unit={gap === null ? undefined : '%'}
-              size="md"
+              unit="%"
+              size="sm"
               color={gap !== null && gap < 0.01 ? GT.opt : GT.ink}
-            />
-          </div>
-          <div className="mt-4">
-            <Slider
-              label="s, chance of following a link"
-              value={s}
-              min={0.5}
-              max={1}
-              step={0.05}
-              format={(v) => v.toFixed(2)}
-              onChange={(v) => {
-                touch();
-                setS(v);
-                resetCounts();
-              }}
             />
           </div>
         </div>
       </div>
-      <Caption>{caption}</Caption>
+      <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-line pt-4">
+        <Btn
+          primary
+          onClick={() => {
+            touch();
+            if (tot >= MAX_HOPS) resetCounts();
+            setPlaying((p) => !p);
+          }}
+        >
+          {playing ? 'pause' : 'play'}
+        </Btn>
+        <Seg
+          options={[
+            { value: 'walk', label: 'walk' },
+            { value: 'run', label: 'run' },
+            { value: 'sprint', label: 'sprint' },
+          ]}
+          value={speed}
+          onChange={(v) => {
+            touch();
+            setSpeed(v);
+            setPlaying(true);
+          }}
+        />
+        <Btn
+          onClick={() => {
+            touch();
+            resetCounts();
+            setTick((t) => t + 1);
+          }}
+        >
+          reset
+        </Btn>
+        <div className="ml-auto w-full sm:w-56">
+          <Slider
+            label="s, follow a link"
+            value={s}
+            min={0.5}
+            max={1}
+            step={0.05}
+            format={(v) => v.toFixed(2)}
+            onChange={(v) => {
+              touch();
+              setS(v);
+              resetCounts();
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="min-h-[2.8rem]">
+        <Caption>{caption}</Caption>
+      </div>
     </Specimen>
   );
 }

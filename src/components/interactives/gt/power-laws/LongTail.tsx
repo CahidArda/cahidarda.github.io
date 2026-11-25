@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BigStat,
   Caption,
-  Chip,
   GT,
   Seg,
   Specimen,
@@ -13,7 +12,6 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
-import { useNarrow } from './useNarrow';
 import { copyingModelMulti, gauss, rng } from './model';
 
 /**
@@ -46,6 +44,16 @@ function areaPath(vals: number[], y0: number, h: number, vmax: number, PW: numbe
   return d + `L${M.l + PW},${y0 + h}Z`;
 }
 
+const pathsFor = (W: number) => {
+  const PW = W - M.l - M.r;
+  return {
+    link: areaPath(links, TOP.y, TOP.h, links[0], PW),
+    height: areaPath(heights, BOT.y, BOT.h, heights[0], PW),
+  };
+};
+const pathsW = pathsFor(600);
+const pathsN = pathsFor(380);
+
 const zeroAt = links.findIndex((v) => v === 0);
 
 type Pick = '0.01' | '0.1' | '0.2' | '0.5';
@@ -53,17 +61,11 @@ type Pick = '0.01' | '0.1' | '0.2' | '0.5';
 export default function LongTail() {
   const reduced = useReducedMotion();
   const [rootRef, inView] = useInView<HTMLDivElement>();
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const [cut, setCut] = useState(0.01);
   const [demoOn, setDemoOn] = useState(false);
   const demoT = useRef(0);
   const started = useRef(false);
   const dragging = useRef(false);
-  const narrow = useNarrow(rootRef);
-  const W = narrow ? 380 : 600;
-  const PW = W - M.l - M.r;
-  const linkPath = useMemo(() => areaPath(links, TOP.y, TOP.h, links[0], PW), [PW]);
-  const heightPath = useMemo(() => areaPath(heights, BOT.y, BOT.h, heights[0], PW), [PW]);
 
   useEffect(() => {
     if (started.current || !inView || reduced) return;
@@ -83,50 +85,21 @@ export default function LongTail() {
   const m = Math.max(1, Math.round(cut * N));
   const linkShare = useMemo(() => sum(links, m) / LT, [m]);
   const heightShare = useMemo(() => sum(heights, m) / HT, [m]);
-  const cx = M.l + (m / N) * PW;
-
-  const setFromEvent = (e: React.PointerEvent) => {
-    if (!svgRef.current) return;
-    const { x } = svgPoint(svgRef.current, e.clientX, e.clientY);
+  const setFromEvent = (e: React.PointerEvent<SVGSVGElement>, PW: number) => {
+    const { x } = svgPoint(e.currentTarget, e.clientX, e.clientY);
     setCut(clamp((x - M.l) / PW, 0.002, 0.95));
   };
   const stopDemo = () => setDemoOn(false);
 
-  const pct = (v: number) => (v < 0.1 ? `${(v * 100).toFixed(1)}%` : `${Math.round(v * 100)}%`);
-  const cutLabel = m / N < 0.1 ? `${((m / N) * 100).toFixed(1)}%` : `${Math.round((m / N) * 100)}%`;
-
-  return (
-    <Specimen
-      rootRef={rootRef}
-      code="GT-10.3"
-      title="the long tail"
-      kicker="1,000 pages · 1,000 men, ranked"
-      hint="drag the cut across the ranking"
-      footer={
-        <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
-          <Chip color={GT.a}>links</Chip>
-          <Chip color={GT.b}>height</Chip>
-        </span>
-      }
-    >
-      <div className="mb-4 grid grid-cols-2 gap-3">
-        <BigStat
-          label={`top ${cutLabel} of pages`}
-          value={pct(linkShare)}
-          color={GT.a}
-          sub="of all links"
-          size="lg"
-        />
-        <BigStat
-          label={`top ${cutLabel} of men`}
-          value={pct(heightShare)}
-          color={GT.b}
-          sub="of all height"
-          size="lg"
-        />
-      </div>
+  const chart = (narrow: boolean) => {
+    const W = narrow ? 380 : 600;
+    const PW = W - M.l - M.r;
+    const linkPath = narrow ? pathsN.link : pathsW.link;
+    const heightPath = narrow ? pathsN.height : pathsW.height;
+    const cx = M.l + (m / N) * PW;
+    const clipId = narrow ? 'gt10-3-head-n' : 'gt10-3-head';
+    return (
       <svg
-        ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         className="block w-full touch-none select-none"
         style={{ cursor: 'ew-resize' }}
@@ -136,14 +109,14 @@ export default function LongTail() {
           stopDemo();
           dragging.current = true;
           (e.target as Element).setPointerCapture?.(e.pointerId);
-          setFromEvent(e);
+          setFromEvent(e, PW);
         }}
-        onPointerMove={(e) => dragging.current && setFromEvent(e)}
+        onPointerMove={(e) => dragging.current && setFromEvent(e, PW)}
         onPointerUp={() => (dragging.current = false)}
         onPointerCancel={() => (dragging.current = false)}
       >
         <defs>
-          <clipPath id="gt10-3-head">
+          <clipPath id={clipId}>
             <rect x={M.l} y={0} width={cx - M.l} height={H} />
           </clipPath>
         </defs>
@@ -154,7 +127,7 @@ export default function LongTail() {
           max {links[0]}
         </T>
         <path d={linkPath} style={{ fill: GT.a, opacity: 0.22 }} />
-        <path d={linkPath} clipPath="url(#gt10-3-head)" style={{ fill: GT.a }} />
+        <path d={linkPath} clipPath={`url(#${clipId})`} style={{ fill: GT.a }} />
         <line
           x1={M.l}
           x2={W - M.r}
@@ -181,7 +154,7 @@ export default function LongTail() {
           height of each man, tallest first
         </T>
         <path d={heightPath} style={{ fill: GT.b, opacity: 0.22 }} />
-        <path d={heightPath} clipPath="url(#gt10-3-head)" style={{ fill: GT.b }} />
+        <path d={heightPath} clipPath={`url(#${clipId})`} style={{ fill: GT.b }} />
         <line
           x1={M.l}
           x2={W - M.r}
@@ -199,7 +172,14 @@ export default function LongTail() {
           style={{ stroke: GT.eq, strokeWidth: 2 }}
         />
         <rect x={cx - 6} y={BOT.y + BOT.h + 4} width={12} height={12} style={{ fill: GT.eq }} />
-        <T x={clamp(cx, M.l + 30, W - M.r - 30)} y={H - 2} size={9.5} color={GT.eq} baseline="auto">
+        <T
+          x={cx > W - M.r - 70 ? cx - 10 : cx + 10}
+          y={BOT.y + BOT.h + 10}
+          anchor={cx > W - M.r - 70 ? 'end' : 'start'}
+          size={9.5}
+          color={GT.eq}
+          weight={600}
+        >
           top {cutLabel}
         </T>
         <T x={M.l - 6} y={TOP.y + TOP.h} anchor="end" size={9}>
@@ -209,6 +189,22 @@ export default function LongTail() {
           0
         </T>
       </svg>
+    );
+  };
+
+  const pct = (v: number) => (v < 0.1 ? `${(v * 100).toFixed(1)}%` : `${Math.round(v * 100)}%`);
+  const cutLabel = m / N < 0.1 ? `${((m / N) * 100).toFixed(1)}%` : `${Math.round((m / N) * 100)}%`;
+
+  return (
+    <Specimen
+      rootRef={rootRef}
+      code="GT-10.3"
+      title="the long tail"
+      kicker="1,000 pages · 1,000 men, ranked"
+      hint="drag the cut across the ranking"
+    >
+      <div className="hidden sm:block">{chart(false)}</div>
+      <div className="sm:hidden">{chart(true)}</div>
       <div className="mt-3">
         <Seg<Pick>
           label="jump to"
@@ -229,9 +225,25 @@ export default function LongTail() {
           ]}
         />
       </div>
+      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4">
+        <BigStat
+          label={`top ${cutLabel} of pages`}
+          value={pct(linkShare)}
+          color={GT.a}
+          sub="of all links"
+          size="lg"
+        />
+        <BigStat
+          label={`top ${cutLabel} of men`}
+          value={pct(heightShare)}
+          color={GT.b}
+          sub="of all height"
+          size="lg"
+        />
+      </div>
       <Caption>
-        Heights fill the chart like a block: the top 1% of men hold about 1% of the height. Links
-        pile into a needle at the left and a long, thin tail to the right.
+        The top 1% of men hold about 1% of all height. The top 1% of pages hold a big share of all
+        links.
       </Caption>
     </Specimen>
   );

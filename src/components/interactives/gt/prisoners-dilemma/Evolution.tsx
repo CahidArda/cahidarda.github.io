@@ -3,7 +3,6 @@ import {
   BigStat,
   Btn,
   Caption,
-  Chip,
   GT,
   Seg,
   Specimen,
@@ -16,15 +15,14 @@ import {
   useReducedMotion,
 } from '../shared';
 import { EVO_IDS, STRATS, evolve } from './pd';
+import { useCompact } from '../hotelling/useCompact';
+import { Reserve } from '../nash/Reserve';
 
 const GENS = 650;
-const W = 500;
-const H = 260;
-const X0 = 46;
-const X1 = 490;
-const Y0 = 228;
-const Y1 = 14;
-const gx = (g: number) => X0 + (g / GENS) * (X1 - X0);
+const H = 250;
+const X0 = 40;
+const Y0 = 214;
+const Y1 = 18;
 const sy = (v: number) => Y0 - v * (Y0 - Y1);
 const STEP = 2; // sample every other generation for the paths
 const PLAY_SECONDS = 7;
@@ -51,7 +49,7 @@ const CAPTION: Record<Noise, string> = {
     'Cooperation blooms for a moment, but with this many accidents every cooperator loses too much to feuds and exploitation. Defection takes over for good.',
 };
 
-function bands(shares: number[][]) {
+function bands(shares: number[][], gx: (g: number) => number) {
   const n = EVO_IDS.length;
   const out: string[] = [];
   for (let k = 0; k < n; k++) {
@@ -74,14 +72,51 @@ export default function Evolution() {
   const [rootRef, inView] = useInView();
   const [sel, setSel] = useState<Noise>('0.01');
   const [noise, bind] = useHoverPreview(sel);
+  const [boxRef, compact] = useCompact();
+  const W = compact ? 400 : 720;
+  const X1 = W - 10;
+  const gx = (g: number) => X0 + (g / GENS) * (X1 - X0);
   const runs = useMemo(() => {
-    const r = {} as Record<Noise, { shares: number[][]; mean: number[]; paths: string[] }>;
+    const r = {} as Record<
+      Noise,
+      {
+        shares: number[][];
+        mean: number[];
+        paths: string[];
+        labels: { k: number; g: number; y: number }[];
+      }
+    >;
     for (const n of NOISES) {
       const e = evolve(Number(n.value), GENS);
-      r[n.value] = { ...e, paths: bands(e.shares) };
+      // one direct label per strategy, in the middle of its widest thick stretch
+      const HW = 35;
+      const labels: { k: number; g: number; y: number }[] = [];
+      EVO_IDS.forEach((_, k) => {
+        let best = -1;
+        let bg = 0;
+        for (let g = HW; g <= GENS - HW; g += 2) {
+          let m = 1;
+          for (let h = -HW; h <= HW; h += 5) m = Math.min(m, e.shares[g + h][k]);
+          if (m > best) {
+            best = m;
+            bg = g;
+          }
+        }
+        if (best < 0.12) return;
+        let below = 0;
+        for (let j = 0; j < k; j++) below += e.shares[bg][j];
+        const y = below + e.shares[bg][k] / 2;
+        // skip a label that would sit on top of one already placed
+        const clash = labels.some(
+          (l) => Math.abs(gx(l.g) - gx(bg)) < 110 && Math.abs(sy(l.y) - sy(y)) < 16,
+        );
+        if (!clash) labels.push({ k, g: bg, y });
+      });
+      r[n.value] = { ...e, paths: bands(e.shares, gx), labels };
     }
     return r;
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [W]);
   const run = runs[noise];
 
   const [progress, setProgress] = useState(1); // SSR + reduced motion: the whole story
@@ -121,8 +156,6 @@ export default function Evolution() {
 
   const head = Math.round(progress * GENS);
   const g = cursor === null ? head : Math.min(cursor, head);
-  const x = run.shares[g];
-  const lead = x.indexOf(Math.max(...x));
   const fbar = run.mean[g];
 
   const onMove = (e: React.PointerEvent) => {
@@ -138,82 +171,106 @@ export default function Evolution() {
       title="survival of the fittest"
       kicker="replicator dynamics"
       hint="choose a mistake rate, then hover the chart to scrub through generations"
-      footer={`generation ${g}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Seg label="mistakes" options={NOISES} value={noise} onChange={choose} bind={bind} />
-        <Btn onClick={play} disabled={reduced}>
-          replay
-        </Btn>
+      <div ref={boxRef}>
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          className="block w-full touch-none select-none"
+          role="img"
+          aria-label="Share of each strategy in the population over 650 generations"
+          onPointerMove={onMove}
+          onPointerDown={onMove}
+          onPointerLeave={() => setCursor(null)}
+        >
+          <defs>
+            <clipPath id="gt02-evo-clip">
+              <rect x={X0} y={0} width={(X1 - X0) * progress} height={H} />
+            </clipPath>
+          </defs>
+          <rect
+            x={X0}
+            y={Y1}
+            width={X1 - X0}
+            height={Y0 - Y1}
+            style={{ fill: GT.paper, stroke: GT.lineStrong }}
+          />
+          <g clipPath="url(#gt02-evo-clip)">
+            {run.paths.map((d, k) => (
+              <path key={EVO_IDS[k]} d={d} style={{ fill: COLOR[EVO_IDS[k]], opacity: 0.88 }} />
+            ))}
+            {/* direct labels on the bands */}
+            {run.labels.map(({ k, g: lg, y }) => {
+              const x = gx(lg);
+              const anchor = x < X0 + 70 ? 'start' : x > X1 - 70 ? 'end' : 'middle';
+              return (
+                <T
+                  key={'l' + k}
+                  x={anchor === 'start' ? x - 10 : anchor === 'end' ? x + 10 : x}
+                  y={sy(y)}
+                  anchor={anchor}
+                  size={11}
+                  weight={600}
+                  color={GT.paper}
+                >
+                  {STRATS[EVO_IDS[k]].name}
+                </T>
+              );
+            })}
+          </g>
+          {[0, 0.5, 1].map((v) => (
+            <T key={v} x={X0 - 6} y={sy(v)} anchor="end" size={11}>
+              {`${v * 100}%`}
+            </T>
+          ))}
+          {[0, 200, 400, 600].map((v) => (
+            <T key={v} x={gx(v)} y={Y0 + 14} size={11}>
+              {v}
+            </T>
+          ))}
+          <T x={(X0 + X1) / 2} y={Y0 + 30} size={11}>
+            generation
+          </T>
+          <line
+            x1={gx(g)}
+            y1={Y1}
+            x2={gx(g)}
+            y2={Y0}
+            style={{ stroke: GT.ink, strokeWidth: 1.5 }}
+          />
+          <T
+            x={gx(g) > X1 - 60 ? gx(g) - 4 : gx(g) + 4}
+            y={Y1 - 8}
+            anchor={gx(g) > X1 - 60 ? 'end' : 'start'}
+            size={10}
+            color={GT.ink}
+          >
+            {`gen ${g}`}
+          </T>
+        </svg>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-10 gap-y-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <BigStat
           label="average payoff"
           value={fbar.toFixed(2)}
           unit="/round"
           color={fbar > 2 ? GT.opt : GT.b}
-          sub="3 = everyone cooperates, 1 = everyone defects"
+          sub="3 = all cooperate, 1 = all defect"
         />
-        <BigStat
-          label="most common"
-          value={STRATS[EVO_IDS[lead]].name}
-          color={COLOR[EVO_IDS[lead]]}
-          sub={`${Math.round(x[lead] * 100)}% of the population`}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Seg label="mistakes" options={NOISES} value={noise} onChange={choose} bind={bind} />
+          <Btn onClick={play} disabled={reduced}>
+            replay
+          </Btn>
+        </div>
       </div>
-
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${W} ${H}`}
-        className="mt-3 block w-full touch-none select-none"
-        role="img"
-        aria-label="Share of each strategy in the population over 650 generations"
-        onPointerMove={onMove}
-        onPointerDown={onMove}
-        onPointerLeave={() => setCursor(null)}
-      >
-        <defs>
-          <clipPath id="gt02-evo-clip">
-            <rect x={X0} y={0} width={(X1 - X0) * progress} height={H} />
-          </clipPath>
-        </defs>
-        <rect
-          x={X0}
-          y={Y1}
-          width={X1 - X0}
-          height={Y0 - Y1}
-          style={{ fill: GT.paper, stroke: GT.lineStrong }}
-        />
-        <g clipPath="url(#gt02-evo-clip)">
-          {run.paths.map((d, k) => (
-            <path key={EVO_IDS[k]} d={d} style={{ fill: COLOR[EVO_IDS[k]], opacity: 0.88 }} />
-          ))}
-        </g>
-        {[0, 0.5, 1].map((v) => (
-          <T key={v} x={X0 - 6} y={sy(v)} anchor="end" size={11}>
-            {`${v * 100}%`}
-          </T>
+      <Reserve
+        items={NOISES.map((n) => (
+          <Caption key={n.value}>{CAPTION[n.value]}</Caption>
         ))}
-        {[0, 200, 400, 600].map((v) => (
-          <T key={v} x={gx(v)} y={Y0 + 14} size={11}>
-            {v}
-          </T>
-        ))}
-        <T x={(X0 + X1) / 2} y={Y0 + 26} size={11}>
-          generation
-        </T>
-        <line x1={gx(g)} y1={Y1} x2={gx(g)} y2={Y0} style={{ stroke: GT.ink, strokeWidth: 1.5 }} />
-      </svg>
-
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-        {EVO_IDS.map((id, k) => (
-          <Chip key={id} color={COLOR[id]}>
-            {`${STRATS[id].name} ${Math.round(x[k] * 100)}%`}
-          </Chip>
-        ))}
-      </div>
-      <Caption>{CAPTION[noise]}</Caption>
+        active={NOISES.findIndex((n) => n.value === noise)}
+      />
     </Specimen>
   );
 }

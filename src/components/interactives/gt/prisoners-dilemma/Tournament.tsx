@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  BigStat,
-  Btn,
-  Caption,
-  Chip,
-  GT,
-  Specimen,
-  T,
-  useInView,
-  useReducedMotion,
-} from '../shared';
+import { BigStat, Btn, Caption, GT, Specimen, T, useInView, useReducedMotion } from '../shared';
+import { useCompact } from '../hotelling/useCompact';
 import { STRATS, roundRobin } from './pd';
 
 /* The field: five nice strategies, three that sometimes defect first. */
@@ -17,26 +8,29 @@ const IDS = ['tft', 'tf2t', 'grudger', 'pavlov', 'allc', 'random', 'alld', 'joss
 const N = IDS.length;
 const ROUNDS = 200;
 
-// heat-map geometry
-const W = 340;
-const H = 330;
-const MX = 64;
-const MY = 58;
-const C = 34;
-
-const heat = (v: number) =>
-  `color-mix(in srgb, var(--color-gt-a) ${Math.round((v / 5) * 85)}%, var(--color-paper-raised))`;
+// standings chart: one row per program, sorted by score, bars grow as matches are played
+const RH = 32;
+const TOP = 22;
+const H = TOP + N * RH + 6;
+const MAXV = 3;
 
 export default function Tournament() {
   const reduced = useReducedMotion();
   const [rootRef, inView] = useInView();
+  const [boxRef, compact] = useCompact();
+  const W = compact ? 400 : 680;
+  const NX = compact ? 112 : 150; // right edge of the names
+  const BX = NX + 10; // bars start
+  const BW = compact ? 190 : 330; // width of a 3-point bar
+  const fs = compact ? 11.5 : 11;
+  const bx = (v: number) => BX + (v / MAXV) * BW;
+
   const rr = useMemo(() => roundRobin(IDS, ROUNDS, 5), []);
   const total = N * N;
   const [played, setPlayed] = useState(total); // SSR + reduced motion: the finished table
   const [started, setStarted] = useState(false);
-  const [pick, setPick] = useState<[number, number]>([0, 7]); // TFT vs Joss
 
-  // Auto-play once on view: matches fill in row by row.
+  // Auto-play once on view: matches are played one by one and the bars grow.
   useEffect(() => {
     if (reduced) {
       setPlayed(total);
@@ -48,18 +42,19 @@ export default function Tournament() {
   }, [reduced, inView, started, total]);
   useEffect(() => {
     if (played >= total || !inView) return;
-    const id = window.setTimeout(() => setPlayed((p) => Math.min(total, p + 1)), 45);
+    const id = window.setTimeout(() => setPlayed((p) => Math.min(total, p + 1)), 60);
     return () => window.clearTimeout(id);
   }, [played, total, inView]);
 
-  // running totals over the matches played so far
+  // running totals over the matches played so far (match k = row k / N against column k % N)
   const shown = (i: number, j: number) => i * N + j < played;
   const partial = IDS.map((_, i) => {
     let s = 0;
     for (let j = 0; j < N; j++) if (shown(i, j)) s += rr.score[i][j];
     return s / N;
   });
-  const order = IDS.map((_, i) => i).sort((a, b) => partial[b] - partial[a]);
+  const order = IDS.map((_, i) => i).sort((a, b) => partial[b] - partial[a] || a - b);
+  const rank = IDS.map((_, i) => order.indexOf(i));
   const done = played >= total;
   const leader = order[0];
   const niceTop = (() => {
@@ -67,194 +62,99 @@ export default function Tournament() {
     while (k < N && STRATS[IDS[order[k]]].nice) k++;
     return k;
   })();
-
-  const [pi, pj] = pick;
-  const m = rr.sample[pi][pj];
-  const SHOW = 40;
+  const nNice = IDS.filter((id) => STRATS[id].nice).length;
+  const split = done && niceTop === nNice;
+  const ry = (r: number) => TOP + r * RH;
 
   return (
     <Specimen
       rootRef={rootRef}
       code="GT-02.3"
       title="round robin"
-      kicker={`${N} programs · ${ROUNDS} rounds each`}
-      hint="hover or tap a cell to replay the first 40 rounds of that match"
-      footer={done ? `top ${niceTop} are all nice` : `${played} / ${total} matches`}
+      kicker={`${N} programs · ${ROUNDS} rounds a match`}
+      hint="watch the table fill, then replay it"
     >
-      <div className="flex flex-wrap gap-x-10 gap-y-4">
-        <BigStat
-          label="leader"
-          value={STRATS[IDS[leader]].name}
-          color={STRATS[IDS[leader]].nice ? GT.a : GT.b}
-          sub={`${partial[leader].toFixed(2)} points per round`}
-        />
-        <BigStat
-          label="nice programs on top"
-          value={done ? `${niceTop} of ${N}` : '…'}
-          color={GT.a}
-          sub="never defect first"
-        />
-      </div>
-
-      <div className="mt-4 grid gap-5 sm:grid-cols-[minmax(0,340px)_1fr] sm:items-start">
-        {/* score matrix */}
+      <div ref={boxRef}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="block w-full"
           role="img"
-          aria-label="Average score of each row program against each column program"
+          aria-label="Standings: average points per round of each program against the whole field"
         >
-          <T x={MX + (N * C) / 2} y={12} size={9}>
-            {'opponent →'}
+          <T x={BX} y={8} anchor="start" size={10}>
+            average points per round, against everyone
           </T>
-          {IDS.map((id, j) => (
-            <g key={'c' + id} transform={`translate(${MX + j * C + C / 2} ${MY - 8}) rotate(-50)`}>
-              <T x={0} y={0} anchor="start" size={9} color={STRATS[id].nice ? GT.a : GT.b}>
-                {STRATS[id].short}
+          <line
+            x1={BX}
+            y1={TOP - 4}
+            x2={BX}
+            y2={H - 6}
+            style={{ stroke: GT.lineStrong, strokeWidth: 1 }}
+          />
+          {IDS.map((id, i) => {
+            const s = STRATS[id];
+            const c = s.nice ? GT.a : GT.b;
+            const v = partial[i];
+            return (
+              <g
+                key={id}
+                style={{
+                  transform: `translateY(${ry(rank[i])}px)`,
+                  transition: reduced ? undefined : 'transform 350ms ease',
+                }}
+              >
+                <title>{s.rule}</title>
+                <T x={NX} y={RH / 2} anchor="end" size={fs} color={c} weight={600}>
+                  {s.name}
+                </T>
+                <rect
+                  x={BX}
+                  y={RH / 2 - 8}
+                  width={Math.max(0, bx(v) - BX)}
+                  height={16}
+                  style={{ fill: c, opacity: s.nice ? 0.9 : 0.85 }}
+                />
+                <T x={bx(v) + 6} y={RH / 2} anchor="start" size={fs} color={GT.ink}>
+                  {v.toFixed(2)}
+                </T>
+              </g>
+            );
+          })}
+          {/* the split Axelrod found: every nice program above every other one */}
+          {split && (
+            <g>
+              <line
+                x1={0}
+                y1={ry(niceTop)}
+                x2={W}
+                y2={ry(niceTop)}
+                style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '4 3' }}
+              />
+              <T x={W} y={ry(niceTop) - 9} anchor="end" size={10} color={GT.a} weight={600}>
+                {compact ? 'nice ↑' : 'nice: never defect first ↑'}
+              </T>
+              <T x={W} y={ry(niceTop) + 10} anchor="end" size={10} color={GT.b} weight={600}>
+                {compact ? 'not nice ↓' : 'defect first sometimes ↓'}
               </T>
             </g>
-          ))}
-          {IDS.map((id, i) => (
-            <T
-              key={'r' + id}
-              x={MX - 6}
-              y={MY + i * C + C / 2}
-              anchor="end"
-              size={9}
-              color={STRATS[id].nice ? GT.a : GT.b}
-            >
-              {STRATS[id].short}
-            </T>
-          ))}
-          {IDS.map((_, i) =>
-            IDS.map((__, j) => {
-              const on = shown(i, j);
-              const v = rr.score[i][j];
-              const sel = i === pi && j === pj;
-              return (
-                <g
-                  key={`${i}-${j}`}
-                  onMouseEnter={() => setPick([i, j])}
-                  onClick={() => setPick([i, j])}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <rect
-                    x={MX + j * C}
-                    y={MY + i * C}
-                    width={C}
-                    height={C}
-                    style={{
-                      fill: on ? heat(v) : GT.paperRaised,
-                      stroke: GT.line,
-                      strokeWidth: 0.6,
-                      transition: 'fill 200ms',
-                    }}
-                  />
-                  {on && (
-                    <T
-                      x={MX + j * C + C / 2}
-                      y={MY + i * C + C / 2 + 1}
-                      size={10}
-                      color={v > 2.6 ? GT.paper : GT.ink}
-                    >
-                      {v.toFixed(1)}
-                    </T>
-                  )}
-                  {sel && (
-                    <rect
-                      x={MX + j * C + 1}
-                      y={MY + i * C + 1}
-                      width={C - 2}
-                      height={C - 2}
-                      style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.5 }}
-                    />
-                  )}
-                </g>
-              );
-            }),
           )}
-          <T x={MX + (N * C) / 2} y={MY + N * C + 14} size={9}>
-            row's average points per round against column
-          </T>
         </svg>
-
-        {/* leaderboard */}
-        <div className="min-w-0">
-          <div className="label mb-2">standings</div>
-          <ol className="m-0 list-none p-0">
-            {order.map((i, rank) => {
-              const s = STRATS[IDS[i]];
-              const c = s.nice ? GT.a : GT.b;
-              return (
-                <li
-                  key={s.id}
-                  className="mb-1.5 grid grid-cols-[1.2rem_8.6rem_1fr_2.4rem] items-center gap-2"
-                  style={{ transition: 'all 300ms' }}
-                >
-                  <span className="font-mono text-[0.68rem] text-muted">{rank + 1}</span>
-                  <span
-                    className="truncate font-mono text-[0.72rem]"
-                    style={{ color: c }}
-                    title={s.rule}
-                  >
-                    {s.name}
-                  </span>
-                  <span className="relative block h-3 border border-line">
-                    <span
-                      className="absolute inset-y-0 left-0 block"
-                      style={{
-                        width: `${(partial[i] / 3) * 100}%`,
-                        background: c,
-                        transition: 'width 200ms',
-                      }}
-                    />
-                  </span>
-                  <span className="text-right font-mono text-[0.72rem] tabular-nums text-ink">
-                    {partial[i].toFixed(2)}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-          <div className="mt-2">
-            <Btn onClick={() => setPlayed(reduced ? total : 0)} disabled={!done || reduced}>
-              replay tournament
-            </Btn>
-          </div>
-        </div>
       </div>
 
-      {/* the selected match as two strips of moves */}
-      <div className="mt-5 border-t border-line pt-3">
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-          <span className="font-mono text-[0.72rem] text-ink">
-            {STRATS[IDS[pi]].name} <span className="text-muted">vs</span> {STRATS[IDS[pj]].name}
-          </span>
-          <span className="font-mono text-[0.68rem] text-muted">
-            {m.scoreA.toFixed(2)} : {m.scoreB.toFixed(2)} per round
-          </span>
-        </div>
-        {[m.a, m.b].map((moves, k) => (
-          <div key={k} className="mb-1 flex gap-[2px]">
-            {moves.slice(0, SHOW).map((mv, r) => (
-              <span
-                key={r}
-                className="block h-4 min-w-0 flex-1"
-                style={{ background: mv === 'C' ? GT.a : GT.b, opacity: mv === 'C' ? 0.85 : 1 }}
-                title={`round ${r + 1}: ${mv === 'C' ? 'cooperate' : 'defect'}`}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <Chip color={GT.a}>nice / cooperate</Chip>
-        <Chip color={GT.b}>defects first sometimes / defect</Chip>
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+        <BigStat
+          label={done ? 'winner' : 'leading'}
+          value={<span className="block truncate">{STRATS[IDS[leader]].name}</span>}
+          color={STRATS[IDS[leader]].nice ? GT.a : GT.b}
+          sub={`${played} of ${total} matches played`}
+        />
+        <Btn onClick={() => setPlayed(reduced ? total : 0)} disabled={!done || reduced}>
+          replay tournament
+        </Btn>
       </div>
       <Caption>
-        Tit for Tat can never outscore the opponent in front of it, and neither can any nice program
-        win a match by much. They top the table by scoring well against everyone.
+        No nice program can beat the opponent in front of it by much. They top the table by doing
+        well against everyone.
       </Caption>
     </Specimen>
   );

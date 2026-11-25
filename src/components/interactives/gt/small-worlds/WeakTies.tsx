@@ -3,7 +3,6 @@ import {
   BigStat,
   Btn,
   Caption,
-  Chip,
   GT,
   Seg,
   Specimen,
@@ -13,7 +12,6 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
-import { useNarrow } from './useNarrow';
 
 /**
  * Four tight circles of six friends (strong ties) joined by four acquaintances (weak ties).
@@ -137,8 +135,8 @@ export default function WeakTies() {
   clockRef.current = clock;
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
-  const narrow = useNarrow(rootRef);
-  const { W, H, CENTERS, nodes } = narrow ? NARROW : WIDE;
+  // circles reached does not depend on the layout (both layouts share node order)
+  const nodes = WIDE.nodes;
 
   const res = useMemo(() => spread(source, cut), [source, cut]);
 
@@ -177,7 +175,7 @@ export default function WeakTies() {
   ).size;
   const usedVia = new Set(res.via.filter((t, i) => t && res.time[i] <= clock).map((t) => key(t!)));
 
-  const tieLine = (t: Tie, i: number) => {
+  const tieLine = (nodes: Node[], t: Tie, i: number) => {
     const a = nodes[t.a];
     const b = nodes[t.b];
     const isCut =
@@ -208,6 +206,73 @@ export default function WeakTies() {
     );
   };
 
+  // two layouts in the markup, picked by CSS, so phones never re-layout after hydration
+  const draw = ({ W, H, CENTERS, nodes }: typeof WIDE, className: string) => (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className={className}
+      role="img"
+      aria-label={`${heard} of ${nodes.length} people have heard the news, in ${circles} of 4 circles`}
+    >
+      {CENTERS.map((c, i) => (
+        <T key={i} x={c.lx} y={c.ly} size={22} font="display" color={GT.muted}>
+          {c.name}
+        </T>
+      ))}
+      {/* direct labels instead of a legend */}
+      <T
+        x={(nodes[weakTies[0].a].x + nodes[weakTies[0].b].x) / 2}
+        y={nodes[weakTies[0].a].y + (W < 500 ? 16 : -12)}
+        size={11}
+        color={GT.alt}
+        weight={600}
+      >
+        acquaintance
+      </T>
+      <T
+        x={CENTERS[0].x + 14}
+        y={Math.max(...nodes.filter((nd) => nd.c === 0).map((nd) => nd.y)) + 24}
+        anchor="start"
+        size={11}
+        color={GT.inkSoft}
+        weight={600}
+      >
+        close friends
+      </T>
+      {strongTies.map((t, i) => tieLine(nodes, t, i))}
+      {weakTies.map((t, i) => tieLine(nodes, t, 100 + i))}
+      {nodes.map((nd, i) => {
+        const on = res.time[i] <= clock;
+        const isSrc = i === source;
+        return (
+          <g key={i} onClick={() => setSource(i)} style={{ cursor: 'pointer' }}>
+            <circle cx={nd.x} cy={nd.y} r={15} style={{ fill: 'transparent' }} />
+            <circle
+              cx={nd.x}
+              cy={nd.y}
+              r={isSrc ? 11 : 9}
+              style={{
+                fill: on ? GT.eq : GT.paperRaised,
+                stroke: on ? GT.eq : GT.ink,
+                strokeWidth: 1.6,
+                transition: 'fill 200ms',
+              }}
+            />
+          </g>
+        );
+      })}
+      <T
+        x={nodes[source].x}
+        y={nodes[source].y + (nodes[source].y < CENTERS[nodes[source].c].y ? -22 : 24)}
+        size={10}
+        color={GT.eq}
+        weight={600}
+      >
+        job opening
+      </T>
+    </svg>
+  );
+
   return (
     <Specimen
       rootRef={rootRef}
@@ -215,24 +280,11 @@ export default function WeakTies() {
       title="weak ties carry news"
       kicker="24 people · 4 circles"
       hint="click anyone to start a rumour; cut weak or strong ties"
-      footer={
-        <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
-          <Chip color={GT.lineStrong}>close friend</Chip>
-          <Chip color={GT.alt}>acquaintance</Chip>
-          <Chip color={GT.eq}>has heard</Chip>
-        </span>
-      }
+      footer="Granovetter, 1973"
     >
-      <div className="mb-4 grid grid-cols-2 gap-3">
-        <BigStat
-          label="heard the news"
-          value={`${heard} / ${nodes.length}`}
-          color={GT.eq}
-          size="lg"
-        />
-        <BigStat label="circles reached" value={`${circles} / 4`} size="lg" />
-      </div>
-      <div className="mb-3">
+      {draw(WIDE, 'hidden w-full sm:block')}
+      {draw(NARROW, 'block w-full sm:hidden')}
+      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
         <Seg<Cut>
           label="cut"
           value={sel}
@@ -244,58 +296,22 @@ export default function WeakTies() {
             { value: 'strong', label: '4 friend ties' },
           ]}
         />
-      </div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="block w-full"
-        role="img"
-        aria-label={`${heard} of ${nodes.length} people have heard the news, in ${circles} of 4 circles`}
-      >
-        {CENTERS.map((c, i) => (
-          <T key={i} x={c.lx} y={c.ly} size={22} font="display" color={GT.muted}>
-            {c.name}
-          </T>
-        ))}
-        {strongTies.map((t, i) => tieLine(t, i))}
-        {weakTies.map((t, i) => tieLine(t, 100 + i))}
-        {nodes.map((nd, i) => {
-          const on = res.time[i] <= clock;
-          const isSrc = i === source;
-          return (
-            <g key={i} onClick={() => setSource(i)} style={{ cursor: 'pointer' }}>
-              <circle cx={nd.x} cy={nd.y} r={15} style={{ fill: 'transparent' }} />
-              <circle
-                cx={nd.x}
-                cy={nd.y}
-                r={isSrc ? 11 : 9}
-                style={{
-                  fill: on ? GT.eq : GT.paperRaised,
-                  stroke: on ? GT.eq : GT.ink,
-                  strokeWidth: 1.6,
-                  transition: 'fill 200ms',
-                }}
-              />
-            </g>
-          );
-        })}
-        <T
-          x={nodes[source].x}
-          y={nodes[source].y + (nodes[source].y < CENTERS[nodes[source].c].y ? -22 : 24)}
-          size={10}
-          color={GT.eq}
-          weight={600}
-        >
-          job opening
-        </T>
-      </svg>
-      <div className="mt-3 flex gap-2">
         <Btn primary onClick={play}>
           play again
         </Btn>
       </div>
+      <div className="mt-4">
+        <BigStat
+          label="heard the news"
+          value={`${heard} / ${nodes.length}`}
+          color={GT.eq}
+          size="lg"
+          sub={`in ${circles} of 4 circles`}
+        />
+      </div>
       <Caption>
         Inside a circle everyone already knows what everyone knows. New information arrives over the
-        thin lines, from people you see once in a while.
+        dashed lines, from people you see once in a while.
       </Caption>
     </Specimen>
   );

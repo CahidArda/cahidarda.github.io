@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   BigStat,
   Caption,
-  Chip,
   GT,
   Slider,
   Specimen,
@@ -13,6 +12,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
+import { Reserve } from './Reserve';
 
 /*
  * Matching Pennies. Blue (row) wins +1 when the coins match, red (column) wins +1 when
@@ -122,17 +122,7 @@ export default function MixedWay() {
       hint="drag either chart to change how often red shows Heads"
       footer="equilibrium: both play Heads 50%"
     >
-      <div className="flex flex-wrap gap-x-10 gap-y-4">
-        <BigStat label="red shows heads" value={pct(q)} color={GT.b} />
-        <BigStat
-          label="blue's best reply"
-          value={best}
-          color={atEq ? GT.eq : GT.a}
-          sub={atEq ? 'indifferent: any mix is fine' : `earns ${sgn(Math.max(eH, eT))} per round`}
-        />
-      </div>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* ── A: blue's expected payoff from each move ── */}
         <figure className="m-0">
           <div className="label mb-1">blue's payoff from each move</div>
@@ -306,29 +296,37 @@ export default function MixedWay() {
         </figure>
       </div>
 
-      <div className="mt-3">
-        <Slider
-          label="red's P(Heads)"
-          value={q}
-          min={0}
-          max={1}
-          step={0.01}
-          color={GT.b}
-          onChange={(v) => {
-            setAuto(false);
-            setQ(Math.abs(v - 0.5) < 0.015 ? 0.5 : v);
-          }}
-          format={pct}
-        />
-      </div>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-        <Chip color={GT.a}>blue wants the coins to match</Chip>
-        <Chip color={GT.b}>red wants them to differ</Chip>
-        <Chip color={GT.eq}>the only point on both curves</Chip>
+      <div className="mt-4 grid items-end gap-x-8 gap-y-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
+        <div>
+          <BigStat label="blue's best reply" value={best} color={atEq ? GT.eq : GT.a} />
+          <Reserve
+            className="mt-1 font-mono text-[0.68rem] text-muted"
+            items={[
+              <span key="e">indifferent: any mix</span>,
+              <span key="g">{`earns ${sgn(Math.max(eH, eT))} a round`}</span>,
+            ]}
+            active={atEq ? 0 : 1}
+          />
+        </div>
+        <div>
+          <Slider
+            label="red's P(Heads)"
+            value={q}
+            min={0}
+            max={1}
+            step={0.01}
+            color={GT.b}
+            onChange={(v) => {
+              setAuto(false);
+              setQ(Math.abs(v - 0.5) < 0.015 ? 0.5 : v);
+            }}
+            format={pct}
+          />
+        </div>
       </div>
       <Caption>
-        Any lean by red hands blue a sure edge, and blue's reply jumps to a corner. Only at 50% is
-        blue indifferent, so blue can mix too. Each mixing 50:50 is the one equilibrium.
+        Any lean by red gives blue a sure edge. Only at 50% is blue indifferent, so both mixing
+        50:50 is the one equilibrium.
       </Caption>
     </Specimen>
   );

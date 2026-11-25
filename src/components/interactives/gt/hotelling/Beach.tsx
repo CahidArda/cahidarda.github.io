@@ -3,7 +3,6 @@ import {
   BigStat,
   Btn,
   Caption,
-  Chip,
   GT,
   Specimen,
   T,
@@ -15,6 +14,15 @@ import {
 } from '../shared';
 import { meanWalk, nudge, shares } from './logic';
 import { useCompact } from './useCompact';
+import { Reserve } from '../nash/Reserve';
+
+/** The longest captions, stacked invisibly so the caption never changes height. */
+const LONGEST = [
+  'Back at the quarter marks: the shortest average walk two carts can give.',
+  'Neither cart can gain by moving. They stay put, side by side.',
+  'A edges right and now serves 50.5% of the beach.',
+  'A at 1000 m serves 87.5% of the beach.',
+];
 
 /* One coordinate system: the beach runs from x=X0 (position 0) to x=X1 (position 1).
    Width and crowd size depend on the layout (see useCompact); heights are fixed. */
@@ -253,26 +261,12 @@ export default function Beach() {
       kicker={`1 km of sand · ${PEOPLE.length} sunbathers`}
       rootRef={rootRef}
       hint="drag a cart (or focus it and use ← →), or press a button"
-      footer={`turn ${turn}`}
     >
-      <div className="grid grid-cols-3 gap-3">
-        <BigStat label="cart A" value={fmtPct(sh[0])} unit="%" color={GT.a} size="md" />
-        <BigStat label="cart B" value={fmtPct(sh[1])} unit="%" color={GT.b} size="md" />
-        <BigStat
-          label="avg walk"
-          value={metres(walk)}
-          unit="m"
-          color={walk > 0.126 ? GT.eq : GT.opt}
-          sub="best possible 125 m"
-          align="right"
-        />
-      </div>
-
       <div ref={boxRef}>
         <svg
           ref={svgRef}
           viewBox={`0 ${VY + (compact ? 22 : 0)} ${W} ${H - VY - (compact ? 22 : 0)}`}
-          className="mt-3 block w-full touch-none select-none"
+          className="block w-full touch-none select-none"
           role="img"
           aria-label={`Beach with two ice-cream carts. A at ${Math.round(show[0] * 1000)} metres, B at ${Math.round(
             show[1] * 1000,
@@ -411,18 +405,28 @@ export default function Beach() {
         </svg>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Btn primary onClick={compete}>
-          let them compete
-        </Btn>
-        <Btn onClick={spread}>spread them out</Btn>
-        <span className="ml-auto flex flex-wrap gap-3">
-          <Chip color={GT.a}>walks to A</Chip>
-          <Chip color={GT.b}>walks to B</Chip>
-          <Chip color={GT.opt}>best for walkers</Chip>
-        </span>
+      <div className="mt-4 grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <BigStat
+          label="average walk"
+          value={metres(walk)}
+          unit="m"
+          color={walk > 0.126 ? GT.eq : GT.opt}
+          size="lg"
+          sub="best possible: 125 m"
+        />
+        <div className="flex flex-wrap gap-2">
+          <Btn primary onClick={compete}>
+            let them compete
+          </Btn>
+          <Btn onClick={spread}>spread them out</Btn>
+        </div>
       </div>
-      <Caption>{last}</Caption>
+      <Reserve
+        items={[...LONGEST, last].map((t, i) => (
+          <Caption key={i}>{t}</Caption>
+        ))}
+        active={LONGEST.length}
+      />
     </Specimen>
   );
 }
