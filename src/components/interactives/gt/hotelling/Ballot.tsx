@@ -14,7 +14,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
-import { cdfFromDensity, nudge, presetDensity, shares, type Preset } from './logic';
+import { cdfFromDensity, nudge, presetDensity, shares, type Cdf, type Preset } from './logic';
 import { useCompact } from '../useCompact';
 import { Reserve } from '../Reserve';
 
@@ -104,7 +104,7 @@ export default function Ballot() {
     if (reduced) setShow(pos);
   }, [reduced, pos]);
 
-  const settle = (F: number[] = distSel.F) => {
+  const settle = (F: Cdf = distSel.F) => {
     // reduced motion: jump straight to where the race ends
     let p = [...START];
     for (let k = 0; k < 2000; k++) {
