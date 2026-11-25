@@ -13,6 +13,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
+import { useNarrow } from './useNarrow';
 import { copyingModelMulti, gauss, rng } from './model';
 
 /**
@@ -20,9 +21,7 @@ import { copyingModelMulti, gauss, rng } from './model';
  * by height. Drag the cut: what share of the total does the top x% hold?
  */
 const N = 1000;
-const W = 600;
 const M = { l: 40, r: 12 };
-const PW = W - M.l - M.r;
 const TOP = { y: 22, h: 150 };
 const BOT = { y: 216, h: 56 };
 const H = 296;
@@ -37,7 +36,7 @@ const LT = sum(links);
 const HT = sum(heights);
 
 /** Area path of a ranked series. */
-function areaPath(vals: number[], y0: number, h: number, vmax: number) {
+function areaPath(vals: number[], y0: number, h: number, vmax: number, PW: number) {
   const step = PW / vals.length;
   let d = `M${M.l},${y0 + h}`;
   vals.forEach((v, i) => {
@@ -47,8 +46,6 @@ function areaPath(vals: number[], y0: number, h: number, vmax: number) {
   return d + `L${M.l + PW},${y0 + h}Z`;
 }
 
-const linkPath = areaPath(links, TOP.y, TOP.h, links[0]);
-const heightPath = areaPath(heights, BOT.y, BOT.h, heights[0]);
 const zeroAt = links.findIndex((v) => v === 0);
 
 type Pick = '0.01' | '0.1' | '0.2' | '0.5';
@@ -62,6 +59,11 @@ export default function LongTail() {
   const demoT = useRef(0);
   const started = useRef(false);
   const dragging = useRef(false);
+  const narrow = useNarrow(rootRef);
+  const W = narrow ? 380 : 600;
+  const PW = W - M.l - M.r;
+  const linkPath = useMemo(() => areaPath(links, TOP.y, TOP.h, links[0], PW), [PW]);
+  const heightPath = useMemo(() => areaPath(heights, BOT.y, BOT.h, heights[0], PW), [PW]);
 
   useEffect(() => {
     if (started.current || !inView || reduced) return;

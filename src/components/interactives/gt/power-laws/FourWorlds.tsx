@@ -13,6 +13,7 @@ import {
   useReducedMotion,
 } from '../shared';
 import { rng } from './model';
+import { useNarrow } from './useNarrow';
 
 /**
  * Four parallel worlds with the same 48 equally good songs (after MusicLab, Salganik, Dodds
@@ -41,22 +42,25 @@ function countsAt(picks: Uint8Array, t: number) {
 
 const leaderOf = (c: number[]) => c.reduce((b, v, i) => (v > c[b] ? i : b), 0);
 
-const W = 300;
-const H = 120;
 const PAD_B = 14;
-const BAR = W / SONGS;
 
 function WorldPanel({
   idx,
   counts,
   yMax,
   t,
+  narrow,
 }: {
   idx: number;
   counts: number[];
   yMax: number;
   t: number;
+  narrow: boolean;
 }) {
+  // phones get a smaller viewBox so the labels stay legible at half width
+  const W = narrow ? 170 : 300;
+  const H = narrow ? 100 : 120;
+  const BAR = W / SONGS;
   const lead = leaderOf(counts);
   const share = t > 0 ? counts[lead] / t : 0;
   const plotH = H - PAD_B - 16;
@@ -66,9 +70,10 @@ function WorldPanel({
     <div className="min-w-0 border border-line bg-paper-raised">
       <div className="flex items-baseline justify-between gap-2 border-b border-line px-2.5 py-1.5">
         <span className="font-mono text-[0.62rem] tracking-[0.1em] text-muted">
-          WORLD {String.fromCharCode(65 + idx)}
+          {narrow ? '' : 'WORLD '}
+          {String.fromCharCode(65 + idx)}
         </span>
-        <span className="font-mono text-[0.66rem] text-ink-soft">
+        <span className="truncate font-mono text-[0.66rem] text-ink-soft">
           hit: <span style={{ color: GT.eq }}>song {lead + 1}</span>
         </span>
       </div>
@@ -103,7 +108,7 @@ function WorldPanel({
         ))}
         {t > 0 && (
           <T
-            x={Math.min(W - 22, Math.max(22, lx))}
+            x={Math.min(W - 14, Math.max(14, lx))}
             y={Math.max(8, y(counts[lead]) - 8)}
             size={10}
             color={GT.eq}
@@ -133,6 +138,7 @@ export default function FourWorlds() {
   tRef.current = t;
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
+  const narrow = useNarrow(rootRef);
 
   const worlds = useMemo(
     () => Array.from({ length: WORLDS }, (_, w) => runWorld(p, 1000 * (history + 1) + w * 7 + 3)),
@@ -200,9 +206,9 @@ export default function FourWorlds() {
         />
         <BigStat label="different #1s" value={`${distinct} of 4`} sub="worlds" />
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {counts.map((c, i) => (
-          <WorldPanel key={i} idx={i} counts={c} yMax={yMax} t={tt} />
+          <WorldPanel key={i} idx={i} counts={c} yMax={yMax} t={tt} narrow={narrow} />
         ))}
       </div>
       <div className="mt-4 grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_auto]">

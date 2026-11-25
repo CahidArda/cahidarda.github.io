@@ -13,6 +13,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
+import { useNarrow } from './useNarrow';
 
 /**
  * Four tight circles of six friends (strong ties) joined by four acquaintances (weak ties).
@@ -22,24 +23,43 @@ import {
  */
 /** Round to 0.01 so server and client trig agree (avoids hydration mismatches). */
 const r2 = (v: number) => Math.round(v * 100) / 100;
-const W = 600;
-const H = 380;
-const CENTERS = [
-  { x: 135, y: 105, name: 'A', lx: 30, ly: 40 },
-  { x: 465, y: 105, name: 'B', lx: 570, ly: 40 },
-  { x: 135, y: 280, name: 'C', lx: 30, ly: 345 },
-  { x: 465, y: 280, name: 'D', lx: 570, ly: 345 },
-];
-const PER = 6;
-const RAD = 54;
+type Center = { x: number; y: number; name: string; lx: number; ly: number };
 type Node = { x: number; y: number; c: number };
-const nodes: Node[] = [];
-CENTERS.forEach((ctr, c) => {
-  for (let i = 0; i < PER; i++) {
-    const a = (2 * Math.PI * i) / PER;
-    nodes.push({ x: r2(ctr.x + RAD * Math.cos(a)), y: r2(ctr.y + RAD * Math.sin(a)), c });
-  }
-});
+const PER = 6;
+function layout(W: number, H: number, CENTERS: Center[], RAD: number) {
+  const nodes: Node[] = [];
+  CENTERS.forEach((ctr, c) => {
+    for (let i = 0; i < PER; i++) {
+      const a = (2 * Math.PI * i) / PER;
+      nodes.push({ x: r2(ctr.x + RAD * Math.cos(a)), y: r2(ctr.y + RAD * Math.sin(a)), c });
+    }
+  });
+  return { W, H, CENTERS, nodes };
+}
+const WIDE = layout(
+  600,
+  380,
+  [
+    { x: 135, y: 105, name: 'A', lx: 30, ly: 40 },
+    { x: 465, y: 105, name: 'B', lx: 570, ly: 40 },
+    { x: 135, y: 280, name: 'C', lx: 30, ly: 345 },
+    { x: 465, y: 280, name: 'D', lx: 570, ly: 345 },
+  ],
+  54,
+);
+// phones: the same four circles, packed closer so labels stay legible
+const NARROW = layout(
+  380,
+  400,
+  [
+    { x: 100, y: 118, name: 'A', lx: 18, ly: 28 },
+    { x: 280, y: 118, name: 'B', lx: 362, ly: 28 },
+    { x: 100, y: 298, name: 'C', lx: 18, ly: 385 },
+    { x: 280, y: 298, name: 'D', lx: 362, ly: 385 },
+  ],
+  50,
+);
+const N_PEOPLE = 4 * PER;
 // node index helper: circle c, slot i (slot 0 points right, 1.5 down, 3 left, 4.5 up)
 const id = (c: number, i: number) => c * PER + i;
 
@@ -83,7 +103,7 @@ function spread(source: number, cut: Cut) {
     ...strongTies.filter((t) => !(cut === 'strong' && strongCut.has(key(t)))),
     ...(cut === 'weak' ? [] : weakTies),
   ];
-  const n = nodes.length;
+  const n = N_PEOPLE;
   const time = new Array(n).fill(Infinity);
   const via: (Tie | null)[] = new Array(n).fill(null);
   time[source] = 0;
@@ -117,6 +137,8 @@ export default function WeakTies() {
   clockRef.current = clock;
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
+  const narrow = useNarrow(rootRef);
+  const { W, H, CENTERS, nodes } = narrow ? NARROW : WIDE;
 
   const res = useMemo(() => spread(source, cut), [source, cut]);
 

@@ -10,7 +10,7 @@ import {
   useInView,
   useReducedMotion,
 } from '../shared';
-import { pct, useSharedT } from './sharedT';
+import { pct, prefersReduced, useSharedT } from './sharedT';
 
 // One resident (blue, in the middle) and the 8 cells around her. She counts the occupied
 // neighbours and how many are her own kind. Click a neighbour to change it.
@@ -44,7 +44,7 @@ export default function OneResident() {
   const started = useRef(false);
 
   useEffect(() => {
-    if (reduced || started.current || !inView) return;
+    if (reduced || prefersReduced() || started.current || !inView) return;
     started.current = true;
     setDemo(0);
   }, [reduced, inView]);

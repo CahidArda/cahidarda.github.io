@@ -11,6 +11,7 @@ import {
   useReducedMotion,
 } from '../shared';
 import { crowdAnswer, drawBalls, play, pooledAnswer, type Colour, type Turn } from './urn';
+import { prefersReduced } from './motion';
 
 // NCM 16.2: the urn experiment. Twelve people in a line, one private ball each, one public
 // guess each. The first line is scripted: the urn is blue but the first two people draw
@@ -89,7 +90,7 @@ export default function UrnLine() {
 
   // Auto-play the scripted line once, when it scrolls into view.
   useEffect(() => {
-    if (reduced || started.current || !inView) return;
+    if (reduced || prefersReduced() || started.current || !inView) return;
     started.current = true;
     setShown(0);
     setPlaying(true);

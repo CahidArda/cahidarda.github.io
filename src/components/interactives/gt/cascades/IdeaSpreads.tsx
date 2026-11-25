@@ -13,6 +13,7 @@ import {
   useReducedMotion,
 } from '../shared';
 import { ADJ, EDGES, H, NODES, SEEDS, W, clusterDensity, runAll } from './network';
+import { prefersReduced } from './motion';
 
 // NCM 19.2-19.3: a new behaviour spreads round by round. A node switches once at least a
 // fraction q of its neighbours have. It sweeps the loose town and the thin chains, then
@@ -68,7 +69,7 @@ export default function IdeaSpreads() {
 
   // auto-play once on view
   useEffect(() => {
-    if (reduced || started.current || !inView) return;
+    if (reduced || prefersReduced() || started.current || !inView) return;
     started.current = true;
     setShownRound(0);
     setPlaying(true);

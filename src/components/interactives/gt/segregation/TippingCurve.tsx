@@ -11,7 +11,7 @@ import {
   useReducedMotion,
 } from '../shared';
 import { SIM, UNHAPPY } from './curve';
-import { pct, useSharedT } from './sharedT';
+import { pct, prefersReduced, useSharedT } from './sharedT';
 
 // Final share of alike neighbours (y) against what residents asked for (x), from the
 // precomputed runs in curve.ts. The diagonal is "what people asked for".
@@ -39,7 +39,7 @@ export default function TippingCurve() {
 
   // auto-play once: sweep the marker across, then settle back on the shared t
   useEffect(() => {
-    if (reduced || started.current || !inView) return;
+    if (reduced || prefersReduced() || started.current || !inView) return;
     started.current = true;
     let raf = 0;
     const t0 = performance.now();
@@ -54,7 +54,10 @@ export default function TippingCurve() {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      setDemo(null);
+    };
   }, [reduced, inView]);
 
   const cur = demo ?? t;

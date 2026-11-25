@@ -14,7 +14,7 @@ import {
   useThemeVersion,
 } from '../shared';
 import { happy, makeGrid, stats, sweep, type Grid } from './schelling';
-import { pct, useSharedT } from './sharedT';
+import { pct, prefersReduced, useSharedT } from './sharedT';
 
 // Schelling's city: 40 x 40 lots, 10% empty, two kinds in equal numbers. Every frame a few
 // unsatisfied residents move to a random empty lot. Hollow squares are unsatisfied.
@@ -119,7 +119,7 @@ export default function City() {
   useEffect(() => {
     if (!mounted || started.current || !inView) return;
     started.current = true;
-    if (reduced) {
+    if (reduced || prefersReduced()) {
       settle();
       refresh();
     } else setPlaying(true);
