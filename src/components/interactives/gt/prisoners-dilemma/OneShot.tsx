@@ -75,13 +75,6 @@ export default function OneShot() {
             height={2 * CH + GY + 42}
             style={{ fill: GT.bSoft, transition: 'x 300ms ease' }}
           />
-          {/* how to read a cell */}
-          <T x={X0 - 14} y={Y0 - 26} anchor="end" size={10} color={GT.a}>
-            you: big
-          </T>
-          <T x={X0 - 14} y={Y0 - 12} anchor="end" size={10} color={GT.b}>
-            them: small
-          </T>
           {MOVES.map((m, c) => (
             <g key={m}>
               <T x={cx(c)} y={Y0 - 18} size={12} color={GT.b} weight={c === col ? 600 : 400}>
@@ -121,11 +114,31 @@ export default function OneShot() {
                   <T x={cx(c) - CW / 2 + 8} y={cy(r) - CH / 2 + 11} anchor="start" size={10}>
                     {LETTER[me + th]}
                   </T>
-                  <T x={cx(c) - 4} y={cy(r) - 4} anchor="end" font="display" size={38} color={ca}>
+                  {/* your payoff: big, centred, lining figures so every digit sits on one baseline */}
+                  <text
+                    x={cx(c)}
+                    y={cy(r) - 3}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{
+                      fill: ca,
+                      fontFamily: GT.display,
+                      fontSize: 40,
+                      fontVariantNumeric: 'lining-nums tabular-nums',
+                      fontFeatureSettings: '"lnum" 1, "tnum" 1',
+                    }}
+                  >
                     {mine}
-                  </T>
-                  <T x={cx(c) + 6} y={cy(r) + 4} anchor="start" font="display" size={20} color={cb}>
-                    {theirs}
+                  </text>
+                  {/* their payoff: a small labelled tag in the corner */}
+                  <T
+                    x={cx(c) + CW / 2 - 8}
+                    y={cy(r) - CH / 2 + 11}
+                    anchor="end"
+                    size={10}
+                    color={cb}
+                  >
+                    {`them ${theirs}`}
                   </T>
                   {(nash || best) && (
                     <T
