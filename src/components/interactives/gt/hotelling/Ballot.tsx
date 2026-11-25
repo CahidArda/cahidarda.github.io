@@ -13,6 +13,7 @@ import {
   useHoverPreview,
   useInView,
   useReducedMotion,
+  useTween,
 } from '../shared';
 import { cdfFromDensity, nudge, presetDensity, shares, type Cdf, type Preset } from './logic';
 import { useCompact } from '../useCompact';
@@ -24,10 +25,52 @@ const TOP = 52; // highest point of the curve
 // rounded so server and client print identical attribute strings (no hydration mismatch)
 const GRID = 200;
 const STEP = 0.01;
-const TURN_MS = 70;
+const TURN_MS = 190;
+const STEPS_PER_TURN = 2; // each round moves up to 2 grid steps, so the race is short but calm
+
+/**
+ * One candidate's turn: up to STEPS_PER_TURN small best-response steps, never jumping over
+ * the rival (a candidate who reaches the rival's spot stops there and they share the voters).
+ * No leapfrogging means the shading never flips sides while they converge.
+ */
+function turnMove(pos: number[], who: number, F: Cdf): number[] {
+  let p = pos;
+  for (let k = 0; k < STEPS_PER_TURN; k++) {
+    const q = nudge(p, who, STEP, F);
+    if (q[who] === p[who]) break;
+    const o = p[1 - who];
+    const crossed = (p[who] - o) * (q[who] - o) < 0;
+    if (crossed || Math.abs(q[who] - o) < 1e-9) {
+      const next = p.slice();
+      next[who] = o;
+      // only join the rival if sharing the spot actually beats staying
+      if (shares(next, F)[who] > shares(p, F)[who] + 1e-9) p = next;
+      break;
+    }
+    p = q;
+  }
+  return p;
+}
+
+/**
+ * One round: both candidates make their best small move at the same time, from the same
+ * picture. They close in on each other smoothly, so the vote split drifts steadily toward
+ * 50/50 instead of see-sawing. If the moves would cross, they meet where the split is even.
+ */
+function round(pos: number[], F: Cdf): number[] {
+  const a = turnMove(pos, 0, F)[0];
+  const b = turnMove(pos, 1, F)[1];
+  const before = Math.sign(pos[0] - pos[1]);
+  const after = Math.sign(a - b);
+  if (before !== 0 && after !== before) {
+    const meet = Math.abs(F(a) - 0.5) <= Math.abs(F(b) - 0.5) ? a : b;
+    return [meet, meet];
+  }
+  return [a, b];
+}
 const START: [number, number] = [0.1, 0.9];
 
-const fmtPct = (s: number) => `${Math.round(s * 1000) / 10}`;
+const fmtPct = (s: number) => `${Math.round(s * 100)}`;
 
 const PRESETS: { value: Preset; label: string }[] = [
   { value: 'even', label: 'even' },
@@ -108,9 +151,8 @@ export default function Ballot() {
     // reduced motion: jump straight to where the race ends
     let p = [...START];
     for (let k = 0; k < 2000; k++) {
-      const q = nudge(p, k % 2, STEP, F);
-      const r = nudge(q, (k + 1) % 2, STEP, F);
-      if (q.every((v, i) => v === p[i]) && r.every((v, i) => v === q[i])) break;
+      const q = round(p, F);
+      if (q.every((v, i) => v === p[i])) break;
       p = q;
     }
     return p;
@@ -158,10 +200,8 @@ export default function Ballot() {
   useEffect(() => {
     if (!running || !inView) return;
     const id = setTimeout(() => {
-      const who = turn % 2;
-      const next = nudge(pos, who, STEP, distSel.F);
-      const other = nudge(next, 1 - who, STEP, distSel.F);
-      if (next[who] === pos[who] && other[1 - who] === next[1 - who]) {
+      const next = round(pos, distSel.F);
+      if (next.every((v, i) => v === pos[i])) {
         setRunning(false);
         return;
       }
@@ -236,7 +276,9 @@ export default function Ballot() {
   const S = pvPos ?? show;
 
   // readouts follow the game state; the drawing follows the gliding positions
-  const sh = shares(P, dist.F);
+  const shRaw = shares(P, dist.F);
+  const shA = useTween(shRaw[0], reduced, 6);
+  const sh = [shA, 1 - shA];
   const together = Math.abs(P[0] - P[1]) < 1e-6;
   const left = S[0] <= S[1] ? 0 : 1;
   const mid = (P[0] + P[1]) / 2;
@@ -341,7 +383,12 @@ export default function Ballot() {
 
       <div className="mt-4 grid grid-cols-[6.5rem_6.5rem] items-end gap-x-4 gap-y-4 sm:grid-cols-[6.5rem_6.5rem_minmax(0,1fr)]">
         <BigStat label="votes for A" value={fmtPct(sh[0])} unit="%" color={GT.a} />
-        <BigStat label="votes for B" value={fmtPct(sh[1])} unit="%" color={GT.b} />
+        <BigStat
+          label="votes for B"
+          value={fmtPct(1 - Math.round(sh[0] * 100) / 100)}
+          unit="%"
+          color={GT.b}
+        />
         <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:justify-end">
           <Seg
             options={PRESETS}
