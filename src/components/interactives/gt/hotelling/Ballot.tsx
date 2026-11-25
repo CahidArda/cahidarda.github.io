@@ -26,6 +26,8 @@ const GRID = 200;
 const STEP = 0.01;
 const TURN_MS = 190;
 const STEPS_PER_TURN = 2; // each round moves up to 2 grid steps, so the race is short but calm
+/** Distance per second a candidate covers in the race (grid steps per turn / turn time). */
+const RACE_SPEED = (STEP * STEPS_PER_TURN) / (TURN_MS / 1000);
 
 /**
  * One candidate's turn: up to STEPS_PER_TURN small best-response steps, never jumping over
@@ -138,8 +140,18 @@ export default function Ballot() {
   const demoDone = useRef(false);
   const touched = useRef(false); // the reader took over: no auto-demo
 
+  // Drawn positions follow the game at a steady speed (the race's own pace), so the
+  // candidates glide continuously instead of hopping one step and waiting. Big jumps
+  // (a rerun, a preview) still close quickly.
   useFrame(
-    (dt) => setShow((s) => s.map((x, i) => x + (pos[i] - x) * Math.min(1, dt * 12))),
+    (dt) =>
+      setShow((s) =>
+        s.map((x, i) => {
+          const d = pos[i] - x;
+          const v = Math.max(RACE_SPEED, Math.abs(d) * 6);
+          return Math.abs(d) <= v * dt ? pos[i] : x + Math.sign(d) * v * dt;
+        }),
+      ),
     !reduced && show.some((x, i) => Math.abs(x - pos[i]) > 1e-4),
   );
   useEffect(() => {
@@ -205,6 +217,11 @@ export default function Ballot() {
         return;
       }
       setPos(next);
+      // once they meet the race is over: no stepping apart and back (no bounce)
+      if (Math.abs(next[0] - next[1]) < 1e-9) {
+        setRunning(false);
+        return;
+      }
       setTurn((t) => t + 1);
     }, TURN_MS);
     return () => clearTimeout(id);
@@ -285,6 +302,20 @@ export default function Ballot() {
   const sideNow = S[0] <= S[1] ? 0 : 1;
   if (!together) lastLeft.current = sideNow;
   const left = together ? lastLeft.current : sideNow;
+  // Draw the two boxes so they never overlap: as the candidates close in, the boxes stop
+  // when they touch and sit side by side (no jump, no bounce when they finally meet).
+  const BOXGAP = 24;
+  const drawX = (() => {
+    const xs = [px(S[0]), px(S[1])];
+    const lo = left;
+    const hi = 1 - lo;
+    if (xs[hi] - xs[lo] < BOXGAP) {
+      const m = (xs[0] + xs[1]) / 2;
+      xs[lo] = m - BOXGAP / 2;
+      xs[hi] = m + BOXGAP / 2;
+    }
+    return xs.map((x) => Math.round(x * 100) / 100);
+  })();
   const mid = (P[0] + P[1]) / 2;
   const colors = [GT.a, GT.b];
   const softs = [GT.aSoft, GT.bSoft];
@@ -362,9 +393,8 @@ export default function Ballot() {
               aria-valuenow={Math.round(P[k] * 100)}
               onKeyDown={onKey(k)}
               style={{ cursor: 'grab', outline: 'none' }}
-              transform={together ? `translate(${k === left ? -12 : 12} 0)` : undefined}
             >
-              <Candidate x={px(S[k])} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
+              <Candidate x={drawX[k]} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
             </g>
           ))}
 
