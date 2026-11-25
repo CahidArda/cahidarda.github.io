@@ -59,6 +59,24 @@ function turnMove(pos: number[], who: number, F: Cdf): number[] {
  * 50/50 instead of see-sawing. If the moves would cross, they meet where the split is even.
  */
 function round(pos: number[], F: Cdf): number[] {
+  // Together: they split the voters 50/50 and walk on side by side toward the median,
+  // instead of one stepping out and the other rejoining (which looks like a bounce).
+  if (Math.abs(pos[0] - pos[1]) < 1e-9) {
+    const x = pos[0];
+    let best = x;
+    for (let k = 1; k <= STEPS_PER_TURN; k++) {
+      for (const d of [-STEP * k, STEP * k]) {
+        const y = Math.round((x + d) / STEP) * STEP;
+        if (y < 0 || y > 1) continue;
+        if (
+          Math.abs(F(y) - 0.5) < Math.abs(F(best) - 0.5) - 1e-9 &&
+          Math.abs(y - x) <= Math.abs(best - x) + STEP + 1e-9
+        )
+          best = y;
+      }
+    }
+    return [best, best];
+  }
   const a = turnMove(pos, 0, F)[0];
   const b = turnMove(pos, 1, F)[1];
   const before = Math.sign(pos[0] - pos[1]);
@@ -217,11 +235,6 @@ export default function Ballot() {
         return;
       }
       setPos(next);
-      // once they meet the race is over: no stepping apart and back (no bounce)
-      if (Math.abs(next[0] - next[1]) < 1e-9) {
-        setRunning(false);
-        return;
-      }
       setTurn((t) => t + 1);
     }, TURN_MS);
     return () => clearTimeout(id);
