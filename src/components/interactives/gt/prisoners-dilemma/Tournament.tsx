@@ -6,25 +6,24 @@ import {
   GT,
   Specimen,
   T,
-  clamp,
   useFrame,
   useInView,
   useReducedMotion,
 } from '../shared';
 import { useCompact } from '../useCompact';
-import { STRATS, roundRobin } from './pd';
+import { STRATS, payoff, roundRobin } from './pd';
 
 /* The field: five nice strategies, three that sometimes defect first. */
 const IDS = ['tft', 'tf2t', 'grudger', 'pavlov', 'allc', 'random', 'alld', 'joss'];
 const N = IDS.length;
 const ROUNDS = 200;
 
-// standings chart: one row per program, sorted by score, bars grow as matches are played
+// standings chart: one row per program, sorted by score, bars grow as the rounds are played
 const RH = 32;
 const TOP = 22;
 const H = TOP + N * RH + 6;
 const MAXV = 3;
-const MATCHES_PER_S = 16;
+const ROUNDS_PER_S = 48; // all matches play side by side: 200 rounds in about 4 s
 
 export default function Tournament() {
   const reduced = useReducedMotion();
@@ -38,7 +37,24 @@ export default function Tournament() {
   const bx = (v: number) => BX + (v / MAXV) * BW;
 
   const rr = useMemo(() => roundRobin(IDS, ROUNDS, 5), []);
-  const total = N * N;
+  const total = ROUNDS;
+  // Every match plays at the same time, round by round, from its real move history, so each
+  // bar grows smoothly with the points actually earned (defectors surge early by exploiting,
+  // then stall once everyone retaliates). Scaled so the final bars equal the averaged scores.
+  const cum = useMemo(
+    () =>
+      IDS.map((_, i) =>
+        IDS.map((_, j) => {
+          const m = rr.sample[i][j];
+          const c = [0];
+          for (let r = 0; r < ROUNDS; r++) c.push(c[r] + payoff(m.a[r], m.b[r]));
+          const end = c[ROUNDS] || 1;
+          const k = (rr.score[i][j] * ROUNDS) / end;
+          return c.map((v) => (v * k) / ROUNDS);
+        }),
+      ),
+    [rr],
+  );
   const [played, setPlayed] = useState(total); // SSR + reduced motion: the finished table
   const [started, setStarted] = useState(false);
 
@@ -52,19 +68,18 @@ export default function Tournament() {
     setStarted(true);
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPlayed(0);
   }, [reduced, inView, started, total]);
-  // Matches play on a continuous clock (about 16 a second), so each bar grows smoothly at
-  // the screen's frame rate instead of jumping once per match.
   useFrame(
-    (dt) => setPlayed((p) => Math.min(total, p + dt * MATCHES_PER_S)),
+    (dt) => setPlayed((p) => Math.min(total, p + dt * ROUNDS_PER_S)),
     played < total && inView && !reduced,
   );
 
-  // running totals: finished matches count fully, the match in progress counts in part
-  // (match k = row k / N against column k % N)
-  const part = (i: number, j: number) => clamp(played - (i * N + j), 0, 1);
+  const at = (c: number[], t: number) => {
+    const r = Math.floor(t);
+    return r >= ROUNDS ? c[ROUNDS] : c[r] + (c[r + 1] - c[r]) * (t - r);
+  };
   const partial = IDS.map((_, i) => {
     let s = 0;
-    for (let j = 0; j < N; j++) s += rr.score[i][j] * part(i, j);
+    for (let j = 0; j < N; j++) s += at(cum[i][j], played);
     return s / N;
   });
   const order = IDS.map((_, i) => i).sort((a, b) => partial[b] - partial[a] || a - b);
@@ -160,7 +175,7 @@ export default function Tournament() {
           label={done ? 'winner' : 'leading'}
           value={<span className="block truncate">{STRATS[IDS[leader]].name}</span>}
           color={STRATS[IDS[leader]].nice ? GT.a : GT.b}
-          sub={`${Math.floor(played)} of ${total} matches played`}
+          sub={`round ${Math.floor(played)} of ${ROUNDS}, all matches at once`}
         />
         <Btn primary onClick={() => setPlayed(0)} disabled={reduced}>
           replay

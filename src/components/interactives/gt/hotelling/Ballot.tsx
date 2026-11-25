@@ -26,7 +26,7 @@ const STEP = 0.01;
 const TURN_MS = 190;
 const STEPS_PER_TURN = 2; // each round moves up to 2 grid steps, so the race is short but calm
 /** Distance per second a candidate covers in the race (grid steps per turn / turn time). */
-const RACE_SPEED = (STEP * STEPS_PER_TURN) / (TURN_MS / 1000);
+const RACE_SPEED = ((STEP * STEPS_PER_TURN) / (TURN_MS / 1000)) * 1.2; // 20% brisker than the step pace
 
 /**
  * One candidate's turn: up to STEPS_PER_TURN small best-response steps, never jumping over
@@ -100,6 +100,7 @@ function round(pos: number[], F: Cdf): number[] {
   return [a, b];
 }
 const START: [number, number] = [0.1, 0.9];
+const BOXGAP = 24; // drawn candidate boxes never overlap: they sit side by side at this spacing
 
 const fmtPct = (s: number) => `${Math.round(s * 100)}`;
 
@@ -165,7 +166,8 @@ export default function Ballot() {
   const [pos, setPos] = useState<number[]>([...START]);
   const [show, setShow] = useState<number[]>([...START]);
   const [running, setRunning] = useState(false);
-  const [turn, setTurn] = useState(0);
+  const startTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const raceT = useRef(0);
   const dragging = useRef<number | null>(null);
   const demoDone = useRef(false);
   const touched = useRef(false); // the reader took over: no auto-demo
@@ -178,7 +180,7 @@ export default function Ballot() {
       setShow((s) =>
         s.map((x, i) => {
           const d = pos[i] - x;
-          const v = Math.max(RACE_SPEED, Math.abs(d) * 6);
+          const v = Math.max(RACE_SPEED, Math.abs(d) * 7.2);
           return Math.abs(d) <= v * dt ? pos[i] : x + Math.sign(d) * v * dt;
         }),
       ),
@@ -201,15 +203,16 @@ export default function Ballot() {
 
   const race = () => {
     touched.current = true;
-    setTurn(0);
     if (reduced) {
       const p = settle();
       setPos(p);
       setShow(p);
       return;
     }
+    setRunning(false);
     setPos([...START]);
-    setRunning(true);
+    if (startTimer.current) clearTimeout(startTimer.current);
+    startTimer.current = setTimeout(() => setRunning(true), 450);
   };
 
   useEffect(() => {
@@ -224,7 +227,7 @@ export default function Ballot() {
     const id = setTimeout(() => {
       demoDone.current = true;
       if (!touched.current) setRunning(true);
-    }, 900);
+    }, 750);
     return () => clearTimeout(id);
   }, [inView, reduced]);
 
@@ -238,19 +241,48 @@ export default function Ballot() {
     race();
   }, [sel]);
 
+  // The race as one continuous motion at a single speed: the two close in until their boxes
+  // touch, then the touching pair walks on to the median. No turns, no pauses; the
+  // candidate on the far side keeps one steady velocity the whole way.
+  const gapU = BOXGAP / (X1 - X0);
+  const plan = useRef<{ a0: number; b0: number; L: number; m: number } | null>(null);
   useEffect(() => {
-    if (!running || !inView) return;
-    const id = setTimeout(() => {
-      const next = round(pos, distSel.F);
-      if (next.every((v, i) => v === pos[i])) {
-        setRunning(false);
-        return;
+    if (!running) return;
+    const L = show[0] <= show[1] ? 0 : 1;
+    plan.current = { a0: show[L], b0: show[1 - L], L, m: distSel.median };
+    raceT.current = 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]);
+  useFrame(
+    (dt) => {
+      const pl = plan.current;
+      if (!pl) return;
+      raceT.current += dt;
+      const v = RACE_SPEED;
+      const c0 = (pl.a0 + pl.b0) / 2;
+      const t1 = Math.max(0, (pl.b0 - pl.a0 - gapU) / (2 * v));
+      const t2 = Math.abs(pl.m - c0) / v;
+      const t = raceT.current;
+      let lo: number;
+      let hi: number;
+      if (t < t1) {
+        lo = pl.a0 + v * t;
+        hi = pl.b0 - v * t;
+      } else {
+        const c = c0 + Math.sign(pl.m - c0) * Math.min(t - t1, t2) * v;
+        lo = c - gapU / 2;
+        hi = c + gapU / 2;
       }
+      const next = pl.L === 0 ? [lo, hi] : [hi, lo];
       setPos(next);
-      setTurn((t) => t + 1);
-    }, TURN_MS);
-    return () => clearTimeout(id);
-  }, [running, turn, pos, inView, distSel]);
+      setShow(next);
+      if (t >= t1 + t2) {
+        plan.current = null;
+        setRunning(false);
+      }
+    },
+    running && inView && !reduced,
+  );
 
   const toX = (e: React.PointerEvent<SVGSVGElement>) => {
     const p = svgPoint(svgRef.current!, e.clientX, e.clientY);
@@ -325,7 +357,6 @@ export default function Ballot() {
   const left = together ? lastLeft.current : sideNow;
   // Draw the two boxes so they never overlap: as the candidates close in, the boxes stop
   // when they touch and sit side by side (no jump, no bounce when they finally meet).
-  const BOXGAP = 24;
   const drawX = (() => {
     const xs = [px(S[0]), px(S[1])];
     const lo = left;
