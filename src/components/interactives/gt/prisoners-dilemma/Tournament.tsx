@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BigStat, Btn, Caption, GT, Specimen, T, useInView, useReducedMotion } from '../shared';
+import {
+  BigStat,
+  Btn,
+  Caption,
+  GT,
+  Specimen,
+  T,
+  clamp,
+  useFrame,
+  useInView,
+  useReducedMotion,
+} from '../shared';
 import { useCompact } from '../useCompact';
 import { STRATS, roundRobin } from './pd';
 
@@ -13,6 +24,7 @@ const RH = 32;
 const TOP = 22;
 const H = TOP + N * RH + 6;
 const MAXV = 3;
+const MATCHES_PER_S = 16;
 
 export default function Tournament() {
   const reduced = useReducedMotion();
@@ -40,17 +52,19 @@ export default function Tournament() {
     setStarted(true);
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPlayed(0);
   }, [reduced, inView, started, total]);
-  useEffect(() => {
-    if (played >= total || !inView) return;
-    const id = window.setTimeout(() => setPlayed((p) => Math.min(total, p + 1)), 60);
-    return () => window.clearTimeout(id);
-  }, [played, total, inView]);
+  // Matches play on a continuous clock (about 16 a second), so each bar grows smoothly at
+  // the screen's frame rate instead of jumping once per match.
+  useFrame(
+    (dt) => setPlayed((p) => Math.min(total, p + dt * MATCHES_PER_S)),
+    played < total && inView && !reduced,
+  );
 
-  // running totals over the matches played so far (match k = row k / N against column k % N)
-  const shown = (i: number, j: number) => i * N + j < played;
+  // running totals: finished matches count fully, the match in progress counts in part
+  // (match k = row k / N against column k % N)
+  const part = (i: number, j: number) => clamp(played - (i * N + j), 0, 1);
   const partial = IDS.map((_, i) => {
     let s = 0;
-    for (let j = 0; j < N; j++) if (shown(i, j)) s += rr.score[i][j];
+    for (let j = 0; j < N; j++) s += rr.score[i][j] * part(i, j);
     return s / N;
   });
   const order = IDS.map((_, i) => i).sort((a, b) => partial[b] - partial[a] || a - b);
@@ -146,7 +160,7 @@ export default function Tournament() {
           label={done ? 'winner' : 'leading'}
           value={<span className="block truncate">{STRATS[IDS[leader]].name}</span>}
           color={STRATS[IDS[leader]].nice ? GT.a : GT.b}
-          sub={`${played} of ${total} matches played`}
+          sub={`${Math.floor(played)} of ${total} matches played`}
         />
         <Btn primary onClick={() => setPlayed(0)} disabled={reduced}>
           replay
