@@ -279,7 +279,12 @@ export default function Ballot() {
   const shA = useTween(shRaw[0], reduced, 6);
   const sh = [shA, 1 - shA];
   const together = Math.abs(P[0] - P[1]) < 1e-6;
-  const left = S[0] <= S[1] ? 0 : 1;
+  // who stands on the left; when they meet, keep the side they had before meeting so the
+  // two halves keep their colours (each still takes the voters on its own side: 50/50)
+  const lastLeft = useRef(0);
+  const sideNow = S[0] <= S[1] ? 0 : 1;
+  if (!together) lastLeft.current = sideNow;
+  const left = together ? lastLeft.current : sideNow;
   const mid = (P[0] + P[1]) / 2;
   const colors = [GT.a, GT.b];
   const softs = [GT.aSoft, GT.bSoft];
@@ -309,14 +314,8 @@ export default function Ballot() {
           onPointerCancel={onUp}
         >
           {/* each candidate's voters */}
-          {together ? (
-            <path d={area(0, 1)} style={{ fill: GT.line, opacity: 0.8 }} />
-          ) : (
-            <>
-              <path d={area(0, mid)} style={{ fill: softs[left] }} />
-              <path d={area(mid, 1)} style={{ fill: softs[1 - left] }} />
-            </>
-          )}
+          <path d={area(0, mid)} style={{ fill: softs[left] }} />
+          <path d={area(mid, 1)} style={{ fill: softs[1 - left] }} />
           <path d={curve} style={{ fill: 'none', stroke: GT.ink, strokeWidth: 1.5 }} />
           <line x1={X0} y1={BASE} x2={X1} y2={BASE} style={{ stroke: GT.ink, strokeWidth: 1.2 }} />
 
@@ -343,15 +342,13 @@ export default function Ballot() {
               mean
             </T>
           )}
-          {!together && (
-            <line
-              x1={px(mid)}
-              y1={BASE - 4}
-              x2={px(mid)}
-              y2={BASE + 6}
-              style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '2 2' }}
-            />
-          )}
+          <line
+            x1={px(mid)}
+            y1={BASE - 4}
+            x2={px(mid)}
+            y2={BASE + 6}
+            style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '2 2' }}
+          />
 
           {/* candidates */}
           {[1, 0].map((k) => (
@@ -365,7 +362,7 @@ export default function Ballot() {
               aria-valuenow={Math.round(P[k] * 100)}
               onKeyDown={onKey(k)}
               style={{ cursor: 'grab', outline: 'none' }}
-              transform={together ? `translate(${k === 0 ? -12 : 12} 0)` : undefined}
+              transform={together ? `translate(${k === left ? -12 : 12} 0)` : undefined}
             >
               <Candidate x={px(S[k])} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
             </g>
