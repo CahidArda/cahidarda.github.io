@@ -186,8 +186,8 @@ export default function FourWorlds() {
     <Specimen
       rootRef={rootRef}
       code="GT-10.1"
-      title="four worlds, same songs"
-      kicker={`${tt} / ${LISTENERS} listeners per world`}
+      title="four worlds"
+      kicker={`${tt} / ${LISTENERS} listeners`}
       hint="press replay history: same songs, same rules, new luck"
       footer={<Chip color={GT.eq}>the hit in each world</Chip>}
     >

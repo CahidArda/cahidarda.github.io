@@ -12,9 +12,8 @@ import IdeaSpreads from '../../../components/interactives/gt/cascades/IdeaSpread
 import EqTip from '../../../components/EqTip.astro';
 import Lesson from '../../../components/interactives/gt/Lesson.astro';
 
-Two restaurants, side by side. One is full, one is empty. You walk into the full one, even if a
-friend told you the empty one is better. That can be the smart move, and it is also how a whole
-street ends up wrong.
+Two restaurants side by side, one full, one empty. You pick the full one, even though a friend
+said the empty one is better. That can be the smart move. It is also how a whole street ends up wrong.
 
 ## Ignoring what you know
 
@@ -22,10 +21,9 @@ The classroom version is an urn ([Easley & Kleinberg, ch. 16](https://www.cs.cor
 It holds either two blue balls and one red, or two red and one blue, with even odds. People
 come up one at a time, draw a ball in private, and announce their guess out loud.
 
-Each private ball is as strong as any other, so a guess that reveals a ball counts as one vote.
-Once one colour leads the public guesses by two, your single ball can only cut that lead to one, so
-you go with the crowd. From then on every guess repeats the leader and adds no information. The
-line is stuck.
+Every ball is equally strong evidence. Once one colour leads the public guesses by two, your one
+ball can only cut that lead to one, so you follow the crowd. So does everyone after you, and their
+guesses add no information.
 
 <div class="fx-figure">
   <UrnLine client:visible />
@@ -39,14 +37,13 @@ $$
 \frac{1/9}{1/9 + 4/9} = \frac15
 $$
 
-Twelve people who pooled their balls would be wrong only about 12% of the time. The information
-was there, and the order of speaking threw it away. The same thinness makes a cascade fragile: it
-rests on two balls of evidence, so a couple of people showing their balls in public can tip it over.
+Pooling all twelve balls would be wrong only 12% of the time. The information was there; the order
+of speaking threw it away. It also makes a cascade fragile: it rests on two balls of evidence, so a
+couple of balls shown in public can tip it.
 
 ## Switching when your friends switch
 
-A new messaging app, a new slang word, a new farming method. Here the choice is a coordination
-game with each friend ([Easley & Kleinberg, ch. 19](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)):
+A new app or a new slang word is different: it pays to match your friends. Each friendship is a coordination game ([Easley & Kleinberg, ch. 19](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)):
 you both get $a$ if you both use the new thing, $b$ if you both stick with the old one, and nothing
 if you differ. If a fraction $p$ of your friends have switched, switching pays when $pa \ge (1-p)b$:
 
@@ -62,10 +59,9 @@ $$
   <IdeaSpreads client:visible />
 </div>
 
-The idea runs through the loose town and the thin chains, then stops at the group in the corner.
-Its members talk mostly to each other: each keeps more than $1-q$ of their friends inside the group,
-so the outside can never reach a share of $q$. Easley and Kleinberg prove this is the only
-thing that can stop it: the idea fails to reach everyone exactly when the rest of the network
+The idea sweeps the loose town, then stops at the group in the corner. Each member keeps more than
+$1-q$ of their friends inside it, so the outside never reaches a share of $q$. Easley and Kleinberg
+prove this is the only obstacle: an idea fails to reach everyone exactly when the rest of the network
 contains a cluster of density greater than $1-q$.
 
 <Lesson>

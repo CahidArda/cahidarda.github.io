@@ -304,7 +304,7 @@ export default function RewireRing() {
       </div>
       <div className="mt-4 grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_auto]">
         <Slider
-          label="p, chance a link is rewired"
+          label="rewiring p"
           value={v}
           min={0}
           max={100}
@@ -314,8 +314,7 @@ export default function RewireRing() {
             setV(x);
           }}
           format={() =>
-            `${g.rewired} of ${TOTAL} rewired · p = ` +
-            (p === 0 ? '0' : p < 0.01 ? p.toFixed(4) : p < 0.1 ? p.toFixed(3) : p.toFixed(2))
+            `p = ${p === 0 ? '0' : p < 0.01 ? p.toFixed(4) : p < 0.1 ? p.toFixed(3) : p.toFixed(2)} · ${g.rewired} of ${TOTAL} links`
           }
         />
         <div className="flex gap-2">
