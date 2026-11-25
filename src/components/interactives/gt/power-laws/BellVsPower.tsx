@@ -26,7 +26,7 @@ import { copyingModel, fitSlope, gauss, rng } from './model';
  */
 const N = 100_000;
 const SD = 7 / 175; // height sd as a fraction of the mean
-const KMAX = 30; // exact counts k = 1..30 for the linear view
+const KMAX = 20; // exact counts k = 1..20 for the linear view (its x axis ends at 20)
 const RATIO = 1.5; // log-bin width factor
 const X_HI = 1e5; // right end of the log x axis (top page is at most ~55k)
 
@@ -324,8 +324,11 @@ export default function BellVsPower() {
             />
           )}
           <path d={bellPath} style={{ fill: 'none', stroke: GT.b, strokeWidth: 2.2 }} />
-          {view.ex.map((ly, i) => sq(i + 1, Math.pow(10, ly), view.exOn[i] * (1 - t), `e${i}`))}
-          {view.bn.map((ly, i) => sq(SLOTS[i].x, Math.pow(10, ly), view.bnOn[i] * t, `b${i}`))}
+          {/* the two point sets cross-fade (squared, so neither crowds the frame mid-switch) */}
+          {view.ex.map((ly, i) =>
+            sq(i + 1, Math.pow(10, ly), view.exOn[i] * (1 - t) ** 2, `e${i}`),
+          )}
+          {view.bn.map((ly, i) => sq(SLOTS[i].x, Math.pow(10, ly), view.bnOn[i] * t ** 2, `b${i}`))}
         </g>
 
         {/* log-log annotations, attached to their marks */}

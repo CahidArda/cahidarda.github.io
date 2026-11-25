@@ -212,7 +212,12 @@ export function Specimen({
   stage?: boolean;
 }) {
   return (
-    <div ref={rootRef} className="fx gt-anim border border-line-strong bg-paper-raised">
+    <div
+      role="figure"
+      aria-label={`${code} ${title}`}
+      ref={rootRef}
+      className="fx gt-anim border border-line-strong bg-paper-raised"
+    >
       <div className="flex items-baseline justify-between gap-3 border-b border-line px-4 py-2.5">
         <span className="flex min-w-0 items-baseline gap-3">
           <span className="font-mono text-[0.65rem] tracking-[0.12em] text-accent">{code}</span>
