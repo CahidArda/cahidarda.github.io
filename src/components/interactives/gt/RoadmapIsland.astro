@@ -1,0 +1,21 @@
+---
+// Feeds the route map from the collection so station titles and descriptions always
+// match the pages themselves.
+import { getCollection } from 'astro:content';
+import Roadmap from './Roadmap.tsx';
+
+const members = (
+  await getCollection('articles', ({ data }) => data.series === 'logic-of-crowds' && !data.draft)
+).sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+
+const stations = members.map((m) => ({
+  slug: m.id.split('/').pop()!,
+  n: m.data.seriesOrder ?? 0,
+  title: m.data.title,
+  description: m.data.description,
+}));
+---
+
+<div class="fx-figure">
+  <Roadmap client:visible stations={stations} />
+</div>
