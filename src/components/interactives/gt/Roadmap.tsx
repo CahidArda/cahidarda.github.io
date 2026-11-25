@@ -79,8 +79,15 @@ function buildMap(order: string[], bySlug: Record<string, Station>) {
   if (stories.length) {
     // the story line leaves station 10 downwards, so its name goes above it
     pos['power-laws'] = { ...pos['power-laws'], label: 'above' };
-    stories.forEach((x, i) => (pos[x] = { x: COLS[i] ?? COLS[0] + i * 115, y: ROW[2], label: 'below' }));
-    lines.push({ id: 'story', name: 'story line', color: GT.alt, stops: ['power-laws', ...stories] });
+    stories.forEach(
+      (x, i) => (pos[x] = { x: COLS[i] ?? COLS[0] + i * 115, y: ROW[2], label: 'below' }),
+    );
+    lines.push({
+      id: 'story',
+      name: 'story line',
+      color: GT.alt,
+      stops: ['power-laws', ...stories],
+    });
   }
   return { pos, lines, stories, H };
 }
@@ -92,7 +99,8 @@ function stationTag(s: Station) {
 }
 function polyLen(pts: { x: number; y: number }[]) {
   let L = 0;
-  for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+  for (let i = 1; i < pts.length; i++)
+    L += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
   return L;
 }
 function pointAt(pts: { x: number; y: number }[], d: number) {
@@ -100,7 +108,10 @@ function pointAt(pts: { x: number; y: number }[], d: number) {
     const seg = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
     if (d <= seg) {
       const t = d / seg;
-      return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * t, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * t };
+      return {
+        x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * t,
+        y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * t,
+      };
     }
     d -= seg;
   }
@@ -155,7 +166,11 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
     <Specimen
       code="GT-00"
       title="the route map"
-      kicker={stories.length ? `10 stations · ${stories.length} ${stories.length === 1 ? 'story' : 'stories'}` : '10 stations · 3 lines'}
+      kicker={
+        stories.length
+          ? `10 stations · ${stories.length} ${stories.length === 1 ? 'story' : 'stories'}`
+          : '10 stations · 3 lines'
+      }
       hint="hover a station to preview · click to ride"
       rootRef={rootRef}
     >
@@ -163,7 +178,12 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
         {narrow ? (
           <NarrowMap order={order} bySlug={bySlug} sel={sel} pick={pick} lines={LINES} />
         ) : (
-          <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label="Series route map">
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            className="block w-full"
+            role="img"
+            aria-label="Series route map"
+          >
             {/* lines */}
             {LINES.map((l) => {
               const pts = linePoints(l.stops);
@@ -171,7 +191,13 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
                 <polyline
                   key={l.id}
                   points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
-                  style={{ fill: 'none', stroke: l.color, strokeWidth: 7, strokeLinejoin: 'round', strokeLinecap: 'round' }}
+                  style={{
+                    fill: 'none',
+                    stroke: l.color,
+                    strokeWidth: 7,
+                    strokeLinejoin: 'round',
+                    strokeLinecap: 'round',
+                  }}
                 />
               );
             })}
@@ -196,21 +222,37 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
                 );
               })}
             {/* poster title, bottom right */}
-            <text x={600} y={ROW[2] - 4} textAnchor="end" style={{ fill: GT.ink, fontFamily: GT.display, fontSize: 30 }}>
+            <text
+              x={600}
+              y={ROW[2] - 4}
+              textAnchor="end"
+              style={{ fill: GT.ink, fontFamily: GT.display, fontSize: 30 }}
+            >
               The Logic of Crowds
             </text>
             <text
               x={600}
               y={ROW[2] + 22}
               textAnchor="end"
-              style={{ fill: GT.muted, fontFamily: GT.mono, fontSize: 9.5, letterSpacing: '0.14em' }}
+              style={{
+                fill: GT.muted,
+                fontFamily: GT.mono,
+                fontSize: 9.5,
+                letterSpacing: '0.14em',
+              }}
             >
               A ROUTE MAP IN TEN STOPS
             </text>
             {/* line names, each sitting on its own stretch of track */}
-            <LineName x={(COLS[0] + COLS[1]) / 2} y={ROW[0] + 18} color={GT.a}>STRATEGY LINE</LineName>
-            <LineName x={(COLS[3] + COLS[4]) / 2} y={ROW[1] - 14} color={GT.opt}>NETWORK LINE</LineName>
-            <LineName x={(COLS[1] + COLS[2]) / 2} y={ROW[1] - 14} color={GT.b}>CROWD LINE</LineName>
+            <LineName x={(COLS[0] + COLS[1]) / 2} y={ROW[0] + 18} color={GT.a}>
+              STRATEGY LINE
+            </LineName>
+            <LineName x={(COLS[3] + COLS[4]) / 2} y={ROW[1] - 14} color={GT.opt}>
+              NETWORK LINE
+            </LineName>
+            <LineName x={(COLS[1] + COLS[2]) / 2} y={ROW[1] - 14} color={GT.b}>
+              CROWD LINE
+            </LineName>
             {stories.length > 0 && (
               <LineName x={COLS[0] + 14} y={(ROW[1] + ROW[2]) / 2} color={GT.alt} anchor="start">
                 STORY LINE
@@ -242,7 +284,12 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
                   >
                     <circle cx={p.x} cy={p.y} r={r + 10} style={{ fill: 'transparent' }} />
                     {on && (
-                      <circle cx={p.x} cy={p.y} r={r + 6} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2 }} />
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={r + 6}
+                        style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2 }}
+                      />
                     )}
                     <circle
                       cx={p.x}
@@ -306,14 +353,21 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2">
                 {linesOf(LINES, cur.slug).map((l) => (
-                  <span key={l.id} className="inline-flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted">
+                  <span
+                    key={l.id}
+                    className="inline-flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted"
+                  >
                     <span className="inline-block h-1.5 w-4" style={{ background: l.color }} />
                     {l.name}
                   </span>
                 ))}
               </span>
-              <span className="mt-1 block font-display text-xl leading-tight text-ink">{cur.title}</span>
-              <span className="mt-1 block text-[0.88rem] leading-snug text-ink-soft">{cur.description}</span>
+              <span className="mt-1 block font-display text-xl leading-tight text-ink">
+                {cur.title}
+              </span>
+              <span className="mt-1 block text-[0.88rem] leading-snug text-ink-soft">
+                {cur.description}
+              </span>
               <span className="mt-2 block font-mono text-[0.68rem] text-accent">ride →</span>
             </span>
           </a>
@@ -399,7 +453,11 @@ function NarrowMap({
               <span className="min-w-0">
                 <span className="flex gap-1">
                   {ls.map((l) => (
-                    <span key={l.id} className="inline-block h-1.5 w-4" style={{ background: l.color }} />
+                    <span
+                      key={l.id}
+                      className="inline-block h-1.5 w-4"
+                      style={{ background: l.color }}
+                    />
                   ))}
                 </span>
                 <span

@@ -218,9 +218,7 @@ export function Specimen({
           <span className="font-mono text-[0.65rem] tracking-[0.12em] text-accent">{code}</span>
           <span className="label truncate">{title}</span>
         </span>
-        {kicker && (
-          <span className="shrink-0 font-mono text-[0.65rem] text-muted">{kicker}</span>
-        )}
+        {kicker && <span className="shrink-0 font-mono text-[0.65rem] text-muted">{kicker}</span>}
       </div>
       <div className={`p-4 sm:p-5 ${stage ? 'gt-stage' : ''}`}>{children}</div>
       {(hint || footer) && (

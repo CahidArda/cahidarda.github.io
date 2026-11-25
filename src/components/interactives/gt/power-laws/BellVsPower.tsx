@@ -18,10 +18,11 @@ import { copyingModel, fitSlope, gauss, rng } from './model';
  *  - in-links of 100,000 pages grown by the copying model (mean in-links is 1)
  * Toggle linear vs log-log. On log-log the power law is a straight line; the bell is a spike at 1x.
  *
- * Motion: the axes morph through a Box-Cox family (x^λ, λ from 1 to 0, i.e. linear to log) with
- * the axis range interpolated too, so every mark stays near the plot during the switch and the
- * tween ends exactly on its target (no exponential tail, no final snap). A change of p glides the
- * points, the fitted line and the readout together on one clock.
+ * Motion: on an axis switch every mark slides in a straight line from its linear position to its
+ * log-log position (marks that are off the chart park just outside the frame), on a fixed-duration
+ * ease that ends exactly on its target. The fitted line does not travel: it fades in at its final
+ * place as the points settle onto it. A change of p glides the points, the fitted line and the
+ * readout together on one clock.
  */
 const N = 100_000;
 const SD = 7 / 175; // height sd as a fraction of the mean
@@ -114,7 +115,8 @@ const mixView = (a: View, b: View, s: number): View => ({
   icpt: lerp(a.icpt, b.icpt, s),
   lmax: lerp(a.lmax, b.lmax, s),
 });
-const easeInOut = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+/** Sine ease: gentle start and stop, low peak speed (1.57x the average). */
+const easeInOut = (k: number) => (1 - Math.cos(Math.PI * k)) / 2;
 const now = () => (typeof performance === 'undefined' ? 0 : performance.now());
 
 /**
@@ -154,20 +156,6 @@ const tallest = (() => {
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
 const bell = (x: number) => Math.exp(-((x - 1) ** 2) / (2 * SD * SD));
-/** Box-Cox: (v^λ - 1) / λ, which is ln v at λ = 0 (expm1 keeps it smooth as λ → 0). */
-const boxCox = (v: number, lam: number) => {
-  const L = Math.log(Math.max(v, 1e-12));
-  return lam === 0 ? L : Math.expm1(lam * L) / lam;
-};
-/** Axis at morph t (0 = linear [0, linHi], 1 = log [logLo, logHi]) → fraction 0..1. */
-function axis(t: number, linHi: number, logLo: number, logHi: number) {
-  const lam = 1 - t;
-  const lo = logLo * t;
-  const hi = Math.exp(lerp(Math.log(linHi), Math.log(logHi), t));
-  const f0 = boxCox(lo, lam);
-  const f1 = boxCox(hi, lam);
-  return (v: number) => (boxCox(v, lam) - f0) / (f1 - f0);
-}
 /** Round to two significant figures so the readout settles instead of ticking. */
 const sig2 = (v: number) => {
   const m = Math.pow(10, Math.max(0, Math.floor(Math.log10(v)) - 1));
@@ -179,8 +167,8 @@ export default function BellVsPower() {
   const [sel, setSel] = useState<Mode>('loglog');
   const [mode, bindMode] = useHoverPreview<Mode>(sel);
   const [pct, setPct] = useState(20);
-  const t = useGlide(mode === 'loglog' ? 1 : 0, lerp, reduced, 750);
-  const view = useGlide(simulate(pct), mixView, reduced, 450);
+  const t = useGlide(mode === 'loglog' ? 1 : 0, lerp, reduced, 800);
+  const view = useGlide(simulate(pct), mixView, reduced, 600);
   const target = simulate(pct);
   const alpha = -target.slope;
   const pred = 1 + 1 / (1 - pct / 100);
@@ -199,19 +187,20 @@ export default function BellVsPower() {
     const X0 = M.l;
     const Y0 = H - M.b;
 
-    const LY = [1e-7, Math.pow(10, 0.3)];
-    const ax = axis(t, 20, 0.5, X_HI);
-    const ay = axis(t, 1.08, LY[0], LY[1]);
+    const LY = [-7, 0.3]; // log10 range of "how common"
+    const LX = [Math.log10(0.5), Math.log10(X_HI)];
     // rounded so server and browser floating point agree at hydration
-    const sx = (x: number) => r2(X0 + ax(x) * PW);
-    const sy = (y: number) => r2(Y0 - ay(y) * PH);
-    // settled projections for labels
-    const axL = axis(1, 20, 0.5, X_HI);
-    const ayL = axis(1, 1.08, LY[0], LY[1]);
-    const sxLog = (x: number) => r2(X0 + axL(x) * PW);
-    const syLog = (y: number) => r2(Y0 - ayL(y) * PH);
+    const sxLog = (x: number) => r2(X0 + ((Math.log10(x) - LX[0]) / (LX[1] - LX[0])) * PW);
+    const syLog = (y: number) =>
+      r2(Y0 - ((Math.log10(Math.max(y, 1e-12)) - LY[0]) / (LY[1] - LY[0])) * PH);
     const sxLin = (x: number) => r2(X0 + (x / 20) * PW);
     const syLin = (y: number) => r2(Y0 - (y / 1.08) * PH);
+    // a mark slides straight from its linear place to its log-log place; anything off the
+    // chart waits just outside the frame (hidden by the clip) instead of flying in from afar
+    const cx = (px: number) => clamp(px, X0 - 12, W - M.r + 12);
+    const cy = (py: number) => clamp(py, M.t - 12, Y0 + 12);
+    const sx = (x: number) => r2(lerp(cx(sxLin(x)), cx(sxLog(x)), t));
+    const sy = (y: number) => r2(lerp(cy(syLin(y)), cy(syLog(y)), t));
     const inX = (px: number) => px >= X0 - 0.5 && px <= W - M.r + 0.5;
     const inY = (py: number) => py >= M.t - 0.5 && py <= Y0 + 0.5;
 
@@ -222,17 +211,12 @@ export default function BellVsPower() {
       bellPath += `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(bell(x)).toFixed(1)}`;
     }
 
-    // fitted power law, sampled so it bends with the axes and is straight once they are log
+    // fitted power law: a straight line on the settled log-log axes
     const fitY = (x: number) => Math.pow(10, view.icpt + view.slope * Math.log10(x));
-    const lx1 = Math.log10(X_HI);
-    let fitPath = '';
-    for (let i = 0; i <= 60; i++) {
-      const x = Math.pow(10, (lx1 * i) / 60);
-      fitPath += `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(fitY(x)).toFixed(1)}`;
-    }
     // labels sit just right of the fitted line at a fixed height (the empty side of the line)
     const labAt = (ly: number) => sxLog(Math.pow(10, (ly - view.icpt) / view.slope)) + 12;
-    const fitOp = clamp((t - 0.4) / 0.5, 0, 1);
+    // fades in only as the points arrive (last 30% of the switch), so it never travels
+    const fitOp = clamp((t - 0.7) / 0.3, 0, 1);
 
     const xTicksLin = [0, 5, 10, 15, 20];
     const xTicksLog = [1, 10, 100, 1000, 10000, 100000];
@@ -250,7 +234,7 @@ export default function BellVsPower() {
     const sq = (x: number, y: number, op: number, key: string) => {
       const px = sx(x);
       const py = sy(y);
-      if (op <= 0.01 || !inX(px) || !inY(py)) return null;
+      if (op <= 0.01) return null; // off-chart marks are hidden by the clip
       return (
         <rect
           key={key}
@@ -274,7 +258,7 @@ export default function BellVsPower() {
             <rect x={M.l} y={M.t} width={PW} height={PH} />
           </clipPath>
         </defs>
-        {/* grid + ticks: both sets ride the morphing axes and cross-fade */}
+        {/* grid + ticks: the two sets cross-fade in place */}
         {(
           [
             [xTicksLin, tickOpLin, 'l'],
@@ -284,7 +268,7 @@ export default function BellVsPower() {
           op <= 0.01
             ? null
             : ticks.map((v) => {
-                const px = sx(v);
+                const px = k === 'g' ? sxLog(v) : sxLin(v);
                 if (!inX(px)) return null;
                 return (
                   <g key={`x${k}${v}`} style={{ opacity: r2(op) }}>
@@ -305,7 +289,7 @@ export default function BellVsPower() {
           op <= 0.01
             ? null
             : ticks.map((v) => {
-                const py = sy(v);
+                const py = k === 'g' ? syLog(v) : syLin(v);
                 if (!inY(py)) return null;
                 return (
                   <g key={`y${k}${v}`} style={{ opacity: r2(op) }}>
@@ -330,10 +314,13 @@ export default function BellVsPower() {
 
         <g clipPath={`url(#${clipId})`}>
           {fitOp > 0.01 && (
-            <path
-              d={fitPath}
+            <line
+              x1={sxLog(1)}
+              y1={syLog(fitY(1))}
+              x2={sxLog(X_HI)}
+              y2={syLog(fitY(X_HI))}
               strokeDasharray="5 4"
-              style={{ fill: 'none', stroke: GT.eq, strokeWidth: 1.5, opacity: r2(fitOp) }}
+              style={{ stroke: GT.eq, strokeWidth: 1.5, opacity: r2(fitOp) }}
             />
           )}
           <path d={bellPath} style={{ fill: 'none', stroke: GT.b, strokeWidth: 2.2 }} />
