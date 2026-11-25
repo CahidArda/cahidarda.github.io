@@ -1,0 +1,76 @@
+---
+title: 'The Rich Get Richer'
+seoTitle: 'Power Laws and Preferential Attachment, Interactive'
+description: 'Popularity feeds on itself: copying turns luck into hits, and hits into a power law that is a straight line on a log-log plot.'
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 10
+---
+
+import FourWorlds from '../../../components/interactives/gt/power-laws/FourWorlds.tsx';
+import BellVsPower from '../../../components/interactives/gt/power-laws/BellVsPower.tsx';
+import LongTail from '../../../components/interactives/gt/power-laws/LongTail.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+Nobody is ten times taller than average. Plenty of web pages have ten thousand times the average number of
+links. Heights come from many small independent causes. Popularity comes from people looking at what other
+people chose. That feedback, called preferential attachment, produces a power law.
+
+## Luck, amplified
+
+In 2006 Matthew Salganik, Peter Dodds and Duncan Watts let 14,341 people listen to 48 songs by unknown bands
+and download the ones they liked. Some saw only band and song names. The rest were split into eight separate
+"worlds", each showing its own download counts. The same song could be a hit in one world and ignored in
+another ([Salganik, Dodds and Watts, _Science_ 311, 2006](https://pdodds.w3.uvm.edu/research/papers/years/2006/salganik2006a.pdf)).
+Here is a stripped-down version where the songs are identical, so any difference is luck:
+
+<div class="fx-figure">
+  <FourWorlds client:visible />
+</div>
+
+## A straight line on a log-log plot
+
+Now let the world grow. Each new web page links to one older page: with probability $p$ a page picked at
+random, otherwise it copies the link of a random older page. Copying a random link is the same as choosing a
+page in proportion to the links it already has, so the rich get richer. This is the model in chapter 18 of
+[Easley and Kleinberg, _Networks, Crowds, and Markets_](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf),
+and it predicts a power law:
+
+<EqTip note="P(k) is the share of pages with exactly k in-links. Taking logs of both sides turns the power into a slope, which is why the points fall on a straight line on log-log axes.">
+
+$$
+P(k) \propto k^{-\alpha}
+$$
+
+$$
+\log P(k) = -\alpha \log k + c
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <BellVsPower client:visible />
+</div>
+
+For the copying model the slope is $\alpha = 1 + \frac{1}{1-p}$, so it sits a little above 2 when most
+links are copied. A crawl of 200 million real pages found 2.1
+([Broder et al., "Graph structure in the Web", 2000](https://www.math.cmu.edu/users/ctsourak/T797003/Readings/broder00bowtie.pdf)). The simulated slope comes out
+slightly shallower than the formula, which describes the limit of an infinitely large web.
+
+## The long tail
+
+Rank everything by popularity and the two worlds look nothing alike. A few pages hold most of the links,
+while most pages share a thin tail. This is the same attention that [PageRank](/articles/logic-of-crowds/pagerank)
+measures and that [cascades](/articles/logic-of-crowds/cascades) pass along.
+
+<div class="fx-figure">
+  <LongTail client:visible />
+</div>
+
+<Lesson>
+
+When people copy each other, early luck compounds: the winners are huge, unpredictable, and lie on a straight line on a log-log plot.
+
+</Lesson>

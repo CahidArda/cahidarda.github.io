@@ -70,6 +70,7 @@ html {
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
 
+
   /* Fugu widget palette - one fixed colour per worker agent / role, defined once and
      reused across every diagram so the reader learns the cast and reads later figures
      instantly. Exposed to Tailwind (bg-gpt, text-gemini, …). */
@@ -922,4 +923,126 @@ html {
 }
 .dark {
   --dk-ink: #e8dccb;
+}
+
+/*
+  The Logic of Crowds (game-theory series). One fixed colour per role across every page:
+  A = first player / shop / route (ink-blue), B = second (brick-red), opt = the social
+  optimum (green), warn = amber, alt = violet. Equilibrium uses the site accent.
+  Canvas code must read these BASE names (--gt-a …), not the @theme aliases.
+*/
+:root {
+  --gt-a: #2456c9;
+  --gt-b: #cf3a2e;
+  --gt-opt: #1f8a6d;
+  --gt-warn: #b8871a;
+  --gt-alt: #7d6a9c;
+  --gt-a-soft: #dbe4f7;
+  --gt-b-soft: #f6dcd8;
+  --gt-opt-soft: #d6ede5;
+}
+.dark {
+  --gt-a: #6c97f0;
+  --gt-b: #e87a64;
+  --gt-opt: #3fae8c;
+  --gt-warn: #d9b24e;
+  --gt-alt: #a892c4;
+  --gt-a-soft: #1c2740;
+  --gt-b-soft: #3a2420;
+  --gt-opt-soft: #16302a;
+}
+@theme {
+  --color-gt-a: var(--gt-a);
+  --color-gt-b: var(--gt-b);
+  --color-gt-opt: var(--gt-opt);
+  --color-gt-warn: var(--gt-warn);
+  --color-gt-alt: var(--gt-alt);
+  --color-gt-a-soft: var(--gt-a-soft);
+  --color-gt-b-soft: var(--gt-b-soft);
+  --color-gt-opt-soft: var(--gt-opt-soft);
+}
+
+/* Square, ink-on-paper range input for the series' sliders. */
+.gt-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+.gt-range::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--color-line-strong);
+}
+.gt-range::-moz-range-track {
+  height: 2px;
+  background: var(--color-line-strong);
+}
+.gt-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-paper-raised);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+.gt-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: var(--color-accent);
+  border: 2px solid var(--color-paper-raised);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+/* The specimen stage: a faint dot grid behind the figure, like graph paper. */
+.gt-stage {
+  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: -8px -8px;
+}
+
+/* The lesson card that closes each page. */
+.prose .gt-lesson {
+  margin-top: 2.5rem;
+  border-left: 3px solid var(--color-accent);
+  padding: 0.2rem 0 0.2rem 1.1rem;
+}
+.prose .gt-lesson p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+.prose .gt-lesson .katex-display {
+  margin: 0.9rem 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gt-anim * {
+    transition-duration: 0ms !important;
+    animation: none !important;
+  }
+}
+
+/* Long display equations scroll inside their own box instead of widening the page
+   (KaTeX's hidden MathML copy otherwise pushes the document past a phone's width). */
+.prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.15em 0;
+}
+
+/* Logic of Crowds: push red (GT.b) toward crimson so it never reads as the accent
+   (equilibrium), which sits next to it in almost every widget, especially in dark mode. */
+:root {
+  --gt-b: #c8243f;
+  --gt-b-soft: #f7d8de;
+}
+.dark {
+  --gt-b: #f06a7e;
+  --gt-b-soft: #3b1f27;
 }

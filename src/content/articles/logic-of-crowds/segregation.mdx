@@ -1,0 +1,67 @@
+---
+title: 'Mild Preferences, Stark Patterns'
+seoTitle: "Schelling's Segregation Model, Interactive Simulation"
+description: "Schelling's segregation model: nobody wants a segregated city, and everybody gets one."
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 9
+---
+
+import OneResident from '../../../components/interactives/gt/segregation/OneResident.tsx';
+import City from '../../../components/interactives/gt/segregation/City.tsx';
+import TippingCurve from '../../../components/interactives/gt/segregation/TippingCurve.tsx';
+import EqTip from '../../../components/EqTip.astro';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Most people would happily live on a street where they are in the minority. They would just
+rather not be the only one. Thomas Schelling showed in 1971 that this mild wish is enough to split
+a city in two ([Schelling, "Dynamic Models of Segregation"](https://doi.org/10.1080/0022250X.1971.9989794)).
+
+## One resident's rule
+
+Put two kinds of people on a grid with a few empty lots. Each resident looks at the occupied cells
+around her and stays if enough of them are her own kind
+([Easley & Kleinberg, section 4.5](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)):
+
+<EqTip note="Count only occupied neighbouring cells. t is the bar: t = 34% means 3 alike out of 8 is enough.">
+
+$$
+\text{stay if}\quad \frac{\#\,\text{alike neighbours}}{\#\,\text{occupied neighbours}} \ \ge\ t
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <OneResident client:visible />
+</div>
+
+## The whole city
+
+Now let everyone follow that rule. An unhappy resident moves to a random empty lot. Each move can
+leave a few former neighbours one short of their bar, and they move too.
+
+<div class="fx-figure">
+  <City client:visible />
+</div>
+
+The city starts with about half of everyone's neighbours alike, which is what a coin flip gives.
+At a bar of 34% it settles with roughly three quarters alike. Nobody asked for that. Each move is
+small and reasonable, and the pattern is something no single resident chose.
+
+## Asking for a little, getting a lot
+
+Run the city to rest for every bar and compare what people asked for with what they ended up with.
+
+<div class="fx-figure">
+  <TippingCurve client:visible />
+</div>
+
+The gap opens early. Even a bar of 30% ends around 75% alike. The curve only falls back when the bar is so strict that nobody can settle at all.
+
+<Lesson>
+
+You cannot read intentions off a map. A city can sort itself sharply even when every resident
+would be content as a minority.
+
+</Lesson>

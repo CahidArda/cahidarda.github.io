@@ -1,0 +1,13 @@
+---
+// The closing card of every page in the game-theory series: one sentence in display
+// serif (and optionally one equation) that the reader should leave with.
+interface Props {
+  label?: string;
+}
+const { label = 'The lesson' } = Astro.props;
+---
+
+<aside class="gt-lesson">
+  <div class="label mb-2" style="color: var(--color-accent)">{label}</div>
+  <slot />
+</aside>

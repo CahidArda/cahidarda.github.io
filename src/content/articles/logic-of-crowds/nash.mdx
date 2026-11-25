@@ -1,0 +1,89 @@
+---
+title: 'Everyone Is Best-Responding'
+seoTitle: 'Nash Equilibrium Explained in Pictures'
+description: 'Nash equilibrium in pictures: follow the best-response arrows around five tiny games and watch them settle, or spin forever.'
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 1
+---
+
+import BestResponse from '../../../components/interactives/gt/nash/BestResponse.tsx';
+import MixedWay from '../../../components/interactives/gt/nash/MixedWay.tsx';
+import ParetoPlane from '../../../components/interactives/gt/nash/ParetoPlane.tsx';
+import RealLife from '../../../components/interactives/gt/RealLife.astro';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+Two drivers meet on a narrow bridge. Each one's best move depends on what the other does. A game
+is just that: players, their strategies, and a payoff for every combination of choices, and a Nash equilibrium is where nobody wants to change alone
+(chapter 6 of Easley and Kleinberg's
+[_Networks, Crowds, and Markets_](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)).
+
+## Follow the arrows
+
+Each cell below is one outcome: blue's payoff, then red's. An arrow means one player can do better
+by switching on their own. Blue moves up and down, red moves left and right. A cell with no arrow
+leaving it is a **Nash equilibrium**: every player is already giving their best response to the
+others.
+
+<EqTip note="u_i is player i's payoff. s* is the equilibrium profile; s_-i means everyone except i. No single player can raise their own payoff by switching alone.">
+
+$$
+u_i(s_i^*, s_{-i}^*) \ge u_i(s_i, s_{-i}^*) \quad \text{for every player } i \text{ and every strategy } s_i
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <BestResponse client:visible />
+</div>
+
+In the Prisoner's Dilemma, Defect is a **dominant strategy**: it is the better reply to anything
+the other player does, so both blue arrows and both red arrows point at it. Most games have no
+dominant strategy. The stag hunt and the coordination game have two equilibria, and the arrows
+alone cannot say which one people will reach.
+
+## When the arrows never stop
+
+In Matching Pennies, the token never rests. The way out is to randomize. If red shows Heads with
+probability $q$, blue's two moves pay the same exactly when
+
+$$
+q \cdot 1 + (1-q)(-1) = q(-1) + (1-q) \cdot 1 \quad \Longrightarrow \quad q = \tfrac12
+$$
+
+<div class="fx-figure">
+  <MixedWay client:visible />
+</div>
+
+When both players flip a fair coin, neither can do better by changing their odds. That is a
+**mixed equilibrium**, and John Nash [proved in 1950](https://www.pnas.org/doi/pdf/10.1073/pnas.36.1.48) that every finite game has at least one
+equilibrium once mixing is allowed.
+
+## Stable is not the same as good
+
+An equilibrium only says nobody wants to move alone. It says nothing about whether the outcome is
+good. An outcome is **Pareto-optimal** when you cannot make one player better off without making
+the other worse off.
+
+<div class="fx-figure">
+  <ParetoPlane client:visible />
+</div>
+
+Mutual cooperation in the Prisoner's Dilemma is better for both, and it is not an equilibrium. The
+[next page](/articles/logic-of-crowds/prisoners-dilemma) is about getting there anyway.
+
+<Lesson>
+
+An equilibrium is a place where everyone is already doing their best given what the others do. It
+is stable, which does not make it good.
+
+</Lesson>
+
+<RealLife
+  href="/articles/logic-of-crowds/ballot-1789-1800"
+  code="EX-01"
+  title="Gaming the Ballot: 1789 and 1800"
+  blurb="Federalist electors in a best-response puzzle: write Adams second, unless too many others do."
+/>

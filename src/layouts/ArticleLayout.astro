@@ -12,6 +12,7 @@ import OrcidBadge from '../components/OrcidBadge.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { tagHref } from '../data/tags';
 import { formatDate, isoDate } from '../lib/format';
+import { profile } from '../data/profile';
 
 interface Props {
   entry: CollectionEntry<'articles'>;
@@ -36,19 +37,76 @@ const dropCap = tags.some((t) => t === 'blog' || t === 'publication' || t === 'a
 // top (above the date) and in the footer.
 let backHref = '/articles';
 let backLabel = 'Index';
+let seriesLanding: CollectionEntry<'articles'> | undefined;
 if (entry.data.series) {
-  const landing = (
+  seriesLanding = (
     await getCollection('articles', ({ data }) => data.seriesLanding === entry.data.series)
   )[0];
-  if (landing) {
-    backHref = `/articles/${landing.id}`;
-    backLabel = landing.data.title;
+  if (seriesLanding) {
+    backHref = `/articles/${seriesLanding.id}`;
+    backLabel = seriesLanding.data.title;
   }
 }
+
+// Structured data: the article itself plus a breadcrumb trail (Home > Articles > series > page).
+const site = Astro.site!;
+const abs = (path: string) => new URL(path, site).href;
+const pageUrl = abs(`/articles/${entry.id}`);
+const published = date.toISOString();
+const modified = (updated ?? date).toISOString();
+const crumbs = [
+  { name: 'Home', url: abs('/') },
+  { name: 'Articles', url: abs('/articles') },
+  ...(seriesLanding
+    ? [{ name: seriesLanding.data.title, url: abs(`/articles/${seriesLanding.id}`) }]
+    : []),
+  { name: title, url: pageUrl },
+];
+const jsonLd: Record<string, unknown>[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: entry.data.seoTitle ?? title,
+    alternativeHeadline: entry.data.seoTitle ? title : undefined,
+    description,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    image: abs(ogImage),
+    datePublished: published,
+    dateModified: modified,
+    inLanguage: 'en',
+    author: { '@type': 'Person', name: profile.name, url: abs('/') },
+    publisher: { '@type': 'Person', name: profile.name, url: abs('/') },
+    ...(seriesLanding
+      ? {
+          isPartOf: {
+            '@type': 'CreativeWorkSeries',
+            name: seriesLanding.data.title,
+            url: abs(`/articles/${seriesLanding.id}`),
+          },
+        }
+      : {}),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: crumbs.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      item: c.url,
+    })),
+  },
+];
 ---
 
 <BaseLayout
   title={title}
+  seoTitle={entry.data.seoTitle}
+  ogType="article"
+  published={published}
+  modified={modified}
+  jsonLd={jsonLd}
   description={description}
   ogImage={ogImage}
   activeNav={activeNav}

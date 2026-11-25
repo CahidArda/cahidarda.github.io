@@ -1,0 +1,67 @@
+---
+title: 'Six Degrees'
+seoTitle: 'Small-World Networks, Six Degrees and Weak Ties, Interactive'
+description: 'Clustered friendships plus a few random long links: how a world of cliques becomes a small world, and why weak ties carry news.'
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 7
+---
+
+import RewireRing from '../../../components/interactives/gt/small-worlds/RewireRing.tsx';
+import WeakTies from '../../../components/interactives/gt/small-worlds/WeakTies.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+You meet a stranger on a train and find a friend in common within ten minutes. It happens too often to be luck: we live in a small-world network.
+
+In the late 1960s Stanley Milgram and Jeffrey Travers asked 296 people in Nebraska and Boston to pass a letter, hand to hand through
+first-name acquaintances, to a stockbroker near Boston. 64 letters arrived, after 5.2 intermediaries on average
+([Travers and Milgram, _Sociometry_ 32(4), 1969](https://doi.org/10.2307/2786545)). In 2016 Facebook measured
+3.57 degrees of separation between its 1.59 billion users
+([Facebook Research, "Three and a half degrees of separation"](https://research.facebook.com/blog/2016/02/three-and-a-half-degrees-of-separation/)).
+
+## Cliques plus a few shortcuts
+
+Real friendships are clustered: your friends tend to know each other. Count it for one person $i$ with $k_i$
+friends:
+
+<EqTip note="The share of pairs of i's friends who are friends with each other. 1 means a complete clique, 0 means none of them know each other.">
+
+$$
+C_i = \frac{\text{links among } i\text{'s friends}}{\binom{k_i}{2}}
+$$
+
+</EqTip>
+
+A world made only of tight local circles has high $C$, but a message has to crawl around it. Duncan Watts and
+Steven Strogatz showed that rewiring a few links at random fixes the distance without breaking the circles
+([Watts and Strogatz, _Nature_ 393, 1998](https://doi.org/10.1038/30918)):
+
+<div class="fx-figure">
+  <RewireRing client:visible />
+</div>
+
+The shortcuts are rare, so most friends of friends are still friends. But each one spans the ring, and every
+chain can borrow it. Distance drops long before clustering does.
+
+## The strength of weak ties
+
+The shortcuts are usually acquaintances. Mark Granovetter asked people who had found a job through a personal
+contact how often they saw that contact: 16.7% often, 55.6% occasionally, 27.8% rarely
+([Granovetter, "The Strength of Weak Ties", _American Journal of Sociology_ 78(6), 1973](https://doi.org/10.1086/225469)).
+Close friends know what you already know.
+
+<div class="fx-figure">
+  <WeakTies client:visible />
+</div>
+
+Each thin line here is a local bridge: its two ends have no friend in common, so it is the only short way between
+two circles. Easley and Kleinberg cover clustering and weak ties in chapter 3, and the small world in chapter 20 of
+[_Networks, Crowds, and Markets_](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf).
+
+<Lesson>
+
+Close friends make the world clustered, acquaintances make it small, and new information travels over the acquaintances.
+
+</Lesson>

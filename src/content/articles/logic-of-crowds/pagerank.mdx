@@ -1,0 +1,67 @@
+---
+title: 'Who Points to You'
+seoTitle: 'PageRank Explained: The Random Surfer, Interactive'
+description: 'PageRank as a random surfer: importance is being linked to by important pages.'
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 6
+---
+
+import RandomSurfer from '../../../components/interactives/gt/pagerank/RandomSurfer.tsx';
+import RankFlow from '../../../components/interactives/gt/pagerank/RankFlow.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+A recommendation from someone you trust counts for more than ten from strangers. PageRank, the
+idea behind Google's early ranking, applies the same rule to the web: a page is important if
+important pages link to it.
+
+## A surfer who never stops
+
+That definition is circular, so picture a surfer instead. They start on some page and click a
+random link, again and again. Every so often they get bored and jump to a page chosen at random.
+Count where they spend their time.
+
+<div class="fx-figure">
+  <RandomSurfer client:visible />
+</div>
+
+The visit counts settle on fixed numbers, and those numbers are the PageRank. A has six
+in-links, the most of any page. B has two, yet B ends up on top: A links only to B, so whenever
+the surfer leaves A by a link, they land on B. (Drag the link chance $s$ below about 0.7 and the
+random jumps dilute that one strong link enough for A to win back.)
+
+## Rank flows like water
+
+The same numbers come out of a simple update rule, the one chapter 14 of Easley and Kleinberg's
+[_Networks, Crowds, and Markets_](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)
+builds up. Give each of the $n$ pages $1/n$ of the rank. At every step, each page splits its rank
+equally among the pages it links to.
+
+<div class="fx-figure">
+  <RankFlow client:visible />
+</div>
+
+The basic rule has a weak spot. A group of pages that link only to each other is a spider trap:
+rank flows in and never comes back out, until the trap holds all of it. The fix is the surfer's
+boredom. Each page passes on only a fraction $s$ of its rank, and the rest is shared equally by
+every page:
+
+<EqTip note="Page i gets an equal share (1-s)/n of the leftover rank, plus a fraction s of the rank of every page j that links to it, divided by the number of links on j.">
+
+$$
+r_i \;\leftarrow\; \frac{1-s}{n} \;+\; s \sum_{j \to i} \frac{r_j}{\text{out}(j)}
+$$
+
+</EqTip>
+
+This is the scaled update rule from section 14.3 of the book, and it gives the same answer as the
+surfer who follows a link with probability $s$ and jumps to a random page otherwise. Repeat the
+update and the ranks converge, whatever they started at.
+
+<Lesson>
+
+You are important when important pages point to you.
+
+</Lesson>

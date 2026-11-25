@@ -1,0 +1,73 @@
+---
+title: 'Following the Crowd'
+seoTitle: 'Information Cascades and Herd Behaviour, Interactive'
+description: 'Information cascades and network cascades: when it is rational to ignore what you know, and why a new idea stalls at a tight-knit cluster.'
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 8
+---
+
+import UrnLine from '../../../components/interactives/gt/cascades/UrnLine.tsx';
+import IdeaSpreads from '../../../components/interactives/gt/cascades/IdeaSpreads.tsx';
+import EqTip from '../../../components/EqTip.astro';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Two restaurants side by side, one full, one empty. You pick the full one, even though a friend
+said the empty one is better. That can be the smart move. It is also how a whole street ends up wrong: an information cascade.
+
+## Ignoring what you know
+
+The classroom version is an urn ([Easley & Kleinberg, ch. 16](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)).
+It holds either two blue balls and one red, or two red and one blue, with even odds. People
+come up one at a time, draw a ball in private, and announce their guess out loud.
+
+Every ball is equally strong evidence. Once one colour leads the public guesses by two, your one
+ball can only cut that lead to one, so you follow the crowd. So does everyone after you, and their
+guesses add no information.
+
+<div class="fx-figure">
+  <UrnLine client:visible />
+</div>
+
+It comes down to pairs of revealed balls. Both wrong happens with probability
+$\frac13 \cdot \frac13 = \frac19$, both right with $\frac49$, and a split puts you back at zero. So in a
+long line the crowd locks onto the wrong urn with probability
+
+$$
+\frac{1/9}{1/9 + 4/9} = \frac15
+$$
+
+Pooling all twelve balls would be wrong only 12% of the time. The information was there; the order
+of speaking threw it away. It also makes a cascade fragile: it rests on two balls of evidence, so a
+couple of balls shown in public can tip it.
+
+## Switching when your friends switch
+
+A new app or a new slang word is different: it pays to match your friends. Each friendship is a coordination game ([Easley & Kleinberg, ch. 19](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)):
+you both get $a$ if you both use the new thing, $b$ if you both stick with the old one, and nothing
+if you differ. If a fraction $p$ of your friends have switched, switching pays when $pa \ge (1-p)b$:
+
+<EqTip note="q is the share of your friends that must switch before you do. A better new thing (bigger a) lowers it.">
+
+$$
+p \ \ge\ q = \frac{b}{a+b}
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <IdeaSpreads client:visible />
+</div>
+
+The idea sweeps the loose town, then stops at the group in the corner. Each member keeps more than
+$1-q$ of their friends inside it, so the outside never reaches a share of $q$. Easley and Kleinberg
+prove this is the only obstacle: an idea fails to reach everyone exactly when the rest of the network
+contains a cluster of density greater than $1-q$.
+
+<Lesson>
+
+A crowd sees what people did and never why. A cascade can lock in on two people's luck, and a new idea
+spreads until it meets a group that mostly listens to itself.
+
+</Lesson>

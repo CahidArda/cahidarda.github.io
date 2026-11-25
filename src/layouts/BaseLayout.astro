@@ -25,6 +25,15 @@ interface Props {
   /** Make the content grid at least one viewport tall, so a full-screen hero
    *  above it can scroll completely out of view (home page). */
   fillViewport?: boolean;
+  /** Search-friendly title for <title>/OG/Twitter; defaults to `title`. */
+  seoTitle?: string;
+  /** 'article' for article pages (adds article:* Open Graph tags). */
+  ogType?: 'website' | 'article';
+  /** ISO dates for article pages. */
+  published?: string;
+  modified?: string;
+  /** Structured data blocks (schema.org JSON-LD), emitted in <head>. */
+  jsonLd?: Record<string, unknown>[];
 }
 
 const {
@@ -35,9 +44,17 @@ const {
   activeNav,
   headings = [],
   fillViewport = false,
+  seoTitle,
+  ogType = 'website',
+  published,
+  modified,
+  jsonLd = [],
 } = Astro.props;
 
-const pageTitle = title ? `${title} - ${profile.name}` : `${profile.name} - Software Engineer`;
+const headTitle = seoTitle ?? title;
+const pageTitle = headTitle
+  ? `${headTitle} - ${profile.name}`
+  : `${profile.name} - Software Engineer`;
 // `build.format: 'file'` means the build-time pathname carries an `.html` suffix
 // (`/articles/foo.html`), but the sitemap and every internal link use the clean
 // `/articles/foo` form. Strip the suffix so the canonical matches those, otherwise
@@ -103,7 +120,18 @@ const gtagSnippet = `
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
+    {
+      ogType === 'article' && published && (
+        <meta property="article:published_time" content={published} />
+      )
+    }
+    {
+      ogType === 'article' && modified && (
+        <meta property="article:modified_time" content={modified} />
+      )
+    }
+    {ogType === 'article' && <meta property="article:author" content={profile.name} />}
     <meta property="og:site_name" content={profile.name} />
     <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={pageTitle} />
@@ -129,6 +157,7 @@ const gtagSnippet = `
       href="/rss.xml"
     />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    {jsonLd.map((block) => <script type="application/ld+json" set:html={JSON.stringify(block)} />)}
 
     <!-- Set theme before paint to avoid a flash -->
     <script is:inline>

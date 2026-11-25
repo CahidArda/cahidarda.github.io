@@ -1,0 +1,73 @@
+---
+title: 'The Road That Made Traffic Worse'
+seoTitle: "Braess's Paradox Explained Interactively"
+description: "Braess's paradox: add a free shortcut to a road network and every driver's commute gets longer."
+date: 2026-11-25
+tags: ['blog']
+series: logic-of-crowds
+seriesOrder: 5
+---
+
+import NewRoad from '../../../components/interactives/gt/braess/NewRoad.tsx';
+import SelfishOptimal from '../../../components/interactives/gt/braess/SelfishOptimal.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+A city builds a new road to ease traffic. A week later, everyone's commute is longer. Nobody
+made a mistake: each driver took the fastest route they could find. This is Braess's paradox.
+
+## A free shortcut
+
+This is the example from chapter 8 of Easley and Kleinberg's
+[_Networks, Crowds, and Markets_](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf).
+4000 drivers go from A to B. Two roads are wide highways that always take 45 minutes. The other
+two are narrow: with $x$ cars on them, they take $x/100$ minutes.
+
+<EqTip note="Each route is one narrow road plus one highway. Split evenly, x = 2000 on each narrow road.">
+
+$$
+T_{\text{A-C-B}} = \frac{x_{AC}}{100} + 45 = \frac{2000}{100} + 45 = 65 \text{ min}
+$$
+
+</EqTip>
+
+Now open a short, fast bridge from C to D. Crossing it takes about 0 minutes, however many cars use it. Watch the drivers react.
+
+<div class="fx-figure">
+  <NewRoad client:visible />
+</div>
+
+The first drivers to take the bridge save more than 20 minutes. Each later switch also helps the
+driver who makes it, and slows down everyone else a little. The process stops only when all 4000
+drivers are on A-C-D-B: $40 + 0 + 40 = 80$ minutes, because either old route would now take 85. Every
+driver is 15 minutes slower than before the road existed. This is Braess's paradox, first described
+by the mathematician Dietrich Braess in 1968.
+
+## What selfishness costs
+
+The simplest case has two roads and nothing to build. One road always takes an hour. The other
+takes $x$ hours when a fraction $x$ of the drivers use it. The average trip is
+
+<EqTip note="x of the drivers take x hours each; the rest take 1 hour each. Smallest at x = 1/2, where it equals 3/4.">
+
+$$
+C(x) = x \cdot x + (1 - x) \cdot 1
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <SelfishOptimal client:visible />
+</div>
+
+Splitting traffic in half gives the best average, 45 minutes. But half the drivers then sit on a road
+that is twice as slow as the other, so they switch, until everyone takes 60 minutes. The ratio
+between the two, 4/3, is the worst it can get: Roughgarden and Tardos proved that when travel times
+grow linearly with traffic, selfish routing never costs more than 4/3 of the best possible
+([_How Bad Is Selfish Routing?_](https://www.timroughgarden.org/papers/routing.pdf), 2002).
+
+<Lesson>
+
+When everyone picks their own fastest route, more road can mean slower trips for all.
+
+</Lesson>

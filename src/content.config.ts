@@ -7,6 +7,8 @@ const articles = defineCollection({
   schema: ({ image }) =>
     z.object({
       title: z.string(),
+      // Optional search-friendly title for <title>/OG; the page headline keeps `title`.
+      seoTitle: z.string().optional(),
       description: z.string(),
       date: z.coerce.date(),
       updated: z.coerce.date().optional(),
