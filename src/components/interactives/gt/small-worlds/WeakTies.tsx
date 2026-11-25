@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BigStat,
-  Btn,
   Caption,
   GT,
   Seg,
@@ -245,7 +244,11 @@ export default function WeakTies() {
         const on = res.time[i] <= clock;
         const isSrc = i === source;
         return (
-          <g key={i} onClick={() => setSource(i)} style={{ cursor: 'pointer' }}>
+          <g
+            key={i}
+            onClick={() => (i === source ? play() : setSource(i))}
+            style={{ cursor: 'pointer' }}
+          >
             <circle cx={nd.x} cy={nd.y} r={15} style={{ fill: 'transparent' }} />
             <circle
               cx={nd.x}
@@ -279,7 +282,7 @@ export default function WeakTies() {
       code="GT-07.2"
       title="weak ties carry news"
       kicker="24 people · 4 circles"
-      hint="click anyone to start a rumour; cut weak or strong ties"
+      hint="click anyone to start a rumour there (again to replay); cut weak or strong ties"
       footer="Granovetter, 1973"
     >
       {draw(WIDE, 'hidden w-full sm:block')}
@@ -288,7 +291,7 @@ export default function WeakTies() {
         <Seg<Cut>
           label="cut"
           value={cut}
-          onChange={setSel}
+          onChange={(v) => (v === sel ? play() : setSel(v))}
           bind={bindCut}
           options={[
             { value: 'none', label: 'nothing' },
@@ -296,9 +299,6 @@ export default function WeakTies() {
             { value: 'strong', label: '4 friend ties' },
           ]}
         />
-        <Btn primary onClick={play}>
-          play again
-        </Btn>
       </div>
       <div className="mt-4">
         <BigStat

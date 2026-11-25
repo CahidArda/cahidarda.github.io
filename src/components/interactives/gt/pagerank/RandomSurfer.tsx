@@ -125,8 +125,36 @@ export default function RandomSurfer() {
     setTick((t) => (t + 1) % 1e6);
   }, playing && inView);
 
+  const restartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (restartTimer.current) clearTimeout(restartTimer.current);
+    },
+    [],
+  );
   const touch = () => {
     touched.current = true;
+    if (restartTimer.current) clearTimeout(restartTimer.current);
+    restartTimer.current = null;
+  };
+  // restart: clear the counts, back to a walk; after a beat the surfer sets off and speeds up
+  const restart = () => {
+    touch();
+    touched.current = false;
+    setPlaying(false);
+    resetCounts();
+    setSpeed('walk');
+    if (reduced) {
+      for (let i = 0; i < 50000; i++) doHop();
+      hop.current = null;
+      setTick((t) => t + 1);
+      return;
+    }
+    setTick((t) => t + 1);
+    restartTimer.current = setTimeout(() => {
+      restartTimer.current = null;
+      setPlaying(true);
+    }, 1000);
   };
 
   const tot = total.current;
@@ -176,7 +204,7 @@ export default function RandomSurfer() {
       code="GT-06.1"
       title="the random surfer"
       kicker={`s = ${s.toFixed(2)}`}
-      hint="press play, then change the speed or drag s"
+      hint="pick a speed or drag s; restart clears the counts"
       footer="Easley & Kleinberg, sec. 14.3"
     >
       <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
@@ -300,15 +328,8 @@ export default function RandomSurfer() {
         </div>
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-line pt-4">
-        <Btn
-          primary
-          onClick={() => {
-            touch();
-            if (tot >= MAX_HOPS) resetCounts();
-            setPlaying((p) => !p);
-          }}
-        >
-          {playing ? 'pause' : 'play'}
+        <Btn primary onClick={restart}>
+          restart
         </Btn>
         <Seg
           options={[
@@ -319,19 +340,11 @@ export default function RandomSurfer() {
           value={speed}
           onChange={(v) => {
             touch();
+            if (tot >= MAX_HOPS) resetCounts();
             setSpeed(v);
-            setPlaying(true);
+            setPlaying(!reduced);
           }}
         />
-        <Btn
-          onClick={() => {
-            touch();
-            resetCounts();
-            setTick((t) => t + 1);
-          }}
-        >
-          reset
-        </Btn>
         <div className="ml-auto w-full sm:w-56">
           <Slider
             label="s, follow a link"
@@ -344,6 +357,7 @@ export default function RandomSurfer() {
               touch();
               setS(v);
               resetCounts();
+              setPlaying(!reduced);
             }}
           />
         </div>

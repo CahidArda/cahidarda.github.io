@@ -148,8 +148,8 @@ export default function Tournament() {
           color={STRATS[IDS[leader]].nice ? GT.a : GT.b}
           sub={`${played} of ${total} matches played`}
         />
-        <Btn onClick={() => setPlayed(reduced ? total : 0)} disabled={!done || reduced}>
-          replay tournament
+        <Btn primary onClick={() => setPlayed(0)} disabled={reduced}>
+          replay
         </Btn>
       </div>
       <Caption>

@@ -69,14 +69,39 @@ export default function SelfishOptimal() {
     }
   }, demo && inView);
 
+  // replay: back to the best split, then after a beat the drivers drift over again
+  const replayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (replayTimer.current) clearTimeout(replayTimer.current);
+    },
+    [],
+  );
   const take = () => {
     touched.current = true;
     setDemo(false);
+    if (replayTimer.current) clearTimeout(replayTimer.current);
+    replayTimer.current = null;
   };
+  const replay = () => {
+    take();
+    if (reduced) {
+      setX(1);
+      return;
+    }
+    setX(0.5);
+    xRef.current = 0.5;
+    replayTimer.current = setTimeout(() => {
+      replayTimer.current = null;
+      setDemo(true);
+    }, 1000);
+  };
+  // dragging snaps to the two landmarks, so the best and the selfish split are easy to hit
+  const snap = (v: number) => (Math.abs(v - 0.5) < 0.025 ? 0.5 : v > 0.975 ? 1 : v);
   const fromPointer = (e: RPointerEvent) => {
     if (!svgRef.current) return;
     const p = svgPoint(svgRef.current, e.clientX, e.clientY);
-    setX(clamp((p.x - PL) / (PR - PL), 0, 1));
+    setX(snap(clamp((p.x - PL) / (PR - PL), 0, 1)));
   };
 
   const xs = Math.round(x * 100) / 100;
@@ -114,7 +139,7 @@ export default function SelfishOptimal() {
       code="GT-05.2"
       title="selfish vs optimal"
       kicker="Pigou's two roads"
-      hint="drag across the chart to choose how traffic splits"
+      hint="drag across the chart to split the traffic; it snaps to best and selfish"
       footer="Roughgarden & Tardos, 2002"
     >
       <svg
@@ -264,24 +289,9 @@ export default function SelfishOptimal() {
           color={xs >= 0.995 ? GT.eq : Math.abs(xs - 0.5) < 0.005 ? GT.opt : GT.ink}
           sub={`x-road ${String(Math.round(xs * 100)).padStart(3, '\u2007')}% · fixed road ${String(Math.round((1 - xs) * 100)).padStart(3, '\u2007')}%`}
         />
-        <div className="flex gap-2">
-          <Btn
-            onClick={() => {
-              take();
-              setX(0.5);
-            }}
-          >
-            best split
-          </Btn>
-          <Btn
-            onClick={() => {
-              take();
-              setX(1);
-            }}
-          >
-            selfish split
-          </Btn>
-        </div>
+        <Btn primary onClick={replay}>
+          replay
+        </Btn>
       </div>
       <div className="min-h-[3.6rem]">
         <Caption>{status}</Caption>

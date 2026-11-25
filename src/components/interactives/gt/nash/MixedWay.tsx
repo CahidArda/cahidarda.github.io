@@ -3,7 +3,6 @@ import {
   BigStat,
   Caption,
   GT,
-  Slider,
   Specimen,
   T,
   clamp,
@@ -94,6 +93,24 @@ export default function MixedWay() {
     setQ(nq);
   };
   const bind = (which: 'a' | 'b') => ({
+    tabIndex: 0,
+    role: 'slider',
+    'aria-valuemin': 0,
+    'aria-valuemax': 100,
+    'aria-valuenow': Math.round(q * 100),
+    'aria-valuetext': `red shows Heads ${pct(q)} of the time`,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      const d =
+        e.key === 'ArrowRight' || e.key === 'ArrowUp'
+          ? 0.05
+          : e.key === 'ArrowLeft' || e.key === 'ArrowDown'
+            ? -0.05
+            : 0;
+      if (!d) return;
+      e.preventDefault();
+      setAuto(false);
+      setQ((v) => Math.round(clamp(v + d, 0, 1) * 20) / 20);
+    },
     onPointerDown: (e: React.PointerEvent) => {
       setAuto(false);
       drag.current = which;
@@ -119,7 +136,7 @@ export default function MixedWay() {
       code="GT-01.2"
       title="the mixed way out"
       kicker="matching pennies"
-      hint="drag either chart to change how often red shows Heads"
+      hint="drag either chart (or use ← →) to change how often red shows Heads"
       footer="equilibrium: both play Heads 50%"
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -131,8 +148,7 @@ export default function MixedWay() {
             viewBox={`0 0 ${VW} ${VH}`}
             className="block w-full touch-none select-none"
             style={{ cursor: 'ew-resize' }}
-            role="img"
-            aria-label="Expected payoff of Heads and Tails as red's mix changes"
+            aria-label="Expected payoff of Heads and Tails as red's mix changes. Arrow keys change red's mix."
             {...bind('a')}
           >
             {/* axes */}
@@ -211,8 +227,7 @@ export default function MixedWay() {
             viewBox={`0 0 ${VW} ${VH}`}
             className="block w-full touch-none select-none"
             style={{ cursor: 'ew-resize' }}
-            role="img"
-            aria-label="Best-response curves of both players cross only at one half, one half"
+            aria-label="Best-response curves of both players cross only at one half, one half. Arrow keys change red's mix."
             {...bind('b')}
           >
             <rect
@@ -308,21 +323,7 @@ export default function MixedWay() {
             active={atEq ? 0 : 1}
           />
         </div>
-        <div>
-          <Slider
-            label="red's P(Heads)"
-            value={q}
-            min={0}
-            max={1}
-            step={0.01}
-            color={GT.b}
-            onChange={(v) => {
-              setAuto(false);
-              setQ(Math.abs(v - 0.5) < 0.015 ? 0.5 : v);
-            }}
-            format={pct}
-          />
-        </div>
+        <BigStat label="red shows Heads" value={pct(q)} color={GT.b} />
       </div>
       <Caption>
         Any lean by red gives blue a sure edge. Only at 50% is blue indifferent, so both mixing

@@ -3,7 +3,6 @@ import {
   BigStat,
   Caption,
   GT,
-  Seg,
   Specimen,
   SvgArrows,
   T,
@@ -58,7 +57,7 @@ export default function OneShot() {
       code="GT-02.1"
       title="one round"
       kicker={`T=${PAY.T} R=${PAY.R} P=${PAY.P} S=${PAY.S}`}
-      hint="pick what they do: your best reply never changes"
+      hint="hover or click a column to pick what they do: your best reply never changes"
     >
       <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] sm:items-center">
         <svg
@@ -84,19 +83,7 @@ export default function OneShot() {
             them: small
           </T>
           {MOVES.map((m, c) => (
-            <g
-              key={m}
-              onClick={() => pick(m)}
-              style={{ cursor: 'pointer' }}
-              {...bind(m)}
-            >
-              <rect
-                x={cx(c) - CW / 2}
-                y={Y0 - 30}
-                width={CW}
-                height={24}
-                style={{ fill: 'transparent' }}
-              />
+            <g key={m}>
               <T x={cx(c)} y={Y0 - 18} size={12} color={GT.b} weight={c === col ? 600 : 400}>
                 {`they ${NAME[m].toLowerCase()}`}
               </T>
@@ -182,6 +169,29 @@ export default function OneShot() {
               </g>
             );
           })}
+          {/* each whole column is the control: hover to preview, click (or Enter) to keep */}
+          {MOVES.map((m, c) => (
+            <rect
+              key={'hit' + m}
+              x={cx(c) - CW / 2 - 8}
+              y={Y0 - 34}
+              width={CW + 16}
+              height={2 * CH + GY + 42}
+              role="button"
+              tabIndex={0}
+              aria-pressed={c === col}
+              aria-label={`they ${NAME[m].toLowerCase()}`}
+              onClick={() => pick(m)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  pick(m);
+                }
+              }}
+              {...bind(m)}
+              style={{ fill: 'transparent', cursor: 'pointer' }}
+            />
+          ))}
         </svg>
 
         <div>
@@ -195,15 +205,6 @@ export default function OneShot() {
             ))}
             active={col}
           />
-          <div className="mt-4">
-            <Seg
-              label="they"
-              options={MOVES.map((m) => ({ value: m, label: NAME[m] }))}
-              value={them}
-              onChange={pick}
-              bind={bind}
-            />
-          </div>
         </div>
       </div>
       <Caption>

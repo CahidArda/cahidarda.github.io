@@ -3,7 +3,6 @@ import {
   BigStat,
   Caption,
   GT,
-  Seg,
   Specimen,
   T,
   clamp,
@@ -56,7 +55,7 @@ const pathsN = pathsFor(380);
 
 const zeroAt = links.findIndex((v) => v === 0);
 
-type Pick = '0.01' | '0.1' | '0.2' | '0.5';
+const SNAPS = [0.01, 0.1, 0.2, 0.5];
 
 export default function LongTail() {
   const reduced = useReducedMotion();
@@ -87,7 +86,20 @@ export default function LongTail() {
   const heightShare = useMemo(() => sum(heights, m) / HT, [m]);
   const setFromEvent = (e: React.PointerEvent<SVGSVGElement>, PW: number) => {
     const { x } = svgPoint(e.currentTarget, e.clientX, e.clientY);
-    setCut(clamp((x - M.l) / PW, 0.002, 0.95));
+    setCut(snap(clamp((x - M.l) / PW, 0.002, 0.95)));
+  };
+  // dragging snaps to the round cuts the prose talks about (top 1%, 10%, 20%, half)
+  const snap = (v: number) => SNAPS.find((c) => Math.abs(v - c) < 0.008) ?? v;
+  const onKey = (e: React.KeyboardEvent) => {
+    const up = e.key === 'ArrowRight' || e.key === 'ArrowUp';
+    const down = e.key === 'ArrowLeft' || e.key === 'ArrowDown';
+    if (!up && !down) return;
+    e.preventDefault();
+    stopDemo();
+    // 1% steps up to 10%, then 5% steps
+    const c = Math.round(cut * 100);
+    const n = up ? (c < 10 ? c + 1 : c + 5) : c <= 10 ? c - 1 : c - 5;
+    setCut(clamp(n, 1, 95) / 100);
   };
   const stopDemo = () => setDemoOn(false);
 
@@ -103,7 +115,12 @@ export default function LongTail() {
         viewBox={`0 0 ${W} ${H}`}
         className="block w-full touch-none select-none"
         style={{ cursor: 'ew-resize' }}
-        role="img"
+        tabIndex={0}
+        role="slider"
+        aria-valuemin={1}
+        aria-valuemax={95}
+        aria-valuenow={Math.round(cut * 100)}
+        onKeyDown={onKey}
         aria-label={`The top ${cutLabel} of pages hold ${pct(linkShare)} of links; the top ${cutLabel} of men hold ${pct(heightShare)} of total height`}
         onPointerDown={(e) => {
           stopDemo();
@@ -201,30 +218,10 @@ export default function LongTail() {
       code="GT-10.3"
       title="the long tail"
       kicker="1,000 pages · 1,000 men, ranked"
-      hint="drag the cut across the ranking"
+      hint="drag the cut across the ranking (or use ← →)"
     >
       <div className="hidden sm:block">{chart(false)}</div>
       <div className="sm:hidden">{chart(true)}</div>
-      <div className="mt-3">
-        <Seg<Pick>
-          label="jump to"
-          value={
-            (['0.01', '0.1', '0.2', '0.5'] as Pick[]).find(
-              (v) => Math.abs(Number(v) - m / N) < 1e-9,
-            ) ?? ('' as Pick)
-          }
-          onChange={(v) => {
-            stopDemo();
-            setCut(Number(v));
-          }}
-          options={[
-            { value: '0.01', label: 'top 1%' },
-            { value: '0.1', label: '10%' },
-            { value: '0.2', label: '20%' },
-            { value: '0.5', label: '50%' },
-          ]}
-        />
-      </div>
       <div className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4">
         <BigStat
           label={`top ${cutLabel} of pages`}

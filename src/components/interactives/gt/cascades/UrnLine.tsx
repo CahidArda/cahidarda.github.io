@@ -52,7 +52,7 @@ function lineFor(run: number) {
 }
 
 function narrate(t: Turn | undefined, i: number): string {
-  if (!t) return 'Press play. Each person sees every earlier guess, never an earlier ball.';
+  if (!t) return 'Each person sees every earlier guess, never an earlier ball.';
   const who = `Person ${i + 1}`;
   const lead = t.leadBefore;
   if (!t.following) {
@@ -73,6 +73,8 @@ export default function UrnLine() {
   const [run, setRun] = useState(0);
   const [shown, setShown] = useState(N); // SSR / reduced motion: the finished line
   const [playing, setPlaying] = useState(false);
+  // hovering (or focusing) a person who has spoken shows their reasoning and holds the line
+  const [hover, setHover] = useState<number | null>(null);
   const started = useRef(false);
 
   const { urn, balls } = lineFor(run);
@@ -87,24 +89,22 @@ export default function UrnLine() {
   }, [reduced, inView]);
 
   useEffect(() => {
-    if (!playing || !inView) return;
+    if (!playing || !inView || hover !== null) return;
     if (shown >= N) {
       setPlaying(false);
       return;
     }
     const id = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 500 : STEP_MS);
     return () => clearTimeout(id);
-  }, [playing, shown, inView]);
+  }, [playing, shown, inView, hover]);
 
-  const step = () => {
-    setPlaying(false);
-    setShown((s) => Math.min(N, s + 1));
-  };
-  const toggle = () => {
-    if (shown >= N) setShown(0);
-    setPlaying((p) => !(p && shown < N));
+  const replay = () => {
+    setHover(null);
+    setShown(reduced ? N : 0);
+    setPlaying(!reduced);
   };
   const fresh = () => {
+    setHover(null);
     setRun((r) => r + 1);
     setShown(0);
     setPlaying(!reduced);
@@ -123,19 +123,28 @@ export default function UrnLine() {
       title="the urn"
       kicker="NCM 16.2 · 2 of one colour, 1 of the other"
       rootRef={rootRef}
-      hint="play the line, then draw a new urn"
+      hint="hover a person to read their reasoning; replay the line or draw a new urn"
       footer={run === 0 ? 'line 1 (the urn is blue)' : `line ${run + 1}`}
     >
       {/* the line of people: the chart, first */}
       <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-12">
         {turns.map((t, i) => {
           const on = i < shown;
-          const current = on && i === shown - 1 && !done;
+          const current = hover !== null ? i === hover : on && i === shown - 1 && !done;
           const ign = t.following && t.ball !== t.guess;
           return (
             <div
               key={`${run}-${i}`}
-              className="relative flex flex-col items-center border bg-paper-raised px-0.5 pb-1.5 pt-1 transition-colors"
+              tabIndex={on ? 0 : -1}
+              aria-label={on ? narrate(t, i) : `person ${i + 1}, not yet`}
+              onPointerEnter={(e) => on && e.pointerType !== 'touch' && setHover(i)}
+              onPointerLeave={(e) => e.pointerType !== 'touch' && setHover(null)}
+              onPointerDown={(e) =>
+                on && e.pointerType === 'touch' && setHover((h) => (h === i ? null : i))
+              }
+              onFocus={() => on && setHover(i)}
+              onBlur={() => setHover(null)}
+              className="relative flex cursor-default flex-col items-center border bg-paper-raised px-0.5 pb-1.5 pt-1 transition-colors"
               style={{
                 borderColor: current ? GT.ink : on && t.following ? GT.warn : GT.line,
                 borderStyle: on ? 'solid' : 'dashed',
@@ -196,11 +205,13 @@ export default function UrnLine() {
         </span>
       </div>
       <p className="mt-3 h-[4.2rem] overflow-hidden text-[0.85rem] leading-snug text-ink-soft sm:h-[2.6rem]">
-        {done
-          ? wrong
-            ? `The urn was ${urn}. The crowd said ${answer}: ${ignored} people threw away a ${urn} ball to repeat it.`
-            : `The urn was ${urn} and the crowd got it right, for the same reason it can get it wrong: the first few balls decided.`
-          : narrate(turns[shown - 1], shown - 1)}
+        {hover !== null
+          ? narrate(turns[hover], hover)
+          : done
+            ? wrong
+              ? `The urn was ${urn}. The crowd said ${answer}: ${ignored} people threw away a ${urn} ball to repeat it.`
+              : `The urn was ${urn} and the crowd got it right, for the same reason it can get it wrong: the first few balls decided.`
+            : narrate(turns[shown - 1], shown - 1)}
       </p>
 
       {/* one supporting readout: over many lines */}
@@ -222,13 +233,8 @@ export default function UrnLine() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Btn primary onClick={toggle}>
-            <span className="inline-block w-[6ch] text-center">
-              {playing && !done ? 'pause' : done ? 'replay' : 'play'}
-            </span>
-          </Btn>
-          <Btn onClick={step} disabled={done}>
-            step
+          <Btn primary onClick={replay}>
+            replay
           </Btn>
           <Btn onClick={fresh}>new urn</Btn>
         </div>

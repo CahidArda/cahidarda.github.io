@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BigStat,
-  Btn,
   Caption,
   GT,
   Seg,
@@ -170,7 +169,7 @@ export default function Evolution() {
       code="GT-02.4"
       title="survival of the fittest"
       kicker="replicator dynamics"
-      hint="choose a mistake rate, then hover the chart to scrub through generations"
+      hint="pick a mistake rate to play it (again to replay); hover the chart to scrub"
     >
       <div ref={boxRef}>
         <svg
@@ -260,9 +259,6 @@ export default function Evolution() {
         />
         <div className="flex flex-wrap items-center gap-2">
           <Seg label="mistakes" options={NOISES} value={noise} onChange={choose} bind={bind} />
-          <Btn onClick={play} disabled={reduced}>
-            replay
-          </Btn>
         </div>
       </div>
       <Reserve

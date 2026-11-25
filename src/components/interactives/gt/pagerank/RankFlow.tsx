@@ -94,6 +94,10 @@ export default function RankFlow() {
         cur.steps--;
         if (cur.steps <= 0) script.current.shift();
         if (!script.current.length) setPlaying(false);
+      } else if (Math.max(...update(r, out, s).map((v, i) => Math.abs(v - r[i]))) < 5e-4) {
+        // the levels have stopped changing: rest until the reader changes something
+        setPlaying(false);
+        return;
       }
       advance();
     }, STEP_MS);
@@ -123,9 +127,42 @@ export default function RankFlow() {
     return () => clearTimeout(t);
   }, [inView, reduced]);
 
+  const restartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (restartTimer.current) clearTimeout(restartTimer.current);
+    },
+    [],
+  );
   const touch = () => {
     touched.current = true;
     script.current = [];
+    if (restartTimer.current) clearTimeout(restartTimer.current);
+    restartTimer.current = null;
+  };
+  // switching the web or the rule keeps the current levels and lets them flow on
+  const pickWeb = (v: Web) => {
+    touch();
+    setWeb(v);
+    setPlaying(true);
+  };
+  const pickRule = (v: Rule) => {
+    touch();
+    setRule(v);
+    setPlaying(true);
+  };
+  // restart: every page back to 1/5, then after a beat the rank starts to flow
+  const restart = () => {
+    touch();
+    setPlaying(false);
+    setR(uniform());
+    setPrev(uniform());
+    setStepN(0);
+    setPhase(1);
+    restartTimer.current = setTimeout(() => {
+      restartTimer.current = null;
+      setPlaying(true);
+    }, 1000);
   };
 
   const e = ease(phase);
@@ -138,7 +175,7 @@ export default function RankFlow() {
   const flowOn = (a: number) => (s * prev[a]) / prevOut[a].length;
 
   let caption: string;
-  if (stepN === 0) caption = 'Every page starts with an equal share of rank: 1/5 each. Press step.';
+  if (stepN === 0) caption = 'Every page starts with an equal share of rank: 1/5 each.';
   else if (web === 'trap' && rule === 'basic')
     caption =
       'D and E only link to each other. Rank flows in through B and never flows out, so the trap slowly takes all of it.';
@@ -154,7 +191,7 @@ export default function RankFlow() {
       code="GT-06.2"
       title="rank flows like water"
       kicker={`step ${stepN}`}
-      hint="press step, or switch on the trap and play"
+      hint="switch the web or the rule: the rank flows on from where it is"
       footer="Easley & Kleinberg, sec. 14.3"
     >
       <svg
@@ -298,10 +335,7 @@ export default function RankFlow() {
             { value: 'trap', label: 'spider trap' },
           ]}
           value={web}
-          onChange={(v) => {
-            touch();
-            setWeb(v);
-          }}
+          onChange={pickWeb}
         />
         <Seg
           options={[
@@ -309,43 +343,11 @@ export default function RankFlow() {
             { value: 'scaled', label: `scaled, s = ${S_SCALED}` },
           ]}
           value={rule}
-          onChange={(v) => {
-            touch();
-            setRule(v);
-          }}
+          onChange={pickRule}
         />
-        <div className="flex flex-wrap gap-2">
-          <Btn
-            primary
-            onClick={() => {
-              touch();
-              setPlaying(false);
-              advance();
-            }}
-          >
-            step
-          </Btn>
-          <Btn
-            onClick={() => {
-              touch();
-              setPlaying((p) => !p);
-            }}
-          >
-            {playing ? 'pause' : 'play'}
-          </Btn>
-          <Btn
-            onClick={() => {
-              touch();
-              setPlaying(false);
-              setR(uniform());
-              setPrev(uniform());
-              setStepN(0);
-              setPhase(1);
-            }}
-          >
-            reset
-          </Btn>
-        </div>
+        <Btn primary onClick={restart}>
+          restart
+        </Btn>
       </div>
 
       <div className="mt-4">

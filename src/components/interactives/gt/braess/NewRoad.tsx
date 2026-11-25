@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   BigStat,
-  Btn,
   Caption,
   GT,
   Specimen,
@@ -248,14 +247,6 @@ export default function NewRoad() {
     touched.current = true;
     setOpen((o) => !o);
   };
-  const reset = () => {
-    touched.current = true;
-    setOpen(false);
-    setFlow(START);
-    flowRef.current = START;
-    carsRef.current = initialCars(START);
-    setMove(null);
-  };
 
   const width = (n: number) => 4 + (n / DRIVERS) * 14;
   let caption: string;
@@ -330,7 +321,7 @@ export default function NewRoad() {
       code="GT-05.1"
       title="a new road"
       kicker="4000 drivers, A to B"
-      hint="click the bridge, or the switch, to open it"
+      hint="click the bridge or the switch to open or close it"
       footer="Easley & Kleinberg, fig. 8.1-8.2"
     >
       <svg
@@ -473,7 +464,6 @@ export default function NewRoad() {
             bridge C→D: {open ? 'open' : 'closed'}
           </span>
         </button>
-        <Btn onClick={reset}>reset</Btn>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr] sm:items-end">

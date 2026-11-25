@@ -8,6 +8,7 @@ import {
   SvgArrows,
   T,
   useFrame,
+  useHoverPreview,
   useInView,
   useReducedMotion,
 } from '../shared';
@@ -79,11 +80,17 @@ export default function BestResponse() {
   const pos = useRef({ x: cx(startCell('pd')[1]), y: cy(startCell('pd')[0]) + TOKEN_DY });
   const [, force] = useState(0);
 
+  // hovering a game tab previews it: its grid, arrows and the token at its start cell
+  const [vid, bindGame, previewing] = useHoverPreview(gid);
   const g = GAME_BY_ID[gid];
-  const eqs = equilibria(g);
-  const arr = arrows(g);
   const hop = nextHop(g, cell, lastWho);
-  const resting = hop === null;
+  const vg = GAME_BY_ID[vid];
+  const vstart = startCell(vid);
+  const vcell: Cell = previewing ? (reduced ? (restingCell(vid, vstart) ?? vstart) : vstart) : cell;
+  const vhop = previewing ? nextHop(vg, vcell, null) : hop;
+  const resting = vhop === null;
+  const eqs = equilibria(vg);
+  const arr = arrows(vg);
 
   // Choose a game (from the tabs or from the sibling widget).
   const choose = (id: GameId, fromUser: boolean, broadcast = true) => {
@@ -113,7 +120,7 @@ export default function BestResponse() {
 
   // Hop along improvement arrows; when at rest, the auto-tour moves to the next game.
   useEffect(() => {
-    if (!inView || reduced) return;
+    if (!inView || reduced || previewing) return;
     if (hop) {
       const id = window.setTimeout(
         () => {
@@ -126,12 +133,12 @@ export default function BestResponse() {
       return () => window.clearTimeout(id);
     }
     return undefined;
-  }, [hop, inView, reduced, hops]);
+  }, [hop, inView, reduced, hops, previewing]);
 
   // Auto-tour: PD, stag hunt, hawk-dove, coordination, pennies, then stop.
-  const settledOrDizzy = resting || hops >= 6;
+  const settledOrDizzy = hop === null || hops >= 6;
   useEffect(() => {
-    if (touched || reduced || !inView || !settledOrDizzy) return;
+    if (touched || reduced || !inView || previewing || !settledOrDizzy) return;
     if (tourRef.current >= GAMES.length - 1) return;
     const id = window.setTimeout(() => {
       tourRef.current += 1;
@@ -141,7 +148,7 @@ export default function BestResponse() {
   });
 
   // Glide the token in SVG user space.
-  const target = { x: cx(cell[1]), y: cy(cell[0]) + TOKEN_DY };
+  const target = { x: cx(vcell[1]), y: cy(vcell[0]) + TOKEN_DY };
   useFrame(
     (dt) => {
       const p = pos.current;
@@ -163,7 +170,7 @@ export default function BestResponse() {
   };
 
   const STATUS = ['someone wants to move', 'circling forever', 'resting: nobody gains alone'];
-  const statusIdx = resting ? 2 : gid === 'pennies' && hops > 0 ? 1 : 0;
+  const statusIdx = resting ? 2 : vid === 'pennies' && hops > 0 && !previewing ? 1 : 0;
 
   return (
     <Specimen
@@ -171,14 +178,14 @@ export default function BestResponse() {
       code="GT-01.1"
       title="best-response arrows"
       kicker="2 players · 2 moves"
-      hint="pick a game, then click any cell to drop the token there"
+      hint="hover a game to preview it, click to keep it; click a cell to drop the token"
     >
       <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] sm:items-center">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="block w-full"
           role="img"
-          aria-label={`${g.name} payoff grid with improvement arrows`}
+          aria-label={`${vg.name} payoff grid with improvement arrows`}
         >
           <SvgArrows />
           {/* who moves which way, in the matrix corner */}
@@ -195,12 +202,12 @@ export default function BestResponse() {
             </tspan>
           </text>
           {/* column labels (red player) and row labels (blue player) */}
-          {g.cols.map((s, c) => (
+          {vg.cols.map((s, c) => (
             <T key={'c' + c} x={cx(c)} y={Y0 - 16} color={GT.b} size={11}>
               {s}
             </T>
           ))}
-          {g.rows.map((s, r) => (
+          {vg.rows.map((s, r) => (
             <T key={'r' + r} x={X0 - 12} y={cy(r)} anchor="end" color={GT.a} size={11}>
               {s}
             </T>
@@ -209,8 +216,8 @@ export default function BestResponse() {
           {[0, 1].map((r) =>
             [0, 1].map((c) => {
               const eq = isCell(eqs, [r, c]);
-              const here = cell[0] === r && cell[1] === c;
-              const [ur, uc] = g.u[r][c];
+              const here = vcell[0] === r && vcell[1] === c;
+              const [ur, uc] = vg.u[r][c];
               return (
                 <g
                   key={`${r}${c}`}
@@ -223,7 +230,7 @@ export default function BestResponse() {
                   }}
                   tabIndex={0}
                   role="button"
-                  aria-label={`drop token at ${g.rows[r]}, ${g.cols[c]}`}
+                  aria-label={`drop token at ${vg.rows[r]}, ${vg.cols[c]}`}
                   style={{ cursor: 'pointer', outline: 'none' }}
                 >
                   <rect
@@ -274,8 +281,11 @@ export default function BestResponse() {
           {/* improvement arrows across the gaps; the one about to be taken stays bold */}
           {arr.map((a, i) => {
             const active =
-              hop && a.from[0] === hop.from[0] && a.from[1] === hop.from[1] && a.who === hop.who;
-            const op = !hop || active ? 1 : 0.4;
+              vhop &&
+              a.from[0] === vhop.from[0] &&
+              a.from[1] === vhop.from[1] &&
+              a.who === vhop.who;
+            const op = !vhop || active ? 1 : 0.4;
             if (a.who === 'row') {
               const x = cx(a.from[1]);
               const down = a.to[0] > a.from[0];
@@ -350,15 +360,16 @@ export default function BestResponse() {
       <div className="mt-4">
         <Seg
           options={GAMES.map((x) => ({ value: x.id, label: x.name }))}
-          value={gid}
+          value={vid}
           onChange={(v) => choose(v, true)}
+          bind={bindGame}
         />
       </div>
       <Reserve
         items={GAMES.map((x) => (
           <Caption key={x.id}>{x.note}</Caption>
         ))}
-        active={GAMES.findIndex((x) => x.id === gid)}
+        active={GAMES.findIndex((x) => x.id === vid)}
       />
     </Specimen>
   );

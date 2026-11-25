@@ -173,13 +173,28 @@ export default function City() {
     playing && inView && mounted,
   );
 
-  const reset = (s: number) => {
+  // mix again: a fresh mixed city, shown for a beat before the residents start to move
+  const mixTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (mixTimer.current) clearTimeout(mixTimer.current);
+    },
+    [],
+  );
+  const mixAgain = () => {
+    const s = seed + 1;
+    if (mixTimer.current) clearTimeout(mixTimer.current);
     setSeed(s);
     gridRef.current = newGrid(s);
     rndRef.current = mulberry32(s + 1);
     setMoves(0);
+    setPlaying(false);
     if (reduced) settle();
-    else setPlaying(true);
+    else
+      mixTimer.current = setTimeout(() => {
+        mixTimer.current = null;
+        setPlaying(true);
+      }, 1000);
     refresh();
   };
 
@@ -191,7 +206,7 @@ export default function City() {
       title="the city"
       kicker={`${N} × ${N} lots · 10% empty`}
       rootRef={rootRef}
-      hint="drag the bar; watch the city re-sort itself"
+      hint="drag the bar and watch the city re-sort itself, or mix it again"
       footer={`${moves.toLocaleString('en-US')} moves${settled ? ' · settled' : ''}`}
     >
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 sm:grid-cols-[minmax(0,440px)_minmax(0,1fr)] sm:gap-8">
@@ -244,11 +259,9 @@ export default function City() {
             color={GT.eq}
           />
           <div className="flex flex-wrap gap-2">
-            <Btn primary onClick={() => setPlaying((p) => !p)} disabled={settled}>
-              <span className="inline-block w-[5ch] text-center">{playing ? 'pause' : 'play'}</span>
+            <Btn primary onClick={mixAgain}>
+              mix again
             </Btn>
-            <Btn onClick={() => reset(seed)}>reset</Btn>
-            <Btn onClick={() => reset(seed + 1)}>new city</Btn>
           </div>
         </div>
       </div>

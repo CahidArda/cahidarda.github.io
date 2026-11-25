@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BigStat,
-  Btn,
   Caption,
   GT,
   Seg,
@@ -292,7 +291,7 @@ export default function Ballot() {
       title="the ballot"
       kicker="two candidates · one left-right axis"
       rootRef={rootRef}
-      hint="pick a crowd or drag a candidate (or use ← →)"
+      hint="pick a crowd to run the race (again to rerun), or drag a candidate"
       footer={`median ${dist.median.toFixed(2)} · mean ${dist.mean.toFixed(2)}`}
     >
       <div ref={boxRef}>
@@ -393,13 +392,10 @@ export default function Ballot() {
           <Seg
             options={PRESETS}
             value={preset}
-            onChange={setSel}
+            onChange={(v) => (v === sel ? race() : setSel(v))}
             bind={bindPreset}
             label="voters"
           />
-          <Btn primary onClick={race}>
-            rerun
-          </Btn>
         </div>
       </div>
       <Reserve

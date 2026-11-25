@@ -84,13 +84,6 @@ export default function ThreeCarts() {
 
   useFrame((dt) => setT((x) => Math.min(1, x + dt / 0.55)), !reduced && t < 1);
 
-  const step = () => {
-    setPlaying(false);
-    setK((x) => (x + 1 >= states.length ? 13 : x + 1));
-    setMoves((m) => m + 1);
-    setT(reduced ? 1 : 0);
-  };
-
   const cur = states[k];
   const prev = k > 0 ? states[k - 1] : cur;
   const mover = k > 0 ? (k - 1) % 3 : -1;
@@ -129,7 +122,7 @@ export default function ThreeCarts() {
       title="three carts"
       kicker="no resting point"
       rootRef={rootRef}
-      hint="press step to move one cart at a time"
+      hint="one cart moves at a time; pause to read a move"
     >
       <div ref={boxRef}>
         <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={note}>
@@ -196,9 +189,8 @@ export default function ThreeCarts() {
         <BigStat label="moves, no rest" value={moves} color={GT.eq} sub="it never settles" />
         <div className="col-span-2 flex gap-2 sm:col-span-1 sm:justify-end">
           <Btn primary onClick={() => setPlaying((p) => !p)}>
-            {playing ? 'pause' : 'play'}
+            <span className="inline-block w-[5ch] text-center">{playing ? 'pause' : 'play'}</span>
           </Btn>
-          <Btn onClick={step}>step</Btn>
         </div>
       </div>
       <Reserve

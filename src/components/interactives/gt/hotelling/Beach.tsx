@@ -269,7 +269,7 @@ export default function Beach() {
       title="the beach"
       kicker={`1 km of sand · ${PEOPLE.length} sunbathers`}
       rootRef={rootRef}
-      hint="drag a cart (or focus it and use ← →), or press a button"
+      hint="drag a cart (or focus it and use ← →), or press restart"
     >
       <div ref={boxRef}>
         <svg

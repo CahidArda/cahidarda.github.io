@@ -69,7 +69,7 @@ export default function IdeaSpreads() {
       setPlaying(false);
       return;
     }
-    const id = setTimeout(() => setShownRound((x) => x + 1), shownRound === 0 ? 600 : STEP_MS);
+    const id = setTimeout(() => setShownRound((x) => x + 1), shownRound === 0 ? 1000 : STEP_MS);
     return () => clearTimeout(id);
   }, [playing, shownRound, lastRound, inView]);
 
@@ -92,9 +92,12 @@ export default function IdeaSpreads() {
     setSeeds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
     restart();
   };
-  const toggle = () => {
-    if (stalled) restart();
-    else setPlaying((p) => !p);
+  // restart: the original early adopters and q, played from round 0
+  const restartAll = () => {
+    started.current = true;
+    setSeeds(SEEDS);
+    setQ(Q0);
+    restart();
   };
 
   const onChart = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -272,19 +275,8 @@ export default function IdeaSpreads() {
             sub={`at q = ${fmt(q)}`}
           />
           <div className="flex gap-2 sm:mt-3">
-            <Btn primary onClick={toggle}>
-              <span className="inline-block w-[6ch] text-center">
-                {playing && !stalled ? 'pause' : stalled ? 'replay' : 'play'}
-              </span>
-            </Btn>
-            <Btn
-              onClick={() => {
-                setSeeds(SEEDS);
-                setQ(Q0);
-                restart();
-              }}
-            >
-              reset
+            <Btn primary onClick={restartAll}>
+              restart
             </Btn>
           </div>
         </div>
