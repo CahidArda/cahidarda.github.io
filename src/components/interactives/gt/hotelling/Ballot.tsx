@@ -26,7 +26,7 @@ const STEP = 0.01;
 const TURN_MS = 190;
 const STEPS_PER_TURN = 2; // each round moves up to 2 grid steps, so the race is short but calm
 /** Distance per second a candidate covers in the race (grid steps per turn / turn time). */
-const RACE_SPEED = ((STEP * STEPS_PER_TURN) / (TURN_MS / 1000)) * 1.2; // 20% brisker than the step pace
+const RACE_SPEED = ((STEP * STEPS_PER_TURN) / (TURN_MS / 1000)) * 1.44; // 1.2 x 1.2: two rounds of "20% faster"
 
 /**
  * One candidate's turn: up to STEPS_PER_TURN small best-response steps, never jumping over
