@@ -70,6 +70,13 @@ html {
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
 
+  /* Prisoner's-Dilemma widget palette - one fixed colour per move, learned once,
+     read instantly in every later widget. Exposed to Tailwind as bg-c / text-d etc. */
+  --color-c: var(--pd-c);
+  --color-d: var(--pd-d);
+  --color-c-soft: var(--pd-c-soft);
+  --color-d-soft: var(--pd-d-soft);
+
   /* Fugu widget palette - one fixed colour per worker agent / role, defined once and
      reused across every diagram so the reader learns the cast and reads later figures
      instantly. Exposed to Tailwind (bg-gpt, text-gemini, …). */
@@ -110,6 +117,21 @@ html {
 
   /* Dikilitas widget palette - the ink of the print the obelisk is drawn as. */
   --color-dk-ink: var(--dk-ink);
+}
+
+/* Cooperate = ink-blue, Defect = brick-red. High contrast, distinct from the rust
+   accent, and always paired with the letters C/D so they survive colour-blindness. */
+:root {
+  --pd-c: #2456c9;
+  --pd-d: #cf3a2e;
+  --pd-c-soft: #dbe4f7;
+  --pd-d-soft: #f6dcd8;
+}
+.dark {
+  --pd-c: #6c97f0;
+  --pd-d: #e87a64;
+  --pd-c-soft: #1c2740;
+  --pd-d-soft: #3a2420;
 }
 
 /* The cast. Fugu (orchestrator) = ink/accent; the three frontier workers each get a
@@ -501,6 +523,94 @@ html {
 .prose h2 + *,
 .prose h3 + * {
   margin-top: 0.5em;
+}
+
+/*
+  Interactive PD widgets. They render *inside* .prose, so this insulates them from
+  the editorial typographic rules (link underlines, list markers, code chrome) and
+  resets them to the sans UI baseline. Each widget root carries `.pd`.
+*/
+.prose .pd {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.prose .pd :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+.prose .pd :where(ul, ol) {
+  list-style: none;
+  padding-left: 0;
+}
+.prose .pd :where(code) {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+.prose .pd :where(strong) {
+  color: inherit;
+}
+/* Full-bleed within the reading column - widgets want the air. */
+.pd-figure {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Purposeful, fast motion (150-300ms). Reveals, fly-ins, score ticks. */
+@keyframes pd-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes pd-fly-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes pd-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 3px var(--color-accent);
+  }
+}
+.pd-pop {
+  animation: pd-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.pd-fly-in {
+  animation: pd-fly-in 200ms ease-out both;
+}
+.pd-flash {
+  animation: pd-flash 600ms ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-pop,
+  .pd-fly-in,
+  .pd-flash {
+    animation: none;
+  }
+  .pd * {
+    transition-duration: 0ms !important;
+  }
 }
 
 /*
@@ -922,4 +1032,108 @@ html {
 }
 .dark {
   --dk-ink: #e8dccb;
+}
+
+/*
+  The Logic of Crowds (game-theory series). One fixed colour per role across every page:
+  A = first player / shop / route (ink-blue), B = second (brick-red), opt = the social
+  optimum (green), warn = amber, alt = violet. Equilibrium uses the site accent.
+  Canvas code must read these BASE names (--gt-a …), not the @theme aliases.
+*/
+:root {
+  --gt-a: #2456c9;
+  --gt-b: #cf3a2e;
+  --gt-opt: #1f8a6d;
+  --gt-warn: #b8871a;
+  --gt-alt: #7d6a9c;
+  --gt-a-soft: #dbe4f7;
+  --gt-b-soft: #f6dcd8;
+  --gt-opt-soft: #d6ede5;
+}
+.dark {
+  --gt-a: #6c97f0;
+  --gt-b: #e87a64;
+  --gt-opt: #3fae8c;
+  --gt-warn: #d9b24e;
+  --gt-alt: #a892c4;
+  --gt-a-soft: #1c2740;
+  --gt-b-soft: #3a2420;
+  --gt-opt-soft: #16302a;
+}
+@theme {
+  --color-gt-a: var(--gt-a);
+  --color-gt-b: var(--gt-b);
+  --color-gt-opt: var(--gt-opt);
+  --color-gt-warn: var(--gt-warn);
+  --color-gt-alt: var(--gt-alt);
+  --color-gt-a-soft: var(--gt-a-soft);
+  --color-gt-b-soft: var(--gt-b-soft);
+  --color-gt-opt-soft: var(--gt-opt-soft);
+}
+
+/* Square, ink-on-paper range input for the series' sliders. */
+.gt-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+.gt-range::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--color-line-strong);
+}
+.gt-range::-moz-range-track {
+  height: 2px;
+  background: var(--color-line-strong);
+}
+.gt-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-paper-raised);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+.gt-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: var(--color-accent);
+  border: 2px solid var(--color-paper-raised);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+/* The specimen stage: a faint dot grid behind the figure, like graph paper. */
+.gt-stage {
+  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: -8px -8px;
+}
+
+/* The lesson card that closes each page. */
+.prose .gt-lesson {
+  margin-top: 2.5rem;
+  border-top: 2px solid var(--color-ink);
+  border-bottom: 1px solid var(--color-line-strong);
+  padding: 1.25rem 0 1.4rem;
+}
+.prose .gt-lesson p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+.prose .gt-lesson .katex-display {
+  margin: 0.9rem 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gt-anim * {
+    transition-duration: 0ms !important;
+    animation: none !important;
+  }
 }
