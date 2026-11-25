@@ -81,15 +81,30 @@ export function useInView<T extends Element = HTMLDivElement>() {
   return [ref, inView] as const;
 }
 
-/** Hover a tab to preview it, click to commit. Render with `active`. */
+/** Handlers `useHoverPreview` puts on a tab. Spread them onto a button or an SVG `<g>`. */
+export type HoverBind = {
+  onPointerEnter: (e: React.PointerEvent<Element>) => void;
+  onPointerLeave: () => void;
+  onClickCapture: () => void;
+};
+
+/**
+ * Hover a tab to preview it, click to commit. Render EVERYTHING from `active` (readouts,
+ * sliders, dots, captions, the pressed tab), never from the committed value, or the preview
+ * comes out half-applied. Only a real hover previews: a tap on a touch screen fires no
+ * leave, so touch pointers are ignored and any click clears the preview.
+ */
 export function useHoverPreview<T>(selected: T) {
-  const [hover, setHover] = useState<T | null>(null);
-  const active = hover === null ? selected : hover;
-  const bind = (value: T) => ({
-    onMouseEnter: () => setHover(value),
-    onMouseLeave: () => setHover(null),
+  const [hover, setHover] = useState<{ v: T } | null>(null);
+  const active = hover === null ? selected : hover.v;
+  const bind = (value: T): HoverBind => ({
+    onPointerEnter: (e) => {
+      if (e.pointerType !== 'touch') setHover({ v: value });
+    },
+    onPointerLeave: () => setHover(null),
+    onClickCapture: () => setHover(null),
   });
-  return [active, bind] as const;
+  return [active, bind, hover !== null] as const;
 }
 
 /** Calls cb(dtSeconds) every animation frame while `running`. dt is clamped to 0.05s. */
@@ -281,7 +296,7 @@ export function Seg<T extends string>({
   options: { value: T; label: ReactNode }[];
   value: T;
   onChange: (v: T) => void;
-  bind?: (v: T) => { onMouseEnter: () => void; onMouseLeave: () => void };
+  bind?: (v: T) => HoverBind;
   label?: string;
 }) {
   return (

@@ -76,8 +76,11 @@ export default function SecondVotes() {
   const [a, setA] = useState(69);
   const [k, setK] = useState(0);
   const [step, setStep] = useState<Step | null>('all');
-  const [hoverStep, bindStep] = useHoverPreview<Step | null>(step);
+  const [hoverStep, bindStep, previewing] = useHoverPreview<Step | null>(step);
   const touched = useRef(false);
+  // the auto-play holds still while a scenario tab is being previewed
+  const previewRef = useRef(false);
+  previewRef.current = previewing;
   const dragging = useRef(false);
 
   // hovering a preset previews it; otherwise show the committed values
@@ -108,6 +111,7 @@ export default function SecondVotes() {
     }
     const id = setInterval(() => {
       if (touched.current || beat.current >= STEPS.length - 1) return clearInterval(id);
+      if (previewRef.current) return;
       beat.current++;
       go(STEPS[beat.current]);
     }, 3200);
@@ -333,7 +337,7 @@ export default function SecondVotes() {
         <Seg
           label="scenario"
           options={STEPS.map((s) => ({ value: s.id, label: s.label }))}
-          value={(step ?? '') as Step}
+          value={(hoverStep ?? '') as Step}
           onChange={(id) => {
             take();
             go(STEPS.find((s) => s.id === id)!);

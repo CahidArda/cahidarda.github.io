@@ -287,7 +287,7 @@ export default function WeakTies() {
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
         <Seg<Cut>
           label="cut"
-          value={sel}
+          value={cut}
           onChange={setSel}
           bind={bindCut}
           options={[

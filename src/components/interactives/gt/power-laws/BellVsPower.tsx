@@ -246,7 +246,7 @@ export default function BellVsPower() {
       <div className="mt-3 grid items-end gap-x-8 gap-y-4 sm:grid-cols-[auto_minmax(0,1fr)]">
         <Seg<Mode>
           label="axes"
-          value={sel}
+          value={mode}
           onChange={setSel}
           bind={bindMode}
           options={[

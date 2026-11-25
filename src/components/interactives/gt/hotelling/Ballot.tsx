@@ -80,10 +80,13 @@ export default function Ballot() {
 
   const [sel, setSel] = useState<Preset>('lopsided');
   const [preset, bindPreset] = useHoverPreview(sel);
-  const dist = useMemo(() => {
-    const dens = presetDensity(preset, GRID);
+  const distOf = (p: Preset) => {
+    const dens = presetDensity(p, GRID);
     return { dens, ...cdfFromDensity(dens) };
-  }, [preset]);
+  };
+  // the race always runs on the committed crowd; the drawing follows the previewed one
+  const distSel = useMemo(() => distOf(sel), [sel]);
+  const dist = useMemo(() => (preset === sel ? distSel : distOf(preset)), [preset, sel, distSel]);
 
   const [pos, setPos] = useState<number[]>([...START]);
   const [show, setShow] = useState<number[]>([...START]);
@@ -101,12 +104,12 @@ export default function Ballot() {
     if (reduced) setShow(pos);
   }, [reduced, pos]);
 
-  const settle = () => {
+  const settle = (F: number[] = distSel.F) => {
     // reduced motion: jump straight to where the race ends
     let p = [...START];
     for (let k = 0; k < 2000; k++) {
-      const q = nudge(p, k % 2, STEP, dist.F);
-      const r = nudge(q, (k + 1) % 2, STEP, dist.F);
+      const q = nudge(p, k % 2, STEP, F);
+      const r = nudge(q, (k + 1) % 2, STEP, F);
       if (q.every((v, i) => v === p[i]) && r.every((v, i) => v === q[i])) break;
       p = q;
     }
@@ -156,8 +159,8 @@ export default function Ballot() {
     if (!running || !inView) return;
     const id = setTimeout(() => {
       const who = turn % 2;
-      const next = nudge(pos, who, STEP, dist.F);
-      const other = nudge(next, 1 - who, STEP, dist.F);
+      const next = nudge(pos, who, STEP, distSel.F);
+      const other = nudge(next, 1 - who, STEP, distSel.F);
       if (next[who] === pos[who] && other[1 - who] === next[1 - who]) {
         setRunning(false);
         return;
@@ -166,7 +169,7 @@ export default function Ballot() {
       setTurn((t) => t + 1);
     }, TURN_MS);
     return () => clearTimeout(id);
-  }, [running, turn, pos, inView, dist]);
+  }, [running, turn, pos, inView, distSel]);
 
   const toX = (e: React.PointerEvent<SVGSVGElement>) => {
     const p = svgPoint(svgRef.current!, e.clientX, e.clientY);
@@ -222,11 +225,21 @@ export default function Ballot() {
     );
   };
 
+  // previewing another crowd shows where its race ends (what a click would play out to);
+  // readouts, candidates and the split all read these, so nothing lags behind the preview
+  const pvPos = useMemo(
+    () => (preset === sel ? null : settle(dist.F)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [preset, sel, dist],
+  );
+  const P = pvPos ?? pos;
+  const S = pvPos ?? show;
+
   // readouts follow the game state; the drawing follows the gliding positions
-  const sh = shares(pos, dist.F);
-  const together = Math.abs(pos[0] - pos[1]) < 1e-6;
-  const left = show[0] <= show[1] ? 0 : 1;
-  const mid = (pos[0] + pos[1]) / 2;
+  const sh = shares(P, dist.F);
+  const together = Math.abs(P[0] - P[1]) < 1e-6;
+  const left = S[0] <= S[1] ? 0 : 1;
+  const mid = (P[0] + P[1]) / 2;
   const colors = [GT.a, GT.b];
   const softs = [GT.aSoft, GT.bSoft];
   const close = Math.abs(dist.mean - dist.median) < 0.02;
@@ -246,7 +259,7 @@ export default function Ballot() {
           viewBox={`0 0 ${W} ${H}`}
           className="block w-full touch-none select-none"
           role="img"
-          aria-label={`Voter density, ${preset}. Candidate A at ${show[0].toFixed(2)}, B at ${show[1].toFixed(
+          aria-label={`Voter density, ${preset}. Candidate A at ${S[0].toFixed(2)}, B at ${S[1].toFixed(
             2,
           )}. Median voter at ${dist.median.toFixed(2)}.`}
           onPointerDown={onDown}
@@ -308,12 +321,12 @@ export default function Ballot() {
               aria-label={`candidate ${k === 0 ? 'A' : 'B'}`}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-valuenow={Math.round(pos[k] * 100)}
+              aria-valuenow={Math.round(P[k] * 100)}
               onKeyDown={onKey(k)}
               style={{ cursor: 'grab', outline: 'none' }}
               transform={together ? `translate(${k === 0 ? -12 : 12} 0)` : undefined}
             >
-              <Candidate x={px(show[k])} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
+              <Candidate x={px(S[k])} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
             </g>
           ))}
 

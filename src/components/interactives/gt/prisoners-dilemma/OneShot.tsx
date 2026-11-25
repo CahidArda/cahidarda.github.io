@@ -88,8 +88,7 @@ export default function OneShot() {
               key={m}
               onClick={() => pick(m)}
               style={{ cursor: 'pointer' }}
-              onMouseEnter={bind(m).onMouseEnter}
-              onMouseLeave={bind(m).onMouseLeave}
+              {...bind(m)}
             >
               <rect
                 x={cx(c) - CW / 2}
