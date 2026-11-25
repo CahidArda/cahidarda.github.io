@@ -1,0 +1,393 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  BigStat,
+  Btn,
+  Caption,
+  Chip,
+  GT,
+  Slider,
+  Specimen,
+  T,
+  svgPoint,
+  useInView,
+  useReducedMotion,
+} from '../shared';
+import { ADJ, EDGES, H, NODES, SEEDS, W, clusterDensity, runAll } from './network';
+
+// NCM 19.2-19.3: a new behaviour spreads round by round. A node switches once at least a
+// fraction q of its neighbours have. It sweeps the loose town and the thin chains, then
+// stops at a group whose members keep more than 1 - q of their friends inside it.
+
+const STEP_MS = 750;
+const R = 11;
+const Q0 = 0.3;
+
+// tipping strip geometry (its own small SVG under the network)
+const CW = 600;
+const CH = 120;
+const CP = { l: 34, r: 12, t: 14, b: 26 };
+const QMIN = 0.05;
+const QMAX = 0.9;
+const cx = (q: number) => CP.l + ((q - QMIN) / (QMAX - QMIN)) * (CW - CP.l - CP.r);
+const cy = (n: number) => CP.t + (1 - n / NODES.length) * (CH - CP.t - CP.b);
+
+const fmt = (q: number) => q.toFixed(2);
+
+export default function IdeaSpreads() {
+  const reduced = useReducedMotion();
+  const [rootRef, inView] = useInView();
+  const [q, setQ] = useState(Q0);
+  const [seeds, setSeeds] = useState<number[]>(SEEDS);
+  const [shownRound, setShownRound] = useState(99); // SSR / reduced motion: the stalled end
+  const [playing, setPlaying] = useState(false);
+  const [hover, setHover] = useState<number | null>(null);
+  const started = useRef(false);
+  const chartRef = useRef<SVGSVGElement | null>(null);
+
+  const when = useMemo(() => runAll(seeds, q), [seeds, q]);
+  const lastRound = Math.max(0, ...when);
+  const r = Math.min(shownRound, lastRound);
+  const stalled = r >= lastRound;
+  const adopted = when.map((w) => w >= 0 && w <= r);
+  const nAdopted = adopted.filter(Boolean).length;
+  const holdouts = stalled ? NODES.filter((n) => when[n.id] < 0).map((n) => n.id) : [];
+  const density = holdouts.length ? clusterDensity(holdouts) : null;
+
+  // the tipping curve for the current seeds: final adopters for q = 0.05 .. 0.90
+  const curve = useMemo(() => {
+    const pts: [number, number][] = [];
+    for (let k = 5; k <= 90; k++) {
+      const qq = k / 100;
+      pts.push([qq, runAll(seeds, qq).filter((w) => w >= 0).length]);
+    }
+    return pts;
+  }, [seeds]);
+  const curvePath =
+    curve.map(([qq, n], i) => (i === 0 ? `M${cx(qq)},${cy(n)}` : `H${cx(qq)}V${cy(n)}`)).join('') +
+    `H${cx(QMAX)}`;
+
+  // auto-play once on view
+  useEffect(() => {
+    if (reduced || started.current || !inView) return;
+    started.current = true;
+    setShownRound(0);
+    setPlaying(true);
+  }, [reduced, inView]);
+
+  useEffect(() => {
+    if (!playing || !inView) return;
+    if (shownRound >= lastRound) {
+      setPlaying(false);
+      return;
+    }
+    const id = setTimeout(() => setShownRound((x) => x + 1), shownRound === 0 ? 600 : STEP_MS);
+    return () => clearTimeout(id);
+  }, [playing, shownRound, lastRound, inView]);
+
+  const restart = () => {
+    if (reduced) {
+      setShownRound(99);
+      setPlaying(false);
+    } else {
+      setShownRound(0);
+      setPlaying(true);
+    }
+  };
+  const changeQ = (v: number) => {
+    setQ(v);
+    started.current = true;
+    restart();
+  };
+  const toggleSeed = (id: number) => {
+    started.current = true;
+    setSeeds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+    restart();
+  };
+  const step = () => {
+    setPlaying(false);
+    setShownRound((x) => Math.min(lastRound, Math.min(x, lastRound) + 1));
+  };
+  const toggle = () => {
+    if (stalled) restart();
+    else setPlaying((p) => !p);
+  };
+
+  const onChart = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!chartRef.current) return;
+    if (e.type === 'pointermove' && e.buttons !== 1) return;
+    const p = svgPoint(chartRef.current, e.clientX, e.clientY);
+    const t = QMIN + ((p.x - CP.l) / (CW - CP.l - CP.r)) * (QMAX - QMIN);
+    const v = Math.round(Math.max(QMIN, Math.min(QMAX, t)) * 20) / 20;
+    if (Math.abs(v - q) > 1e-9) changeQ(v);
+  };
+
+  const hv = hover !== null ? hover : null;
+  const hvInfo =
+    hv !== null
+      ? (() => {
+          const nb = ADJ[hv];
+          const k = nb.filter((j) => adopted[j]).length;
+          return { k, d: nb.length, p: nb.length ? k / nb.length : 0 };
+        })()
+      : null;
+
+  return (
+    <Specimen
+      code="GT-08.2"
+      title="a new idea spreads"
+      kicker="NCM 19.2 · adopt when p ≥ q"
+      rootRef={rootRef}
+      hint="drag q, or click any person to make them an early adopter"
+      footer={`${seeds.length} seed${seeds.length === 1 ? '' : 's'} · round ${r}`}
+    >
+      <div className="mb-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+        <Slider
+          label="threshold q = b / (a + b)"
+          value={q}
+          min={0.05}
+          max={0.9}
+          step={0.05}
+          onChange={changeQ}
+          format={(v) => `q = ${fmt(v)}`}
+          color={GT.eq}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Btn primary onClick={toggle}>
+            {playing && !stalled ? 'pause' : stalled ? 'replay' : 'play'}
+          </Btn>
+          <Btn onClick={step} disabled={stalled}>
+            step
+          </Btn>
+          <Btn
+            onClick={() => {
+              setSeeds(SEEDS);
+              setQ(Q0);
+              restart();
+            }}
+          >
+            reset
+          </Btn>
+        </div>
+      </div>
+
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="block w-full"
+        role="img"
+        aria-label={`A network of ${NODES.length} people. ${nAdopted} have adopted the new behaviour at threshold ${fmt(q)}.`}
+      >
+        {/* the blocking cluster, drawn as a soft territory behind everything */}
+        {holdouts.length > 0 && (
+          <g style={{ opacity: 0.9 }}>
+            {holdouts.map((i) => (
+              <circle key={i} cx={NODES[i].x} cy={NODES[i].y} r={27} style={{ fill: GT.bSoft }} />
+            ))}
+          </g>
+        )}
+        {EDGES.map(([a, b]) => {
+          const both = adopted[a] && adopted[b];
+          return (
+            <line
+              key={`${a}-${b}`}
+              x1={NODES[a].x}
+              y1={NODES[a].y}
+              x2={NODES[b].x}
+              y2={NODES[b].y}
+              style={{
+                stroke: both ? GT.eq : GT.lineStrong,
+                strokeWidth: both ? 2.2 : 1.2,
+                opacity: both ? 0.85 : 0.7,
+                transition: 'stroke 300ms',
+              }}
+            />
+          );
+        })}
+        {NODES.map((n) => {
+          const on = adopted[n.id];
+          const seed = seeds.includes(n.id);
+          const fresh = on && when[n.id] === r && r > 0 && !stalled;
+          const hold = holdouts.includes(n.id);
+          return (
+            <g
+              key={n.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`person ${n.id + 1}${seed ? ', early adopter' : ''}${on ? ', adopted' : ''}`}
+              onClick={() => toggleSeed(n.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleSeed(n.id);
+                }
+              }}
+              onMouseEnter={() => setHover(n.id)}
+              onMouseLeave={() => setHover(null)}
+              onFocus={() => setHover(n.id)}
+              onBlur={() => setHover(null)}
+              style={{ cursor: 'pointer', outline: 'none' }}
+            >
+              <circle cx={n.x} cy={n.y} r={R + 9} style={{ fill: 'transparent' }} />
+              {fresh && (
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={R + 6}
+                  className="animate-ping"
+                  style={{
+                    fill: 'none',
+                    stroke: GT.eq,
+                    strokeWidth: 2,
+                    transformBox: 'fill-box',
+                    transformOrigin: 'center',
+                  }}
+                />
+              )}
+              {seed && (
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={R + 4.5}
+                  style={{ fill: 'none', stroke: GT.eq, strokeWidth: 1.5 }}
+                />
+              )}
+              <circle
+                cx={n.x}
+                cy={n.y}
+                r={R}
+                style={{
+                  fill: on ? GT.eq : GT.paperRaised,
+                  stroke: on ? GT.eq : hold ? GT.b : GT.inkSoft,
+                  strokeWidth: hover === n.id ? 3 : 1.6,
+                  transition: 'fill 300ms, stroke 300ms',
+                }}
+              />
+            </g>
+          );
+        })}
+        <T x={40} y={22} anchor="start" size={13} color={GT.muted}>
+          the town
+        </T>
+        <T x={490} y={20} anchor="middle" size={13} color={GT.muted}>
+          a triangle
+        </T>
+        <T
+          x={500}
+          y={352}
+          anchor="middle"
+          size={13}
+          color={holdouts.includes(19) ? GT.b : GT.muted}
+        >
+          a tight-knit group
+        </T>
+      </svg>
+
+      <div className="mt-1 min-h-[1.2rem] font-mono text-[0.7rem] text-ink-soft">
+        {hvInfo && hv !== null ? (
+          <span>
+            person {hv + 1}: {hvInfo.k} of {hvInfo.d} friends adopted = {Math.round(hvInfo.p * 100)}
+            %{' '}
+            {adopted[hv] ? '(adopted)' : hvInfo.p >= q - 1e-9 ? `≥ q, switches next` : `< q, stays`}
+          </span>
+        ) : stalled && holdouts.length ? (
+          <span>
+            stuck: every holdout keeps more than {Math.round((1 - q) * 100)}% of its friends inside
+            the shaded group
+          </span>
+        ) : stalled ? (
+          <span>everyone switched</span>
+        ) : (
+          <span>round {r}: a person switches when at least q of their friends have</span>
+        )}
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-4 border-t border-line pt-4">
+        <BigStat
+          label="adopters"
+          value={
+            <span>
+              {nAdopted}
+              <span className="text-muted">/{NODES.length}</span>
+            </span>
+          }
+          color={GT.eq}
+          sub={stalled ? 'cascade stopped' : 'spreading…'}
+        />
+        <BigStat label="round" value={r} sub={`of ${lastRound}`} />
+        <BigStat
+          label="holdout density"
+          value={density !== null ? density.toFixed(2) : stalled ? '·' : '…'}
+          color={density !== null ? GT.b : GT.muted}
+          sub={
+            density !== null
+              ? `> 1 − q = ${(1 - q).toFixed(2)}`
+              : stalled
+                ? 'complete cascade'
+                : 'wait for the end'
+          }
+        />
+      </div>
+
+      {/* tipping strip: how far it gets for every q */}
+      <div className="mt-4 border-t border-line pt-3">
+        <div className="label mb-1">how far it gets, for every q (same seeds)</div>
+        <svg
+          ref={chartRef}
+          viewBox={`0 0 ${CW} ${CH}`}
+          className="block w-full touch-none select-none"
+          style={{ cursor: 'ew-resize' }}
+          onPointerDown={onChart}
+          onPointerMove={onChart}
+          role="img"
+          aria-label="Step chart of final adopters against the threshold q"
+        >
+          {[0, NODES.length].map((n) => (
+            <g key={n}>
+              <line
+                x1={CP.l}
+                x2={CW - CP.r}
+                y1={cy(n)}
+                y2={cy(n)}
+                style={{ stroke: GT.line, strokeDasharray: '2 3' }}
+              />
+              <T x={CP.l - 6} y={cy(n)} anchor="end" size={11}>
+                {n}
+              </T>
+            </g>
+          ))}
+          {[0.25, 0.5, 0.75].map((t) => (
+            <T key={t} x={cx(t)} y={CH - 8} size={11}>
+              {t.toFixed(2)}
+            </T>
+          ))}
+          <T x={CW - CP.r} y={CH - 8} anchor="end" size={11}>
+            q →
+          </T>
+          <path d={curvePath} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.2 }} />
+          <line
+            x1={cx(q)}
+            x2={cx(q)}
+            y1={CP.t - 6}
+            y2={CH - CP.b}
+            style={{ stroke: GT.ink, strokeWidth: 1 }}
+          />
+          <circle
+            cx={cx(q)}
+            cy={cy(curve.find(([qq]) => Math.abs(qq - q) < 1e-6)?.[1] ?? 0)}
+            r={5}
+            style={{ fill: GT.ink }}
+          />
+        </svg>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-3">
+        <Chip color={GT.eq}>new behaviour</Chip>
+        <Chip color={GT.inkSoft}>old behaviour</Chip>
+        <Chip color={GT.bSoft}>the cluster that blocks it</Chip>
+      </div>
+      <Caption>
+        With the three starting seeds: up to q = 0.20 everyone switches. From 0.25 the tight-knit
+        group holds out, and above 0.50 the idea never leaves the first three adopters.
+      </Caption>
+    </Specimen>
+  );
+}

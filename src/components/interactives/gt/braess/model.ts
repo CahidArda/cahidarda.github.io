@@ -42,9 +42,7 @@ export function step(f: Flow, open: boolean): { flow: Flow; move: Move } | null 
   const allowed: Route[] = open ? ROUTES : ['top', 'bot'];
   // forced exit from a closed shortcut
   const sources: Route[] =
-    !open && f.zig > 0
-      ? ['zig']
-      : allowed.filter((r) => f[r] > 0).sort((a, b) => t[b] - t[a]);
+    !open && f.zig > 0 ? ['zig'] : allowed.filter((r) => f[r] > 0).sort((a, b) => t[b] - t[a]);
   for (const from of sources) {
     let best: { to: Route; after: number; flow: Flow } | null = null;
     for (const to of allowed) {

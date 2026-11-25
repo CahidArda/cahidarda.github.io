@@ -7,4 +7,73 @@ series: logic-of-crowds
 seriesOrder: 3
 ---
 
-Coming soon.
+import Beach from '../../../components/interactives/gt/hotelling/Beach.tsx';
+import Ballot from '../../../components/interactives/gt/hotelling/Ballot.tsx';
+import ThreeCarts from '../../../components/interactives/gt/hotelling/ThreeCarts.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+Why do two rival phone shops open next door to each other, and why do two candidates end up sounding the same?
+Harold Hotelling asked this in 1929 with a beach and two ice-cream sellers
+([Hotelling, "Stability in Competition", *Economic Journal* 39(153)](https://www.jstor.org/stable/2224214)).
+
+## Two carts on a beach
+
+Sunbathers are spread evenly along a 1 km beach. Each walks to the nearer cart. The prices are fixed and
+equal, so each cart wants only one thing: more of the beach on its side.
+
+<div class="fx-figure">
+  <Beach client:visible />
+</div>
+
+The carts start where walkers would put them, at the quarter marks. Then each notices that a step toward
+the rival steals customers from the middle while losing none at the back. Step by step they meet at the
+centre, where neither can gain by moving. The split is still 50/50, but the average walk has doubled:
+
+<EqTip note="With customers spread evenly and carts at 1/4 and 3/4, nobody walks more than 1/4 of the beach and the average is 1/8. With both carts at 1/2, people at the ends walk half the beach and the average is 1/4.">
+
+$$
+\bar d_{\text{spread}} = \tfrac18 \;(125\text{ m}) \qquad \bar d_{\text{huddled}} = \tfrac14 \;(250\text{ m})
+$$
+
+</EqTip>
+
+## Two candidates on a spectrum
+
+Swap the beach for a left-right axis, sunbathers for voters, and carts for candidates. Each voter picks the
+closer candidate. Anthony Downs made this argument in 1957
+([Downs, "An Economic Theory of Political Action in a Democracy", *Journal of Political Economy* 65(2)](https://doi.org/10.1086/257897)).
+Voters are rarely spread evenly, so pick a crowd:
+
+<div class="fx-figure">
+  <Ballot client:visible />
+</div>
+
+Both candidates end at the voter who splits the electorate in half, the median $m$:
+
+$$
+F(m) = \tfrac12
+$$
+
+where $F(x)$ is the share of voters to the left of $x$. A candidate standing anywhere else hands the rival
+more than half the votes. The mean does not matter, and in a polarized crowd the winning spot is one where
+almost nobody lives.
+
+## Add a third cart
+
+The huddle needs exactly two players. With three carts on a line there is no spot where everyone is content:
+whoever ends up in the middle is squeezed to a sliver and jumps over a neighbour, which squeezes someone else.
+
+<div class="fx-figure">
+  <ThreeCarts client:visible />
+</div>
+
+A caveat: Hotelling's own model let the sellers set prices too, and later work showed the clustering result
+does not survive that version ([d'Aspremont, Gabszewicz and Thisse, *Econometrica* 47(5), 1979](https://www.jstor.org/stable/1911955)).
+With fixed prices, as here, the pull to the middle holds.
+
+<Lesson>
+
+When rivals compete only on location, each moves next to the other, and the customers pay for it in extra walking.
+
+</Lesson>

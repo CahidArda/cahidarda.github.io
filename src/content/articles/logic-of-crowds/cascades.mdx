@@ -1,10 +1,76 @@
 ---
-title: "Following the Crowd"
-description: "Information cascades and network cascades: when it is rational to ignore what you know, and why a new idea stalls at a tight-knit cluster."
+title: 'Following the Crowd'
+description: 'Information cascades and network cascades: when it is rational to ignore what you know, and why a new idea stalls at a tight-knit cluster.'
 date: 2026-11-25
 tags: ['blog']
 series: logic-of-crowds
 seriesOrder: 8
 ---
 
-Coming soon.
+import UrnLine from '../../../components/interactives/gt/cascades/UrnLine.tsx';
+import IdeaSpreads from '../../../components/interactives/gt/cascades/IdeaSpreads.tsx';
+import EqTip from '../../../components/EqTip.astro';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Two restaurants, side by side. One is full, one is empty. You walk into the full one, even if a
+friend told you the empty one is better. That can be the smart move, and it is also how a whole
+street ends up wrong.
+
+## Ignoring what you know
+
+The classroom version is an urn ([Easley & Kleinberg, ch. 16](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)).
+It holds either two blue balls and one red, or two red and one blue, with even odds. People
+come up one at a time, draw a ball in private, and announce their guess out loud.
+
+Each private ball is as strong as any other, so a guess that reveals a ball counts as one vote.
+Once one colour leads the public guesses by two, your single ball can only cut that lead to one, so
+you go with the crowd. From then on every guess repeats the leader and adds no information. The
+line is stuck.
+
+<div class="fx-figure">
+  <UrnLine client:visible />
+</div>
+
+The first two balls decide the line. Both wrong happens with probability
+$\frac13 \cdot \frac13 = \frac19$, both right with $\frac49$, and a split puts you back at zero. So in a
+long line the crowd locks onto the wrong urn with probability
+
+$$
+\frac{1/9}{1/9 + 4/9} = \frac15
+$$
+
+Twelve people who pooled their balls would be wrong only about 12% of the time. The information
+was there. The order of speaking threw it away. That also makes a cascade fragile: one person who
+shows their ball in public can break it.
+
+## Switching when your friends switch
+
+A new messaging app, a new slang word, a new farming method. Here the choice is a coordination
+game with each friend ([Easley & Kleinberg, ch. 19](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)):
+you both get $a$ if you both use the new thing, $b$ if you both stick with the old one, and nothing
+if you differ. If a fraction $p$ of your friends have switched, switching pays when $pa \ge (1-p)b$:
+
+<EqTip note="q is the share of your friends that must switch before you do. A better new thing (bigger a) lowers it.">
+
+$$
+p \ \ge\ q = \frac{b}{a+b}
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <IdeaSpreads client:visible />
+</div>
+
+The idea runs through the loose town and the thin chains, then stops at the group in the corner.
+Its members talk mostly to each other: each keeps more than $1-q$ of their friends inside the group,
+so the outside can never reach a share of $q$. Easley and Kleinberg prove this is the only
+thing that can stop it: the idea fails to reach everyone exactly when the rest of the network
+contains a cluster of density greater than $1-q$.
+
+<Lesson>
+
+Crowds copy actions, not reasons. A cascade can lock in on two people's luck, and a new idea
+spreads until it meets a group that mostly listens to itself.
+
+</Lesson>

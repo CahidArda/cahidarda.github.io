@@ -108,3 +108,24 @@ export function topShare(sortedDesc: ArrayLike<number>, frac: number) {
   for (let i = 0; i < m; i++) top += sortedDesc[i];
   return top / total;
 }
+
+/**
+ * Same copying rule, but each new page makes m links (each one: random page with probability
+ * p, else copy the target of a random existing link). Returns in-links per page.
+ */
+export function copyingModelMulti(n: number, m: number, p: number, seed: number) {
+  const rand = rng(seed);
+  const indeg = new Array<number>(n).fill(0);
+  const targets: number[] = [];
+  for (let j = 1; j < n; j++) {
+    for (let l = 0; l < m; l++) {
+      const t =
+        targets.length === 0 || rand() < p
+          ? Math.floor(rand() * j)
+          : targets[Math.floor(rand() * targets.length)];
+      indeg[t]++;
+      targets.push(t);
+    }
+  }
+  return indeg;
+}
