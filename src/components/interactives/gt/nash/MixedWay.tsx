@@ -323,7 +323,7 @@ export default function MixedWay() {
             active={atEq ? 0 : 1}
           />
         </div>
-        <BigStat label="red shows Heads" value={pct(q)} color={GT.b} />
+        <BigStat label="red shows Heads" value={pct(q)} color={GT.b} sub="of the time" />
       </div>
       <Caption>
         Any lean by red gives blue a sure edge. Only at 50% is blue indifferent, so both mixing

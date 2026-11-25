@@ -230,6 +230,8 @@ export default function BellVsPower() {
       const x = Math.pow(10, (lx1 * i) / 60);
       fitPath += `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(fitY(x)).toFixed(1)}`;
     }
+    // labels sit just right of the fitted line at a fixed height (the empty side of the line)
+    const labAt = (ly: number) => sxLog(Math.pow(10, (ly - view.icpt) / view.slope)) + 12;
     const fitOp = clamp((t - 0.4) / 0.5, 0, 1);
 
     const xTicksLin = [0, 5, 10, 15, 20];
@@ -342,42 +344,40 @@ export default function BellVsPower() {
         {/* log-log annotations, attached to their marks */}
         {logOp > 0 && (
           <g style={{ opacity: r2(logOp) }}>
-            <T x={sxLog(1.3)} y={syLog(1e-5)} anchor="start" size={10} color={GT.b} weight={600}>
-              heights
-            </T>
-            <T x={sxLog(1.3)} y={syLog(1e-5) + 13} anchor="start" size={10} color={GT.b}>
-              everyone near 1×
-            </T>
             <T
-              x={sxLog(narrow ? 25 : 40)}
-              y={syLog(fitY(narrow ? 25 : 40)) - 16}
+              x={sxLog(1.23) + 6}
+              y={syLog(1e-5)}
               anchor="start"
               size={10}
-              color={GT.a}
+              color={GT.b}
               weight={600}
             >
-              links: a straight line
+              heights
             </T>
-            <T
-              x={sxLog(narrow ? 200 : 400)}
-              y={syLog(fitY(narrow ? 200 : 400)) - 14}
-              anchor="start"
-              size={10}
-              color={GT.eq}
-            >
+            <T x={sxLog(1.23) + 6} y={syLog(1e-5) + 13} anchor="start" size={10} color={GT.b}>
+              everyone near 1×
+            </T>
+            <T x={labAt(-2.4)} y={syLog(10 ** -2.4)} anchor="start" size={10} color={GT.a}>
+              <tspan style={{ fontWeight: 600 }}>links</tspan>: a straight line
+            </T>
+            <T x={labAt(-4.2)} y={syLog(10 ** -4.2)} anchor="start" size={10} color={GT.eq}>
               slope −{alpha.toFixed(2)}
               {narrow ? '' : ` (theory −${pred.toFixed(2)})`}
             </T>
             <path d={`M${topPx},${Y0 - 1} l-4,-7 h8 z`} style={{ fill: GT.a, stroke: 'none' }} />
-            <T
-              x={topPx}
-              y={Y0 - 16}
-              anchor={topPx > W - M.r - 60 ? 'end' : 'middle'}
-              size={10}
-              color={GT.a}
-            >
-              most-linked page
-            </T>
+            {['most-linked', 'page'].map((w, i) => (
+              <T
+                key={w}
+                x={topPx > W - M.r - 36 ? topPx + 4 : topPx}
+                y={Y0 - 38 + i * 12}
+                anchor={topPx > W - M.r - 36 ? 'end' : 'middle'}
+                size={10}
+                color={GT.a}
+              >
+                {w}
+              </T>
+            ))}
+            <line x1={topPx} x2={topPx} y1={Y0 - 20} y2={Y0 - 10} style={{ stroke: GT.a }} />
           </g>
         )}
         {/* linear annotations */}
@@ -386,11 +386,11 @@ export default function BellVsPower() {
             <T x={sxLin(1.6)} y={syLin(0.92)} anchor="start" size={10} color={GT.b}>
               <tspan style={{ fontWeight: 600 }}>heights</tspan>: everyone near 1×
             </T>
-            <T x={sxLin(3.6)} y={syLin(0.2)} anchor="start" size={10} color={GT.a}>
-              <tspan style={{ fontWeight: 600 }}>links</tspan>: a thin tail that keeps going
+            <T x={sxLin(5)} y={syLin(0.15)} anchor="start" size={10} color={GT.a}>
+              <tspan style={{ fontWeight: 600 }}>links</tspan>: a long, thin tail
             </T>
-            <T x={W - M.r - 4} y={Y0 - 16} anchor="end" size={10} color={GT.a}>
-              most-linked page: way off to the right →
+            <T x={W - M.r - 4} y={Y0 - 22} anchor="end" size={10} color={GT.a}>
+              {narrow ? 'most-linked page →' : 'most-linked page: far off to the right →'}
             </T>
           </g>
         )}
