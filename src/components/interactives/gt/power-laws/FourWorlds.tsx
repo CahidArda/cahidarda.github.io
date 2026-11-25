@@ -189,7 +189,12 @@ export default function FourWorlds() {
       title="four worlds"
       kicker={`${tt} / ${LISTENERS} listeners`}
       hint="press replay history: same songs, same rules, new luck"
-      footer={<Chip color={GT.eq}>the hit in each world</Chip>}
+      footer={
+        <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
+          <Chip color={GT.eq}>the hit in each world</Chip>
+          <Chip color={GT.a}>fair share (dashed)</Chip>
+        </span>
+      }
     >
       <div className="mb-4 grid grid-cols-3 gap-3">
         <BigStat
