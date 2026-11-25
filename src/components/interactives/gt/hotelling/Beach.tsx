@@ -110,7 +110,7 @@ function Ghost({ x }: { x: number }) {
   );
 }
 
-type Mode = 'idle' | 'compete' | 'spread';
+type Mode = 'idle' | 'compete';
 
 export default function Beach() {
   const reduced = useReducedMotion();
@@ -191,19 +191,29 @@ export default function Beach() {
 
   const stop = () => {
     touched.current = true;
+    if (restartTimer.current) clearTimeout(restartTimer.current);
+    restartTimer.current = null;
     setMode('idle');
   };
 
-  const compete = () => {
-    touched.current = true;
-    setTurn(0);
-    setMode('compete');
-  };
-  const spread = () => {
+  // restart: carts back at the quarter marks, then after a short beat they start competing
+  const restartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (restartTimer.current) clearTimeout(restartTimer.current);
+    },
+    [],
+  );
+  const restart = () => {
     stop();
+    setTurn(0);
     setPos([...OPT]);
     if (reduced) setShow([...OPT]);
-    setLast('Back at the quarter marks: the shortest average walk two carts can give.');
+    setLast('Carts at the quarter marks: nobody walks more than 250 m.');
+    restartTimer.current = setTimeout(() => {
+      restartTimer.current = null;
+      setMode('compete');
+    }, 1000);
   };
 
   const onDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -414,10 +424,9 @@ export default function Beach() {
           sub="best possible: 125 m"
         />
         <div className="flex flex-wrap gap-2">
-          <Btn primary onClick={compete}>
-            let them compete
+          <Btn primary onClick={restart}>
+            restart
           </Btn>
-          <Btn onClick={spread}>spread them out</Btn>
         </div>
       </div>
       <Reserve
