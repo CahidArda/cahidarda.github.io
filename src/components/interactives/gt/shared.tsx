@@ -262,7 +262,7 @@ export function BigStat({
       <div className="label" style={{ color }}>
         {label}
       </div>
-      <div className={`font-display leading-none tabular-nums ${fs}`} style={{ color }}>
+      <div className={`font-display leading-none tabular-nums lining-nums ${fs}`} style={{ color }}>
         {value}
         {unit && <span className="ml-1 font-mono text-sm text-muted">{unit}</span>}
       </div>
@@ -461,7 +461,13 @@ export function T({
       y={y}
       textAnchor={anchor}
       dominantBaseline={baseline}
-      style={{ fill: color, fontFamily: ff, fontSize: size, fontWeight: weight }}
+      style={{
+        fill: color,
+        fontFamily: ff,
+        fontSize: size,
+        fontWeight: weight,
+        fontVariantNumeric: 'lining-nums tabular-nums',
+      }}
     >
       {children}
     </text>
