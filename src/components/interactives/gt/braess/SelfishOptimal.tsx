@@ -11,6 +11,7 @@ import {
   useFrame,
   useInView,
   useReducedMotion,
+  useTween,
 } from '../shared';
 import { useBoost } from './useBoost';
 
@@ -104,8 +105,13 @@ export default function SelfishOptimal() {
     setX(snap(clamp((p.x - PL) / (PR - PL), 0, 1)));
   };
 
+  // the drawing follows a glided copy of x (continuous, never quantised); text reads the
+  // rounded value so the numbers don't flicker
+  const xd = useTween(x, reduced, 9);
   const xs = Math.round(x * 100) / 100;
   const c = cost(xs);
+  const cd = cost(xd);
+  const r2 = (v: number) => Math.round(v * 100) / 100;
   const gain = 60 - 60 * xs;
   let status: string;
   if (xs >= 0.995)
@@ -213,7 +219,9 @@ export default function SelfishOptimal() {
           </T>
         </g>
         {/* the x-road's time at the reader's split */}
-        {xs >= 0.5 && <circle cx={px(xs)} cy={py(60 * xs)} r={3.5} style={{ fill: GT.a }} />}
+        {xd >= 0.5 && (
+          <circle cx={r2(px(xd))} cy={r2(py(60 * xd))} r={3.5} style={{ fill: GT.a }} />
+        )}
 
         {/* landmarks */}
         <circle cx={px(0.5)} cy={py(45)} r={6} style={{ fill: GT.opt }} />
@@ -224,8 +232,8 @@ export default function SelfishOptimal() {
 
         {/* the reader's split */}
         <line
-          x1={px(xs)}
-          x2={px(xs)}
+          x1={r2(px(xd))}
+          x2={r2(px(xd))}
           y1={PT - 4}
           y2={PB}
           style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '2 3' }}
@@ -271,8 +279,8 @@ export default function SelfishOptimal() {
           style={{ outline: 'none' }}
         >
           <rect
-            x={px(xs) - 8}
-            y={py(c) - 8}
+            x={r2(px(xd) - 8)}
+            y={r2(py(cd) - 8)}
             width={16}
             height={16}
             style={{ fill: GT.paperRaised, stroke: GT.ink, strokeWidth: 2.5 }}

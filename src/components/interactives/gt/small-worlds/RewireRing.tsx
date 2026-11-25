@@ -118,12 +118,6 @@ export default function RewireRing() {
   const path = useMemo(() => shortestPath(g.adj, ends[0], ends[1]), [g, ends]);
   const here: Step = stepAt(STEPS, p);
   const onPath = new Set(path);
-  const pathEdges = new Set<string>();
-  for (let i = 1; i < path.length; i++) {
-    const a = Math.min(path[i - 1], path[i]);
-    const b = Math.max(path[i - 1], path[i]);
-    pathEdges.add(`${a}-${b}`);
-  }
 
   const click = (i: number) => {
     setPhase('idle');
@@ -180,11 +174,8 @@ export default function RewireRing() {
             role="img"
             aria-label={`Ring of ${N} people with ${g.rewired} random links; the chain from A to B is ${path.length - 1} steps`}
           >
-            {/* every link; a shortcut the chain rides is drawn wide in orange so it still reads as a shortcut */}
+            {/* every link: ring links grey, random shortcuts orange */}
             {g.edges.map((e, i) => {
-              const a = Math.min(e.a, e.b);
-              const b = Math.max(e.a, e.b);
-              const hot = pathEdges.has(`${a}-${b}`);
               return (
                 <line
                   key={i}
@@ -195,25 +186,12 @@ export default function RewireRing() {
                   y2={pos[e.b].y}
                   style={{
                     stroke: e.rewired ? GT.eq : GT.lineStrong,
-                    strokeWidth: e.rewired ? (hot ? 8 : 1.6) : 1,
+                    strokeWidth: e.rewired ? 1.6 : 1,
                     strokeLinecap: 'round',
                   }}
                 />
               );
             })}
-            {/* the chain from A to B: one solid line on top, along the ring and over the shortcut */}
-            {path.length > 1 && (
-              <polyline
-                points={path.map((n) => `${pos[n].x},${pos[n].y}`).join(' ')}
-                style={{
-                  fill: 'none',
-                  stroke: GT.a,
-                  strokeWidth: 3,
-                  strokeLinejoin: 'round',
-                  strokeLinecap: 'round',
-                }}
-              />
-            )}
             {path.slice(1).map((b, i) => (
               <line
                 key={`h${i}`}
@@ -242,6 +220,33 @@ export default function RewireRing() {
                     }}
                   />
                 </g>
+              );
+            })}
+            {/* the chain from A to B: one solid line drawn above the people, so it never passes under a circle */}
+            {path.length > 1 && (
+              <polyline
+                points={path.map((n) => `${pos[n].x},${pos[n].y}`).join(' ')}
+                style={{
+                  fill: 'none',
+                  stroke: GT.a,
+                  strokeWidth: 3,
+                  strokeLinejoin: 'round',
+                  strokeLinecap: 'round',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+            {/* the people on the chain, on top of the line */}
+            {path.map((n) => {
+              const isEnd = n === ends[0] || n === ends[1];
+              return (
+                <circle
+                  key={`p${n}`}
+                  cx={pos[n].x}
+                  cy={pos[n].y}
+                  r={isEnd ? 6 : 3.6}
+                  style={{ fill: GT.a, stroke: GT.a, strokeWidth: 1.2, pointerEvents: 'none' }}
+                />
               );
             })}
             <g style={halo}>
