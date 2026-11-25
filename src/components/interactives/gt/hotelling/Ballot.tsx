@@ -12,7 +12,6 @@ import {
   useHoverPreview,
   useInView,
   useReducedMotion,
-  useTween,
 } from '../shared';
 import { cdfFromDensity, nudge, presetDensity, shares, type Cdf, type Preset } from './logic';
 import { useCompact } from '../useCompact';
@@ -73,6 +72,19 @@ function round(pos: number[], F: Cdf): number[] {
           Math.abs(y - x) <= Math.abs(best - x) + STEP + 1e-9
         )
           best = y;
+      }
+    }
+    if (best === x && Math.abs(F(x) - 0.5) > 1e-6) {
+      // no grid step gets closer: finish exactly on the median (bisect F = 1/2 nearby)
+      let lo = Math.max(0, x - STEP);
+      let hi = Math.min(1, x + STEP);
+      if ((F(lo) - 0.5) * (F(hi) - 0.5) <= 0) {
+        for (let k = 0; k < 40; k++) {
+          const m = (lo + hi) / 2;
+          if ((F(lo) - 0.5) * (F(m) - 0.5) <= 0) hi = m;
+          else lo = m;
+        }
+        best = (lo + hi) / 2;
       }
     }
     return [best, best];
@@ -304,10 +316,6 @@ export default function Ballot() {
   const P = pvPos ?? pos;
   const S = pvPos ?? show;
 
-  // readouts follow the game state; the drawing follows the gliding positions
-  const shRaw = shares(P, dist.F);
-  const shA = useTween(shRaw[0], reduced, 6);
-  const sh = [shA, 1 - shA];
   const together = Math.abs(P[0] - P[1]) < 1e-6;
   // who stands on the left; when they meet, keep the side they had before meeting so the
   // two halves keep their colours (each still takes the voters on its own side: 50/50)
@@ -329,7 +337,12 @@ export default function Ballot() {
     }
     return xs.map((x) => Math.round(x * 100) / 100);
   })();
-  const mid = (P[0] + P[1]) / 2;
+  // Shading and readouts both follow the drawn (glided) positions: every voter goes to the
+  // nearer candidate, so the left one takes everyone left of the midpoint. Continuous, and
+  // exactly 50/50 only when the pair stands on the median.
+  const mid = (S[0] + S[1]) / 2;
+  const leftShare = dist.F(mid);
+  const sh = left === 0 ? [leftShare, 1 - leftShare] : [1 - leftShare, leftShare];
   const colors = [GT.a, GT.b];
   const softs = [GT.aSoft, GT.bSoft];
   const close = Math.abs(dist.mean - dist.median) < 0.02;

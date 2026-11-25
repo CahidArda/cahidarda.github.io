@@ -118,6 +118,16 @@ export default function RewireRing() {
   const path = useMemo(() => shortestPath(g.adj, ends[0], ends[1]), [g, ends]);
   const here: Step = stepAt(STEPS, p);
   const onPath = new Set(path);
+  // People the line passes right beside: a ring step can skip the person in between
+  // (everyone knows two people on each side), so colour them too and the path reads solid.
+  const alongPath = new Set(path);
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1];
+    const b = path[i];
+    const d = (b - a + N) % N;
+    if (d === 2) alongPath.add((a + 1) % N);
+    else if (d === N - 2) alongPath.add((a - 1 + N) % N);
+  }
 
   const click = (i: number) => {
     setPhase('idle');
@@ -237,7 +247,7 @@ export default function RewireRing() {
               />
             )}
             {/* the people on the chain, on top of the line */}
-            {path.map((n) => {
+            {[...alongPath].map((n) => {
               const isEnd = n === ends[0] || n === ends[1];
               return (
                 <circle
