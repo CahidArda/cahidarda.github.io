@@ -25,7 +25,7 @@ const VW = 260;
 const VH = 236;
 
 // panel A: payoff vs q
-const ax = (q: number) => 40 + 200 * q;
+const ax = (q: number) => 34 + 180 * q;
 const ay = (v: number) => 112 - 84 * v;
 // panel B: the unit square, x = q, y = p
 const L = 44;
@@ -35,7 +35,8 @@ const by = (p: number) => 22 + S * (1 - p);
 
 const blueBR = (q: number) => (q > 0.5 ? 1 : q < 0.5 ? 0 : 0.5);
 const pct = (v: number) => `${Math.round(v * 100)}%`;
-const sgn = (v: number) => (v < -0.005 ? `−${Math.abs(v).toFixed(2)}` : `+${Math.abs(v).toFixed(2)}`);
+const sgn = (v: number) =>
+  v < -0.005 ? `−${Math.abs(v).toFixed(2)}` : `+${Math.abs(v).toFixed(2)}`;
 
 // Auto-play: sweep red's mix across, then settle on the equilibrium 1/2.
 const SWEEP: [number, number][] = [
@@ -87,7 +88,7 @@ export default function MixedWay() {
     const svg = which === 'a' ? aRef.current : bRef.current;
     if (!svg) return;
     const pt = svgPoint(svg, e.clientX, e.clientY);
-    const v = which === 'a' ? (pt.x - 40) / 200 : (pt.x - L) / S;
+    const v = which === 'a' ? (pt.x - 34) / 180 : (pt.x - L) / S;
     let nq = clamp(v, 0, 1);
     if (Math.abs(nq - 0.5) < 0.025) nq = 0.5; // snap to the equilibrium
     setQ(nq);
@@ -121,28 +122,13 @@ export default function MixedWay() {
       hint="drag either chart to change how often red shows Heads"
       footer="equilibrium: both play Heads 50%"
     >
-      <div className="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-end">
-        <div className="flex flex-row flex-wrap gap-6 sm:flex-col sm:gap-4">
-          <BigStat label="red shows heads" value={pct(q)} color={GT.b} />
-          <BigStat
-            label="blue's best reply"
-            value={best}
-            color={atEq ? GT.eq : GT.a}
-            sub={atEq ? 'indifferent: any mix is fine' : `earns ${sgn(Math.max(eH, eT))} per round`}
-          />
-        </div>
-        <Slider
-          label="red's P(Heads)"
-          value={q}
-          min={0}
-          max={1}
-          step={0.01}
-          color={GT.b}
-          onChange={(v) => {
-            setAuto(false);
-            setQ(Math.abs(v - 0.5) < 0.015 ? 0.5 : v);
-          }}
-          format={pct}
+      <div className="flex flex-wrap gap-x-10 gap-y-4">
+        <BigStat label="red shows heads" value={pct(q)} color={GT.b} />
+        <BigStat
+          label="blue's best reply"
+          value={best}
+          color={atEq ? GT.eq : GT.a}
+          sub={atEq ? 'indifferent: any mix is fine' : `earns ${sgn(Math.max(eH, eT))} per round`}
         />
       </div>
 
@@ -160,10 +146,10 @@ export default function MixedWay() {
             {...bind('a')}
           >
             {/* axes */}
-            <line x1={40} y1={ay(0)} x2={240} y2={ay(0)} style={{ stroke: GT.line }} />
-            <line x1={40} y1={ay(1)} x2={40} y2={ay(-1)} style={{ stroke: GT.lineStrong }} />
+            <line x1={ax(0)} y1={ay(0)} x2={ax(1)} y2={ay(0)} style={{ stroke: GT.line }} />
+            <line x1={ax(0)} y1={ay(1)} x2={ax(0)} y2={ay(-1)} style={{ stroke: GT.lineStrong }} />
             {[1, 0, -1].map((v) => (
-              <T key={v} x={34} y={ay(v)} anchor="end" size={9}>
+              <T key={v} x={ax(0) - 6} y={ay(v)} anchor="end" size={9}>
                 {v === -1 ? '−1' : v === 1 ? '+1' : '0'}
               </T>
             ))}
@@ -172,7 +158,7 @@ export default function MixedWay() {
                 {v === 0.5 ? '½' : v}
               </T>
             ))}
-            <T x={140} y={ay(-1) + 28} size={9}>
+            <T x={ax(0.5)} y={ay(-1) + 28} size={9}>
               red's P(Heads)
             </T>
             {/* best-reply envelope */}
@@ -181,7 +167,13 @@ export default function MixedWay() {
               style={{ fill: 'none', stroke: GT.a, strokeWidth: 7, opacity: 0.18 }}
             />
             {/* the two lines */}
-            <line x1={ax(0)} y1={ay(-1)} x2={ax(1)} y2={ay(1)} style={{ stroke: GT.a, strokeWidth: 2 }} />
+            <line
+              x1={ax(0)}
+              y1={ay(-1)}
+              x2={ax(1)}
+              y2={ay(1)}
+              style={{ stroke: GT.a, strokeWidth: 2 }}
+            />
             <line
               x1={ax(0)}
               y1={ay(1)}
@@ -189,18 +181,34 @@ export default function MixedWay() {
               y2={ay(-1)}
               style={{ stroke: GT.a, strokeWidth: 2, strokeDasharray: '5 4' }}
             />
-            <T x={ax(1) - 4} y={ay(1) + 14} anchor="end" size={10} color={GT.a}>
+            <T x={ax(1) + 6} y={ay(1)} anchor="start" size={10} color={GT.a}>
               Heads
             </T>
-            <T x={ax(0) + 4} y={ay(1) + 14} anchor="start" size={10} color={GT.a}>
+            <T x={ax(1) + 6} y={ay(-1)} anchor="start" size={10} color={GT.a}>
               Tails
             </T>
             {/* crossing */}
-            <circle cx={ax(0.5)} cy={ay(0)} r={5} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2 }} />
+            <circle
+              cx={ax(0.5)}
+              cy={ay(0)}
+              r={5}
+              style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2 }}
+            />
             {/* red's current mix */}
-            <line x1={ax(q)} y1={ay(1) - 4} x2={ax(q)} y2={ay(-1)} style={{ stroke: GT.b, strokeWidth: 1.5 }} />
+            <line
+              x1={ax(q)}
+              y1={ay(1) - 4}
+              x2={ax(q)}
+              y2={ay(-1)}
+              style={{ stroke: GT.b, strokeWidth: 1.5 }}
+            />
             <circle cx={ax(q)} cy={ay(eH)} r={4.5} style={{ fill: GT.a }} />
-            <circle cx={ax(q)} cy={ay(eT)} r={4.5} style={{ fill: GT.paperRaised, stroke: GT.a, strokeWidth: 2 }} />
+            <circle
+              cx={ax(q)}
+              cy={ay(eT)}
+              r={4.5}
+              style={{ fill: GT.paperRaised, stroke: GT.a, strokeWidth: 2 }}
+            />
             <rect x={ax(q) - 9} y={ay(1) - 14} width={18} height={10} style={{ fill: GT.b }} />
           </svg>
         </figure>
@@ -217,9 +225,27 @@ export default function MixedWay() {
             aria-label="Best-response curves of both players cross only at one half, one half"
             {...bind('b')}
           >
-            <rect x={L} y={by(1)} width={S} height={S} style={{ fill: 'none', stroke: GT.lineStrong }} />
-            <line x1={bx(0.5)} y1={by(1)} x2={bx(0.5)} y2={by(0)} style={{ stroke: GT.line, strokeDasharray: '2 3' }} />
-            <line x1={bx(0)} y1={by(0.5)} x2={bx(1)} y2={by(0.5)} style={{ stroke: GT.line, strokeDasharray: '2 3' }} />
+            <rect
+              x={L}
+              y={by(1)}
+              width={S}
+              height={S}
+              style={{ fill: 'none', stroke: GT.lineStrong }}
+            />
+            <line
+              x1={bx(0.5)}
+              y1={by(1)}
+              x2={bx(0.5)}
+              y2={by(0)}
+              style={{ stroke: GT.line, strokeDasharray: '2 3' }}
+            />
+            <line
+              x1={bx(0)}
+              y1={by(0.5)}
+              x2={bx(1)}
+              y2={by(0.5)}
+              style={{ stroke: GT.line, strokeDasharray: '2 3' }}
+            />
             {/* red's best reply to p: q = 1 below 1/2, q = 0 above */}
             <polyline
               points={`${bx(1)},${by(0)} ${bx(1)},${by(0.5)} ${bx(0)},${by(0.5)} ${bx(0)},${by(1)}`}
@@ -236,11 +262,23 @@ export default function MixedWay() {
               r={atEq ? 11 : 8}
               style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.5, transition: 'r 200ms' }}
             />
-            <T x={bx(0.5) + 14} y={by(0.5) - 12} anchor="start" size={10} color={GT.eq} weight={600}>
+            <T
+              x={bx(0.5) + 14}
+              y={by(0.5) - 12}
+              anchor="start"
+              size={10}
+              color={GT.eq}
+              weight={600}
+            >
               Nash (½, ½)
             </T>
             {/* blue's reply to the current q */}
-            <circle cx={bx(q)} cy={by(p)} r={6} style={{ fill: GT.a, stroke: GT.paperRaised, strokeWidth: 2 }} />
+            <circle
+              cx={bx(q)}
+              cy={by(p)}
+              r={6}
+              style={{ fill: GT.a, stroke: GT.paperRaised, strokeWidth: 2 }}
+            />
             <rect x={bx(q) - 1} y={by(0) + 3} width={2} height={7} style={{ fill: GT.b }} />
             {/* axis labels */}
             {[0, 1].map((v) => (
@@ -268,14 +306,29 @@ export default function MixedWay() {
         </figure>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+      <div className="mt-3">
+        <Slider
+          label="red's P(Heads)"
+          value={q}
+          min={0}
+          max={1}
+          step={0.01}
+          color={GT.b}
+          onChange={(v) => {
+            setAuto(false);
+            setQ(Math.abs(v - 0.5) < 0.015 ? 0.5 : v);
+          }}
+          format={pct}
+        />
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
         <Chip color={GT.a}>blue wants the coins to match</Chip>
         <Chip color={GT.b}>red wants them to differ</Chip>
         <Chip color={GT.eq}>the only point on both curves</Chip>
       </div>
       <Caption>
-        Any lean by red hands blue a sure edge, and blue's reply jumps to a corner. Only at 50% is blue
-        indifferent, so blue can mix too. Each mixing 50:50 is the one equilibrium.
+        Any lean by red hands blue a sure edge, and blue's reply jumps to a corner. Only at 50% is
+        blue indifferent, so blue can mix too. Each mixing 50:50 is the one equilibrium.
       </Caption>
     </Specimen>
   );

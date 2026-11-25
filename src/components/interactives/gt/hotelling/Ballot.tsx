@@ -16,15 +16,12 @@ import {
   useReducedMotion,
 } from '../shared';
 import { cdfFromDensity, nudge, presetDensity, shares, type Preset } from './logic';
+import { useCompact } from './useCompact';
 
-const W = 640;
 const H = 250;
-const X0 = 30;
-const X1 = 610;
 const BASE = 190; // baseline of the density curve
 const TOP = 52; // highest point of the curve
 // rounded so server and client print identical attribute strings (no hydration mismatch)
-const px = (p: number) => Math.round((X0 + p * (X1 - X0)) * 100) / 100;
 const GRID = 200;
 const STEP = 0.01;
 const TURN_MS = 70;
@@ -73,6 +70,12 @@ function Candidate({ x, color, letter }: { x: number; color: string; letter: str
 export default function Ballot() {
   const reduced = useReducedMotion();
   const [rootRef, inView] = useInView();
+  const [boxRef, compact] = useCompact();
+  const W = compact ? 400 : 640;
+  const X0 = compact ? 14 : 30;
+  const X1 = W - X0;
+  const fs = compact ? 12 : 10.5;
+  const px = (p: number) => Math.round((X0 + p * (X1 - X0)) * 100) / 100;
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   const [sel, setSel] = useState<Preset>('lopsided');
@@ -88,6 +91,7 @@ export default function Ballot() {
   const [turn, setTurn] = useState(0);
   const dragging = useRef<number | null>(null);
   const demoDone = useRef(false);
+  const touched = useRef(false); // the reader took over: no auto-demo
 
   useFrame(
     (dt) => setShow((s) => s.map((x, i) => x + (pos[i] - x) * Math.min(1, dt * 12))),
@@ -110,6 +114,7 @@ export default function Ballot() {
   };
 
   const race = () => {
+    touched.current = true;
     setTurn(0);
     if (reduced) {
       const p = settle();
@@ -123,14 +128,17 @@ export default function Ballot() {
 
   useEffect(() => {
     if (demoDone.current || !inView) return;
-    demoDone.current = true;
     if (reduced) {
+      demoDone.current = true;
       const p = settle();
       setPos(p);
       setShow(p);
       return;
     }
-    const id = setTimeout(() => setRunning(true), 900);
+    const id = setTimeout(() => {
+      demoDone.current = true;
+      if (!touched.current) setRunning(true);
+    }, 900);
     return () => clearTimeout(id);
   }, [inView, reduced]);
 
@@ -176,6 +184,7 @@ export default function Ballot() {
     const d = show.map((s) => Math.abs(s - x));
     const who = d[0] <= d[1] ? 0 : 1;
     if (d[who] > 0.12) return;
+    touched.current = true;
     setRunning(false);
     dragging.current = who;
     e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -190,6 +199,7 @@ export default function Ballot() {
     const d = e.key === 'ArrowLeft' ? -0.02 : e.key === 'ArrowRight' ? 0.02 : 0;
     if (!d) return;
     e.preventDefault();
+    touched.current = true;
     setRunning(false);
     place(who, clamp(pos[who] + d, 0, 1));
   };
@@ -198,7 +208,10 @@ export default function Ballot() {
   const peak = Math.max(...dist.dens);
   const yOf = (d: number) => Math.round((BASE - (d / peak) * (BASE - TOP)) * 100) / 100;
   const pts = dist.dens.map((d, i) => [px((i + 0.5) / GRID), yOf(d)] as const);
-  const curve = `M ${px(0)} ${yOf(dist.dens[0])} ` + pts.map(([x, y]) => `L ${x} ${y}`).join(' ') + ` L ${px(1)} ${yOf(dist.dens[GRID - 1])}`;
+  const curve =
+    `M ${px(0)} ${yOf(dist.dens[0])} ` +
+    pts.map(([x, y]) => `L ${x} ${y}`).join(' ') +
+    ` L ${px(1)} ${yOf(dist.dens[GRID - 1])}`;
   const area = (lo: number, hi: number) => {
     const inside = pts.filter(([x]) => x >= px(lo) && x <= px(hi));
     const yAt = (p: number) => yOf(dist.dens[Math.min(GRID - 1, Math.floor(p * GRID))]);
@@ -209,10 +222,11 @@ export default function Ballot() {
     );
   };
 
-  const sh = shares(show, dist.F);
-  const together = Math.abs(show[0] - show[1]) < 1e-3;
+  // readouts follow the game state; the drawing follows the gliding positions
+  const sh = shares(pos, dist.F);
+  const together = Math.abs(pos[0] - pos[1]) < 1e-6;
   const left = show[0] <= show[1] ? 0 : 1;
-  const mid = (show[0] + show[1]) / 2;
+  const mid = (pos[0] + pos[1]) / 2;
   const colors = [GT.a, GT.b];
   const softs = [GT.aSoft, GT.bSoft];
   const close = Math.abs(dist.mean - dist.median) < 0.02;
@@ -245,83 +259,91 @@ export default function Ballot() {
         />
       </div>
 
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${W} ${H}`}
-        className="mt-3 block w-full touch-none select-none"
-        role="img"
-        aria-label={`Voter density, ${preset}. Candidate A at ${show[0].toFixed(2)}, B at ${show[1].toFixed(
-          2,
-        )}. Median voter at ${dist.median.toFixed(2)}.`}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-      >
-        {/* each candidate's voters */}
-        {together ? (
-          <path d={area(0, 1)} style={{ fill: GT.line, opacity: 0.8 }} />
-        ) : (
-          <>
-            <path d={area(0, mid)} style={{ fill: softs[left] }} />
-            <path d={area(mid, 1)} style={{ fill: softs[1 - left] }} />
-          </>
-        )}
-        <path d={curve} style={{ fill: 'none', stroke: GT.ink, strokeWidth: 1.5 }} />
-        <line x1={X0} y1={BASE} x2={X1} y2={BASE} style={{ stroke: GT.ink, strokeWidth: 1.2 }} />
+      <div ref={boxRef}>
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          className="mt-3 block w-full touch-none select-none"
+          role="img"
+          aria-label={`Voter density, ${preset}. Candidate A at ${show[0].toFixed(2)}, B at ${show[1].toFixed(
+            2,
+          )}. Median voter at ${dist.median.toFixed(2)}.`}
+          onPointerDown={onDown}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
+        >
+          {/* each candidate's voters */}
+          {together ? (
+            <path d={area(0, 1)} style={{ fill: GT.line, opacity: 0.8 }} />
+          ) : (
+            <>
+              <path d={area(0, mid)} style={{ fill: softs[left] }} />
+              <path d={area(mid, 1)} style={{ fill: softs[1 - left] }} />
+            </>
+          )}
+          <path d={curve} style={{ fill: 'none', stroke: GT.ink, strokeWidth: 1.5 }} />
+          <line x1={X0} y1={BASE} x2={X1} y2={BASE} style={{ stroke: GT.ink, strokeWidth: 1.2 }} />
 
-        {/* mean (dashed) and median (solid accent) */}
-        <line
-          x1={px(dist.mean)}
-          y1={TOP - 14}
-          x2={px(dist.mean)}
-          y2={BASE}
-          style={{ stroke: GT.muted, strokeWidth: 1.2, strokeDasharray: '4 3' }}
-        />
-        <line x1={px(dist.median)} y1={TOP - 30} x2={px(dist.median)} y2={BASE} style={{ stroke: GT.eq, strokeWidth: 1.8 }} />
-        <T x={px(dist.median)} y={TOP - 38} color={GT.eq} size={11} weight={600}>
-          median voter
-        </T>
-        {!close && (
-          <T x={px(dist.mean) + 5} y={TOP - 14} anchor="start" size={10.5}>
-            mean
-          </T>
-        )}
-        {!together && (
+          {/* mean (dashed) and median (solid accent) */}
           <line
-            x1={px(mid)}
-            y1={BASE - 4}
-            x2={px(mid)}
-            y2={BASE + 6}
-            style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '2 2' }}
+            x1={px(dist.mean)}
+            y1={TOP - 14}
+            x2={px(dist.mean)}
+            y2={BASE}
+            style={{ stroke: GT.muted, strokeWidth: 1.2, strokeDasharray: '4 3' }}
           />
-        )}
+          <line
+            x1={px(dist.median)}
+            y1={TOP - 30}
+            x2={px(dist.median)}
+            y2={BASE}
+            style={{ stroke: GT.eq, strokeWidth: 1.8 }}
+          />
+          <T x={px(dist.median)} y={TOP - 38} color={GT.eq} size={fs + 0.5} weight={600}>
+            median voter
+          </T>
+          {!close && (
+            <T x={px(dist.mean) + 5} y={TOP - 14} anchor="start" size={fs}>
+              mean
+            </T>
+          )}
+          {!together && (
+            <line
+              x1={px(mid)}
+              y1={BASE - 4}
+              x2={px(mid)}
+              y2={BASE + 6}
+              style={{ stroke: GT.ink, strokeWidth: 1, strokeDasharray: '2 2' }}
+            />
+          )}
 
-        {/* candidates */}
-        {[1, 0].map((k) => (
-          <g
-            key={k}
-            tabIndex={0}
-            role="slider"
-            aria-label={`candidate ${k === 0 ? 'A' : 'B'}`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(pos[k] * 100)}
-            onKeyDown={onKey(k)}
-            style={{ cursor: 'grab', outline: 'none' }}
-            transform={together ? `translate(${k === 0 ? -12 : 12} 0)` : undefined}
-          >
-            <Candidate x={px(show[k])} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
-          </g>
-        ))}
+          {/* candidates */}
+          {[1, 0].map((k) => (
+            <g
+              key={k}
+              tabIndex={0}
+              role="slider"
+              aria-label={`candidate ${k === 0 ? 'A' : 'B'}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(pos[k] * 100)}
+              onKeyDown={onKey(k)}
+              style={{ cursor: 'grab', outline: 'none' }}
+              transform={together ? `translate(${k === 0 ? -12 : 12} 0)` : undefined}
+            >
+              <Candidate x={px(show[k])} color={colors[k]} letter={k === 0 ? 'A' : 'B'} />
+            </g>
+          ))}
 
-        <T x={X0} y={BASE + 50} anchor="start" size={10.5}>
-          ← left
-        </T>
-        <T x={X1} y={BASE + 50} anchor="end" size={10.5}>
-          right →
-        </T>
-      </svg>
+          <T x={X0} y={BASE + 50} anchor="start" size={fs}>
+            ← left
+          </T>
+          <T x={X1} y={BASE + 50} anchor="end" size={fs}>
+            right →
+          </T>
+        </svg>
+      </div>
 
       <div className="mt-2 flex flex-wrap gap-3">
         <Chip color={GT.aSoft}>votes A</Chip>

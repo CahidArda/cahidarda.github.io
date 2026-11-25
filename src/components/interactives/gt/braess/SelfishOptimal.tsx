@@ -111,7 +111,7 @@ export default function SelfishOptimal() {
       title="selfish vs optimal"
       kicker="Pigou's two roads"
       hint="drag across the chart to choose how traffic splits"
-      footer="price of anarchy: 4/3"
+      footer="Roughgarden & Tardos, 2002"
     >
       <svg
         ref={svgRef}
@@ -143,7 +143,7 @@ export default function SelfishOptimal() {
           {`fixed road · 60 min · ${Math.round((1 - xs) * 100)}% of drivers`}
         </T>
         <T x={260} y={118} size={10 * k} color={GT.a}>
-          {`x-road · x · 60 = ${Math.round(xs * 60)} min · ${Math.round(xs * 100)}% of drivers`}
+          {`x-road · 60x = ${Math.round(xs * 60)} min · ${Math.round(xs * 100)}% of drivers`}
         </T>
         {[
           ['S', S],
@@ -159,7 +159,7 @@ export default function SelfishOptimal() {
                 height={30}
                 style={{ fill: GT.paperRaised, stroke: GT.ink, strokeWidth: 1.5 }}
               />
-              <T x={q.x} y={q.y + 1} size={16 * k} font="display" color={GT.ink}>
+              <T x={q.x} y={q.y + 1} size={16} font="display" color={GT.ink}>
                 {k as string}
               </T>
             </g>

@@ -241,8 +241,8 @@ export default function NewRoad() {
     const my = (P[a].y + P[b].y) / 2;
     const up = e === 'AC' || e === 'CB';
     const dx = e === 'AC' || e === 'AD' ? -1 : 1;
-    const x = mx + dx * 30;
-    const y = my + (up ? -26 : 26);
+    const x = mx + dx * (30 + 34 * (k - 1));
+    const y = my + (up ? -1 : 1) * (26 + 18 * (k - 1));
     const variable = e === 'AC' || e === 'DB';
     return (
       <g key={e}>
@@ -250,7 +250,7 @@ export default function NewRoad() {
           {fmt(et[e])} min
         </T>
         <T x={x} y={y + 9 * k} size={9 * k}>
-          {variable ? `x/100, x = ${load[e]} cars` : 'fixed 45'}
+          {variable ? `x/100, x = ${load[e]}` : 'fixed 45'}
         </T>
       </g>
     );
@@ -308,6 +308,7 @@ export default function NewRoad() {
       </div>
 
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         className="block w-full"
         role="img"
@@ -408,7 +409,7 @@ export default function NewRoad() {
               height={32}
               style={{ fill: GT.paperRaised, stroke: GT.ink, strokeWidth: 1.5 }}
             />
-            <T x={P[k].x} y={P[k].y + 1} size={17 * k} font="display" color={GT.ink}>
+            <T x={P[k].x} y={P[k].y + 1} size={17} font="display" color={GT.ink}>
               {k}
             </T>
           </g>

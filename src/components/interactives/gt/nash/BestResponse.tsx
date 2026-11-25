@@ -93,8 +93,8 @@ export default function BestResponse() {
     setCell(reduced ? (restingCell(id, s) ?? s) : s);
     setLastWho(null);
     setHops(0);
-    if (broadcast)
-      window.dispatchEvent(new CustomEvent(NASH_EVENT, { detail: { id, src: 'br' } }));
+    (window as unknown as { __gtNashGame?: GameId }).__gtNashGame = id;
+    if (broadcast) window.dispatchEvent(new CustomEvent(NASH_EVENT, { detail: { id, src: 'br' } }));
   };
 
   useEffect(() => {
@@ -150,7 +150,8 @@ export default function BestResponse() {
       p.y += (target.y - p.y) * k;
       force((v) => v + 1);
     },
-    !reduced && (Math.abs(pos.current.x - target.x) > 0.3 || Math.abs(pos.current.y - target.y) > 0.3),
+    !reduced &&
+      (Math.abs(pos.current.x - target.x) > 0.3 || Math.abs(pos.current.y - target.y) > 0.3),
   );
   if (reduced) pos.current = { ...target };
 
@@ -238,7 +239,14 @@ export default function BestResponse() {
                     }}
                   />
                   {eq && (
-                    <T x={cx(c) - CW / 2 + 7} y={cy(r) - CH / 2 + 11} anchor="start" size={9} color={GT.eq} weight={600}>
+                    <T
+                      x={cx(c) - CW / 2 + 7}
+                      y={cy(r) - CH / 2 + 11}
+                      anchor="start"
+                      size={9}
+                      color={GT.eq}
+                      weight={600}
+                    >
                       NASH
                     </T>
                   )}
@@ -248,7 +256,14 @@ export default function BestResponse() {
                   <T x={cx(c)} y={cy(r) - 6} size={22} color={GT.muted} font="display">
                     ,
                   </T>
-                  <T x={cx(c) + 8} y={cy(r) - 6} anchor="start" font="display" size={30} color={GT.b}>
+                  <T
+                    x={cx(c) + 8}
+                    y={cy(r) - 6}
+                    anchor="start"
+                    font="display"
+                    size={30}
+                    color={GT.b}
+                  >
                     {fmt(uc)}
                   </T>
                 </g>
@@ -273,7 +288,11 @@ export default function BestResponse() {
                     x2={x}
                     y2={y2}
                     markerEnd="url(#gt-arrow-a)"
-                    style={{ stroke: GT.a, strokeWidth: active ? 4 : 2.5, transition: 'stroke-width 200ms' }}
+                    style={{
+                      stroke: GT.a,
+                      strokeWidth: active ? 4 : 2.5,
+                      transition: 'stroke-width 200ms',
+                    }}
                   />
                   <T x={x + 10} y={(y1 + y2) / 2} anchor="start" size={10} color={GT.a}>
                     +{a.gain}
@@ -293,7 +312,11 @@ export default function BestResponse() {
                   x2={x2}
                   y2={y}
                   markerEnd="url(#gt-arrow-b)"
-                  style={{ stroke: GT.b, strokeWidth: active ? 4 : 2.5, transition: 'stroke-width 200ms' }}
+                  style={{
+                    stroke: GT.b,
+                    strokeWidth: active ? 4 : 2.5,
+                    transition: 'stroke-width 200ms',
+                  }}
                 />
                 <T x={(x1 + x2) / 2} y={y - 11} size={10} color={GT.b}>
                   +{a.gain}

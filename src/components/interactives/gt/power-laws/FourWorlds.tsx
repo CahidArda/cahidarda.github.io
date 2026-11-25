@@ -129,6 +129,8 @@ export default function FourWorlds() {
   const [p, setP] = useState(0.2);
   const [history, setHistory] = useState(0);
   const [t, setT] = useState(LISTENERS);
+  const tRef = useRef(LISTENERS);
+  tRef.current = t;
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
 
@@ -162,14 +164,9 @@ export default function FourWorlds() {
 
   useFrame(
     (dt) => {
-      setT((x) => {
-        const nx = x + (LISTENERS / PLAY_SECONDS) * dt;
-        if (nx >= LISTENERS) {
-          setPlaying(false);
-          return LISTENERS;
-        }
-        return nx;
-      });
+      const nx = Math.min(LISTENERS, tRef.current + (LISTENERS / PLAY_SECONDS) * dt);
+      setT(nx);
+      if (nx >= LISTENERS) setPlaying(false);
     },
     playing && inView && !reduced,
   );

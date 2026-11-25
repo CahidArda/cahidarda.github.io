@@ -172,7 +172,8 @@ export default function IdeaSpreads() {
 
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="block w-full"
+        className="mx-auto block w-full"
+        style={{ maxHeight: 400 }}
         role="img"
         aria-label={`A network of ${NODES.length} people. ${nAdopted} have adopted the new behaviour at threshold ${fmt(q)}.`}
       >
@@ -180,7 +181,7 @@ export default function IdeaSpreads() {
         {holdouts.length > 0 && (
           <g style={{ opacity: 0.9 }}>
             {holdouts.map((i) => (
-              <circle key={i} cx={NODES[i].x} cy={NODES[i].y} r={27} style={{ fill: GT.bSoft }} />
+              <circle key={i} cx={NODES[i].x} cy={NODES[i].y} r={27} style={{ fill: GT.aSoft }} />
             ))}
           </g>
         )}
@@ -256,7 +257,7 @@ export default function IdeaSpreads() {
                 r={R}
                 style={{
                   fill: on ? GT.eq : GT.paperRaised,
-                  stroke: on ? GT.eq : hold ? GT.b : GT.inkSoft,
+                  stroke: on ? GT.eq : hold ? GT.a : GT.inkSoft,
                   strokeWidth: hover === n.id ? 3 : 1.6,
                   transition: 'fill 300ms, stroke 300ms',
                 }}
@@ -275,7 +276,7 @@ export default function IdeaSpreads() {
           y={352}
           anchor="middle"
           size={13}
-          color={holdouts.includes(19) ? GT.b : GT.muted}
+          color={holdouts.includes(19) ? GT.a : GT.muted}
         >
           a tight-knit group
         </T>
@@ -316,7 +317,7 @@ export default function IdeaSpreads() {
         <BigStat
           label="holdout density"
           value={density !== null ? density.toFixed(2) : stalled ? '·' : '…'}
-          color={density !== null ? GT.b : GT.muted}
+          color={density !== null ? GT.a : GT.muted}
           sub={
             density !== null
               ? `> 1 − q = ${(1 - q).toFixed(2)}`
@@ -334,7 +335,7 @@ export default function IdeaSpreads() {
           ref={chartRef}
           viewBox={`0 0 ${CW} ${CH}`}
           className="block w-full touch-none select-none"
-          style={{ cursor: 'ew-resize' }}
+          style={{ cursor: 'ew-resize', maxHeight: 140 }}
           onPointerDown={onChart}
           onPointerMove={onChart}
           role="img"
@@ -349,17 +350,17 @@ export default function IdeaSpreads() {
                 y2={cy(n)}
                 style={{ stroke: GT.line, strokeDasharray: '2 3' }}
               />
-              <T x={CP.l - 6} y={cy(n)} anchor="end" size={11}>
+              <T x={CP.l - 6} y={cy(n)} anchor="end" size={13}>
                 {n}
               </T>
             </g>
           ))}
           {[0.25, 0.5, 0.75].map((t) => (
-            <T key={t} x={cx(t)} y={CH - 8} size={11}>
+            <T key={t} x={cx(t)} y={CH - 8} size={13}>
               {t.toFixed(2)}
             </T>
           ))}
-          <T x={CW - CP.r} y={CH - 8} anchor="end" size={11}>
+          <T x={CW - CP.r} y={CH - 8} anchor="end" size={13}>
             q →
           </T>
           <path d={curvePath} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.2 }} />
@@ -382,7 +383,7 @@ export default function IdeaSpreads() {
       <div className="mt-2 flex flex-wrap gap-3">
         <Chip color={GT.eq}>new behaviour</Chip>
         <Chip color={GT.inkSoft}>old behaviour</Chip>
-        <Chip color={GT.bSoft}>the cluster that blocks it</Chip>
+        <Chip color={GT.aSoft}>the cluster that blocks it</Chip>
       </div>
       <Caption>
         With the three starting seeds: up to q = 0.20 everyone switches. From 0.25 the tight-knit

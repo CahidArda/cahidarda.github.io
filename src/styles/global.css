@@ -1137,3 +1137,11 @@ html {
     animation: none !important;
   }
 }
+
+/* Long display equations scroll inside their own box instead of widening the page
+   (KaTeX's hidden MathML copy otherwise pushes the document past a phone's width). */
+.prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.15em 0;
+}

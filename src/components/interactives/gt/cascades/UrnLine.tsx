@@ -36,8 +36,8 @@ const SCRIPT: { urn: Colour; balls: Colour[] } = {
   ],
 };
 
-// 1000 simulated lines (deterministic), computed once at module load so SSR has the numbers.
-const RUNS = 1000;
+// 10,000 simulated lines (deterministic), computed once at module load so SSR has the numbers.
+const RUNS = 10000;
 const SIM = (() => {
   const rnd = mulberry32(2010);
   let crowd = 0;
@@ -151,7 +151,7 @@ export default function UrnLine() {
         <span className="ml-auto flex flex-wrap gap-3">
           <Chip color={GT.a}>blue</Chip>
           <Chip color={GT.b}>red</Chip>
-          <Chip color={GT.eq}>following the crowd</Chip>
+          <Chip color={GT.warn}>following the crowd</Chip>
         </span>
       </div>
 
@@ -166,7 +166,7 @@ export default function UrnLine() {
               key={`${run}-${i}`}
               className="relative flex flex-col items-center border bg-paper-raised px-0.5 pb-1.5 pt-1 transition-colors"
               style={{
-                borderColor: current ? GT.ink : on && t.following ? GT.eq : GT.line,
+                borderColor: current ? GT.ink : on && t.following ? GT.warn : GT.line,
                 borderStyle: on ? 'solid' : 'dashed',
                 borderTopWidth: on && t.following ? 3 : 1,
               }}
@@ -256,8 +256,8 @@ export default function UrnLine() {
           label="crowd wrong"
           value={Math.round(SIM.crowd * 100)}
           unit="%"
-          color={GT.eq}
-          sub={`of ${RUNS} simulated lines`}
+          color={GT.warn}
+          sub="of 10,000 simulated lines"
         />
         <BigStat
           label="pooling the balls"

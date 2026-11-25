@@ -1,10 +1,72 @@
 ---
-title: "Bid What It Is Worth"
-description: "Why a second-price auction makes honesty the best strategy, and what happens to bids when you pay your own price."
+title: 'Bid What It Is Worth'
+description: 'Why a second-price auction makes honesty the best strategy, and what happens to bids when you pay your own price.'
 date: 2026-11-25
 tags: ['blog']
 series: logic-of-crowds
 seriesOrder: 4
 ---
 
-Coming soon.
+import BidPlot from '../../../components/interactives/gt/auctions/BidPlot.tsx';
+import Revenue from '../../../components/interactives/gt/auctions/Revenue.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+On eBay you type the most you would pay, and the site raises your bid only as far as it needs to beat the
+next bidder. So the winner pays roughly the second-highest price. That one rule changes how you should bid.
+
+## Pay the second price
+
+Everyone writes a bid in a sealed envelope. The highest bid wins, but pays the **second-highest** bid
+(William Vickrey's design, [_Journal of Finance_, 1961](https://doi.org/10.1111/j.1540-6261.1961.tb02789.x)).
+The item is worth $v$ to you, you bid $b$, and the best rival bid is $r$:
+
+$$
+\text{gain} = \begin{cases} v - r & \text{if } b > r \\ 0 & \text{otherwise} \end{cases}
+$$
+
+Your bid never sets your price. It only decides whether you win. The map below colours every pair of
+(your bid, rival bid):
+
+<div class="fx-figure">
+  <BidPlot client:visible />
+</div>
+
+Bidding above your value adds only red: cases where you win and pay more than the item is worth. Bidding
+below adds only grey: wins you wanted and gave away. The line $b = v$ touches neither, so bidding your
+value is never worse than any other bid, whatever the others do. Game theorists call this a weakly
+dominant strategy ([Easley & Kleinberg, _Networks, Crowds, and Markets_, ch. 9 "Auctions", section 9.4](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)).
+
+Flip the plot to first price and the honest line earns exactly zero everywhere. If you pay what you bid,
+you have to bid less than the item is worth.
+
+## How much to shade
+
+Say $n$ bidders have values spread evenly between \$0 and \$100. In a first-price auction the equilibrium
+bid is
+
+<EqTip note="If everyone else bids this fraction of their value, a bid b wins when all n−1 rivals bid below it. Maximising (v − b) times that chance gives b = (n−1)v/n.">
+
+$$
+b(v) = \frac{n-1}{n}\, v
+$$
+
+</EqTip>
+
+Two bidders each bid half their value; with ten, each bids 90% of it. More rivals, less shading
+([Easley & Kleinberg, section 9.7](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf)).
+So which format earns the seller more? Run the auctions:
+
+<div class="fx-figure">
+  <Revenue client:visible />
+</div>
+
+Neither. In both formats the bidder with the highest value wins, and the seller expects the same revenue,
+$\frac{n-1}{n+1}$ of the top possible value. This is revenue equivalence. The first-price seller gets a
+shaded top bid, the second-price seller gets an honest second bid, and on average the two are equal.
+
+<Lesson>
+
+When the price you pay does not depend on your own bid, the best bid is the truth.
+
+</Lesson>

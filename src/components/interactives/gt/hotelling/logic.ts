@@ -54,7 +54,12 @@ export function nudge(pos: number[], who: number, step: number, F: Cdf = uniform
 }
 
 /** Global best response on a grid of positions 0, step, 2*step, ..., 1. */
-export function bestResponse(pos: number[], who: number, step: number, F: Cdf = uniformCdf): number {
+export function bestResponse(
+  pos: number[],
+  who: number,
+  step: number,
+  F: Cdf = uniformCdf,
+): number {
   let best = pos[who];
   let bestShare = shares(pos, F)[who];
   const n = Math.round(1 / step);

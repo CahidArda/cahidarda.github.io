@@ -227,12 +227,7 @@ export const EVO_IDS = ['alld', 'allc', 'tft', 'pavlov'] as const;
  * Replicator dynamics: x_i <- x_i f_i / f_bar, then a mutation flow mu toward uniform.
  * Returns the shares per generation and the population's mean payoff f_bar.
  */
-export function evolve(
-  noise: number,
-  gens = 800,
-  start = [0.6, 0.15, 0.15, 0.1],
-  mu = 0.0005,
-) {
+export function evolve(noise: number, gens = 800, start = [0.6, 0.15, 0.15, 0.1], mu = 0.0005) {
   const set = EVO_IDS.map((id) => STRATS[id]);
   const M = set.map((a) => set.map((b) => expectedPayoff(a, b, noise)));
   const n = set.length;

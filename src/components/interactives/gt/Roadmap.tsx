@@ -14,8 +14,9 @@ export interface Station {
   description: string;
 }
 
-type LineId = 'strategy' | 'network' | 'crowd';
-const LINES: { id: LineId; name: string; color: string; stops: string[] }[] = [
+type LineId = 'strategy' | 'network' | 'crowd' | 'story';
+type Line = { id: LineId; name: string; color: string; stops: string[] };
+const BASE_LINES: Line[] = [
   {
     id: 'strategy',
     name: 'strategy line',
@@ -38,8 +39,10 @@ const LINES: { id: LineId; name: string; color: string; stops: string[] }[] = [
 
 /* Desktop geometry: blue along the top, green down the right, red along the bottom. */
 const W = 640;
-const H = 380;
-const POS: Record<string, { x: number; y: number; label: 'above' | 'below' | 'left' }> = {
+const H_BASE = 380;
+const H_STORY = 480;
+type Pos = { x: number; y: number; label: 'above' | 'below' | 'left' };
+const BASE_POS: Record<string, Pos> = {
   nash: { x: 60, y: 80, label: 'above' },
   'prisoners-dilemma': { x: 175, y: 80, label: 'above' },
   hotelling: { x: 290, y: 80, label: 'above' },
@@ -65,8 +68,23 @@ const SHORT: Record<string, string> = {
 };
 const INTERCHANGE = new Set(['braess', 'cascades']);
 
-function linePoints(stops: string[]) {
-  return stops.map((s) => POS[s]);
+/** Example ("story") pages hang off station 10 on a fourth line along the bottom. */
+function buildMap(order: string[], bySlug: Record<string, Station>) {
+  const stories = order.filter((s) => (bySlug[s]?.n ?? 0) > 10);
+  const pos: Record<string, Pos> = { ...BASE_POS };
+  const lines: Line[] = [...BASE_LINES];
+  if (stories.length) {
+    pos['power-laws'] = { ...pos['power-laws'], label: 'left' };
+    stories.forEach((s, i) => (pos[s] = { x: 200 + i * 150, y: 420, label: 'below' }));
+    lines.push({ id: 'story', name: 'story line', color: GT.alt, stops: ['power-laws', ...stories] });
+  }
+  return { pos, lines, stories, H: stories.length ? H_STORY : H_BASE };
+}
+function shortTitle(slug: string, s: Station) {
+  return SHORT[slug] ?? s.title.split(':')[0];
+}
+function stationTag(s: Station) {
+  return s.n > 10 ? `E${s.n - 10}` : String(s.n).padStart(2, '0');
 }
 function polyLen(pts: { x: number; y: number }[]) {
   let L = 0;
@@ -84,8 +102,8 @@ function pointAt(pts: { x: number; y: number }[], d: number) {
   }
   return pts[pts.length - 1];
 }
-function linesOf(slug: string) {
-  return LINES.filter((l) => l.stops.includes(slug));
+function linesOf(lines: Line[], slug: string) {
+  return lines.filter((l) => l.stops.includes(slug));
 }
 
 export default function Roadmap({ stations }: { stations: Station[] }) {
@@ -94,6 +112,8 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
   const bySlug = Object.fromEntries(stations.map((s) => [s.slug, s]));
   const order = [...stations].sort((a, b) => a.n - b.n).map((s) => s.slug);
 
+  const { pos: POS, lines: LINES, stories, H } = buildMap(order, bySlug);
+  const linePoints = (stops: string[]) => stops.map((x) => POS[x]);
   const [sel, setSel] = useState<string>(order[0] ?? 'nash');
   const [touched, setTouched] = useState(false);
   const [narrow, setNarrow] = useState(false);
@@ -131,13 +151,13 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
     <Specimen
       code="GT-00"
       title="the route map"
-      kicker="10 stations · 3 lines"
+      kicker={stories.length ? `10 stations · ${stories.length} ${stories.length === 1 ? 'story' : 'stories'}` : '10 stations · 3 lines'}
       hint="hover a station to preview · click to ride"
       rootRef={rootRef}
     >
       <div ref={wrapRef}>
         {narrow ? (
-          <NarrowMap order={order} bySlug={bySlug} sel={sel} pick={pick} />
+          <NarrowMap order={order} bySlug={bySlug} sel={sel} pick={pick} lines={LINES} />
         ) : (
           <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label="Series route map">
             {/* lines */}
@@ -192,9 +212,18 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
             <text x={604} y={200} transform="rotate(90 604 200)" textAnchor="middle" style={{ fill: GT.opt, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
               NETWORK LINE
             </text>
-            <text x={200} y={364} style={{ fill: GT.b, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
+            <text x={stories.length ? 236 : 200} y={364} style={{ fill: GT.b, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}>
               CROWD LINE
             </text>
+            {stories.length > 0 && (
+              <text
+                x={212}
+                y={392}
+                style={{ fill: GT.alt, fontFamily: GT.mono, fontSize: 9, letterSpacing: '0.18em' }}
+              >
+                STORY LINE
+              </text>
+            )}
             {/* stations */}
             {order.map((slug) => {
               const p = POS[slug];
@@ -248,7 +277,7 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
                         textDecoration: 'none',
                       }}
                     >
-                      {String(s.n).padStart(2, '0')}
+                      {stationTag(s)}
                     </text>
                     <text
                       x={lx}
@@ -264,7 +293,7 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
                         transition: 'fill 200ms',
                       }}
                     >
-                      {SHORT[slug] ?? s.title}
+                      {shortTitle(slug, s)}
                     </text>
                   </g>
                 </a>
@@ -280,11 +309,11 @@ export default function Roadmap({ stations }: { stations: Station[] }) {
             className="mt-4 grid grid-cols-[auto_1fr] items-start gap-x-4 border border-line-strong bg-paper p-4 transition-colors hover:border-ink"
           >
             <span className="font-display text-5xl leading-none tabular-nums text-accent">
-              {String(cur.n).padStart(2, '0')}
+              {stationTag(cur)}
             </span>
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2">
-                {linesOf(cur.slug).map((l) => (
+                {linesOf(LINES, cur.slug).map((l) => (
                   <span key={l.id} className="inline-flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted">
                     <span className="inline-block h-1.5 w-4" style={{ background: l.color }} />
                     {l.name}
@@ -307,17 +336,19 @@ function NarrowMap({
   bySlug,
   sel,
   pick,
+  lines,
 }: {
   order: string[];
   bySlug: Record<string, Station>;
   sel: string;
   pick: (s: string) => void;
+  lines: Line[];
 }) {
   return (
     <ol className="relative">
       {order.map((slug, i) => {
         const s = bySlug[slug];
-        const ls = linesOf(slug);
+        const ls = linesOf(lines, slug);
         const on = slug === sel;
         return (
           <li key={slug} className="relative flex items-stretch gap-3">
@@ -338,7 +369,7 @@ function NarrowMap({
                   borderColor: GT.ink,
                 }}
               >
-                {String(s.n).padStart(2, '0')}
+                {stationTag(s)}
               </span>
             </div>
             <a

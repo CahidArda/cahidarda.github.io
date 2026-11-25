@@ -1,10 +1,100 @@
 ---
 title: "The Prisoner's Dilemma"
-description: "Why two sensible players end up worse off, and how repetition, reciprocity and evolution bring cooperation back."
+description: 'Why two sensible players end up worse off, and how repetition, reciprocity and evolution bring cooperation back.'
 date: 2026-11-25
 tags: ['blog']
 series: logic-of-crowds
 seriesOrder: 2
 ---
 
-Coming soon.
+import OneShot from '../../../components/interactives/gt/prisoners-dilemma/OneShot.tsx';
+import Shadow from '../../../components/interactives/gt/prisoners-dilemma/Shadow.tsx';
+import Tournament from '../../../components/interactives/gt/prisoners-dilemma/Tournament.tsx';
+import Evolution from '../../../components/interactives/gt/prisoners-dilemma/Evolution.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+Two roommates share a kitchen. Each would rather the other one did the dishes, and so the sink
+fills up. Both would prefer a clean kitchen, and neither can get one alone.
+
+## One round
+
+Each player either cooperates or defects. The payoffs are temptation $T$, reward $R$, punishment
+$P$ and sucker $S$, and two inequalities make it a dilemma
+([Easley and Kleinberg](https://www.cs.cornell.edu/home/kleinber/networks-book/networks-book.pdf),
+chapter 6):
+
+$$
+T > R > P > S \qquad 2R > T + S
+$$
+
+<div class="fx-figure">
+  <OneShot client:visible />
+</div>
+
+Defect is a dominant strategy, so mutual defection is the only
+[Nash equilibrium](/articles/logic-of-crowds/nash). Both players act sensibly and both end up worse
+off.
+
+## Many rounds
+
+Now suppose you will probably meet again: after each round, another one follows with probability
+$\delta$. Say your partner cooperates until you defect once, and then never cooperates again.
+Cheating pays $T$ once and $P$ forever after, so it stops paying when
+
+<EqTip note="Cooperating forever is worth R/(1-δ). Cheating is worth T + δP/(1-δ). The first is larger exactly when δ is at least (T-R)/(T-P). With T=5, R=3, P=1 that is 1/2.">
+
+$$
+\delta \ge \frac{T - R}{T - P} = \frac{5 - 3}{5 - 1} = \frac{1}{2}
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <Shadow client:visible />
+</div>
+
+## The tournament
+
+In the late 1970s the political scientist Robert Axelrod asked game theorists to submit programs for a
+round-robin tournament of the repeated game. Of the 14 entries, Tit for Tat won: cooperate first,
+then copy the opponent's last move. It won again in a second, larger tournament
+([Axelrod and Hamilton, 1981](https://public.websites.umich.edu/~axe/research/Axelrod%20and%20Hamilton%20EC%201981.pdf)).
+
+<div class="fx-figure">
+  <Tournament client:visible />
+</div>
+
+In this field Tit for Two Tats edges ahead of Tit for Tat, but the split is the one Axelrod found:
+every **nice** program (one that never defects first) finishes above every program that is not. He
+named two more traits of the winners: **retaliatory** (answer a defection) and **forgiving** (go back
+to cooperating afterwards).
+
+## Evolution
+
+Now let strategies breed: a strategy's share grows when it scores above average. That is the replicator equation, where $x_i$ is the share of strategy $i$, $f_i$ its
+average payoff and $\bar f$ the population mean:
+
+$$
+\dot x_i = x_i \left( f_i - \bar f \right)
+$$
+
+Players also make mistakes: with some small probability, a move comes out the opposite of what
+the strategy intended.
+
+<div class="fx-figure">
+  <Evolution client:visible />
+</div>
+
+Mistakes are hard on Tit for Tat: one slip between two copies starts an echo of retaliation.
+Pavlov (win-stay, lose-shift) gets back to cooperating in two rounds, which is why it beat Tit for
+Tat in [Nowak and Sigmund's 1993 simulations](https://www.nature.com/articles/364056a0). I
+[replicated that paper in Java](/articles/prisoners-dilemma-rl) a few years ago and saw the same
+rise of Pavlov, and its collapse late in the run.
+
+<Lesson>
+
+Defection wins any single round. Cooperation comes back when players are likely to meet again and
+answer kindness with kindness and betrayal with betrayal.
+
+</Lesson>

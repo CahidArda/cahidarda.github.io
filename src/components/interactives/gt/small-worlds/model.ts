@@ -19,7 +19,11 @@ export function rng(seed: number) {
 
 export type Edge = { a: number; b: number; rewired: boolean };
 
-export type Plan = { n: number; k: number; base: { a: number; b: number; u: number; pick: number }[] };
+export type Plan = {
+  n: number;
+  k: number;
+  base: { a: number; b: number; u: number; pick: number }[];
+};
 
 /** Fix the random numbers once per world. */
 export function makePlan(n: number, k: number, seed: number): Plan {

@@ -62,6 +62,7 @@ const tallest = (() => {
   return m;
 })();
 
+const r2 = (v: number) => Math.round(v * 100) / 100;
 const bell = (x: number) => Math.exp(-((x - 1) ** 2) / (2 * SD * SD));
 
 export default function BellVsPower() {
@@ -78,14 +79,15 @@ export default function BellVsPower() {
   const LY = [-7, 0.3];
   const linX = [0, 20];
   const linY = [0, 1.08];
-  const sxLog = (x: number) => M.l + ((Math.log10(x) - LX[0]) / (LX[1] - LX[0])) * PW;
+  const sxLog = (x: number) => r2(M.l + ((Math.log10(x) - LX[0]) / (LX[1] - LX[0])) * PW);
   const syLog = (y: number) =>
-    M.t + (1 - (Math.log10(Math.max(y, 1e-9)) - LY[0]) / (LY[1] - LY[0])) * PH;
+    r2(M.t + (1 - (Math.log10(Math.max(y, 1e-9)) - LY[0]) / (LY[1] - LY[0])) * PH);
   const sxLin = (x: number) => M.l + ((x - linX[0]) / (linX[1] - linX[0])) * PW;
   const syLin = (y: number) => M.t + (1 - (y - linY[0]) / (linY[1] - linY[0])) * PH;
   // blend the two projections so the switch is a visible morph, not a cut
-  const sx = (x: number) => sxLin(x) + (sxLog(x) - sxLin(x)) * morph;
-  const sy = (y: number) => syLin(y) + (syLog(y) - syLin(y)) * morph;
+  // rounded so server and browser floating point agree at hydration
+  const sx = (x: number) => r2(sxLin(x) + (sxLog(x) - sxLin(x)) * morph);
+  const sy = (y: number) => r2(syLin(y) + (syLog(y) - syLin(y)) * morph);
   const inPlot = (x: number, y: number) =>
     x >= M.l - 0.5 && x <= W - M.r + 0.5 && y >= M.t - 0.5 && y <= H - M.b + 0.5;
 
@@ -261,15 +263,15 @@ export default function BellVsPower() {
           </>
         )}
       </svg>
-      <div className="mt-3 max-w-sm">
+      <div className="mt-3 max-w-md">
         <Slider
           label="p: chance a new link is picked at random"
-          value={p}
-          min={0.05}
-          max={0.5}
-          step={0.05}
-          onChange={setP}
-          format={(v) => v.toFixed(2)}
+          value={Math.round(p * 100)}
+          min={5}
+          max={50}
+          step={5}
+          onChange={(v) => setP(v / 100)}
+          format={(v) => (v / 100).toFixed(2)}
         />
       </div>
       <Caption>

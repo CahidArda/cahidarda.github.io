@@ -40,7 +40,8 @@ const CAPTION: Record<GameId, string> = {
   stag: 'Both corners are equilibria, but only the stag hunt is on the frontier. The hare equilibrium is safe and worse for both.',
   chicken:
     'Both equilibria are on the frontier: they are efficient, just unfair. The crash (0, 0) is the outcome everyone fears.',
-  coord: 'Both equilibria are efficient. The fight is over which one, since each player prefers a different one.',
+  coord:
+    'Both equilibria are efficient. The fight is over which one, since each player prefers a different one.',
   pennies:
     'Zero-sum: one player gains exactly what the other loses, so every outcome is efficient and no cell is stable. The mixed equilibrium pays (0, 0).',
 };
@@ -49,6 +50,11 @@ const fmt = (v: number) => (v < 0 ? `−${-v}` : String(v));
 
 export default function ParetoPlane() {
   const [sel, setSel] = useState<GameId>('pd');
+  // pick up the game the sibling widget is showing if it hydrated first
+  useEffect(() => {
+    const last = (window as unknown as { __gtNashGame?: GameId }).__gtNashGame;
+    if (last) setSel(last);
+  }, []);
   const [gid, bind] = useHoverPreview(sel);
 
   useEffect(() => {
@@ -62,6 +68,7 @@ export default function ParetoPlane() {
 
   const commit = (id: GameId) => {
     setSel(id);
+    (window as unknown as { __gtNashGame?: GameId }).__gtNashGame = id;
     window.dispatchEvent(new CustomEvent(NASH_EVENT, { detail: { id, src: 'pp' } }));
   };
 
@@ -113,12 +120,24 @@ export default function ParetoPlane() {
           {/* grid + axes */}
           {ticks.map((t) => (
             <g key={'t' + t}>
-              <line x1={px(t)} y1={Y0} x2={px(t)} y2={Y1} style={{ stroke: GT.line, strokeWidth: 0.6 }} />
-              <line x1={X0} y1={py(t)} x2={X1} y2={py(t)} style={{ stroke: GT.line, strokeWidth: 0.6 }} />
-              <T x={px(t)} y={Y0 + 13} size={9} color={GT.a}>
+              <line
+                x1={px(t)}
+                y1={Y0}
+                x2={px(t)}
+                y2={Y1}
+                style={{ stroke: GT.line, strokeWidth: 0.6 }}
+              />
+              <line
+                x1={X0}
+                y1={py(t)}
+                x2={X1}
+                y2={py(t)}
+                style={{ stroke: GT.line, strokeWidth: 0.6 }}
+              />
+              <T x={px(t)} y={Y0 + 13} size={10} color={GT.a}>
                 {fmt(t)}
               </T>
-              <T x={X0 - 8} y={py(t)} anchor="end" size={9} color={GT.b}>
+              <T x={X0 - 8} y={py(t)} anchor="end" size={10} color={GT.b}>
                 {fmt(t)}
               </T>
             </g>
@@ -160,9 +179,9 @@ export default function ParetoPlane() {
           {/* arrow from a dominated equilibrium to the best outcome above it */}
           {dominatedEqs.map((c) => {
             const [a, b] = u(c);
-            const better = CELLS.filter((d) => u(d)[0] >= a && u(d)[1] >= b && total(d) > a + b).sort(
-              (d1, d2) => total(d2) - total(d1),
-            )[0];
+            const better = CELLS.filter(
+              (d) => u(d)[0] >= a && u(d)[1] >= b && total(d) > a + b,
+            ).sort((d1, d2) => total(d2) - total(d1))[0];
             if (!better) return null;
             const [a2, b2] = u(better);
             const dx = px(a2) - px(a);
@@ -186,7 +205,14 @@ export default function ParetoPlane() {
           {/* the mixed equilibrium of matching pennies */}
           {zeroSum && (
             <g style={{ transform: `translate(${px(0)}px, ${py(0)}px)` }}>
-              <rect x={-7} y={-7} width={14} height={14} transform="rotate(45)" style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2 }} />
+              <rect
+                x={-7}
+                y={-7}
+                width={14}
+                height={14}
+                transform="rotate(45)"
+                style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2 }}
+              />
               <T x={12} y={14} anchor="start" size={10} color={GT.eq} weight={600}>
                 mixed Nash
               </T>
@@ -199,10 +225,16 @@ export default function ParetoPlane() {
             const eq = isCell(eqs, c);
             const opt = isCell(po, c);
             const left = px(a) > X1 - 70;
+            // cells that land on the same point share one label (matching pennies)
+            const twins = CELLS.filter((d) => u(d)[0] === a && u(d)[1] === b);
+            const first = twins[0] === c;
             return (
               <g
                 key={i}
-                style={{ transform: `translate(${px(a)}px, ${py(b)}px)`, transition: 'transform 450ms cubic-bezier(.3,.7,.2,1)' }}
+                style={{
+                  transform: `translate(${px(a)}px, ${py(b)}px)`,
+                  transition: 'transform 450ms cubic-bezier(.3,.7,.2,1)',
+                }}
               >
                 {eq && <circle r={12} style={{ fill: 'none', stroke: GT.eq, strokeWidth: 2.5 }} />}
                 <circle
@@ -213,12 +245,21 @@ export default function ParetoPlane() {
                     strokeWidth: 2,
                   }}
                 />
-                <T x={left ? -16 : 16} y={-1} anchor={left ? 'end' : 'start'} size={11} color={GT.ink} weight={600}>
-                  {label(c)}
+                <T
+                  x={left ? -16 : 16}
+                  y={-2}
+                  anchor={left ? 'end' : 'start'}
+                  size={13}
+                  color={GT.ink}
+                  weight={600}
+                >
+                  {first ? twins.map(label).join(' or ') : ''}
                 </T>
-                <T x={left ? -16 : 16} y={12} anchor={left ? 'end' : 'start'} size={9}>
-                  {`(${fmt(a)}, ${fmt(b)})${eq ? ' Nash' : ''}`}
-                </T>
+                {first && (
+                  <T x={left ? -16 : 16} y={14} anchor={left ? 'end' : 'start'} size={11}>
+                    {`(${fmt(a)}, ${fmt(b)})${eq ? ' Nash' : ''}`}
+                  </T>
+                )}
               </g>
             );
           })}

@@ -145,10 +145,10 @@ export default function LongTail() {
             <rect x={M.l} y={0} width={cx - M.l} height={H} />
           </clipPath>
         </defs>
-        <T x={M.l} y={TOP.y - 12} anchor="start" size={10} color={GT.inkSoft}>
+        <T x={M.l} y={TOP.y - 12} anchor="start" size={9.5} color={GT.inkSoft}>
           links to each page, most-linked first
         </T>
-        <T x={W - M.r} y={TOP.y - 12} anchor="end" size={10}>
+        <T x={W - M.r} y={TOP.y - 12} anchor="end" size={9.5}>
           max {links[0]}
         </T>
         <path d={linkPath} style={{ fill: GT.a, opacity: 0.22 }} />
@@ -169,13 +169,13 @@ export default function LongTail() {
               y2={TOP.y + TOP.h - 10}
               style={{ stroke: GT.muted }}
             />
-            <T x={(M.l + (zeroAt / N) * PW + W - M.r) / 2} y={TOP.y + TOP.h - 20} size={10}>
+            <T x={(M.l + (zeroAt / N) * PW + W - M.r) / 2} y={TOP.y + TOP.h - 20} size={9.5}>
               {Math.round(((N - zeroAt) / N) * 100)}% of pages: no links at all
             </T>
           </>
         )}
 
-        <T x={M.l} y={BOT.y - 12} anchor="start" size={10} color={GT.inkSoft}>
+        <T x={M.l} y={BOT.y - 12} anchor="start" size={9.5} color={GT.inkSoft}>
           height of each man, tallest first
         </T>
         <path d={heightPath} style={{ fill: GT.b, opacity: 0.22 }} />
@@ -197,7 +197,7 @@ export default function LongTail() {
           style={{ stroke: GT.eq, strokeWidth: 2 }}
         />
         <rect x={cx - 6} y={BOT.y + BOT.h + 4} width={12} height={12} style={{ fill: GT.eq }} />
-        <T x={clamp(cx, M.l + 30, W - M.r - 30)} y={H - 2} size={10} color={GT.eq} baseline="auto">
+        <T x={clamp(cx, M.l + 30, W - M.r - 30)} y={H - 2} size={9.5} color={GT.eq} baseline="auto">
           top {cutLabel}
         </T>
         <T x={M.l - 6} y={TOP.y + TOP.h} anchor="end" size={9}>
