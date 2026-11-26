@@ -36,6 +36,15 @@ pnpm format    # prettier --write .
   it reaches the TOC), `CurrentList` (all categories), `CurrentTimeline` (React island, one swimlane per category, one marker per day with a count;
   hover lists the links, click jumps to the item). Types/helpers in `src/lib/current.ts`.
 
+## Commit authorship
+
+Author every commit as the user, **Cahid Arda**, with the user's own email (the one the session
+context gives as the user's email). Do not leave the author as the agent's default identity
+(`Claude <noreply@anthropic.com>`, `Upstash Box <box@upstash.com>` or similar). This applies in
+every repo, including Upstash repos worked on in an Upstash Box: pass `author_name` /
+`author_email` to `box_git commit`, or `git -c user.name=... -c user.email=... commit`. Claude
+appears only as the `Co-Authored-By:` trailer, never as the author.
+
 ## Conventions
 
 - Math is already wired (`remark-math` + `rehype-katex` in `astro.config.mjs`; KaTeX CSS imported
