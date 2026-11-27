@@ -81,7 +81,7 @@ const soft = (h: number) => (h ? GT.optSoft : GT.bSoft);
 
 const CAPTIONS = [
   'Suppose a program H could predict, for any program and any input, whether it halts. Its verdicts fill this table. Inputs are programs too: any code can be fed to any program.',
-  'Build D, the contrarian. Given a program’s code, D asks H what that program does when run on its own code (the diagonal), then does the opposite.',
+  'Build D, the contrarian. Give D any program x. D asks H what x does when x is fed its own code as input, then does the opposite: loops if H says halts, halts if H says loops.',
   'D is a program, so it has a row and a column of its own. What does H say about D run on D?',
   'If H says “halts”, D loops. If H says “loops”, D halts. Either way H is wrong, so no perfect H can exist.',
   ...V.map(

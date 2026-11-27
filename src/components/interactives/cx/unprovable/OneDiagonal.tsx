@@ -162,7 +162,7 @@ const SPECS: Record<Proof, Spec> = {
     ],
     caps: [
       'Turing, 1936: suppose a program H predicts, for any program and input, whether it halts. Its verdicts fill the table.',
-      'Build D: given a program’s code, D asks H about that program run on its own code, then does the opposite.',
+      'Build D: give D any program x. D asks H what x does when x is fed its own code as input, then does the opposite.',
       'D is a program too, so it has a column. What happens when D runs on D?',
       'Either verdict makes H wrong, so no perfect H exists.',
     ],

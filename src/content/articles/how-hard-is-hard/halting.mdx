@@ -21,8 +21,9 @@ the first question shown to have no algorithm at all.
 ## The contrarian
 
 Suppose someone hands you $H$, a perfect predictor. Give it any program and any input and it
-answers "halts" or "loops". Then you could write a short program $D$ that asks $H$ about a
-program run on its own code, and does the opposite:
+answers "halts" or "loops". A program is just text, so you can even feed a program its own code
+as its input. Now write a short program $D$. Give it any program $x$, and $D$ asks $H$ one
+question: "what does $x$ do when it is fed its own code?" Then $D$ does the opposite of the answer:
 
 $$
 D(x) = \begin{cases} \text{loop forever} & \text{if } H \text{ says } x(x) \text{ halts} \\ \text{halt} & \text{if } H \text{ says } x(x) \text{ loops} \end{cases}
