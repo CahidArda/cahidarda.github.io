@@ -1,0 +1,100 @@
+---
+title: 'A Polynomial That Lists the Primes (Hilbert''s Tenth Problem)'
+seoTitle: "Hilbert's Tenth Problem and the Prime-Generating Polynomial"
+description: 'Hilbert asked for a method to tell whether a polynomial equation has a whole-number solution. There is none, and the proof hands you a polynomial whose positive values are exactly the primes.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 15
+---
+
+import Polynomial from '../../../components/interactives/cx/prime-polynomial/Polynomial.tsx';
+import WitnessSize from '../../../components/interactives/cx/prime-polynomial/WitnessSize.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Put 26 whole numbers into a polynomial and read the answer. Whenever the answer is positive it is a prime, and
+every prime comes out for some choice of inputs. That polynomial exists and fits on half a page. It is a by-product of
+Hilbert's tenth problem.
+
+## Hilbert's tenth problem
+
+In 1900 David Hilbert asked: "Given a diophantine equation with any number of unknown quantities and with
+rational integral numerical coefficients: to devise a process according to which it can be determined by a
+finite number of operations whether the equation is solvable in rational integers."
+([Hilbert, tr. Newson](https://mathcs.clarku.edu/~djoyce/hilbert/problems.html#prob10)).
+
+The answer took 70 years and is no. Davis, Putnam and Robinson (1961) and Matiyasevich (1970) showed that any
+list of positive whole numbers a program can print is the set of positive values of some polynomial. A process
+for Hilbert's question would then decide the [halting problem](/articles/how-hard-is-hard/halting), which no
+program can.
+
+## The polynomial
+
+The primes are such a list. In 1976 Jones, Sato, Wada and Wiens wrote out the polynomial: degree 25, in the 26
+letters $a$ to $z$, of the form
+
+$$
+(k+2)\,\bigl\{1 - [wz+h+j-q]^2 - [(gk+2g+k+1)(h+j)+h-z]^2 - \cdots - [z+pl(a-p)+t(2ap-p^2-1)-pm]^2\bigr\}
+$$
+
+If any of the 14 brackets is not zero, the braces hold 1 minus at least 1, so the output is zero or negative
+("e.g., −76", the paper notes). Only when all 14 vanish is the output $k+2$, and they can all vanish only when
+$k+2$ is prime.
+
+<div class="fx-figure">
+  <Polynomial client:visible />
+</div>
+
+The brackets check a certificate built on Wilson's theorem,
+
+$$
+k+2 \text{ is prime} \iff (k+2) \text{ divides } (k+1)! + 1
+$$
+
+with the factorial pinned down by Pell equations such as $x^2 = (a^2-1)y^2 + 1$, whose solutions grow
+exponentially.
+
+## Why you cannot just search
+
+For 2, the smallest prime, the paper's construction fixes most letters, and the rest come out of Pell equations
+solved exactly for this page. No certificate for 2 has a smaller $a$.
+
+<div class="fx-figure">
+  <WitnessSize client:visible />
+</div>
+
+The paper points out that every prime then has "a proof that p is prime consisting of only 87 additions and
+multiplications", on numbers like these. Testing primality is in fact easy (it is in P, see
+[factoring](/articles/how-hard-is-hard/factoring)); the polynomial is a statement about what equations can
+express. The sizes are the point: if the smallest solution of every equation had a computable size limit, you
+could search up to it and answer Hilbert. There is no such limit. The same route gives
+[unprovable statements](/articles/how-hard-is-hard/unprovable): for a sound proof system, some polynomial
+equation has no whole-number solution, and the system cannot prove it.
+
+<Lesson>
+
+A polynomial can list every prime, yet no method decides whether a polynomial equation has a whole-number
+solution: the solutions can be too large ever to find.
+
+</Lesson>
+
+## Sources
+
+1. David Hilbert, "Mathematical Problems", translated by Mary Winston Newson, _Bulletin of the American
+   Mathematical Society_ 8 (1902), pp. 437-479. Problem 10 quoted from the
+   [transcription by David Joyce](https://mathcs.clarku.edu/~djoyce/hilbert/problems.html#prob10).
+2. Martin Davis, Hilary Putnam and Julia Robinson, "The decision problem for exponential diophantine
+   equations", _Annals of Mathematics_ 74 (1961), pp. 425-436,
+   [doi:10.2307/1970289](https://doi.org/10.2307/1970289).
+3. Yuri Matiyasevich, "Enumerable sets are Diophantine", _Soviet Mathematics Doklady_ 11 (1970), pp. 354-357
+   (Russian original: _Doklady Akademii Nauk SSSR_ 191 (1970), pp. 279-282,
+   [Math-Net.Ru](https://mathnet.ru/eng/dan35274)).
+4. James P. Jones, Daihachiro Sato, Hideo Wada and Douglas Wiens, "Diophantine Representation of the Set of
+   Prime Numbers", _American Mathematical Monthly_ 83(6) (1976), pp. 449-464,
+   [scan](https://www.math.umd.edu/~laskow/Pubs/713/Diorepofprimes.pdf). The polynomial is equation (1) and
+   Theorem 1 on p. 449, the 87 operations are Theorem 5 on p. 451, and the certificate is Theorem 2.12 on
+   pp. 454-455, with Lemma 2.3 (p. 451) forcing $a$ to be large.
+5. Martin Davis, "Hilbert's Tenth Problem is Unsolvable", _American Mathematical Monthly_ 80 (1973),
+   pp. 233-269, [scan](https://www.cs.cmu.edu/~cdm/resources/Davis1973-Hilbert-10.pdf).
+6. Sizes in CX-15.2: computed for this page from the construction in [4]. The letters up to $x$ are exact; $r$,
+   $u$, $c$ and $d$ follow from closed forms ($u$ is the Pell solution at step $16a$), checked on small cases.

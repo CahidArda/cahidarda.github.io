@@ -1,0 +1,83 @@
+---
+title: 'Where the Hard Problems Are (SAT Phase Transition)'
+seoTitle: 'The SAT Phase Transition Explained Interactively'
+description: 'Random puzzles are easy when loose and easy when tight. The hard ones sit at a sharp threshold in between: the phase transition of 3-SAT.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 7
+---
+
+import Cliff from '../../../components/interactives/cx/phase-transition/Cliff.tsx';
+import SearchTrees from '../../../components/interactives/cx/phase-transition/SearchTrees.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Seat ten guests with two wishes, like "Ann not next to Bob", and almost any seating works. Give
+them two hundred wishes and you soon see that nothing can. The seatings that take all evening
+are somewhere in between. Random logic puzzles behave the same way, and the switch from "easy
+yes" to "easy no" is so sudden that it is called a phase transition.
+
+## A cliff in random puzzles
+
+The puzzle is 3-SAT, a version of SAT, the first problem shown to be
+[NP-complete](/articles/how-hard-is-hard/np-complete). There are $n$ true-or-false variables
+and $m$ rules (clauses), and each rule names three variables and asks for at least one to come out right,
+like "$x_1$ or not $x_7$ or $x_9$". What matters is the number of clauses per variable:
+
+$$
+\alpha = \frac{m}{n}
+$$
+
+I generated 51,000 random puzzles and ran a standard solver on each (DPLL: set a variable,
+follow everything it forces, and back up when two rules clash).
+
+<div class="fx-figure">
+  <Cliff client:visible />
+</div>
+
+With 100 variables, 92% of puzzles at $\alpha = 4$ have a solution and 1% at $\alpha = 5$. The
+drop gets steeper as $n$ grows. The solver's work peaks at the same spot: the median puzzle took
+40 steps at $\alpha = 3$, 4,740 at 4.4 and 317 at 7.
+
+Mitchell, Selman and Levesque found this in 1992: "the hardest area for satisfiability is near
+the point where 50% of the formulas are satisfiable", at about 4.3 rules per variable, and at
+4.55 for 20 variables
+([_Hard and Easy Distributions of SAT Problems_](https://cdn.aaai.org/AAAI/1992/AAAI92-071.pdf)).
+My run puts the 50% point at 4.64, 4.39 and 4.31 for 20, 50 and 100 variables. For huge puzzles,
+physicists predict 4.267 ([Mertens, Mézard and Zecchina](https://arxiv.org/pdf/cs/0309020)), still
+a conjecture.
+
+## Why the middle is hard
+
+<div class="fx-figure">
+  <SearchTrees client:visible />
+</div>
+
+With few rules, the first guesses almost never clash, so the solver walks straight down to a
+solution. With many, every guess forces so much that a clash comes within a few levels and each
+branch dies young. At the threshold, guesses survive for a while and then fail deep down, again
+and again. Cheeseman, Kanefsky and Taylor put it this way in 1991: "Really hard problems occur on
+the boundary between these two regions"
+([_Where the Really Hard Problems Are_](https://www.ijcai.org/proceedings/1991/0050.pdf)).
+
+"Easy" means easier than at the threshold: Mitchell and colleagues note that for tight puzzles
+with enough variables this solver still takes exponential time. And NP-completeness is about the
+worst puzzle, while this page is about typical ones, which is part of why
+[P vs NP](/articles/how-hard-is-hard/p-vs-np) is subtle.
+
+<Lesson>
+
+The hard cases live at the edge, where a solution is barely possible.
+
+</Lesson>
+
+## Sources
+
+1. David Mitchell, Bart Selman and Hector Levesque, "Hard and easy distributions of SAT problems",
+   _Proceedings of AAAI-92_, pp. 459-465, [PDF](https://cdn.aaai.org/AAAI/1992/AAAI92-071.pdf).
+2. Peter Cheeseman, Bob Kanefsky and William M. Taylor, "Where the really hard problems are",
+   _Proceedings of IJCAI-91_, pp. 331-337, [PDF](https://www.ijcai.org/proceedings/1991/0050.pdf).
+3. Stephan Mertens, Marc Mézard and Riccardo Zecchina, "Threshold values of random K-SAT from the cavity
+   method", _Random Structures & Algorithms_ 28(3), 2006, pp. 340-373, [PDF](https://arxiv.org/pdf/cs/0309020)
+   ([doi:10.1002/rsa.20090](https://doi.org/10.1002/rsa.20090)).
+4. The 51,000 random puzzles and step counts are from the DPLL solver in this page's widget code.

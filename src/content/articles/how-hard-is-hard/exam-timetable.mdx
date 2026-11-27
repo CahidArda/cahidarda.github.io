@@ -1,0 +1,85 @@
+---
+title: 'Scheduling Exams Is Graph Coloring'
+seoTitle: 'Exam Timetabling and Graph Coloring: Why It Is NP-Hard'
+description: 'No student can sit two exams at once. Draw courses as dots and clashes as lines, and the fewest exam slots becomes the chromatic number, an NP-hard quantity. How universities still get a timetable out.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 13
+---
+
+import Timetable from '../../../components/interactives/cx/exam-timetable/Timetable.tsx';
+import Crown from '../../../components/interactives/cx/exam-timetable/Crown.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Every term a university registrar has to put each exam in a time slot so that no student has two at the same
+time, using as few slots as possible. Draw each course as a dot and join two dots when some student takes both.
+A slot is a colour, and a clash is a line with the same colour at both ends. The timetable problem is graph
+colouring.
+
+## Colour the clash graph
+
+The courses below are made up, but the shape is real. Survey authors call the classic exam problem one that
+"extends just slightly the underlying graph coloring problem, with exams as nodes and periods as colors"
+([Ceschia, Di Gaspero and Schaerf, 2022](https://arxiv.org/pdf/2201.07525)).
+
+<div class="fx-figure">
+  <Timetable client:visible />
+</div>
+
+The fewest slots that work is the graph's chromatic number:
+
+$$
+\chi(G) = \min \{\, k : \text{the courses fit in } k \text{ slots with no clash} \,\}
+$$
+
+Computing it is NP-hard. It was on Karp's 1972 list of [NP-complete](/articles/how-hard-is-hard/np-complete)
+problems, and even "do 3 slots suffice?" is NP-complete (Garey, Johnson and Stockmeyer, 1976). Checking a
+finished timetable is easy; finding the best one may mean a search that grows exponentially with the number of courses, as for
+[the travelling salesman](/articles/how-hard-is-hard/tsp).
+
+## When the order is wrong
+
+Greedy colouring never needs more than one slot beyond the most clashes any course has, but it can be far
+from the best:
+
+<div class="fx-figure">
+  <Crown client:visible />
+</div>
+
+So registrars use heuristics. Welsh and Powell (1967), in a paper about timetabling, coloured the most-clashing
+courses first; Brélaz's DSatur (1979) re-picks the most constrained course at each step. Modern systems add
+local search on top. The standard test set, collected by Carter, Laporte and Lee (1996), holds 13 real
+problems; one of them, CAR91, has 682 exams and 16,925 students
+([benchmark table](https://www.cs.nott.ac.uk/~pszrq/data.htm)). The same colouring assigns CPU registers
+to variables in compilers and radio frequencies to transmitters.
+
+<Lesson>
+
+A timetable is a coloured graph. Checking one is easy, finding the fewest slots is NP-hard, so schools settle
+for good orders and local fixes.
+
+</Lesson>
+
+## Sources
+
+1. D. J. A. Welsh and M. B. Powell, "An upper bound for the chromatic number of a graph and its application to
+   timetabling problems", _The Computer Journal_ 10(1), 1967, pp. 85-86,
+   [doi:10.1093/comjnl/10.1.85](https://doi.org/10.1093/comjnl/10.1.85).
+2. Daniel Brélaz, "New methods to color the vertices of a graph", _Communications of the ACM_ 22(4), 1979,
+   pp. 251-256, [doi:10.1145/359094.359101](https://doi.org/10.1145/359094.359101).
+3. Richard M. Karp, "Reducibility among combinatorial problems", in _Complexity of Computer Computations_
+   (1972), pp. 85-103, [doi:10.1007/978-1-4684-2001-2_9](https://doi.org/10.1007/978-1-4684-2001-2_9)
+   (chromatic number is one of the 21 problems).
+4. M. R. Garey, D. S. Johnson and L. Stockmeyer, "Some simplified NP-complete graph problems", _Theoretical
+   Computer Science_ 1(3), 1976, pp. 237-267,
+   [doi:10.1016/0304-3975(76)90059-1](https://doi.org/10.1016/0304-3975%2876%2990059-1) (3-colourability).
+5. M. W. Carter, G. Laporte and S. Y. Lee, "Examination timetabling: algorithmic strategies and applications",
+   _Journal of the Operational Research Society_ 47(3), 1996, pp. 373-383,
+   [doi:10.1057/jors.1996.37](https://doi.org/10.1057/jors.1996.37). Instance sizes from Rong Qu's
+   [benchmark page](https://www.cs.nott.ac.uk/~pszrq/data.htm) (University of Nottingham).
+6. S. Ceschia, L. Di Gaspero and A. Schaerf, ["Educational timetabling: problems, benchmarks, and
+   state-of-the-art results"](https://arxiv.org/pdf/2201.07525), arXiv:2201.07525 (2022).
+7. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (2012), section 7.4 (NP-completeness).
+8. Register allocation: G. J. Chaitin et al., "Register allocation via coloring", _Computer Languages_ 6(1),
+   1981, pp. 47-57, [doi:10.1016/0096-0551(81)90048-5](https://doi.org/10.1016/0096-0551%2881%2990048-5).

@@ -1,0 +1,102 @@
+---
+title: 'Questions No Program Can Answer (Halting Problem)'
+seoTitle: 'The Halting Problem Explained Interactively'
+description: "The halting problem: Turing's proof that no program can tell, for every program, whether it will ever stop."
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 9
+---
+
+import Contrarian from '../../../components/interactives/cx/halting/Contrarian.tsx';
+import DoesItHalt from '../../../components/interactives/cx/halting/DoesItHalt.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+An app freezes and the wheel keeps spinning. Is it stuck for good, or one second from done? It
+would be nice if the computer could just check. It can't, and not because nobody has written that
+check yet. In 1936 Alan Turing proved that no program can
+decide, for every program and input, whether it will ever stop. This is the **halting problem**,
+the first question shown to have no algorithm at all.
+
+## The contrarian
+
+Suppose someone hands you $H$, a perfect predictor. Give it any program and any input and it
+answers "halts" or "loops". A program is just text, so you can even feed a program its own code
+as its input. Now write a short program $D$. Give it any program $x$, and $D$ asks $H$ one
+question: "what does $x$ do when it is fed its own code?" Then $D$ does the opposite of the answer:
+
+$$
+D(x) = \begin{cases} \text{loop forever} & \text{if } H \text{ says } x(x) \text{ halts} \\ \text{halt} & \text{if } H \text{ says } x(x) \text{ loops} \end{cases}
+$$
+
+<div class="fx-figure">
+  <Contrarian client:visible />
+</div>
+
+Run $D$ on its own code. Whatever $H$ predicts, $D$ does the other thing, so no $H$ exists.
+Turing put it as "there can be no machine ℰ which, when supplied with the S.D of an arbitrary
+machine ℳ, will determine whether ℳ ever prints a given symbol"
+([Turing, 1936, p. 248](https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf)). The name
+"halting problem" came later; Sipser gives the modern proof (3rd ed., section 4.2).
+
+## Why not just run it?
+
+Running a program tells you it halts once it halts. Until then, you know nothing:
+
+```python
+while n != 1:
+    if n % 2 == 0:
+        n = n // 2
+    else:
+        n = 3 * n + 1
+```
+
+<div class="fx-figure">
+  <DoesItHalt client:visible />
+</div>
+
+Does it stop for every starting $n$? That is the Collatz conjecture. Computers have checked every
+start below $2^{71}$
+([Barina, 2025](https://www.fit.vut.cz/research/result-file/c197809/298514/s11227-025-07337-0.pdf)),
+and nobody has a proof.
+
+## No perfect bug finder
+
+The same trick breaks any tool that promises to answer a question about what every program
+_does_: will it crash, is it a virus. This is Rice's theorem (Rice, 1953; Sipser, chapter 5). Real
+checkers survive by sometimes answering "not sure".
+
+## Where the trouble starts
+
+Douglas Hofstadter draws the line with two toy languages in _Gödel, Escher, Bach_ (1979,
+chapter XIII). In BlooP every loop gets a bound before it starts, so every program halts; BlooP
+computes exactly the primitive recursive functions. FlooP adds loops with no bound, which "can
+carry out unpredictable or even infinite searches". That one change is where undecidability
+enters: FlooP can do whatever a computer can, halting problem included. A still stronger GlooP,
+he concludes, is "a myth" if we accept the Church-Turing thesis. Unbounded search also leads to
+[true statements that cannot be proved](/articles/how-hard-is-hard/unprovable).
+
+Problems in [P vs NP](/articles/how-hard-is-hard/p-vs-np) are slow. This one is impossible, and
+it sits outside every class on the [map of harder problems](/articles/how-hard-is-hard/beyond-np).
+
+<Lesson>
+
+Some questions have no algorithm at all. No program can predict, for every program, whether it
+stops.
+
+</Lesson>
+
+## Sources
+
+1. A. M. Turing, "On computable numbers, with an application to the Entscheidungsproblem",
+   _Proceedings of the London Mathematical Society_ (2) 42, 1936, pp. 230-265,
+   [PDF](https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf) (quote: §8, p. 248).
+2. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), section 4.2
+   (Undecidability) and chapter 5 (Reducibility).
+3. H. G. Rice, "Classes of recursively enumerable sets and their decision problems", _Transactions of
+   the AMS_ 74(2), 1953, pp. 358-366, [doi:10.1090/S0002-9947-1953-0053041-6](https://doi.org/10.1090/S0002-9947-1953-0053041-6).
+4. David Barina, "Improved verification limit for the convergence of the Collatz conjecture",
+   _The Journal of Supercomputing_ 81, 810 (2025), [PDF](https://www.fit.vut.cz/research/result-file/c197809/298514/s11227-025-07337-0.pdf)
+   ([doi:10.1007/s11227-025-07337-0](https://doi.org/10.1007/s11227-025-07337-0)).
+5. Douglas R. Hofstadter, _Gödel, Escher, Bach: an Eternal Golden Braid_ (Basic Books, 1979), chapter XIII,
+   "BlooP and FlooP and GlooP" ([scan on archive.org](https://archive.org/details/GEBen_201706)).

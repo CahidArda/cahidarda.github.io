@@ -1,0 +1,77 @@
+---
+title: 'Easy to Check (NP)'
+seoTitle: 'What Is NP? Easy to Check, Hard to Solve'
+description: 'The class NP in pictures: a Sudoku takes 108 steps to check and thousands to solve, and a lucky guesser walks straight down a tree of 2^n choices.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 3
+---
+
+import CheckVsSolve from '../../../components/interactives/cx/np/CheckVsSolve.tsx';
+import SearchTree from '../../../components/interactives/cx/np/SearchTree.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+A friend hands you a finished Sudoku and says it is right. You can confirm it in a minute: read
+each row, each column, each box. Filling the same grid in from scratch can take an evening. Problems
+with that shape, where a proposed answer is quick to check, form the class **NP**.
+
+## Checking is cheap
+
+The proposed answer is called a **certificate**. A problem is in NP when a fast program, the
+verifier $V$, can confirm every yes-answer given the right certificate $c$ (Sipser,
+_Introduction to the Theory of Computation_, 3rd ed., section 7.3):
+
+$$
+x \text{ is a yes-instance} \iff \text{some certificate } c \text{ makes } V(x, c) = \text{yes}, \quad V \text{ runs in } O(n^k)
+$$
+
+Below, one Sudoku is checked and solved on the same clock. The checker reads 36 cells three times.
+The solver tries digits and backs up when it gets stuck.
+
+<div class="fx-figure">
+  <CheckVsSolve client:visible />
+</div>
+
+## The tree of guesses
+
+Subset sum asks whether some of a list of numbers add up to a target. Each number is skipped or
+taken, so $n$ numbers give $2^n$ subsets: a tree that doubles with every number. At 60 numbers,
+trying a billion subsets a second takes 36 years.
+
+The N in NP stands for **nondeterministic**. Picture a machine that guesses perfectly: at every
+fork it takes the right branch, so it reaches the answer in $n$ moves, and then the checker adds the
+chosen numbers. An NP problem is one such a lucky guesser can solve in polynomial time; that is
+the same class as the problems with fast verifiers (Sipser, section 7.3).
+
+<div class="fx-figure">
+  <SearchTree client:visible />
+</div>
+
+## P sits inside NP
+
+Every problem [in P](/articles/how-hard-is-hard/p) is in NP too: the checker can ignore the
+certificate and solve the problem itself.
+
+$$
+\mathrm{P} \subseteq \mathrm{NP}
+$$
+
+Nobody knows whether the two are equal. Sudoku on an $n^2 \times n^2$ grid is
+[NP-complete](/articles/how-hard-is-hard/np-complete), one of the hardest problems in NP (Yato and
+Seta, 2003), so a fast solver for Sudoku of every size would make every NP problem fast. Whether
+one exists is [the million-dollar question](/articles/how-hard-is-hard/p-vs-np).
+
+<Lesson>
+
+NP is the class of problems whose answers are easy to check. Finding the answer may still mean
+searching a space that doubles with every step.
+
+</Lesson>
+
+## Sources
+
+1. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), section 7.3 (The Class NP: verifiers, and the equivalence with nondeterministic polynomial time).
+2. Takayuki Yato and Takahiro Seta, "Complexity and completeness of finding another solution and its
+   application to puzzles", _IEICE Transactions on Fundamentals_ E86-A(5), 2003, pp. 1052-1060 (Sudoku,
+   there called Number Place, is NP-complete).

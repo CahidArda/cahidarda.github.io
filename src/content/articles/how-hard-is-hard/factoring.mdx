@@ -1,0 +1,127 @@
+---
+title: 'Easy One Way (Factoring and RSA)'
+seoTitle: 'Why Is Factoring Hard? RSA and Prime Factorization Explained'
+description: 'Multiplying two primes takes microseconds. Getting them back can outlast the universe. The one-way street under RSA, and the quantum threat to it.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 8
+---
+
+import MultiplyFactor from '../../../components/interactives/cx/factoring/MultiplyFactor.tsx';
+import Padlock from '../../../components/interactives/cx/factoring/Padlock.tsx';
+import RsaSteps from '../../../components/interactives/cx/factoring/RsaSteps.tsx';
+import Shor from '../../../components/interactives/cx/factoring/Shor.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Multiplying 4,729 by 8,831 on paper takes 16 single-digit products: 41,761,799. Now hand
+someone 41,761,799 and ask which two primes made it. Trying 2, 3, 5, 7 and every odd number after
+that, they need 2,365 tries before 4,729 divides it. Going back is integer factorization, and it is
+much harder than going forward.
+
+## Two directions
+
+For a number with $d$ digits, schoolbook multiplication grows like $d^2$. Trial division has to
+try numbers up to $\sqrt{N}$, about
+
+$$
+\sqrt{10^{d}} = 10^{d/2}
+$$
+
+candidates, so every two extra digits make it ten times slower.
+
+<div class="fx-figure">
+  <MultiplyFactor client:visible />
+</div>
+
+Trial division is the naive method. The best known one, the number field sieve, is far faster but
+still grows faster than any polynomial. With it, a team factored the 250-digit RSA-250 in 2020 in
+"roughly 2700 core-years"
+([announcement](https://caramba.loria.fr/rsa250.txt)). A common key size today, 2048 bits, has 617 digits.
+
+## A padlock anyone can close
+
+In 1977 Rivest, Shamir and Adleman turned this into a lock. The receiver multiplies two secret
+primes $p$ and $q$ and publishes the product $n = p \cdot q$: "the factors p and q will be
+effectively hidden from everyone else due to the enormous difficulty of factoring n"
+([RSA paper](https://people.csail.mit.edu/rivest/Rsapaper.pdf)). Anyone can use the public
+numbers to lock a message, so anyone can close the padlock. Opening it needs a secret number that
+is easy to work out from $p$ and $q$, and nobody knows how to get it from $n$ alone. Here is the
+paper's own small example, one block at a time.
+
+<div class="fx-figure">
+  <RsaSteps client:visible />
+</div>
+
+The five formulas under the figure are all of RSA. Why does unlocking undo locking? Unlocking gives
+$c^{d} = m^{e d} = m^{k\varphi + 1} = (m^{\varphi})^{k} \cdot m$, all mod $n$. Euler's theorem
+says that $m^{\varphi} \bmod n = 1$ whenever $m$ shares no factor with $n$, so every
+$m^{\varphi}$ in there turns into 1 and only $m$ is left. (It also works for the rare $m$ that
+does share a factor with $n$.) That is why $e d$ has to be exactly one more than a multiple of
+$\varphi$, and why $\varphi$ must stay secret: anyone who knows $\varphi = 2668$ can work out
+$d = 157$ from $e = 17$ in two divisions, and getting $\varphi$ from $n$ alone means factoring it.
+
+A longer message is cut into blocks of two letters, and each block goes through the same lock
+and key.
+
+<div class="fx-figure">
+  <Padlock client:visible />
+</div>
+
+With 2773 you could find 47 by hand in 24 tries. With 617 digits, nobody knows how.
+
+## Where factoring sits
+
+Factoring is in [NP](/articles/how-hard-is-hard/np): a claimed factor is checked with one
+division. A "no" answer is just as easy to check, by showing the full prime factorization, so
+factoring is also in coNP, and that makes it unlikely to be
+[NP-complete](/articles/how-hard-is-hard/np-complete) (Scott Aaronson,
+[_P =? NP_](https://www.scottaaronson.com/papers/pnp.pdf), §2.2.4). Telling whether a number is
+prime is easy: it is in P ([Agrawal, Kayal and Saxena](https://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf), 2002).
+Knowing that 41,761,799 is not prime does not tell you its factors.
+
+In 1994 Peter Shor showed that a quantum computer could factor in polynomial time
+([paper](https://arxiv.org/pdf/quant-ph/9508027)). His trick turns factoring into finding a
+rhythm: the powers $a^x \bmod N$ repeat every $r$ steps, and once you know $r$,
+$\gcd(a^{r/2} \pm 1, N)$ gives the factors. Finding $r$ is the hard part, and it is the part a
+quantum computer does well. The figure walks through it for 15.
+
+<div class="fx-figure">
+  <Shor client:visible />
+</div>
+
+So why is RSA still safe? Because today's quantum computers are far too small to run this on a
+real key. The best published estimate for a 2048-bit RSA key needs "less than a week by a quantum
+computer with less than a million noisy qubits" ([Gidney 2025](https://arxiv.org/pdf/2505.15917)),
+down from 20 million qubits in his 2019 estimate with Ekerå
+([PDF](https://arxiv.org/pdf/1905.09749)). For scale, IBM's Condor chip (2023) has 1,121 qubits
+([IBM](https://www.ibm.com/quantum/blog/quantum-roadmap-2033)) and Google's Willow (2024) has 105
+([Google](https://blog.google/technology/research/google-willow-quantum-chip/)). The gap is closing
+from both sides, which is why cryptographers are already moving to locks that do not rely on
+factoring.
+
+<Lesson>
+
+Some doors are easy to shut and hard to open, and the internet's padlocks are built on one of them.
+
+</Lesson>
+
+## Sources
+
+1. F. Boudot, P. Gaudry, A. Guillevic, N. Heninger, E. Thomé and P. Zimmermann, "Factorization of
+   RSA-250", announcement, 28 February 2020, [caramba.loria.fr/rsa250.txt](https://caramba.loria.fr/rsa250.txt).
+2. R. L. Rivest, A. Shamir and L. Adleman, "A method for obtaining digital signatures and public-key
+   cryptosystems", _Communications of the ACM_ 21(2), 1978, pp. 120-126,
+   [PDF](https://people.csail.mit.edu/rivest/Rsapaper.pdf) ([doi:10.1145/359340.359342](https://doi.org/10.1145/359340.359342)).
+   The small example (n = 2773 = 47 × 59) is the paper's own.
+3. Scott Aaronson, ["P =? NP"](https://www.scottaaronson.com/papers/pnp.pdf), in _Open Problems in
+   Mathematics_ (Springer, 2016), section 2.2.4 (Factoring and Graph Isomorphism).
+4. M. Agrawal, N. Kayal and N. Saxena, "PRIMES is in P", _Annals of Mathematics_ 160(2), 2004, pp. 781-793,
+   [PDF](https://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf).
+5. Peter W. Shor, "Polynomial-time algorithms for prime factorization and discrete logarithms on a quantum
+   computer", _SIAM Journal on Computing_ 26(5), 1997, pp. 1484-1509, [PDF](https://arxiv.org/pdf/quant-ph/9508027)
+   ([doi:10.1137/S0097539795293172](https://doi.org/10.1137/S0097539795293172)); first presented at FOCS 1994.
+6. Craig Gidney, "How to factor 2048 bit RSA integers with less than a million noisy qubits" (2025),
+   [PDF](https://arxiv.org/pdf/2505.15917).
+7. Craig Gidney and Martin Ekerå, "How to factor 2048 bit RSA integers in 8 hours using 20 million noisy
+   qubits", _Quantum_ 5, 433 (2021), [PDF](https://arxiv.org/pdf/1905.09749).

@@ -1,0 +1,108 @@
+---
+title: 'The Million-Dollar Question (P vs NP)'
+seoTitle: 'P vs NP Explained: The Million-Dollar Question'
+description: 'P versus NP in pictures: two possible worlds, what would break and what we would gain if every easy-to-check problem were easy to solve, and what experts bet.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 4
+---
+
+import TwoWorlds from '../../../components/interactives/cx/p-vs-np/TwoWorlds.tsx';
+import WhatChanges from '../../../components/interactives/cx/p-vs-np/WhatChanges.tsx';
+import Poll from '../../../components/interactives/cx/p-vs-np/Poll.tsx';
+import GodelLetter from '../../../components/interactives/cx/p-vs-np/GodelLetter.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+A finished Sudoku takes a minute to [check](/articles/how-hard-is-hard/np) and an evening to
+solve. Is that gap real, or have we just not found the clever method yet? Asked for every problem
+whose answers are quick to check, this is the **P versus NP** problem:
+
+$$
+\mathrm{P} \overset{?}{=} \mathrm{NP}
+$$
+
+On 24 May 2000 the Clay Mathematics Institute made it one of seven
+[Millennium Prize Problems](https://www.claymath.org/millennium-problems/), with \$1 million for a
+solution. Its official description is by Stephen Cook, whose 1971 paper introduced NP-completeness
+([Cook, "The P versus NP Problem"](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf)).
+
+## Two possible worlds
+
+We know [P](/articles/how-hard-is-hard/p) sits inside NP. Either it fills all of NP, or there is a
+gap. If there is a gap, Richard Ladner proved that something lives in it: problems in NP that are
+neither easy nor among the hardest ([Ladner, 1975](https://doi.org/10.1145/321864.321877)). Cook
+names graph isomorphism as a candidate; [factoring](/articles/how-hard-is-hard/factoring) is
+another.
+
+<div class="fx-figure">
+  <TwoWorlds client:visible />
+</div>
+
+## What would change
+
+In the P = NP world, Cook writes, "an algorithm solving 3-SAT in n² steps could be used to factor
+200-digit numbers in a few minutes", which would break the encryption behind online banking. It
+would also let a computer "find a formal proof of any theorem that has a proof of reasonable
+length". All of that assumes the fast method is fast in practice, not just in theory.
+
+<div class="fx-figure">
+  <WhatChanges client:visible />
+</div>
+
+## A letter from 1956
+
+Fifteen years before Cook's paper, Kurt Gödel asked a version of this question in a handwritten
+letter to John von Neumann, who was ill with cancer. Take a machine that decides whether a formula
+has a proof $n$ symbols long, and let $\varphi(n)$ be the most steps it needs. How slowly can
+$\varphi(n)$ grow? In today's terms this bounded proof search is NP-complete. If a machine
+managed $\varphi(n) \sim k \cdot n$ or $k \cdot n^2$, Gödel wrote, a mathematician's work on
+yes-or-no questions "could be completely replaced by a machine". He also asked about telling
+whether a number is prime, which turned out to be [in P](/articles/how-hard-is-hard/factoring).
+
+<div class="fx-figure">
+  <GodelLetter client:visible />
+</div>
+
+No reply is known. Von Neumann died in February 1957, and the letter became widely known only in
+1989, through Juris Hartmanis ([letter and translation](https://www.cs.princeton.edu/~chazelle/courses/BIB/goedel-letter.pdf);
+[Hartmanis 1989](https://hdl.handle.net/1813/6910)).
+
+## What experts bet
+
+Most experts think P ≠ NP. William Gasarch has polled them three times; in the 2019 poll, 109 of
+124 answered P ≠ NP
+([Gasarch, "The Third P =? NP Poll"](https://www.cs.umd.edu/users/gasarch/BLOGPAPERS/pollpaper3.pdf)).
+
+<div class="fx-figure">
+  <Poll client:visible />
+</div>
+
+A bet is not a proof. Scott Aaronson's survey explains why the proof is so hard: whole families of
+techniques, including every argument that "relativizes", provably cannot settle the question
+([Aaronson, "P =? NP"](https://www.scottaaronson.com/papers/pnp.pdf), section 6).
+
+<Lesson>
+
+P versus NP asks whether finding an answer can be truly harder than checking it. Almost everyone
+bets yes. Nobody has proved it.
+
+</Lesson>
+
+## Sources
+
+1. Stephen Cook, [_The P versus NP Problem_](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf),
+   Clay Mathematics Institute official problem description (2000). Quotes on 3-SAT, factoring and
+   formal proofs; graph isomorphism as an NP problem not known to be in P or NP-complete.
+2. Clay Mathematics Institute, [Millennium Prize Problems](https://www.claymath.org/millennium-problems/).
+3. Richard E. Ladner, "On the structure of polynomial time reducibility", _Journal of the ACM_ 22(1), 1975,
+   pp. 155-171, [doi:10.1145/321864.321877](https://doi.org/10.1145/321864.321877).
+4. Kurt Gödel, letter to John von Neumann, Princeton, 20 March 1956: German text and the approximate
+   translation by Peter Clote and Jan Krajíček (from _Arithmetic, Proof Theory and Computational
+   Complexity_, Oxford University Press, 1993), [PDF](https://www.cs.princeton.edu/~chazelle/courses/BIB/goedel-letter.pdf).
+5. Juris Hartmanis, "Gödel, von Neumann and the P =? NP problem", _Bulletin of the EATCS_ 38 (1989),
+   pp. 101-107; Cornell technical report 89-994, [hdl:1813/6910](https://hdl.handle.net/1813/6910).
+6. William Gasarch, ["The Third P =? NP Poll"](https://www.cs.umd.edu/users/gasarch/BLOGPAPERS/pollpaper3.pdf),
+   _SIGACT News_ 50(1), 2019 (table in section 2.1).
+7. Scott Aaronson, ["P =? NP"](https://www.scottaaronson.com/papers/pnp.pdf), in _Open Problems in
+   Mathematics_ (Springer, 2016); section 6.1.2 on the relativization barrier.
