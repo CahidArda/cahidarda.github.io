@@ -13,12 +13,15 @@ import {
 } from '../../gt/shared';
 
 /**
- * CX-08.4 · how a quantum computer factors 15, in four steps (Shor 1994).
+ * CX-08.4 · how a quantum computer factors 15, in five steps (Shor 1994).
  *  1. the cycle: 7^x mod 15 for x = 0..31 is 1, 7, 4, 13, 1, ... so the period r = 4.
  *  2. why r helps: 7^4 - 1 = 48 x 50 is a multiple of 15, so gcd(48, 15) = 3, gcd(50, 15) = 5.
- *  3. all x at once: the register holds x = 0..31 together; reading the output (7) leaves
- *     only x = 1, 5, ..., 29 (equal gaps). Reading x now gives one of the eight, 1/8 each.
- *  4. interference: the Fourier transform adds one wave per surviving x. The bars are the
+ *  3. registers: A has 5 qubits and holds every x = 0..31 at once (1/32 each); B has 4 qubits,
+ *     and one run puts 7^x mod 15 into it for every x together. Reading a register gives one
+ *     number at random.
+ *  4. measure: reading B gives 7, which leaves only x = 1, 5, ..., 29 in A (equal gaps). The
+ *     flat 1/32 bars collapse to 1/8 on those eight; reading x now says nothing about the gap.
+ *  5. interference: the Fourier transform adds one wave per surviving x. The bars are the
  *     real measurement odds |Σ w_j e^(2πi k x_j / Q)|² / (Q Σ w_j²) while the waves are added
  *     one by one; at the end they are 1/4 at k = 0, 8, 16, 24 and 0 elsewhere. It reads 8:
  *     8/32 = 1/4, so r = 4 (24 also gives r = 4; 0 or 16 mean run again).
@@ -28,8 +31,8 @@ import {
 const N = 15;
 const A = 7;
 const Q = 32;
-const OUT = 7; // what the output register reads in step 3 (not 4, which looks like r)
-const READ = 8; // what the final measurement reads in step 4
+const OUT = 7; // what register B reads in step 4 (not 4, which looks like r)
+const READ = 8; // what the final measurement reads in step 5
 
 function powmod(b: number, e: number, m: number) {
   let r = 1;
@@ -53,22 +56,28 @@ const SURV = F.map((v, x) => (v === OUT ? x : -1)).filter((x) => x >= 0); // 1, 
 const SPACING = Q / R; // 8
 
 /* the clock: how long each step animates, then how long auto-play lingers on it */
-const DUR = [3.7, 4.2, 2.6, 5.2];
-const DWELL = [3.2, 4.6, 5.6, 0];
+const DUR = [3.7, 4.2, 3.6, 2.6, 5.2];
+const DWELL = [3.2, 4.6, 4.4, 5.6, 0];
+const LAST = 4;
 const ramp = (t: number, t0: number, d = 0.35) => clamp((t - t0) / d, 0, 1);
 
 /* step 1: cells fill in one by one */
 const cellAt = (x: number) => 0.3 + x * 0.095;
-/* step 3 */
+/* step 3: register A goes from 0 to all x, then one run fills register B */
+const T_REG = 0.15; // both registers appear, all qubits 0
+const T_A = 0.7; // A holds every x: its odds rise to 1/32
+const T_B = 1.7; // one run computes 7^x mod 15 into B for every x
+const T_HINT = 2.7; // reading gives one number
+/* step 4 */
 const T_DIM = 1.25; // the output is read
 const T_COMB = 1.75; // the x-odds rise
-/* step 4 */
+/* step 5 */
 const T_W0 = 0.3; // waves start
 const D_W = 4.0; // all eight added
 const T_PEAKS = T_W0 + D_W + 0.1;
 const T_READ = T_PEAKS + 0.45;
 
-type Step = 0 | 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3 | 4;
 const STEPS: { label: string; caption: ReactNode }[] = [
   {
     label: '1 cycle',
@@ -91,19 +100,28 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     ),
   },
   {
-    label: '3 all x',
+    label: '3 qubits',
     caption: (
       <>
-        Two registers. Register A holds every x from 0 to 31 at once, each with the same chance;
-        register B gets 7<sup>x</sup> mod 15 for each of them. Measure register B: its qubits come
-        out as plain bits, one number, say 7. That collapses register A too: only the x that give 7
-        stay (1, 5, 9, …, 29), with equal gaps. The bars are register A&rsquo;s chances now.
-        Measuring A would give one of them at random, which says nothing about the gap.
+        A quantum computer keeps numbers in registers of qubits. Register A has 5 qubits, so it
+        holds 0 to 31, and unlike plain bits it can hold all 32 at once, each with chance 1/32. One
+        run then puts 7<sup>x</sup> mod 15 into register B for every x together. Reading a register
+        gives one ordinary number, at random, and changes what is left.
       </>
     ),
   },
   {
-    label: '4 waves',
+    label: '4 read',
+    caption: (
+      <>
+        Read register B. It gives one number, say 7. That changes register A too: only the x that
+        give 7 stay (1, 5, 9, …, 29), with equal gaps, and the bars are their chances now. Reading A
+        would give one of them at random, which says nothing about the gap.
+      </>
+    ),
+  },
+  {
+    label: '5 waves',
     caption: (
       <>
         The quantum Fourier transform makes the surviving x interfere: their waves cancel everywhere
@@ -115,14 +133,19 @@ const STEPS: { label: string; caption: ReactNode }[] = [
   },
 ];
 
-/** Measurement odds over the 32 slots for a step at time t (bars of steps 3 and 4). */
+/** Measurement odds over the 32 slots for a step at time t (bars of steps 3 to 5). */
 function odds(view: Step, t: number): { p: number[]; n: number } {
   const comb = Array.from({ length: Q }, (_, k) => (F[k] === OUT ? 1 / SURV.length : 0));
   if (view === 2) {
-    const g = ramp(t, T_COMB, 0.5);
-    return { p: comb.map((v) => v * g), n: 0 };
+    const g = ramp(t, T_A, 0.5);
+    return { p: comb.map(() => g / Q), n: 0 };
   }
-  // step 4: add the waves one at a time (the newest fades in)
+  if (view === 3) {
+    // the flat 1/32 collapses onto the x that give 7
+    const g = ramp(t, T_COMB, 0.5);
+    return { p: comb.map((v) => (1 - g) / Q + g * v), n: 0 };
+  }
+  // step 5: add the waves one at a time (the newest fades in)
   const n = clamp((t - T_W0) / D_W, 0, 1) * SURV.length;
   const w = SURV.map((_, j) => clamp(n - j, 0, 1));
   const w2 = w.reduce((s, v) => s + v * v, 0);
@@ -156,6 +179,7 @@ type Geo = {
   panelTop: number;
   chartTop: number;
   chartBase: number;
+  regY: number[]; // step 3: register A row, register B row, the reading note (centres)
   fs: number;
   narrow: boolean;
 };
@@ -170,6 +194,7 @@ const WIDE: Geo = {
   panelTop: 110,
   chartTop: 148,
   chartBase: 272,
+  regY: [148, 188, 226],
   fs: 10,
   narrow: false,
 };
@@ -184,6 +209,7 @@ const NARROW: Geo = {
   panelTop: 156,
   chartTop: 194,
   chartBase: 310,
+  regY: [192, 230, 266],
   fs: 9.5,
   narrow: true,
 };
@@ -266,14 +292,14 @@ export default function Shor() {
     !reduced &&
     started.current &&
     !previewing &&
-    (st.t < DUR[st.step] || (auto.current && st.step < 3));
+    (st.t < DUR[st.step] || (auto.current && st.step < LAST));
   useFrame((dt) => {
     setSt((s) => {
       const t = s.t + dt;
-      if (auto.current && s.step < 3 && t >= DUR[s.step] + DWELL[s.step]) {
+      if (auto.current && s.step < LAST && t >= DUR[s.step] + DWELL[s.step]) {
         return { step: (s.step + 1) as Step, t: 0 };
       }
-      if (!auto.current || s.step === 3) return { step: s.step, t: Math.min(t, DUR[s.step]) };
+      if (!auto.current || s.step === LAST) return { step: s.step, t: Math.min(t, DUR[s.step]) };
       return { step: s.step, t };
     });
   }, running);
@@ -317,28 +343,89 @@ export default function Shor() {
     const rowBottom = (row: number) => g.rowTop[row] + g.cellH;
 
     // strip state
-    const shown = (x: number) => (view === 0 ? ramp(tt, cellAt(x), 0.14) : 1);
+    // step 1 fills the cells one by one; step 3 fills them all at once (one run)
+    const shown = (x: number) =>
+      view === 0 ? ramp(tt, cellAt(x), 0.14) : view === 2 ? ramp(tt, T_B, 0.5) : 1;
     let current = -1; // the cell just filled (step 1), for the ring token
     if (view === 0 && tt < cellAt(Q - 1) + 0.3) {
       for (let x = 0; x < Q; x++) if (tt >= cellAt(x)) current = x;
     }
-    const pulse = view === 2 ? Math.sin(Math.PI * clamp(tt / 1.0, 0, 1)) : 0;
-    const dim = view === 2 ? ramp(tt, T_DIM, 0.4) : view === 3 ? 1 : 0;
-    const survTicks = view >= 2 ? dim : 0;
-    const wsDot = (j: number) => (view === 3 ? clamp(waves - j, 0, 1) : 0);
+    const pulse =
+      view === 2
+        ? Math.sin(Math.PI * clamp((tt - T_B + 0.2) / 1.0, 0, 1))
+        : view === 3
+          ? Math.sin(Math.PI * clamp(tt / 1.0, 0, 1))
+          : 0;
+    const dim = view === 3 ? ramp(tt, T_DIM, 0.4) : view === 4 ? 1 : 0;
+    const survTicks = view >= 3 ? dim : 0;
+    // every x under the strip (register A) in steps 3 and 4, every 4th x otherwise
+    const allX = view === 2 ? ramp(tt, T_A, 0.4) : view === 3 ? 1 - dim : 0;
+    const wsDot = (j: number) => (view === 4 ? clamp(waves - j, 0, 1) : 0);
 
     // the bracket of r in the strip, on the last row
     const b0 = lastRow * perRow;
-    const rBracketOn = view === 0 ? ramp(tt, cellAt(R) + 0.1) : 1;
+    // the "equal gaps" bracket spans the first two survivors on that row (1 and 5 when B reads 7)
+    const [gap0, gap1] = SURV.filter((x) => x >= b0);
+    const rBracketOn = view === 0 ? ramp(tt, cellAt(R) + 0.1) : view === 2 ? 0 : 1;
 
     // the bar chart (steps 3 and 4)
     const bw = Math.max(3, cw * (g.rows === 1 ? 0.62 : 0.31));
     const kx = (k: number) => X0 + ((k + 0.5) / Q) * (X1 - X0);
     const ph = g.chartBase - g.chartTop;
     const barH = (p: number) => (p / 0.25) * ph;
-    const peaksOn = view === 3 ? ramp(tt, T_PEAKS) : 0;
-    const readOn = view === 3 ? ramp(tt, T_READ) : 0;
-    const combLab = view === 2 ? ramp(tt, T_COMB + 0.3) : 0;
+    const peaksOn = view === 4 ? ramp(tt, T_PEAKS) : 0;
+    const readOn = view === 4 ? ramp(tt, T_READ) : 0;
+    const combLab = view === 3 ? ramp(tt, T_COMB + 0.3) : 0;
+
+    // registers (step 3): qubit boxes start at 0, then hold 0 and 1 at once
+    const aOne = view === 2 ? ramp(tt, T_A, 0.4) : 0;
+    const bOne = view === 2 ? ramp(tt, T_B, 0.4) : 0;
+    const hintOn = view === 2 ? ramp(tt, T_HINT, 0.4) : 0;
+    const qs = g.narrow ? 20 : 22;
+    const qGap = 4;
+    const regX = X0 + (g.narrow ? 16 : 20);
+    const regText = regX + 5 * (qs + qGap) + 6;
+    const register = (
+      name: string,
+      n: number,
+      y: number,
+      color: string,
+      one: number,
+      text: ReactNode,
+    ) => (
+      <g>
+        <T x={X0} y={y} anchor="start" size={fs + 4} weight={700} color={color}>
+          {name}
+        </T>
+        {Array.from({ length: n }, (_, i) => {
+          const x = regX + i * (qs + qGap);
+          return (
+            <g key={i}>
+              <rect
+                x={x}
+                y={y - qs / 2}
+                width={qs}
+                height={qs}
+                style={{ fill: GT.paper, stroke: color, strokeWidth: 1.2 }}
+              />
+              <T x={x + qs / 2} y={y - (qs / 4.4) * one} size={fs} weight={600} color={color}>
+                0
+              </T>
+              <g style={{ opacity: one }}>
+                <T x={x + qs / 2} y={y + qs / 4.4} size={fs} weight={600} color={color}>
+                  1
+                </T>
+              </g>
+            </g>
+          );
+        })}
+        <g style={{ opacity: one }}>
+          <T x={regText} y={y} anchor="start" size={fs} color={GT.inkSoft}>
+            {text}
+          </T>
+        </g>
+      </g>
+    );
 
     // ring (step 1)
     const ringCy = (g.panelTop + g.H) / 2 + 2;
@@ -359,6 +446,7 @@ export default function Shor() {
     const panelTitle = [
       'the cycle: times 7 each step, mod 15',
       'if you know r',
+      'two registers of qubits',
       'register A: chance of each x',
       tt < T_PEAKS
         ? `adding one wave per x: ${Math.max(1, Math.ceil(waves))} of ${SURV.length}`
@@ -367,14 +455,24 @@ export default function Shor() {
           : 'after the Fourier transform',
     ][view];
     const status =
-      view === 2 ? (tt < T_DIM ? 'computing all 32 at once' : `register B reads ${OUT}`) : '';
+      view === 2
+        ? tt < T_B
+          ? ''
+          : g.narrow
+            ? 'B in the cells, A below'
+            : 'register B in the cells, register A below'
+        : view === 3
+          ? tt < T_DIM
+            ? 'reading register B'
+            : `register B reads ${OUT}`
+          : '';
 
     return (
       <svg
         viewBox={`0 0 ${g.W} ${g.H}`}
         className={cls}
         role="img"
-        aria-label={`7 to the power x mod 15 repeats 1, 7, 4, 13 with period r = 4. gcd(48, 15) = 3 and gcd(50, 15) = 5. A quantum computer reads output 7, leaving x = 1, 5, ..., 29; the Fourier transform turns that into peaks at 0, 8, 16, 24, and a reading of 8 gives r = 4.`}
+        aria-label={`7 to the power x mod 15 repeats 1, 7, 4, 13 with period r = 4. gcd(48, 15) = 3 and gcd(50, 15) = 5. A quantum computer holds every x from 0 to 31 at once in register A (5 qubits) and computes 7 to the x mod 15 into register B (4 qubits) for all of them in one run. Reading register B gives 7, leaving x = 1, 5, ..., 29; the Fourier transform turns that into peaks at 0, 8, 16, 24, and a reading of 8 gives r = 4.`}
       >
         <defs>
           <marker
@@ -457,7 +555,7 @@ export default function Shor() {
                 </T>
               </g>
               {/* a dot under each x whose wave is in the sum (step 4) */}
-              {hit && view === 3 && wsDot(SURV.indexOf(x)) > 0 && (
+              {hit && view === 4 && wsDot(SURV.indexOf(x)) > 0 && (
                 <circle
                   cx={c.cx}
                   cy={rowBottom(c.row) + 4}
@@ -468,12 +566,23 @@ export default function Shor() {
             </g>
           );
         })}
-        {/* x labels under the strip: every 4th x, then the survivors */}
+        {/* x labels under the strip: every 4th x, then every x (register A), then the survivors */}
         {Array.from({ length: Q / R }, (_, i) => i * R).map((x) => {
           const c = cell(x);
+          const on = view <= 1 ? shown(x) : view === 2 ? 1 - allX : 0;
           return (
-            <g key={`t${x}`} style={{ opacity: (1 - survTicks) * shown(x) }}>
+            <g key={`t${x}`} style={{ opacity: on }}>
               <T x={c.cx} y={rowBottom(c.row) + 12} size={fs - 1}>
+                {x}
+              </T>
+            </g>
+          );
+        })}
+        {F.map((_, x) => {
+          const c = cell(x);
+          return (
+            <g key={`all${x}`} style={{ opacity: allX }}>
+              <T x={c.cx} y={rowBottom(c.row) + 12} size={fs - 1} color={GT.b}>
                 {x}
               </T>
             </g>
@@ -490,20 +599,20 @@ export default function Shor() {
           );
         })}
         <Bracket
-          x0={cell(b0 + (view >= 2 ? 2 : 0)).cx}
-          x1={cell(b0 + (view >= 2 ? 2 : 0) + R).cx}
+          x0={cell(view >= 3 ? gap0 : b0).cx}
+          x1={cell(view >= 3 ? gap1 : b0 + R).cx}
           y={rowBottom(lastRow) + 22}
-          color={view >= 2 ? GT.b : GT.eq}
+          color={view >= 3 ? GT.b : GT.eq}
           fs={fs}
           opacity={rBracketOn}
-          label={view >= 2 ? 'equal gaps' : `r = ${R}: back to 1`}
+          label={view >= 3 ? 'equal gaps' : `r = ${R}: back to 1`}
         />
 
         {/* ── the panel ── */}
         <T x={X0} y={g.panelTop} anchor="start" size={fs + 1} color={GT.ink} weight={600}>
           {panelTitle}
         </T>
-        <g style={fade(view === 3)}>
+        <g style={fade(view === 4)}>
           <T x={X1} y={g.panelTop} anchor="end" size={fs + 0.5} color={GT.a} weight={700}>
             <tspan style={{ opacity: readOn }}>
               {g.narrow
@@ -619,7 +728,40 @@ export default function Shor() {
           </g>
         </g>
 
-        {/* steps 3 and 4: the odds of each reading */}
+        {/* step 3: the two registers */}
+        <g style={fade(view === 2)}>
+          {register(
+            'A',
+            5,
+            g.regY[0],
+            GT.b,
+            aOne,
+            g.narrow
+              ? '5 qubits: x = 0 to 31, all at once'
+              : '5 qubits: every x from 0 to 31, all at once',
+          )}
+          {register(
+            'B',
+            4,
+            g.regY[1],
+            GT.ink,
+            bOne,
+            <>
+              {'4 qubits: '}
+              <Sup base="7" exp="x" fs={fs} />
+              {g.narrow ? 'mod 15 for each x' : 'mod 15 for every x, in one run'}
+            </>,
+          )}
+          <g style={{ opacity: hintOn }}>
+            <T x={X0} y={g.regY[2]} anchor="start" size={fs} color={GT.muted}>
+              {g.narrow
+                ? 'reading one gives a single number, at random'
+                : 'reading a register gives one number, at random, and changes it'}
+            </T>
+          </g>
+        </g>
+
+        {/* steps 3 to 5: the odds of each reading */}
         <g style={fade(view >= 2)}>
           <line
             x1={X0}
@@ -639,14 +781,21 @@ export default function Shor() {
                 width={bw}
                 height={h}
                 style={{
-                  fill: view === 2 ? GT.b : GT.a,
-                  opacity: view === 3 && readOn > 0 && k !== READ ? 1 - 0.45 * readOn : 1,
+                  fill: view <= 3 ? GT.b : GT.a,
+                  opacity: view === 4 && readOn > 0 && k !== READ ? 1 - 0.45 * readOn : 1,
                 }}
               />
             );
           })}
           {/* odds labels */}
-          {view === 2 &&
+          {view === 2 && (
+            <g style={{ opacity: aOne }}>
+              <T x={X1} y={g.chartBase - barH(1 / Q) - 9} anchor="end" size={fs - 1} color={GT.b}>
+                {`1/${Q} each`}
+              </T>
+            </g>
+          )}
+          {view === 3 &&
             SURV.map((x) => (
               <g key={`c${x}`} style={{ opacity: combLab }}>
                 <T x={kx(x)} y={g.chartBase - barH(1 / 8) - 8} size={fs - 1} color={GT.b}>
@@ -654,7 +803,7 @@ export default function Shor() {
                 </T>
               </g>
             ))}
-          {view === 3 &&
+          {view === 4 &&
             Array.from({ length: R }, (_, i) => i * SPACING).map((k) => (
               <g key={`p${k}`} style={{ opacity: peaksOn }}>
                 <T x={kx(k)} y={g.chartTop - 8} size={fs - 1} color={GT.a}>
@@ -663,7 +812,7 @@ export default function Shor() {
               </g>
             ))}
           {/* the reading */}
-          {view === 3 && (
+          {view === 4 && (
             <path
               d={`M${kx(READ) - 5} ${g.chartTop - 26} L${kx(READ) + 5} ${g.chartTop - 26} L${kx(READ)} ${g.chartTop - 19} Z`}
               style={{ fill: GT.ink, opacity: readOn }}
@@ -671,6 +820,14 @@ export default function Shor() {
           )}
           {/* readings along the axis */}
           {view === 2 &&
+            Array.from({ length: Q / R }, (_, i) => i * R).map((x) => (
+              <g key={`r${x}`} style={{ opacity: aOne }}>
+                <T x={kx(x)} y={g.chartBase + 11} size={fs - 1} color={GT.b}>
+                  {x}
+                </T>
+              </g>
+            ))}
+          {view === 3 &&
             SURV.map((x) => (
               <g key={`a${x}`} style={{ opacity: combLab }}>
                 <T x={kx(x)} y={g.chartBase + 11} size={fs - 1} color={GT.b}>
@@ -678,7 +835,7 @@ export default function Shor() {
                 </T>
               </g>
             ))}
-          {view === 3 &&
+          {view === 4 &&
             Array.from({ length: R }, (_, i) => i * SPACING).map((k) => (
               <g key={`k${k}`}>
                 <T
@@ -692,7 +849,7 @@ export default function Shor() {
                 </T>
               </g>
             ))}
-          {view === 3 && (
+          {view === 4 && (
             <Bracket
               x0={kx(0)}
               x1={kx(SPACING)}
