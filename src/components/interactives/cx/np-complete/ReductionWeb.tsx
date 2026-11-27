@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   BigStat,
   Caption,
@@ -31,6 +31,8 @@ type Layout = {
   fs: number;
   pos: Record<NodeId, [number, number]>;
   restY: number;
+  /** how far the wave must spread to cover the whole figure background (measured) */
+  reach?: number;
 };
 const WIDE: Layout = {
   W: 640,
@@ -121,6 +123,7 @@ function stateAt(L: Layout, origin: NodeId | null, t: number) {
 }
 
 function maxReach(L: Layout) {
+  if (L.reach) return L.reach;
   const [sx, sy] = L.pos.SAT;
   return Math.max(Math.hypot(sx, L.H - sy), Math.hypot(L.W - sx, L.H - sy));
 }
@@ -151,29 +154,56 @@ const REST = [
   'Candy Crush',
   'Steiner tree',
   'Lemmings',
+  'Minesweeper',
   'Nurikabe',
   'partition',
+  'longest path',
+  'dominating set',
+  'crossword building',
+  'vehicle routing',
+  'Light Up',
+  'Slitherlink',
 ];
-const MORE = '…and thousands more';
 
-/** Lay the names out in rows under the heading; each word lights when the wave reaches its middle. */
-function restWords(L: Layout) {
+/**
+ * Lay the names out in justified rows under the heading, flush with the figure's edges. Widths
+ * are measured once the font is in (estimated before that). Each name lights up when the wave
+ * reaches its middle.
+ */
+function restWords(L: Layout, widths?: number[]) {
   const fs = L.fs - 0.5;
-  const cw = fs * 0.56; // average sans glyph width
-  const gap = fs * 1.6;
-  const out: { w: string; x: number; y: number; cx: number }[] = [];
-  let x = 14;
-  let y = L.restY + fs * 1.9;
-  for (const w of [...REST, MORE]) {
-    const width = w.length * cw;
-    if (x + width > L.W - 14) {
-      x = 14;
-      y += fs * 1.75;
+  const gap = fs * 1.3;
+  const lh = fs * 1.75;
+  const wd = REST.map((w, i) => widths?.[i] ?? w.length * fs * 0.56);
+  const rows: number[][] = [[]];
+  let used = 0;
+  REST.forEach((_, i) => {
+    const row = rows[rows.length - 1];
+    if (row.length && used + gap + wd[i] > L.W) {
+      rows.push([i]);
+      used = wd[i];
+    } else {
+      used += (row.length ? gap : 0) + wd[i];
+      row.push(i);
     }
-    out.push({ w, x, y, cx: x + width / 2 });
-    x += width + gap;
-  }
-  return { words: out, fs, H: y + fs * 1.2 };
+  });
+  const out: { w: string; x: number; y: number; cx: number }[] = [];
+  rows.forEach((row, r) => {
+    const y = L.restY + fs * 1.9 + r * lh;
+    const total = row.reduce((t, i) => t + wd[i], 0);
+    const fill = (total + gap * (row.length - 1)) / L.W;
+    // the last row stays left-aligned unless it is nearly full
+    const g =
+      row.length > 1 && (r < rows.length - 1 || fill > 0.8)
+        ? (L.W - total) / (row.length - 1)
+        : gap;
+    let x = 0;
+    for (const i of row) {
+      out.push({ w: REST[i], x, y, cx: x + wd[i] / 2 });
+      x += wd[i] + g;
+    }
+  });
+  return { words: out, fs, H: L.restY + fs * 1.9 + (rows.length - 1) * lh + fs * 1.2 };
 }
 
 // the figure ends just under the last row of names
@@ -227,8 +257,65 @@ export default function ReductionWeb() {
   const st = previewing
     ? stateAt(L, active, active ? endTime(L, active) - maxReach(L) / RING - RING_GAP - 0.05 : 0)
     : stateAt(L, sel, t.current);
-  const rest = restWords(L);
+  const [widths, setWidths] = useState<number[] | undefined>();
+  const rest = restWords(L, widths);
+  const VH = Math.ceil(rest.H);
   const [sx, sy] = L.pos.SAT;
+
+  // measure the names once the font is in, so rows can be justified exactly
+  const svgRef = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    let live = true;
+    const measure = () => {
+      const els = svgRef.current?.querySelectorAll<SVGTextElement>('[data-rest]');
+      if (!live || !els || els.length !== REST.length) return;
+      setWidths([...els].map((e) => e.getComputedTextLength()));
+    };
+    measure();
+    document.fonts?.ready.then(measure);
+    return () => {
+      live = false;
+    };
+  }, [compact]);
+
+  // the wave is painted on a layer behind the whole figure body, edge to edge
+  const bgRef = useRef<HTMLDivElement>(null);
+  const [geo, setGeo] = useState<{ ox: number; oy: number; k: number } | null>(null);
+  useLayoutEffect(() => {
+    const bg = bgRef.current;
+    const svg = svgRef.current;
+    if (!bg || !svg) return;
+    const update = () => {
+      const b = bg.getBoundingClientRect();
+      const r = svg.getBoundingClientRect();
+      const k = r.width / L.W;
+      const ox = r.left - b.left;
+      const oy = r.top - b.top;
+      const cx = ox + sx * k;
+      const cy = oy + sy * k;
+      L.reach =
+        Math.max(
+          Math.hypot(cx, cy),
+          Math.hypot(b.width - cx, cy),
+          Math.hypot(cx, b.height - cy),
+          Math.hypot(b.width - cx, b.height - cy),
+        ) / k;
+      setGeo({ ox, oy, k });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(bg);
+    return () => ro.disconnect();
+  }, [L, sx, sy]);
+  const wave = (() => {
+    if (!geo || st.ring <= 0) return 'none';
+    const fill = `color-mix(in srgb, ${GT.optSoft} 45%, transparent)`;
+    if (st.all) return fill;
+    const cx = geo.ox + sx * geo.k;
+    const cy = geo.oy + sy * geo.k;
+    const R = st.ring * geo.k;
+    return `radial-gradient(circle at ${cx}px ${cy}px, ${fill} ${R - 1.5}px, ${GT.opt} ${R - 1.5}px, ${GT.opt} ${R + 0.5}px, transparent ${R + 0.5}px)`;
+  })();
 
   const captions: string[] = [
     'Click a problem to suppose someone found a fast way to solve it.',
@@ -253,149 +340,138 @@ export default function ReductionWeb() {
       hint="click a problem; click it again to undo"
       footer="Karp 1972 · Sipser §7.5"
     >
-      <div ref={wrapRef}>
-        <svg
-          viewBox={`0 0 ${L.W} ${L.H}`}
-          className="block w-full select-none"
-          role="img"
-          aria-label="Famous NP-complete problems joined by reductions, all leading to SAT"
-        >
-          <SvgArrows />
-          {/* Cook-Levin wave */}
-          {st.ring > 0 && !st.all && (
-            <circle
-              cx={sx}
-              cy={sy}
-              r={st.ring}
-              style={{ fill: GT.optSoft, fillOpacity: 0.35, stroke: GT.opt, strokeWidth: 2 }}
-            />
-          )}
-
-          {/* arrows: child → parent */}
-          {NODES.filter((n) => n.parent).map((n) => {
-            const a = boxEdge(L.pos[n.id], L.pos[n.parent!], L.bw, L.bh);
-            const b = boxEdge(L.pos[n.parent!], L.pos[n.id], L.bw, L.bh);
-            const u = st.edgeProg.get(n.id) ?? 0;
-            return (
-              <g key={'e' + n.id}>
-                <line
-                  x1={a[0]}
-                  y1={a[1]}
-                  x2={b[0]}
-                  y2={b[1]}
-                  markerEnd={`url(#gt-arrow-${u >= 1 ? 'opt' : 'muted'})`}
-                  style={{ stroke: u >= 1 ? GT.opt : GT.muted, strokeWidth: u >= 1 ? 2 : 1.4 }}
-                />
-                {u > 0 && u < 1 && (
+      <div className="relative isolate">
+        <div
+          ref={bgRef}
+          aria-hidden
+          className="pointer-events-none absolute -inset-4 -z-10 sm:-inset-5"
+          style={{ background: wave }}
+        />
+        <div ref={wrapRef}>
+          <svg
+            ref={svgRef}
+            viewBox={`0 0 ${L.W} ${VH}`}
+            className="block w-full select-none"
+            role="img"
+            aria-label="Famous NP-complete problems joined by reductions, all leading to SAT"
+          >
+            <SvgArrows />
+            {/* arrows: child → parent */}
+            {NODES.filter((n) => n.parent).map((n) => {
+              const a = boxEdge(L.pos[n.id], L.pos[n.parent!], L.bw, L.bh);
+              const b = boxEdge(L.pos[n.parent!], L.pos[n.id], L.bw, L.bh);
+              const u = st.edgeProg.get(n.id) ?? 0;
+              return (
+                <g key={'e' + n.id}>
                   <line
                     x1={a[0]}
                     y1={a[1]}
-                    x2={a[0] + (b[0] - a[0]) * u}
-                    y2={a[1] + (b[1] - a[1]) * u}
-                    style={{ stroke: GT.opt, strokeWidth: 2 }}
+                    x2={b[0]}
+                    y2={b[1]}
+                    markerEnd={`url(#gt-arrow-${u >= 1 ? 'opt' : 'muted'})`}
+                    style={{ stroke: u >= 1 ? GT.opt : GT.muted, strokeWidth: u >= 1 ? 2 : 1.4 }}
                   />
-                )}
-              </g>
-            );
-          })}
-          {st.pulse && (
-            <circle cx={st.pulse[0]} cy={st.pulse[1]} r={4.5} style={{ fill: GT.opt }} />
-          )}
+                  {u > 0 && u < 1 && (
+                    <line
+                      x1={a[0]}
+                      y1={a[1]}
+                      x2={a[0] + (b[0] - a[0]) * u}
+                      y2={a[1] + (b[1] - a[1]) * u}
+                      style={{ stroke: GT.opt, strokeWidth: 2 }}
+                    />
+                  )}
+                </g>
+              );
+            })}
+            {st.pulse && (
+              <circle cx={st.pulse[0]} cy={st.pulse[1]} r={4.5} style={{ fill: GT.opt }} />
+            )}
 
-          {/* the rest of NP */}
-          <T x={14} y={L.restY} anchor="start" size={L.fs - 1}>
-            and every other problem in NP, for example
-          </T>
-          {/* one text per row, so the browser spaces the names evenly */}
-          {[...new Set(rest.words.map((r) => r.y))].map((y) => (
-            <text
-              key={y}
-              x={14}
-              y={y}
-              dominantBaseline="middle"
-              style={{ fontFamily: 'var(--font-sans)', fontSize: rest.fs }}
-            >
-              {rest.words
-                .filter((r) => r.y === y)
-                .map(({ w, cx }, i) => {
-                  const more = w === MORE;
-                  const on = !more && st.ring > 0 && Math.hypot(cx - sx, y - sy) <= st.ring;
-                  return (
-                    <tspan
-                      key={w}
-                      dx={i ? rest.fs * 1.4 : 0}
-                      style={{
-                        fill: on ? GT.opt : more ? GT.muted : GT.inkSoft,
-                        fontStyle: more ? 'italic' : 'normal',
-                        transition: 'fill 160ms',
-                      }}
-                    >
-                      {w}
-                    </tspan>
-                  );
-                })}
-            </text>
-          ))}
-
-          {/* problems */}
-          {NODES.map((n) => {
-            const [x, y] = L.pos[n.id];
-            const on = st.lit.has(n.id);
-            const origin = active === n.id;
-            return (
-              <g
-                key={n.id}
-                onClick={() => commit(n.id)}
-                {...bind(n.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                <rect
-                  x={x - L.bw / 2}
-                  y={y - L.bh / 2}
-                  width={L.bw}
-                  height={L.bh}
-                  style={{
-                    fill: on ? GT.optSoft : GT.paperRaised,
-                    stroke: on ? GT.opt : GT.inkSoft,
-                    strokeWidth: origin ? 3 : 1.4,
-                    transition: 'fill 160ms, stroke 160ms',
-                  }}
-                />
-                <T
+            {/* the rest of NP */}
+            <T x={0} y={L.restY} anchor="start" size={L.fs - 1}>
+              and thousands of other problems in NP, such as
+            </T>
+            {rest.words.map(({ w, x, y, cx }) => {
+              const on = st.ring > 0 && Math.hypot(cx - sx, y - sy) <= st.ring;
+              return (
+                <text
+                  key={w}
+                  data-rest
                   x={x}
-                  y={y + 1}
-                  size={n.id === 'SAT' ? L.fs + 3 : L.fs}
-                  color={GT.ink}
-                  font={n.id === 'SAT' ? 'display' : 'mono'}
+                  y={y}
+                  dominantBaseline="middle"
+                  style={{
+                    fill: on ? GT.opt : GT.inkSoft,
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: rest.fs,
+                    transition: 'fill 160ms',
+                  }}
                 >
-                  {n.name}
-                </T>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
+                  {w}
+                </text>
+              );
+            })}
 
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        <BigStat
-          size={compact ? 'sm' : 'md'}
-          label="named problems fast"
-          value={`${nLit} / ${NODES.length}`}
-          color={nLit ? GT.opt : GT.ink}
-        />
-        <BigStat
-          size={compact ? 'sm' : 'md'}
-          label="all of NP fast"
-          value={st.all ? 'yes' : st.ring > 0 ? 'spreading' : 'not yet'}
-          color={st.all ? GT.opt : GT.muted}
+            {/* problems */}
+            {NODES.map((n) => {
+              const [x, y] = L.pos[n.id];
+              const on = st.lit.has(n.id);
+              const origin = active === n.id;
+              return (
+                <g
+                  key={n.id}
+                  onClick={() => commit(n.id)}
+                  {...bind(n.id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <rect
+                    x={x - L.bw / 2}
+                    y={y - L.bh / 2}
+                    width={L.bw}
+                    height={L.bh}
+                    style={{
+                      fill: on ? GT.optSoft : GT.paperRaised,
+                      stroke: on ? GT.opt : GT.inkSoft,
+                      strokeWidth: origin ? 3 : 1.4,
+                      transition: 'fill 160ms, stroke 160ms',
+                    }}
+                  />
+                  <T
+                    x={x}
+                    y={y + 1}
+                    size={n.id === 'SAT' ? L.fs + 3 : L.fs}
+                    color={GT.ink}
+                    font={n.id === 'SAT' ? 'display' : 'mono'}
+                  >
+                    {n.name}
+                  </T>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <BigStat
+            size={compact ? 'sm' : 'md'}
+            label="named problems fast"
+            value={`${nLit} / ${NODES.length}`}
+            color={nLit ? GT.opt : GT.ink}
+          />
+          <BigStat
+            size={compact ? 'sm' : 'md'}
+            label="all of NP fast"
+            value={st.all ? 'yes' : st.ring > 0 ? 'spreading' : 'not yet'}
+            color={st.all ? GT.opt : GT.muted}
+          />
+        </div>
+        <Reserve
+          active={capIdx}
+          items={captions.map((c) => (
+            <Caption key={c}>{c}</Caption>
+          ))}
         />
       </div>
-      <Reserve
-        active={capIdx}
-        items={captions.map((c) => (
-          <Caption key={c}>{c}</Caption>
-        ))}
-      />
     </Specimen>
   );
 }
