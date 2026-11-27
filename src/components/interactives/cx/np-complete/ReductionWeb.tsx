@@ -7,7 +7,6 @@ import {
   SvgArrows,
   T,
   clamp,
-  mulberry32,
   useFrame,
   useHoverPreview,
   useInView,
@@ -31,7 +30,6 @@ type Layout = {
   bh: number;
   fs: number;
   pos: Record<NodeId, [number, number]>;
-  dotsY: number[];
   restY: number;
 };
 const WIDE: Layout = {
@@ -52,7 +50,6 @@ const WIDE: Layout = {
     HAM: [455, 282],
     TSP: [580, 282],
   },
-  dotsY: [344, 360],
   restY: 324,
 };
 const NARROW: Layout = {
@@ -73,7 +70,6 @@ const NARROW: Layout = {
     HAM: [310, 260],
     TSP: [310, 338],
   },
-  dotsY: [394, 410],
   restY: 376,
 };
 
@@ -139,16 +135,52 @@ function endTime(L: Layout, origin: NodeId) {
   return c + RING_GAP + maxReach(L) / RING + 0.05;
 }
 
-/** Small squares standing for the rest of NP, at fixed seeded spots. */
-function restDots(L: Layout) {
-  const rnd = mulberry32(5);
-  const out: [number, number][] = [];
-  const step = 13;
-  for (const y of L.dotsY)
-    for (let x = 14; x < L.W - 10; x += step)
-      out.push([x + (rnd() - 0.5) * 3, y + (rnd() - 0.5) * 3]);
-  return out;
+/** The rest of NP, by name: a mix of hard ones and easy ones (P sits inside NP too). */
+const REST = [
+  'knapsack',
+  'sorting',
+  'Tetris',
+  'bin packing',
+  'protein folding',
+  'shortest path',
+  'Battleship',
+  'set cover',
+  'job-shop scheduling',
+  'factoring',
+  'Kakuro',
+  'max cut',
+  'register allocation',
+  'Candy Crush',
+  'Steiner tree',
+  'is it prime?',
+  'Lemmings',
+  'Nurikabe',
+  'partition',
+];
+const MORE = '…and thousands more';
+
+/** Lay the names out in rows under the heading; each word lights when the wave reaches its middle. */
+function restWords(L: Layout) {
+  const fs = L.fs - 0.5;
+  const cw = fs * 0.56; // average sans glyph width
+  const gap = fs * 1.6;
+  const out: { w: string; x: number; y: number; cx: number }[] = [];
+  let x = 14;
+  let y = L.restY + fs * 1.9;
+  for (const w of [...REST, MORE]) {
+    const width = w.length * cw;
+    if (x + width > L.W - 14) {
+      x = 14;
+      y += fs * 1.75;
+    }
+    out.push({ w, x, y, cx: x + width / 2 });
+    x += width + gap;
+  }
+  return { words: out, fs, H: y + fs * 1.2 };
 }
+
+// the figure ends just under the last row of names
+for (const L of [WIDE, NARROW]) L.H = Math.ceil(restWords(L).H);
 
 export default function ReductionWeb() {
   const reduced = useReducedMotion();
@@ -198,7 +230,7 @@ export default function ReductionWeb() {
   const st = previewing
     ? stateAt(L, active, active ? endTime(L, active) - maxReach(L) / RING - RING_GAP - 0.05 : 0)
     : stateAt(L, sel, t.current);
-  const dots = restDots(L);
+  const rest = restWords(L);
   const [sx, sy] = L.pos.SAT;
 
   const captions: string[] = [
@@ -275,23 +307,38 @@ export default function ReductionWeb() {
 
           {/* the rest of NP */}
           <T x={14} y={L.restY} anchor="start" size={L.fs - 1}>
-            {compact
-              ? 'every other problem in NP'
-              : 'and every other problem in NP: thousands of them'}
+            and every other problem in NP, for example
           </T>
-          {dots.map(([x, y], i) => {
-            const on = st.ring > 0 && Math.hypot(x - sx, y - sy) <= st.ring;
-            return (
-              <rect
-                key={i}
-                x={x - 3}
-                y={y - 3}
-                width={6}
-                height={6}
-                style={{ fill: on ? GT.opt : GT.line, transition: 'fill 120ms' }}
-              />
-            );
-          })}
+          {/* one text per row, so the browser spaces the names evenly */}
+          {[...new Set(rest.words.map((r) => r.y))].map((y) => (
+            <text
+              key={y}
+              x={14}
+              y={y}
+              dominantBaseline="middle"
+              style={{ fontFamily: 'var(--font-sans)', fontSize: rest.fs }}
+            >
+              {rest.words
+                .filter((r) => r.y === y)
+                .map(({ w, cx }, i) => {
+                  const more = w === MORE;
+                  const on = !more && st.ring > 0 && Math.hypot(cx - sx, y - sy) <= st.ring;
+                  return (
+                    <tspan
+                      key={w}
+                      dx={i ? rest.fs * 1.4 : 0}
+                      style={{
+                        fill: on ? GT.opt : more ? GT.muted : GT.inkSoft,
+                        fontStyle: more ? 'italic' : 'normal',
+                        transition: 'fill 160ms',
+                      }}
+                    >
+                      {w}
+                    </tspan>
+                  );
+                })}
+            </text>
+          ))}
 
           {/* problems */}
           {NODES.map((n) => {
