@@ -10,6 +10,7 @@ seriesOrder: 8
 
 import MultiplyFactor from '../../../components/interactives/cx/factoring/MultiplyFactor.tsx';
 import Padlock from '../../../components/interactives/cx/factoring/Padlock.tsx';
+import Shor from '../../../components/interactives/cx/factoring/Shor.tsx';
 import Lesson from '../../../components/interactives/gt/Lesson.astro';
 
 Multiplying 4,729 by 8,831 on paper takes 16 single-digit products: 41,761,799. Now hand
@@ -63,8 +64,16 @@ prime is easy: it is in P ([Agrawal, Kayal and Saxena](https://www.cse.iitk.ac.i
 Knowing that 41,761,799 is not prime does not tell you its factors.
 
 In 1994 Peter Shor showed that a quantum computer could factor in polynomial time
-([paper](https://arxiv.org/pdf/quant-ph/9508027)). No quantum computer anywhere near large enough
-exists yet, but this is why cryptographers are moving to locks that do not rely on factoring.
+([paper](https://arxiv.org/pdf/quant-ph/9508027)). His trick turns factoring into finding a rhythm:
+$a^x \bmod N$ repeats every $r$ steps, a quantum computer finds $r$ by letting one wave per $x$
+interfere, and $\gcd(a^{r/2} \pm 1, N)$ then gives the factors.
+
+<div class="fx-figure">
+  <Shor client:visible />
+</div>
+
+No quantum computer anywhere near large enough exists yet, but this is why cryptographers are
+moving to locks that do not rely on factoring.
 
 <Lesson>
 
