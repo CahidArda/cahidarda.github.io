@@ -94,11 +94,11 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     label: '3 all x',
     caption: (
       <>
-        A quantum register holds every x from 0 to 31 at once, each with the same chance, and
-        computes 7<sup>x</sup> mod 15 into a second register. Measuring that register reads its
-        qubits as bits, one number, say 7, and collapses the state: only the x that give 7 survive,
-        with equal gaps between them. The bars are their chances. Measuring x now would give one of
-        them at random, which says nothing about the gap.
+        Two registers. Register A holds every x from 0 to 31 at once, each with the same chance;
+        register B gets 7<sup>x</sup> mod 15 for each of them. Measure register B: its qubits come
+        out as plain bits, one number, say 7. That collapses register A too: only the x that give 7
+        stay (1, 5, 9, …, 29), with equal gaps. The bars are register A&rsquo;s chances now.
+        Measuring A would give one of them at random, which says nothing about the gap.
       </>
     ),
   },
@@ -359,7 +359,7 @@ export default function Shor() {
     const panelTitle = [
       'the cycle: times 7 each step, mod 15',
       'if you know r',
-      'chance of each x, if measured now',
+      'register A: chance of each x',
       tt < T_PEAKS
         ? `adding one wave per x: ${Math.max(1, Math.ceil(waves))} of ${SURV.length}`
         : g.narrow
@@ -367,7 +367,7 @@ export default function Shor() {
           : 'after the Fourier transform',
     ][view];
     const status =
-      view === 2 ? (tt < T_DIM ? 'computing all 32 at once' : `output reads ${OUT}`) : '';
+      view === 2 ? (tt < T_DIM ? 'computing all 32 at once' : `register B reads ${OUT}`) : '';
 
     return (
       <svg
