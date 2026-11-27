@@ -25,8 +25,8 @@ import {
  *  5. arrows (the Fourier transform): for a reading k, each surviving x adds a unit arrow
  *     turned k·x/32 of a full turn (drawn from a common centre, "×8" where they coincide) and
  *     the blue arrow is their average; the chance of k is |sum|² / (8 · 32) = |average|² / 4.
- *     That is 1/4 at k = 0, 8, 16, 24 and 0 elsewhere. Auto-play steps k = 0, 1, ..., 8, a short
- *     pause on each, every arrow gliding the short way round; then the other peaks fill in.
+ *     That is 1/4 at k = 0, 8, 16, 24 and 0 elsewhere. Auto-play steps k = 0, 1, ..., 32 at a
+ *     steady pace, halting briefly on the peaks 0, 8, 16, 24; the bars fill in as k passes.
  *     Hover or tap a bar to pick k.
  *  6. read X: it reads 8. 8/32 = 1/4, so r = 4 (24/32 = 3/4 too; 0 and 16/32 = 1/2 mean run
  *     again), which is what step 2 needed: 15 = 3 × 5.
@@ -82,7 +82,7 @@ const PK = Array.from({ length: Q }, (_, k) => {
 });
 
 /* the clock: how long each step animates, then how long auto-play lingers on it */
-const DUR = [3.7, 4.2, 2.6, 3.8, 6.1, 3.1];
+const DUR = [3.7, 4.2, 2.6, 3.8, 8.8, 3.1];
 const DWELL = [3.2, 4.6, 5.0, 5.8, 4.0, 0];
 const LAST = 5;
 const ramp = (t: number, t0: number, d = 0.35) => clamp((t - t0) / d, 0, 1);
@@ -107,22 +107,33 @@ function pickPos(t: number) {
   const m = d % (2 * (R - 1));
   return m <= R - 1 ? m : 2 * (R - 1) - m;
 }
-/* step 5: k steps 0, 1, ..., 8, pausing on each whole number */
-const T5_SW = 0.55; // the X bars have faded
-const HOLD0 = 0.45; // the first pause, on k = 0
-const GL = 0.2; // the glide to the next k
-const HOLD = 0.35; // the pause on it
-const HOP = GL + HOLD;
-const T5_END = T5_SW + HOLD0 + READ * HOP;
-const T5_REST = T5_END + 0.1; // the peaks past 8 fill in
-function sweep(t: number) {
-  const s = t - T5_SW - HOLD0;
-  if (s <= 0) return { k0: 0, k1: 0, u: 0 };
-  const i = Math.floor(s / HOP);
-  if (i >= READ) return { k0: READ, k1: READ, u: 0 };
-  return { k0: i, k1: i + 1, u: smooth(clamp((s - i * HOP) / GL, 0, 1)) };
+/* step 5: k steps through every whole number 0, 1, ..., 32 (32 is 0 again) at a steady pace,
+ * halting briefly on the peaks 0, 8, 16, 24 so the lined-up arrows can be seen */
+const T5_SW = 0.15;
+const GL = 0.12; // the glide to the next k
+const HOLD = 0.06; // a short rest on an ordinary k
+const HALT = 0.7; // the rest on a peak
+const K_END = 32;
+const ARRIVE: number[] = []; // when the sweep reaches each k
+const LEAVE: number[] = []; // when it moves on
+{
+  let t = T5_SW;
+  for (let k = 0; k <= K_END; k++) {
+    if (k > 0) t += GL;
+    ARRIVE.push(t);
+    t += k % 8 === 0 && k < K_END ? HALT : HOLD;
+    LEAVE.push(t);
+  }
 }
-const arriveAt = (k: number) => (k === 0 ? T5_SW : T5_SW + HOLD0 + (k - 1) * HOP + GL / 2);
+function sweep(t: number) {
+  if (t <= LEAVE[0]) return { k0: 0, k1: 0, u: 0 };
+  for (let k = 1; k <= K_END; k++) {
+    if (t < ARRIVE[k]) return { k0: k - 1, k1: k, u: smooth(clamp((t - LEAVE[k - 1]) / GL, 0, 1)) };
+    if (t <= LEAVE[k]) return { k0: k, k1: k, u: 0 };
+  }
+  return { k0: K_END, k1: K_END, u: 0 };
+}
+const arriveAt = (k: number) => ARRIVE[k] - GL / 2;
 const PICK_GLIDE = 0.3; // seconds for the arrows to glide to a picked k
 /* step 6 */
 const T6_READ = 0.3;
@@ -188,8 +199,9 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     caption: (
       <>
         Now read X. It lands on a peak, here 8. Divide by 32 and reduce: 8/32 = 1/4, and the bottom
-        number is <b>r = 4</b> (24/32 = 3/4 gives 4 too; 0 and 16/32 = 1/2 hide it, so run again).
-        That r is what step 2 needed: 15 = 3 × 5.
+        number is <b>r = 4</b> (24/32 = 3/4 gives 4 too). A reading of 16 gives 16/32 = 1/2, which
+        suggests r = 2, but 7² mod 15 = 4, not 1, so that guess fails the check; 0 says nothing.
+        Then you run again. That r is what step 2 needed: 15 = 3 × 5.
       </>
     ),
   },
@@ -517,11 +529,10 @@ export default function Shor() {
     const picking = view === 3 && tt < T4_LAND;
     const markOn = view === 3 ? ramp(tt, T4_READ - 0.2, 0.2) : 0;
     const yRead = view === 3 ? ramp(tt, T4_Y, 0.45) : 0;
-    const comb = view === 3 ? ramp(tt, T_COMB, 0.5) : view === 4 ? 1 - ramp(tt, 0.05, 0.45) : 0;
+    const comb = view === 3 ? ramp(tt, T_COMB, 0.5) : 0;
     const xBars = Array.from({ length: Q }, (_, x) => {
       if (view === 2) return xOn / Q;
       if (view === 3) return (1 - comb) / Q + comb * (F[x] === OUT ? 1 / SURV.length : 0);
-      if (view === 4) return F[x] === OUT ? 1 / SURV.length : 0;
       return 0;
     });
     const yBars = CYCLE.map((v) => {
@@ -530,11 +541,7 @@ export default function Shor() {
     });
     // step 5: the k chart fills in as the sweep reaches each k; step 6 reads it
     const fill = (k: number) =>
-      view === 5 || explored || kPicked !== null
-        ? 1
-        : k <= READ
-          ? ramp(tt, arriveAt(k), 0.3)
-          : ramp(tt, T5_REST, 0.5);
+      view === 5 || explored || kPicked !== null ? 1 : ramp(tt, arriveAt(k), 0.2);
     const kBars = PK.map((p, k) => (view >= 4 ? p * fill(k) : 0));
     const readOn = view === 5 ? ramp(tt, T6_READ) : 0;
     const fracOn = view === 5 ? ramp(tt, T6_FRAC) : 0;
