@@ -16,8 +16,8 @@ import {
  * CX-08.4 · how a quantum computer factors 15, in four steps (Shor 1994).
  *  1. the cycle: 7^x mod 15 for x = 0..31 is 1, 7, 4, 13, 1, ... so the period r = 4.
  *  2. why r helps: 7^4 - 1 = 48 x 50 is a multiple of 15, so gcd(48, 15) = 3, gcd(50, 15) = 5.
- *  3. all x at once: the register holds x = 0..31 together; reading the output (4) leaves
- *     only x = 2, 6, ..., 30 (r apart). Reading x now gives one of the eight, 1/8 each.
+ *  3. all x at once: the register holds x = 0..31 together; reading the output (7) leaves
+ *     only x = 1, 5, ..., 29 (equal gaps). Reading x now gives one of the eight, 1/8 each.
  *  4. interference: the Fourier transform adds one wave per surviving x. The bars are the
  *     real measurement odds |Σ w_j e^(2πi k x_j / Q)|² / (Q Σ w_j²) while the waves are added
  *     one by one; at the end they are 1/4 at k = 0, 8, 16, 24 and 0 elsewhere. It reads 8:
@@ -28,7 +28,7 @@ import {
 const N = 15;
 const A = 7;
 const Q = 32;
-const OUT = 4; // what the output register reads in step 3
+const OUT = 7; // what the output register reads in step 3 (not 4, which looks like r)
 const READ = 8; // what the final measurement reads in step 4
 
 function powmod(b: number, e: number, m: number) {
@@ -49,7 +49,7 @@ const CYCLE = F.slice(0, R); // 1, 7, 4, 13
 const HALF = A ** (R / 2); // 49
 const P1 = gcd(HALF - 1, N); // 3
 const P2 = gcd(HALF + 1, N); // 5
-const SURV = F.map((v, x) => (v === OUT ? x : -1)).filter((x) => x >= 0); // 2, 6, ..., 30
+const SURV = F.map((v, x) => (v === OUT ? x : -1)).filter((x) => x >= 0); // 1, 5, ..., 29
 const SPACING = Q / R; // 8
 
 /* the clock: how long each step animates, then how long auto-play lingers on it */
@@ -94,9 +94,11 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     label: '3 all x',
     caption: (
       <>
-        A quantum register holds every x from 0 to 31 at once, and computes 7<sup>x</sup> mod 15 for
-        all of them together. Reading the output (here 4) leaves only the x that give 4, spaced r
-        apart. Reading x now gives one of them at random, which says nothing about r.
+        A quantum register holds every x from 0 to 31 at once, each with the same chance, and
+        computes 7<sup>x</sup> mod 15 into a second register. Measuring that register reads its
+        qubits as bits, one number, say 7, and collapses the state: only the x that give 7 survive,
+        with equal gaps between them. The bars are their chances. Measuring x now would give one of
+        them at random, which says nothing about the gap.
       </>
     ),
   },
@@ -104,9 +106,10 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     label: '4 waves',
     caption: (
       <>
-        The quantum Fourier transform turns each remaining x into a wave. The waves cancel
-        everywhere except at multiples of 32 / r = 8. Here it reads 8, and 8/32 = 1/4 gives{' '}
-        <b>r = 4</b>. (24 also works; 0 or 16 mean run again.)
+        The quantum Fourier transform makes the surviving x interfere: their waves cancel everywhere
+        except at multiples of 32 / r = 8. Measuring now gives 0, 8, 16 or 24, a 1 in 4 chance each;
+        here 8. Divide by 32 and reduce: 8/32 = 1/4 and 24/32 = 3/4 both show <b>r = 4</b>{' '}
+        underneath. 16/32 = 1/2 and 0/32 hide it, so you run again.
       </>
     ),
   },
@@ -340,7 +343,7 @@ export default function Shor() {
     const panelTitle = [
       'the cycle: times 7 each step, mod 15',
       'if you know r',
-      'if you read x now',
+      'chance of each x, if measured now',
       tt < T_PEAKS
         ? `adding one wave per x: ${Math.max(1, Math.ceil(waves))} of ${SURV.length}`
         : g.narrow
@@ -355,7 +358,7 @@ export default function Shor() {
         viewBox={`0 0 ${g.W} ${g.H}`}
         className={cls}
         role="img"
-        aria-label={`7 to the power x mod 15 repeats 1, 7, 4, 13 with period r = 4. gcd(48, 15) = 3 and gcd(50, 15) = 5. A quantum computer reads output 4, leaving x = 2, 6, ..., 30; the Fourier transform turns that into peaks at 0, 8, 16, 24, and a reading of 8 gives r = 4.`}
+        aria-label={`7 to the power x mod 15 repeats 1, 7, 4, 13 with period r = 4. gcd(48, 15) = 3 and gcd(50, 15) = 5. A quantum computer reads output 7, leaving x = 1, 5, ..., 29; the Fourier transform turns that into peaks at 0, 8, 16, 24, and a reading of 8 gives r = 4.`}
       >
         <defs>
           <marker
@@ -477,7 +480,7 @@ export default function Shor() {
           color={view >= 2 ? GT.b : GT.eq}
           fs={fs}
           opacity={rBracketOn}
-          label={view >= 2 ? `r = ${R} apart` : `r = ${R}: back to 1`}
+          label={view >= 2 ? 'equal gaps' : `r = ${R}: back to 1`}
         />
 
         {/* ── the panel ── */}
