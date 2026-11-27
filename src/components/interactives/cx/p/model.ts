@@ -142,8 +142,10 @@ export type Run = {
   frames: number[][];
   /** after c comparisons, how many leading positions are final (selection sort) */
   done: number[];
-  /** selection sort only: scan[c] = slot compared at comparison c and the id of the smallest so far */
-  scan?: { j: number; min: number }[];
+  /** cmp[c] = the two slots compared by comparison c (cmp[0] repeats the first comparison) */
+  cmp: [number, number][];
+  /** selection sort only: min[c] = id of the smallest item seen so far in this pass */
+  min?: number[];
 };
 
 export function shuffled(n: number, seed: number): number[] {
@@ -162,19 +164,21 @@ export function selectionSort(start: number[]): Run {
   const frames = [a.slice()];
   const done = [0];
   const n = a.length;
-  const scan = [{ j: 0, min: a[0] }];
+  const cmp: [number, number][] = [[1, 0]];
+  const min = [a[0]];
   for (let i = 0; i < n - 1; i++) {
     let m = i;
     for (let j = i + 1; j < n; j++) {
+      cmp.push([j, m]);
       if (a[j] < a[m]) m = j;
-      scan.push({ j, min: a[m] });
+      min.push(a[m]);
       if (j === n - 1) [a[i], a[m]] = [a[m], a[i]]; // swap lands with the pass's last comparison
       frames.push(a.slice());
       done.push(j === n - 1 ? i + 1 : i);
     }
   }
   done[done.length - 1] = n;
-  return { frames, done, scan };
+  return { frames, done, cmp, min };
 }
 
 /**
@@ -185,6 +189,7 @@ export function selectionSort(start: number[]): Run {
 export function mergeSort(start: number[]): Run {
   const a = start.slice();
   const frames = [a.slice()];
+  const cmp: [number, number][] = [];
   const n = a.length;
   for (let w = 1; w < n; w *= 2) {
     for (let lo = 0; lo + w < n; lo += 2 * w) {
@@ -192,6 +197,7 @@ export function mergeSort(start: number[]): Run {
       let mid = lo + w; // head of the right run
       const hi = Math.min(lo + 2 * w, n);
       while (i < mid && mid < hi) {
+        cmp.push([mid, i]);
         if (a[mid] < a[i]) {
           const v = a[mid];
           a.splice(mid, 1);
@@ -203,5 +209,6 @@ export function mergeSort(start: number[]): Run {
       }
     }
   }
-  return { frames, done: frames.map((_, c) => (c === frames.length - 1 ? n : 0)) };
+  cmp.unshift(cmp[0]);
+  return { frames, done: frames.map((_, c) => (c === frames.length - 1 ? n : 0)), cmp };
 }

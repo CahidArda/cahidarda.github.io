@@ -14,8 +14,9 @@ import { mergeSort, selectionSort, shuffled, type Run } from './model';
 /**
  * CX-02.2 "sorting". The same 40 shuffled bars, sorted twice on one clock at the same number
  * of comparisons per second: selection sort (n(n-1)/2 = 780 comparisons) and merge sort (176
- * for this shuffle). Bars glide toward their slot after every comparison, so motion is
- * continuous. Replay resets and plays again after a second.
+ * for this shuffle). Each item is one bar that glides toward its slot after every comparison;
+ * two ticks under the
+ * baseline mark the items being compared, in both panels. Replay resets and replays after 1 s.
  */
 const N = 40;
 const START = shuffled(N, 1);
@@ -37,8 +38,11 @@ const RUNS: { id: 'sel' | 'merge'; name: string; color: string; run: Run; formul
 ];
 const RATE = 170; // comparisons per second, both algorithms
 const SMOOTH = 18; // 1/s, how fast a bar catches up with its slot
-const SCAN_SMOOTH = 30; // 1/s, the scan band
+const VMAX = 150; // slots per second, the fastest a bar may slide
+const MARK_SMOOTH = 30; // 1/s, the comparison markers under the bars
 const END_S = Math.max(...RUNS.map((r) => r.run.frames.length - 1)) / RATE;
+/** unsorted bars: a solid mix of muted and paper, so overlapping bars never show through */
+const REST = `color-mix(in srgb, ${GT.muted} 55%, ${GT.paper})`;
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
 /** slot of each item id in a frame */
@@ -48,25 +52,26 @@ const slots = (frame: number[]) => {
   return s as number[];
 };
 const FIRST = slots(START);
+const firstMarks = () => RUNS.map((R) => R.run.cmp[0].slice() as [number, number]);
 
 function Bars({
   pos,
+  marks,
   cs,
-  scan,
   narrow,
 }: {
   pos: number[][];
+  marks: [number, number][];
   cs: number[];
-  scan: { x: number };
   narrow: boolean;
 }) {
   const W = narrow ? 360 : 640;
-  const L = 0;
   const PH = narrow ? 64 : 80; // bar area height per panel
   const head = 26;
-  const panel = head + PH + 18;
-  const H = panel * RUNS.length - 10;
-  const bw = (W - L) / N;
+  const panel = head + PH + 22;
+  const H = panel * RUNS.length - 8;
+  const bw = W / N;
+  const mw = Math.min(8, bw - 2); // marker width
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -81,6 +86,9 @@ function Bars({
         const c = Math.min(cs[ri], total);
         const done = R.run.done[c];
         const finished = c >= total;
+        const live = !finished && c > 0;
+        const minId = live && R.run.min ? R.run.min[c] : -1;
+        const target = slots(R.run.frames[c]);
         return (
           <g key={R.id}>
             <T x={0} y={y0 + 9} anchor="start" size={11} color={R.color} weight={700}>
@@ -89,40 +97,45 @@ function Bars({
             <T x={W} y={y0 + 9} anchor="end" size={11} color={GT.inkSoft}>
               {`${c} comparisons${finished ? ' · sorted' : ''}`}
             </T>
+            {/* every item is drawn exactly once: one opaque bar, gliding to its slot; bars in
+                motion are drawn last so a swap slides in front instead of showing through */}
+            {pos[ri]
+              .map((p, id) => ({ p, id, moving: Math.abs(p - Math.round(p)) > 0.01 }))
+              .sort((u, v) => Number(u.moving) - Number(v.moving) || u.id - v.id)
+              .map(({ p, id }) => {
+                const h = ((id + 1) / N) * (PH - 4);
+                // a bar takes its colour once it has arrived in its final slot
+                const fixed = Math.abs(p - target[id]) < 0.5 && target[id] < done;
+                return (
+                  <rect
+                    key={id}
+                    data-item={id}
+                    x={r2(p * bw + 1)}
+                    y={r2(base - h)}
+                    width={r2(bw - 2)}
+                    height={r2(h)}
+                    style={{ fill: id === minId ? GT.ink : fixed ? R.color : REST }}
+                  />
+                );
+              })}
             <line x1={0} x2={W} y1={base + 0.5} y2={base + 0.5} style={{ stroke: GT.lineStrong }} />
-            {/* selection sort's scan: a band on the slot being compared (behind the bars) */}
-            {R.run.scan && !finished && c > 0 && (
-              <rect
-                x={r2(L + scan.x * bw)}
-                y={y0 + head - 4}
-                width={r2(bw)}
-                height={PH + 4}
-                style={{ fill: R.color, opacity: 0.16 }}
-              />
-            )}
-            {pos[ri].map((p, id) => {
-              const h = ((id + 1) / N) * (PH - 4);
-              const fixed = finished || Math.round(p) < done;
-              // selection sort's smallest-so-far is drawn in ink, so the mark is the bar itself
-              const isMin = !!R.run.scan && !finished && c > 0 && R.run.scan[c].min === id;
-              return (
-                <rect
-                  key={id}
-                  x={r2(L + p * bw + 1)}
-                  y={r2(base - h)}
-                  width={r2(bw - 2)}
-                  height={r2(h)}
-                  style={{
-                    fill: isMin ? GT.ink : fixed ? R.color : GT.muted,
-                    opacity: isMin ? 0.85 : fixed ? 0.9 : 0.55,
-                  }}
-                />
-              );
-            })}
+            {/* the two items being compared: small ticks under the baseline, same in both panels */}
+            {live &&
+              marks[ri].map((m, k) => {
+                const cx = r2((m + 0.5) * bw);
+                return (
+                  <path
+                    key={k}
+                    data-mark={k}
+                    d={`M${cx} ${base + 3} l${r2(mw / 2)} 5 h${r2(-mw)} Z`}
+                    style={{ fill: R.color }}
+                  />
+                );
+              })}
             {/* progress: share of this algorithm's comparisons done */}
             <rect
               x={0}
-              y={base + 6}
+              y={base + 12}
               width={r2(W * (c / total))}
               height={3}
               style={{ fill: R.color }}
@@ -140,8 +153,8 @@ export default function SortRace() {
   const [e, setE] = useState(0);
   const eRef = useRef(0);
   const pos = useRef<number[][]>(RUNS.map(() => FIRST.slice()));
-  // selection sort's scan band, in slots, glided like the bars
-  const scan = useRef({ x: 0 });
+  // the two compared slots per panel, glided like the bars
+  const marks = useRef<[number, number][]>(firstMarks());
   const [, setFrame] = useState(0);
   const [running, setRunning] = useState(false);
   const started = useRef(false);
@@ -158,7 +171,7 @@ export default function SortRace() {
     eRef.current = 0;
     setE(0);
     pos.current = RUNS.map(() => FIRST.slice());
-    scan.current = { x: 0 };
+    marks.current = firstMarks();
     setRunning(false);
     if (reduced) return finish();
     timer.current = setTimeout(() => setRunning(true), delay);
@@ -178,37 +191,40 @@ export default function SortRace() {
     [],
   );
 
-  // one clock: comparisons advance with time; bars ease toward their current slots
+  // one clock: comparisons advance with time; bars and markers ease toward their slots
   useFrame((dt) => {
     const t = Math.min(END_S + 1, eRef.current + Math.max(0, dt));
     eRef.current = t;
     let moving = t < END_S;
+    const a = Math.min(1, Math.max(0, dt) * SMOOTH);
+    const vmax = VMAX * Math.max(0, dt);
+    const k = Math.min(1, Math.max(0, dt) * MARK_SMOOTH);
     RUNS.forEach((R, ri) => {
-      const c = Math.min(Math.floor(t * RATE), R.run.frames.length - 1);
+      const last = R.run.frames.length - 1;
+      const cf = Math.min(t * RATE, last);
+      const c = Math.floor(cf);
       const target = slots(R.run.frames[c]);
       const p = pos.current[ri];
-      const a = Math.min(1, Math.max(0, dt) * SMOOTH);
       for (let i = 0; i < N; i++) {
         const d = target[i] - p[i];
         if (Math.abs(d) < 0.002) p[i] = target[i];
         else {
-          p[i] += d * a;
+          // ease in, but never faster than VMAX: a long swap slides instead of leaping
+          p[i] += Math.sign(d) * Math.min(Math.abs(d * a), vmax);
           moving = true;
         }
       }
+      // a marker that steps one slot per comparison aims at the fractional slot, so it sweeps
+      const here = R.run.cmp[c];
+      const next = R.run.cmp[Math.min(c + 1, last)];
+      const m = marks.current[ri];
+      for (let j = 0; j < 2; j++) {
+        const aim = next[j] === here[j] + 1 ? here[j] + (cf - c) : here[j];
+        m[j] += (aim - m[j]) * k;
+      }
+      // selection sort: the second marker sits under the smallest-so-far bar itself
+      if (R.run.min) m[1] = p[R.run.min[c]];
     });
-    // the scan advances one slot per comparison: aim at the fractional slot, then glide
-    const sr = RUNS[0].run;
-    if (sr.scan) {
-      const last = sr.frames.length - 1;
-      const cf = Math.min(t * RATE, last);
-      const c = Math.floor(cf);
-      const here = sr.scan[c];
-      const next = sr.scan[Math.min(c + 1, last)];
-      const aim = next.j === here.j + 1 ? here.j + (cf - c) : here.j;
-      const k = Math.min(1, Math.max(0, dt) * SCAN_SMOOTH);
-      scan.current.x += (aim - scan.current.x) * k;
-    }
     setE(t);
     setFrame((f) => f + 1);
     if (!moving) setRunning(false);
@@ -222,13 +238,14 @@ export default function SortRace() {
       code="CX-02.2"
       title="sorting"
       kicker={`${N} items · ${RATE} comparisons a second each`}
-      hint="band: the slot being compared · solid bar: smallest so far · replay to race again"
+      hint="ticks: the two items being compared · ink bar: smallest so far · replay to race again"
     >
+      {/* one layout per breakpoint (CSS picks it, so hydrating never resizes the figure) */}
       <div className="hidden sm:block">
-        <Bars pos={pos.current} cs={cs} scan={scan.current} narrow={false} />
+        <Bars pos={pos.current} marks={marks.current} cs={cs} narrow={false} />
       </div>
       <div className="sm:hidden">
-        <Bars pos={pos.current} cs={cs} scan={scan.current} narrow />
+        <Bars pos={pos.current} marks={marks.current} cs={cs} narrow />
       </div>
       <div className="mt-3 flex items-end justify-between gap-4 border-t border-line pt-3">
         <div className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1 font-mono text-[0.72rem]">
