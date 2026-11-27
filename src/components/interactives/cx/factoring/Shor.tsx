@@ -284,8 +284,24 @@ export default function Shor() {
     setSt({ step: s, t: reduced ? DUR[s] : 0 });
   };
 
-  // a hovered tab previews that step finished; the committed one plays on its own clock
-  const tt = view === st.step ? Math.min(st.t, DUR[view]) : DUR[view];
+  // a hovered tab plays that step from the start on its own clock; leaving it returns to the
+  // committed step, which keeps its place
+  const [pv, setPv] = useState<{ step: Step; t: number }>({ step: 0, t: 0 });
+  const hoverOther = previewing && view !== st.step;
+  useEffect(() => {
+    if (hoverOther) setPv({ step: view, t: 0 });
+  }, [hoverOther, view]);
+  useFrame(
+    (dt) => setPv((v) => ({ ...v, t: Math.min(v.t + dt, DUR[v.step]) })),
+    inView && !reduced && hoverOther && pv.step === view && pv.t < DUR[view],
+  );
+  const tt = hoverOther
+    ? reduced || pv.step !== view
+      ? reduced
+        ? DUR[view]
+        : 0
+      : pv.t
+    : Math.min(st.t, DUR[view]);
   const { p: bars, n: waves } = view >= 2 ? odds(view, tt) : { p: [], n: 0 };
 
   const chart = (g: Geo, cls: string) => {
