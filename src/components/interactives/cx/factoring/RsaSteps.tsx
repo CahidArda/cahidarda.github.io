@@ -500,7 +500,7 @@ export default function RsaSteps() {
             {...g.text}
             size={g.narrow ? 14 : 18}
             weight={700}
-            segs={[s('IT')]}
+            segs={[s('message: ', GT.muted, 400), s('“IT”')]}
             color={GT.ink}
           />
           <Line
@@ -512,7 +512,7 @@ export default function RsaSteps() {
           <Line
             {...g.m}
             size={fs}
-            segs={[s('m = '), s('920', GT.ink, 700), s('  the message', GT.muted)]}
+            segs={[s('m = '), s('920', GT.ink, 700), s('  as a number', GT.muted)]}
           />
         </g>
         <g style={op(vis(6))}>
