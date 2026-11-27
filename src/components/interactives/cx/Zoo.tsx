@@ -46,7 +46,8 @@ type DotId =
   | 'chess'
   | 'halt'
   | 'tiles'
-  | 'dioph';
+  | 'dioph'
+  | 'presb';
 type RegId = 'dec' | 'exp' | 'pspace' | 'np' | 'npc' | 'p';
 type LabelId = RegId | 'und';
 
@@ -129,6 +130,13 @@ const DOTS: { id: DotId; label: string; cls: string; line: string; slug: string 
     slug: 'beyond-np',
   },
   {
+    id: 'presb',
+    label: 'Presburger arithmetic',
+    cls: 'decidable, not EXPTIME',
+    line: 'Is this statement about adding whole numbers (no multiplying) true? An algorithm always decides (Presburger, 1929), but it needs doubly exponential time (Fischer and Rabin, 1974).',
+    slug: 'halting',
+  },
+  {
     id: 'halt',
     label: 'halting',
     cls: 'undecidable',
@@ -207,46 +215,50 @@ type Pt = { x: number; y: number };
  * that belong to that set (and to no smaller one) sit on the same row, right after the name.
  */
 const W = 420;
-const H = 336;
-const FRAME: Rect = { x: 1, y: 1, w: 418, h: 334 };
+const H = 380;
+const FRAME: Rect = { x: 1, y: 1, w: 418, h: 378 };
 const REG: Record<RegId, Rect> = {
-  dec: { x: 10, y: 28, w: 400, h: 298 },
-  exp: { x: 20, y: 54, w: 380, h: 262 },
-  pspace: { x: 30, y: 80, w: 360, h: 226 },
-  np: { x: 40, y: 106, w: 340, h: 190 },
-  p: { x: 50, y: 136, w: 150, h: 150 },
-  npc: { x: 210, y: 136, w: 160, h: 150 },
+  dec: { x: 10, y: 72, w: 400, h: 298 },
+  exp: { x: 20, y: 98, w: 380, h: 262 },
+  pspace: { x: 30, y: 124, w: 360, h: 226 },
+  np: { x: 40, y: 150, w: 340, h: 190 },
+  p: { x: 50, y: 180, w: 150, h: 150 },
+  npc: { x: 210, y: 180, w: 160, h: 150 },
 };
+/** problems outside P and NP-complete line up in one column, with the NP-complete ones */
+const COL = 228;
 const LAB: Record<LabelId, Pt> = {
-  und: { x: 12, y: 15 },
-  dec: { x: 22, y: 42 },
-  exp: { x: 32, y: 68 },
-  pspace: { x: 42, y: 94 },
-  np: { x: 52, y: 121 },
-  p: { x: 62, y: 152 },
-  npc: { x: 222, y: 152 },
+  und: { x: 12, y: 16 },
+  dec: { x: 22, y: 86 },
+  exp: { x: 32, y: 112 },
+  pspace: { x: 42, y: 138 },
+  np: { x: 52, y: 165 },
+  p: { x: 62, y: 196 },
+  npc: { x: 222, y: 196 },
 };
 const DOT: Record<DotId, Pt> = {
-  halt: { x: 106, y: 15 },
-  tiles: { x: 194, y: 15 },
-  dioph: { x: 272, y: 15 },
-  chess: { x: 112, y: 68 },
-  go: { x: 112, y: 94 },
-  factor: { x: 112, y: 121 },
-  sort: { x: 68, y: 182 },
-  route: { x: 68, y: 214 },
-  prime: { x: 68, y: 246 },
-  sudoku: { x: 228, y: 176 },
-  tsp: { x: 228, y: 200 },
-  mines: { x: 228, y: 224 },
-  exams: { x: 228, y: 248 },
-  sat: { x: 228, y: 272 },
+  halt: { x: COL, y: 16 },
+  tiles: { x: COL, y: 37 },
+  dioph: { x: COL, y: 58 },
+  presb: { x: COL, y: 86 },
+  chess: { x: COL, y: 112 },
+  go: { x: COL, y: 138 },
+  factor: { x: COL, y: 165 },
+  sort: { x: 68, y: 226 },
+  route: { x: 68, y: 258 },
+  prime: { x: 68, y: 290 },
+  sudoku: { x: COL, y: 220 },
+  tsp: { x: COL, y: 244 },
+  mines: { x: COL, y: 268 },
+  exams: { x: COL, y: 292 },
+  sat: { x: COL, y: 316 },
 };
 /** how tall a dot's hover strip is: rows touch, so moving down a column goes dot to dot */
 const ROW: Record<DotId, number> = {
-  halt: 22,
-  tiles: 22,
-  dioph: 22,
+  halt: 21,
+  presb: 22,
+  tiles: 21,
+  dioph: 21,
   chess: 22,
   go: 22,
   factor: 22,
@@ -526,7 +538,7 @@ export default function Zoo() {
     <Specimen
       code="CX-00"
       title="the complexity zoo"
-      kicker="14 problems on one map"
+      kicker="15 problems on one map"
       hint="hover a problem or a class · click to open its page"
       rootRef={rootRef}
     >
