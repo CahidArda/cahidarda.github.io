@@ -135,14 +135,12 @@ function endTime(L: Layout, origin: NodeId) {
   return c + RING_GAP + maxReach(L) / RING + 0.05;
 }
 
-/** The rest of NP, by name: a mix of hard ones and easy ones (P sits inside NP too). */
+/** The rest of NP, by name. Problems already in P are left out: they are fast already. */
 const REST = [
   'knapsack',
-  'sorting',
   'Tetris',
   'bin packing',
   'protein folding',
-  'shortest path',
   'Battleship',
   'set cover',
   'job-shop scheduling',
@@ -152,7 +150,6 @@ const REST = [
   'register allocation',
   'Candy Crush',
   'Steiner tree',
-  'is it prime?',
   'Lemmings',
   'Nurikabe',
   'partition',
