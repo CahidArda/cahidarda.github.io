@@ -90,13 +90,15 @@ quantum computer does well. The figure walks through it for 15.
   <Shor client:visible />
 </div>
 
-How large would it have to be? The best published estimate for a real 2048-bit RSA key is
-"less than a week by a quantum computer with less than a million noisy qubits"
-([Gidney 2025](https://arxiv.org/pdf/2505.15917)), down from 20 million qubits in his 2019 estimate
-with Ekerå ([PDF](https://arxiv.org/pdf/1905.09749)). For scale, IBM's Condor chip (2023) has 1,121
-qubits ([IBM](https://www.ibm.com/quantum/blog/quantum-roadmap-2033)) and Google's Willow (2024) has
-105 ([Google](https://blog.google/technology/research/google-willow-quantum-chip/)). Nothing that
-size exists yet, but this is why cryptographers are moving to locks that do not rely on factoring.
+So why is RSA still safe? Because today's quantum computers are far too small to run this on a
+real key. The best published estimate for a 2048-bit RSA key needs "less than a week by a quantum
+computer with less than a million noisy qubits" ([Gidney 2025](https://arxiv.org/pdf/2505.15917)),
+down from 20 million qubits in his 2019 estimate with Ekerå
+([PDF](https://arxiv.org/pdf/1905.09749)). For scale, IBM's Condor chip (2023) has 1,121 qubits
+([IBM](https://www.ibm.com/quantum/blog/quantum-roadmap-2033)) and Google's Willow (2024) has 105
+([Google](https://blog.google/technology/research/google-willow-quantum-chip/)). The gap is closing
+from both sides, which is why cryptographers are already moving to locks that do not rely on
+factoring.
 
 <Lesson>
 
