@@ -274,7 +274,7 @@ const EQS: { f: ReactNode; ex: ReactNode; from: number; tag: string }[] = [
   },
 ];
 /** which formulas each step uses */
-const USES: number[][] = [[], [0], [1], [2], [0, 2], [], [3], [4], [0, 1, 2]];
+const USES: number[][] = [[], [0], [1], [2], [], [], [3], [4], [0, 1, 2]];
 
 export default function RsaSteps() {
   const reduced = useReducedMotion();
