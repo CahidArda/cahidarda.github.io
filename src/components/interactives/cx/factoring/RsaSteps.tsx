@@ -238,6 +238,43 @@ const CAPTIONS: ReactNode[] = [
   </>,
 ];
 
+/** The five RSA formulas, shown under the figure; each lights up on the steps that use it. */
+const EQS: { f: ReactNode; ex: ReactNode; from: number; tag: string }[] = [
+  { f: <>n = p · q</>, ex: <>2773 = 47 × 59</>, from: 1, tag: 'public' },
+  { f: <>φ = (p−1)(q−1)</>, ex: <>2668 = 46 × 58</>, from: 2, tag: 'secret' },
+  { f: <>e·d = k·φ + 1</>, ex: <>17 × 157 = 2668 + 1</>, from: 3, tag: 'e public, d secret' },
+  {
+    f: (
+      <>
+        c = m<sup>e</sup> mod n
+      </>
+    ),
+    ex: (
+      <>
+        948 = 920<sup>17</sup> mod 2773
+      </>
+    ),
+    from: 6,
+    tag: 'lock',
+  },
+  {
+    f: (
+      <>
+        m = c<sup>d</sup> mod n
+      </>
+    ),
+    ex: (
+      <>
+        920 = 948<sup>157</sup> mod 2773
+      </>
+    ),
+    from: 7,
+    tag: 'unlock',
+  },
+];
+/** which formulas each step uses */
+const USES: number[][] = [[], [0], [1], [2], [0, 2], [], [3], [4], [0, 1, 2]];
+
 export default function RsaSteps() {
   const reduced = useReducedMotion();
   const [rootRef, inView] = useInView();
@@ -586,6 +623,39 @@ export default function RsaSteps() {
         <span className="font-mono text-[0.68rem] text-muted">
           m: the message as a number · c: the locked number
         </span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5" data-eqs>
+        {EQS.map((e, i) => {
+          const on = USES[step].includes(i);
+          const seen = step >= e.from;
+          return (
+            <div
+              key={i}
+              className="border px-2 py-1.5 font-mono transition-[border-color,background-color,opacity] duration-200"
+              style={{
+                borderColor: on ? GT.ink : GT.line,
+                background: on
+                  ? 'color-mix(in srgb, var(--color-ink) 8%, transparent)'
+                  : 'transparent',
+                opacity: seen || on ? 1 : 0.35,
+              }}
+            >
+              <div
+                className="text-[0.62rem] uppercase tracking-[0.1em]"
+                style={{ color: e.tag === 'public' ? PUB : e.tag === 'secret' ? SEC : GT.muted }}
+              >
+                {e.tag}
+              </div>
+              <div className="whitespace-nowrap text-[0.78rem] text-ink">{e.f}</div>
+              <div
+                className="whitespace-nowrap text-[0.66rem] text-ink-soft"
+                style={{ visibility: seen || on ? 'visible' : 'hidden' }}
+              >
+                {e.ex}
+              </div>
+            </div>
+          );
+        })}
       </div>
       <div className="mt-3">
         <Seg

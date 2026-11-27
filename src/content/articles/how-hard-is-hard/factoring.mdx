@@ -53,20 +53,7 @@ paper's own small example, one block at a time.
   <RsaSteps client:visible />
 </div>
 
-All of RSA in five lines, with the example's numbers on the right ($m$ is the message as a
-number, $c$ the locked number):
-
-$$
-\begin{aligned}
-n &= p\,q && 2773 = 47 \times 59 && \text{public} \\
-\varphi &= (p-1)(q-1) && 2668 = 46 \times 58 && \text{secret} \\
-e\,d &= k\,\varphi + 1 && 17 \times 157 = 2668 + 1 && e \text{ public, } d \text{ secret} \\
-c &= m^{e} \bmod n && 948 = 920^{17} \bmod 2773 && \text{lock} \\
-m &= c^{d} \bmod n && 920 = 948^{157} \bmod 2773 && \text{unlock}
-\end{aligned}
-$$
-
-Why does the last line undo the one before it? Unlocking gives
+The five formulas under the figure are all of RSA. Why does unlocking undo locking? Unlocking gives
 $c^{d} = m^{e d} = m^{k\varphi + 1} = (m^{\varphi})^{k} \cdot m$, all mod $n$. Euler's theorem
 says that $m^{\varphi} \bmod n = 1$ whenever $m$ shares no factor with $n$, so every
 $m^{\varphi}$ in there turns into 1 and only $m$ is left. (It also works for the rare $m$ that

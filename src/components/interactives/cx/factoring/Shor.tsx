@@ -74,8 +74,8 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     label: '1 cycle',
     caption: (
       <>
-        To factor 15, pick a number, say 7, and take its powers mod 15: 1, 7, 4, 13, then back to 1.
-        The pattern repeats every <b>r = 4</b> steps.
+        To factor 15, pick a number at random, say 7 (2, 4, 8, 11 or 13 work as well), and take its
+        powers mod 15: 1, 7, 4, 13, then back to 1. The pattern repeats every <b>r = 4</b> steps.
       </>
     ),
   },
