@@ -125,7 +125,7 @@ const SPECS: Record<Proof, Spec> = {
       { a: 'if not provable', b: 'what it says holds', v: 'true, unprovable', ok: true },
     ],
     caps: [
-      'Gödel, 1931: rows are formulas F(x) about a number x, columns are the code numbers of formulas. Each cell says whether F(code) can be proved.',
+      'Gödel, 1931: rows are formulas F(x) about a number x, columns are code numbers (#F1 is the code number of formula F1). Each cell says whether F(code) can be proved.',
       'Build G(x): “formula number x, fed its own number, is not provable”. Its row is the flipped diagonal: true exactly where the diagonal says not.',
       'G is a formula too, with a code #G. What does G(#G) say?',
       'G(#G) says “G(#G) is not provable”. A consistent system cannot prove it, and then what it says is true.',

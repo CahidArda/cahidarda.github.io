@@ -49,13 +49,15 @@ You have to step outside and reason _about_ them.
 
 ## A sentence about itself
 
-Gödel made arithmetic step outside on its own. He gave every formula and proof a code number,
-so "this formula has a proof" becomes a statement about numbers. Then he built a sentence $G$:
-"We are therefore confronted with a proposition which asserts its own unprovability"
+Gödel made arithmetic step outside on its own. He gave every formula a code number, now called
+its Gödel number; below, $\#F$ means the code number of formula $F$. With codes, "this formula has
+a proof" becomes a statement about numbers: $\mathrm{Prov}(n)$ says "the formula with code $n$ has
+a proof". Then he built a sentence $G$ that says "the formula with code $\#G$, which is me, has no
+proof". In Gödel's words, "We are therefore confronted with a proposition which asserts its own unprovability"
 ([Gödel 1931, Meltzer translation, pp. 40–41](https://monoskop.org/images/9/93/Kurt_G%C3%B6del_On_Formally_Undecidable_Propositions_of_Principia_Mathematica_and_Related_Systems_1992.pdf)):
 
 $$
-G \;\leftrightarrow\; \neg\,\mathrm{Prov}(\ulcorner G \urcorner)
+G \;\leftrightarrow\; \neg\,\mathrm{Prov}(\#G)
 $$
 
 The trick that builds it is a diagonal, the same one Cantor used in 1891 and Turing in 1936 for
