@@ -213,8 +213,9 @@ const CAPTIONS: ReactNode[] = [
     knows a fast way to find 2668.
   </>,
   <>
-    Then a matching pair whose product is one more than 2668: 17 × 157 = 2669. The paper picked the
-    secret 157 first and worked out 17 from it.
+    Next a matching pair. The receiver picks a secret, 157, sharing no factor with 2668, and
+    divides: 2668 = 16 × 157 + 156, then 157 = 156 + 1. Working back, 1 = 17 × 157 − 2668, so{' '}
+    <b>17 × 157 = 2669</b>, one more than 2668. 17 is the public partner.
   </>,
   <>
     The receiver publishes <b>2773 and 17</b> for anyone to use. 47, 59, 2668 and 157 never leave.
