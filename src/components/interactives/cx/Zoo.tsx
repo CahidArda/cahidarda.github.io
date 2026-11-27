@@ -215,43 +215,43 @@ type Pt = { x: number; y: number };
  * that belong to that set (and to no smaller one) sit on the same row, right after the name.
  */
 const W = 420;
-const H = 380;
-const FRAME: Rect = { x: 1, y: 1, w: 418, h: 378 };
+const H = 358;
+const FRAME: Rect = { x: 1, y: 1, w: 418, h: 356 };
 const REG: Record<RegId, Rect> = {
-  dec: { x: 10, y: 72, w: 400, h: 298 },
-  exp: { x: 20, y: 98, w: 380, h: 262 },
-  pspace: { x: 30, y: 124, w: 360, h: 226 },
-  np: { x: 40, y: 150, w: 340, h: 190 },
-  p: { x: 50, y: 180, w: 150, h: 150 },
-  npc: { x: 210, y: 180, w: 160, h: 150 },
+  dec: { x: 10, y: 50, w: 400, h: 298 },
+  exp: { x: 20, y: 76, w: 380, h: 262 },
+  pspace: { x: 30, y: 102, w: 360, h: 226 },
+  np: { x: 40, y: 128, w: 340, h: 190 },
+  p: { x: 50, y: 158, w: 150, h: 150 },
+  npc: { x: 210, y: 158, w: 160, h: 150 },
 };
 /** problems outside P and NP-complete line up in one column, with the NP-complete ones */
 const COL = 228;
 const LAB: Record<LabelId, Pt> = {
   und: { x: 12, y: 16 },
-  dec: { x: 22, y: 86 },
-  exp: { x: 32, y: 112 },
-  pspace: { x: 42, y: 138 },
-  np: { x: 52, y: 165 },
-  p: { x: 62, y: 196 },
-  npc: { x: 222, y: 196 },
+  dec: { x: 22, y: 64 },
+  exp: { x: 32, y: 90 },
+  pspace: { x: 42, y: 116 },
+  np: { x: 52, y: 143 },
+  p: { x: 62, y: 174 },
+  npc: { x: 222, y: 174 },
 };
 const DOT: Record<DotId, Pt> = {
   halt: { x: COL, y: 16 },
-  tiles: { x: COL, y: 37 },
-  dioph: { x: COL, y: 58 },
-  presb: { x: COL, y: 86 },
-  chess: { x: COL, y: 112 },
-  go: { x: COL, y: 138 },
-  factor: { x: COL, y: 165 },
-  sort: { x: 68, y: 226 },
-  route: { x: 68, y: 258 },
-  prime: { x: 68, y: 290 },
-  sudoku: { x: COL, y: 220 },
-  tsp: { x: COL, y: 244 },
-  mines: { x: COL, y: 268 },
-  exams: { x: COL, y: 292 },
-  sat: { x: COL, y: 316 },
+  tiles: { x: COL + 86, y: 16 },
+  dioph: { x: COL, y: 37 },
+  presb: { x: COL, y: 64 },
+  chess: { x: COL, y: 90 },
+  go: { x: COL, y: 116 },
+  factor: { x: COL, y: 143 },
+  sort: { x: 68, y: 204 },
+  route: { x: 68, y: 236 },
+  prime: { x: 68, y: 268 },
+  sudoku: { x: COL, y: 198 },
+  tsp: { x: COL, y: 222 },
+  mines: { x: COL, y: 246 },
+  exams: { x: COL, y: 270 },
+  sat: { x: COL, y: 294 },
 };
 /** how tall a dot's hover strip is: rows touch, so moving down a column goes dot to dot */
 const ROW: Record<DotId, number> = {
