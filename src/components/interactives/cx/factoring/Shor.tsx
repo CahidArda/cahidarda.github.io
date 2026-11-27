@@ -10,29 +10,36 @@ import {
   useHoverPreview,
   useInView,
   useReducedMotion,
+  useTween,
 } from '../../gt/shared';
 
 /**
- * CX-08.4 · how a quantum computer factors 15, in five steps (Shor 1994).
+ * CX-08.4 · how a quantum computer factors 15, in six steps (Shor 1994).
  *  1. the cycle: 7^x mod 15 for x = 0..31 is 1, 7, 4, 13, 1, ... so the period r = 4.
  *  2. why r helps: 7^4 - 1 = 48 x 50 is a multiple of 15, so gcd(48, 15) = 3, gcd(50, 15) = 5.
- *  3. registers: A has 5 qubits and holds every x = 0..31 at once (1/32 each); B has 4 qubits,
- *     and one run puts 7^x mod 15 into it for every x together. Reading a register gives one
- *     number at random.
- *  4. measure: reading B gives 7, which leaves only x = 1, 5, ..., 29 in A (equal gaps). The
- *     flat 1/32 bars collapse to 1/8 on those eight; reading x now says nothing about the gap.
- *  5. interference: the Fourier transform adds one wave per surviving x. The bars are the
- *     real measurement odds |Σ w_j e^(2πi k x_j / Q)|² / (Q Σ w_j²) while the waves are added
- *     one by one; at the end they are 1/4 at k = 0, 8, 16, 24 and 0 elsewhere. It reads 8:
- *     8/32 = 1/4, so r = 4 (24 also gives r = 4; 0 or 16 mean run again).
+ *  3. X, Y: two registers linked by Y = 7^X mod 15. X holds every x = 0..31 at once (1/32
+ *     each), so Y holds 1, 7, 4, 13 (1/4 each). A chip shows the contrast: read X first and
+ *     you get one x (6), and Y is then sure to be 7^6 mod 15 = 4, so nothing is left to find.
+ *  4. read Y: it gives 7, which leaves x = 1, 5, ..., 29 in X (1/8 each, equal gaps). A dashed
+ *     ghost shows another run (Y = 4 leaves 2, 6, ..., 30): same gaps, random start.
+ *  5. arrows (the Fourier transform): for a reading k, each surviving x adds a unit arrow
+ *     turned k·x/32 of a full turn (drawn from a common centre, "×8" where they coincide) and
+ *     the blue arrow is their average; the chance of k is |sum|² / (8 · 32) = |average|² / 4.
+ *     That is 1/4 at k = 0, 8, 16, 24 and 0 elsewhere. Auto-play sweeps k once round (0 to 31,
+ *     then on to 8) and stops at 8; hover or tap a bar to pick k. The dashed arrows are the
+ *     Y = 4 run (x = 2, 6, ...): every arrow turned by k/32, same length, same chance.
+ *  6. read X: it reads 8. 8/32 = 1/4, so r = 4 (24/32 = 3/4 too; 0 and 16/32 = 1/2 mean run
+ *     again), which is what step 2 needed: 15 = 3 × 5.
  * Q = 32 keeps every slot legible (a real run uses Q ≥ N² = 225). Every number is checked by
- * scratchpad/shor2/verify.py.
+ * scratchpad/shor4/verify.py.
  */
 const N = 15;
 const A = 7;
 const Q = 32;
-const OUT = 7; // what register B reads in step 4 (not 4, which looks like r)
-const READ = 8; // what the final measurement reads in step 5
+const OUT = 7; // what Y reads in step 4 (not 4, which looks like r)
+const OTHER = 4; // the other run in steps 4 and 5 (x = 2, 6, ..., 30)
+const XFIRST = 6; // the x the contrast reads first in step 3
+const READ = 8; // what the final reading of X gives in step 6
 
 function powmod(b: number, e: number, m: number) {
   let r = 1;
@@ -53,31 +60,72 @@ const HALF = A ** (R / 2); // 49
 const P1 = gcd(HALF - 1, N); // 3
 const P2 = gcd(HALF + 1, N); // 5
 const SURV = F.map((v, x) => (v === OUT ? x : -1)).filter((x) => x >= 0); // 1, 5, ..., 29
+const GHOST = F.map((v, x) => (v === OTHER ? x : -1)).filter((x) => x >= 0); // 2, 6, ..., 30
 const SPACING = Q / R; // 8
+const YFIRST = F[XFIRST]; // 4
+
+/** The arrows of a reading k (continuous): head-to-tail sum of e^(2πi k x / Q) over xs. */
+function sumAt(k: number, xs: number[]) {
+  let re = 0;
+  let im = 0;
+  for (const x of xs) {
+    const a = (2 * Math.PI * k * x) / Q;
+    re += Math.cos(a);
+    im += Math.sin(a);
+  }
+  return { re, im };
+}
+/* the chance of each reading k after the transform: |sum|² / (8 · 32) */
+const PK = Array.from({ length: Q }, (_, k) => {
+  const { re, im } = sumAt(k, SURV);
+  return (re * re + im * im) / (SURV.length * Q);
+});
+const wrap = (d: number) => ((((d + Q / 2) % Q) + Q) % Q) - Q / 2;
 
 /* the clock: how long each step animates, then how long auto-play lingers on it */
-const DUR = [3.7, 4.2, 3.6, 2.6, 5.2];
-const DWELL = [3.2, 4.6, 4.4, 5.6, 0];
-const LAST = 4;
+const DUR = [3.7, 4.2, 3.2, 3.3, 7.0, 3.1];
+const DWELL = [3.2, 4.6, 4.4, 5.4, 4.0, 0];
+const LAST = 5;
 const ramp = (t: number, t0: number, d = 0.35) => clamp((t - t0) / d, 0, 1);
 
 /* step 1: cells fill in one by one */
 const cellAt = (x: number) => 0.3 + x * 0.095;
-/* step 3: register A goes from 0 to all x, then one run fills register B */
-const T_REG = 0.15; // both registers appear, all qubits 0
-const T_A = 0.7; // A holds every x: its odds rise to 1/32
-const T_B = 1.7; // one run computes 7^x mod 15 into B for every x
-const T_HINT = 2.7; // reading gives one number
+/* step 3 */
+const T3_X = 0.25; // X holds every x: its chances rise to 1/32
+const T3_EQ = 0.9; // the equation linking them
+const T3_Y = 1.3; // one run fills Y
+const T3_CHIP = 2.3; // "what if you read X first?"
 /* step 4 */
-const T_DIM = 1.25; // the output is read
-const T_COMB = 1.75; // the x-odds rise
-/* step 5 */
-const T_W0 = 0.3; // waves start
-const D_W = 4.0; // all eight added
-const T_PEAKS = T_W0 + D_W + 0.1;
-const T_READ = T_PEAKS + 0.45;
+const T4_READ = 0.3; // Y is read
+const T_DIM = 0.9; // the strip keeps only the 7s
+const T_COMB = 1.4; // X collapses to 1/8 on the survivors
+const T4_GHOST = 2.3; // another run, another start
+/* step 5: k sweeps once round (0 to 31, then 0 to 8) at a steady pace and eases into 8 */
+const T5_SW = 0.55;
+const SLOT = 0.13; // seconds per k
+const K_LIN = Q + READ - 4; // 36: steady up to here, then slow down over 4 slots
+const T5_END = T5_SW + K_LIN * SLOT + 8 * SLOT;
+const T5_GHOST = T5_END + 0.15;
+function sweepK(t: number) {
+  const t1 = T5_SW + K_LIN * SLOT;
+  let k: number;
+  if (t <= t1) k = (t - T5_SW) / SLOT;
+  else {
+    const u = clamp((t - t1) / (8 * SLOT), 0, 1);
+    k = K_LIN + 4 * (2 * u - u * u);
+  }
+  // linger a little on each whole k (never stopping), so each reading's arrows can be seen
+  const n = Math.floor(k);
+  const f = k - n;
+  return n + 0.15 * f + 0.85 * f * f * f * (f * (6 * f - 15) + 10);
+}
+/* step 6 */
+const T6_READ = 0.3;
+const T6_FRAC = 0.9;
+const T6_R = 1.5;
+const T6_BACK = 2.2;
 
-type Step = 0 | 1 | 2 | 3 | 4;
+type Step = 0 | 1 | 2 | 3 | 4 | 5;
 const STEPS: { label: string; caption: ReactNode }[] = [
   {
     label: '1 cycle',
@@ -100,73 +148,47 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     ),
   },
   {
-    label: '3 qubits',
+    label: '3 X, Y',
     caption: (
       <>
-        A quantum computer keeps numbers in registers of qubits. Register A has 5 qubits, so it
-        holds 0 to 31, and unlike plain bits it can hold all 32 at once, each with chance 1/32. One
-        run then puts 7<sup>x</sup> mod 15 into register B for every x together. Reading a register
-        gives one ordinary number, at random, and changes what is left.
+        A quantum computer has two registers, X and Y. X holds every x from 0 to 31 at once, each
+        with chance 1/32. One run computes Y = 7<sup>X</sup> mod 15 for all of them together, so Y
+        holds 1, 7, 4 and 13, each with chance 1/4. Reading a register gives one number, at random.
       </>
     ),
   },
   {
-    label: '4 read',
+    label: '4 read Y',
     caption: (
       <>
-        Read register B. It gives one number, say 7. That changes register A too: only the x that
-        give 7 stay (1, 5, 9, …, 29), with equal gaps, and the bars are their chances now. Reading A
-        would give one of them at random, which says nothing about the gap.
+        Read Y: it says 7. Now X keeps only the x that give 7: 1, 5, 9, …, 29, each with chance 1/8,
+        and equal gaps. The start is random, though: another run might read 4 and leave 2, 6, 10 and
+        so on. One x from one run says nothing about the gap.
       </>
     ),
   },
   {
-    label: '5 waves',
+    label: '5 arrows',
     caption: (
       <>
-        The quantum Fourier transform makes the surviving x interfere: their waves cancel everywhere
-        except at multiples of 32 / r = 8. Measuring now gives 0, 8, 16 or 24, a 1 in 4 chance each;
-        here 8. Divide by 32 and reduce: 8/32 = 1/4 and 24/32 = 3/4 both show <b>r = 4</b>{' '}
-        underneath. 16/32 = 1/2 and 0/32 hide it, so you run again.
+        The Fourier transform as arrows: for a reading k, each x left in X adds an arrow turned
+        k·x/32 of a full turn, and the blue arrow is their average. Lined up, k is likely; fanned
+        out, they cancel. At k = 8 neighbours differ by a full turn, so all eight agree. Another
+        start turns every arrow alike, so the chances stay put. Hover or tap a bar.
+      </>
+    ),
+  },
+  {
+    label: '6 read X',
+    caption: (
+      <>
+        Now read X. It lands on a peak, here 8. Divide by 32 and reduce: 8/32 = 1/4, and the bottom
+        number is <b>r = 4</b> (24/32 = 3/4 gives 4 too; 0 and 16/32 = 1/2 hide it, so run again).
+        That r is what step 2 needed: 15 = 3 × 5.
       </>
     ),
   },
 ];
-
-/** Measurement odds over the 32 slots for a step at time t (bars of steps 3 to 5). */
-function odds(view: Step, t: number): { p: number[]; n: number } {
-  const comb = Array.from({ length: Q }, (_, k) => (F[k] === OUT ? 1 / SURV.length : 0));
-  if (view === 2) {
-    const g = ramp(t, T_A, 0.5);
-    return { p: comb.map(() => g / Q), n: 0 };
-  }
-  if (view === 3) {
-    // the flat 1/32 collapses onto the x that give 7
-    const g = ramp(t, T_COMB, 0.5);
-    return { p: comb.map((v) => (1 - g) / Q + g * v), n: 0 };
-  }
-  // step 5: add the waves one at a time (the newest fades in)
-  const n = clamp((t - T_W0) / D_W, 0, 1) * SURV.length;
-  const w = SURV.map((_, j) => clamp(n - j, 0, 1));
-  const w2 = w.reduce((s, v) => s + v * v, 0);
-  const p = comb.map((c, k) => {
-    let pw = 1 / Q;
-    if (w2 > 1e-9) {
-      let re = 0;
-      let im = 0;
-      for (let j = 0; j < SURV.length; j++) {
-        if (w[j] === 0) break;
-        const ph = (2 * Math.PI * k * SURV[j]) / Q;
-        re += w[j] * Math.cos(ph);
-        im += w[j] * Math.sin(ph);
-      }
-      pw = (re * re + im * im) / (Q * w2);
-    }
-    // the first wave carries the comb over to the flat line, the rest interfere
-    return (1 - w[0]) * c + w[0] * pw;
-  });
-  return { p, n };
-}
 
 type Geo = {
   W: number;
@@ -179,7 +201,10 @@ type Geo = {
   panelTop: number;
   chartTop: number;
   chartBase: number;
-  regY: number[]; // step 3: register A row, register B row, the reading note (centres)
+  mainX1: number; // the main chart (x or k) runs X0..mainX1
+  sideX0: number; // the side box (Y, the arrows, the result) runs sideX0..X1
+  arrow: { cx: number; cy: number; u: number };
+  eqSize: number;
   fs: number;
   narrow: boolean;
 };
@@ -192,9 +217,12 @@ const WIDE: Geo = {
   cellH: 28,
   rowTop: [24],
   panelTop: 110,
-  chartTop: 148,
+  chartTop: 150,
   chartBase: 272,
-  regY: [148, 188, 226],
+  mainX1: 400,
+  sideX0: 440,
+  arrow: { cx: 535, cy: 212, u: 70 },
+  eqSize: 24,
   fs: 10,
   narrow: false,
 };
@@ -208,8 +236,11 @@ const NARROW: Geo = {
   rowTop: [24, 72],
   panelTop: 156,
   chartTop: 194,
-  chartBase: 310,
-  regY: [192, 230, 266],
+  chartBase: 300,
+  mainX1: 204,
+  sideX0: 222,
+  arrow: { cx: 288, cy: 252, u: 52 },
+  eqSize: 17,
   fs: 9.5,
   narrow: true,
 };
@@ -221,7 +252,7 @@ function Sup({ base, exp, fs }: { base: ReactNode; exp: ReactNode; fs: number })
       <tspan dy={-fs * 0.4} fontSize={fs * 0.72}>
         {exp}
       </tspan>
-      <tspan dy={fs * 0.4}>{'\u00a0'}</tspan>
+      <tspan dy={fs * 0.4}>{' '}</tspan>
     </>
   );
 }
@@ -257,10 +288,59 @@ function Bracket({
   );
 }
 
+/** A straight arrow with a drawn head (markers scale with the stroke, these do not). */
+function Arrow({
+  x1,
+  y1,
+  x2,
+  y2,
+  color,
+  width,
+  head,
+  dash,
+}: {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  width: number;
+  head: number;
+  dash?: string;
+}) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (len < 0.5) return null;
+  const ux = dx / len;
+  const uy = dy / len;
+  const h = Math.min(head, len * 0.6);
+  const bx = x2 - ux * h;
+  const by = y2 - uy * h;
+  const w = h * 0.55;
+  return (
+    <g>
+      <line
+        x1={x1}
+        y1={y1}
+        x2={bx + ux * 0.5}
+        y2={by + uy * 0.5}
+        style={{ stroke: color, strokeWidth: width, strokeDasharray: dash, strokeLinecap: 'round' }}
+      />
+      {!dash && (
+        <path
+          d={`M${x2} ${y2} L${bx - uy * w} ${by + ux * w} L${bx + uy * w} ${by - ux * w} Z`}
+          style={{ fill: color }}
+        />
+      )}
+    </g>
+  );
+}
+
 const fade = (on: boolean) => ({
   opacity: on ? 1 : 0,
   transition: 'opacity 260ms ease',
-  pointerEvents: 'none' as const,
+  pointerEvents: on ? undefined : ('none' as const),
 });
 
 export default function Shor() {
@@ -328,7 +408,52 @@ export default function Shor() {
         : 0
       : pv.t
     : Math.min(st.t, DUR[view]);
-  const { p: bars, n: waves } = view >= 2 ? odds(view, tt) : { p: [], n: 0 };
+
+  // step 3: "what if you read X first?" (hover previews it, a tap or click keeps it)
+  const [xfHover, setXfHover] = useState(false);
+  const [xfPin, setXfPin] = useState(false);
+  // step 5: pick a reading k by hovering or tapping its bar
+  const [kHover, setKHover] = useState<number | null>(null);
+  const [kPin, setKPin] = useState<number | null>(null);
+  const [explored, setExplored] = useState(false);
+  useEffect(() => {
+    setXfHover(false);
+    setXfPin(false);
+    setKHover(null);
+    setKPin(null);
+    setExplored(false);
+  }, [view, st.step]);
+  const xf = useTween(view === 2 && (xfHover || xfPin) ? 1 : 0, reduced, 7);
+
+  // k: the sweep's clock, or the picked bar, reached by a short glide the shorter way round
+  const kRaw = view === 4 ? sweepK(tt) : READ;
+  const kPicked = kHover ?? kPin;
+  const kTarget = kPicked ?? ((clamp(kRaw, 0, Q + READ) % Q) + Q) % Q;
+  const [kGlide, setKGlide] = useState<number | null>(null);
+  const kShown = useRef(kTarget);
+  const kTargetRef = useRef(kTarget);
+  kTargetRef.current = kTarget;
+  const firstPick = useRef(true);
+  useEffect(() => {
+    if (firstPick.current) {
+      firstPick.current = false;
+      return;
+    }
+    if (!reduced) setKGlide(kShown.current);
+  }, [kPicked, reduced]);
+  useFrame(
+    (dt) =>
+      setKGlide((g) => {
+        if (g === null) return null;
+        const d = wrap(kTargetRef.current - g);
+        if (Math.abs(d) < 0.01) return null;
+        return g + d * Math.min(1, dt * 9);
+      }),
+    kGlide !== null && !reduced,
+  );
+  const kd = (((kGlide ?? kTarget) % Q) + Q) % Q;
+  kShown.current = kd;
+  const kInt = Math.round(kd) % Q;
 
   const chart = (g: Geo, cls: string) => {
     const { X0, X1, fs } = g;
@@ -345,87 +470,110 @@ export default function Shor() {
     // strip state
     // step 1 fills the cells one by one; step 3 fills them all at once (one run)
     const shown = (x: number) =>
-      view === 0 ? ramp(tt, cellAt(x), 0.14) : view === 2 ? ramp(tt, T_B, 0.5) : 1;
+      view === 0 ? ramp(tt, cellAt(x), 0.14) : view === 2 ? ramp(tt, T3_Y, 0.5) : 1;
     let current = -1; // the cell just filled (step 1), for the ring token
     if (view === 0 && tt < cellAt(Q - 1) + 0.3) {
       for (let x = 0; x < Q; x++) if (tt >= cellAt(x)) current = x;
     }
     const pulse =
       view === 2
-        ? Math.sin(Math.PI * clamp((tt - T_B + 0.2) / 1.0, 0, 1))
+        ? Math.sin(Math.PI * clamp((tt - T3_Y + 0.2) / 1.0, 0, 1))
         : view === 3
           ? Math.sin(Math.PI * clamp(tt / 1.0, 0, 1))
           : 0;
-    const dim = view === 3 ? ramp(tt, T_DIM, 0.4) : view === 4 ? 1 : 0;
+    // which cells stay lit, and how far the rest fade
+    const dim = view === 2 ? xf : view === 3 ? ramp(tt, T_DIM, 0.4) : view >= 4 ? 1 : 0;
+    const isHit = (x: number) => (view === 2 ? x === XFIRST : F[x] === OUT);
     const survTicks = view >= 3 ? dim : 0;
-    // every x under the strip (register A) in steps 3 and 4, every 4th x otherwise
-    const allX = view === 2 ? ramp(tt, T_A, 0.4) : view === 3 ? 1 - dim : 0;
-    const wsDot = (j: number) => (view === 4 ? clamp(waves - j, 0, 1) : 0);
+    // every x under the strip (X holds them all) in steps 3 and 4, every 4th x otherwise
+    const allX = view === 2 ? ramp(tt, T3_X, 0.4) : view === 3 ? 1 - dim : 0;
 
     // the bracket of r in the strip, on the last row
     const b0 = lastRow * perRow;
-    // the "equal gaps" bracket spans the first two survivors on that row (1 and 5 when B reads 7)
+    // the "equal gaps" bracket spans the first two survivors on that row (1 and 5 when Y reads 7)
     const [gap0, gap1] = SURV.filter((x) => x >= b0);
-    const rBracketOn = view === 0 ? ramp(tt, cellAt(R) + 0.1) : view === 2 ? 0 : 1;
+    const rBracketOn =
+      view === 0 ? ramp(tt, cellAt(R) + 0.1) : view === 1 ? 1 : view >= 3 ? dim : 0;
 
-    // the bar chart (steps 3 and 4)
-    const bw = Math.max(3, cw * (g.rows === 1 ? 0.62 : 0.31));
-    const kx = (k: number) => X0 + ((k + 0.5) / Q) * (X1 - X0);
+    // ── the panel: main chart over 0..31 on the left, side box on the right ──
+    const mW = g.mainX1 - X0;
+    const kx = (k: number) => X0 + ((k + 0.5) / Q) * mW;
+    const slot = mW / Q;
+    const bw = Math.max(3, slot * 0.6);
     const ph = g.chartBase - g.chartTop;
-    const barH = (p: number) => (p / 0.25) * ph;
-    const peaksOn = view === 4 ? ramp(tt, T_PEAKS) : 0;
-    const readOn = view === 4 ? ramp(tt, T_READ) : 0;
-    const combLab = view === 3 ? ramp(tt, T_COMB + 0.3) : 0;
+    const barH = (p: number) => Math.min(ph, (p / 0.25) * ph); // the main chart tops out at 1/4
+    const sideW = X1 - g.sideX0;
+    const yx = (i: number) => g.sideX0 + ((i + 0.5) / R) * sideW;
+    const ybw = (sideW / R) * 0.46;
+    const yH = (p: number) => p * ph; // the Y chart tops out at 1
+    const sideMid = (g.sideX0 + X1) / 2;
 
-    // registers (step 3): qubit boxes start at 0, then hold 0 and 1 at once
-    const aOne = view === 2 ? ramp(tt, T_A, 0.4) : 0;
-    const bOne = view === 2 ? ramp(tt, T_B, 0.4) : 0;
-    const hintOn = view === 2 ? ramp(tt, T_HINT, 0.4) : 0;
-    const qs = g.narrow ? 20 : 22;
-    const qGap = 4;
-    const regX = X0 + (g.narrow ? 16 : 20);
-    const regText = regX + 5 * (qs + qGap) + 6;
-    const register = (
-      name: string,
-      n: number,
-      y: number,
-      color: string,
-      one: number,
-      text: ReactNode,
-    ) => (
-      <g>
-        <T x={X0} y={y} anchor="start" size={fs + 4} weight={700} color={color}>
-          {name}
-        </T>
-        {Array.from({ length: n }, (_, i) => {
-          const x = regX + i * (qs + qGap);
-          return (
-            <g key={i}>
-              <rect
-                x={x}
-                y={y - qs / 2}
-                width={qs}
-                height={qs}
-                style={{ fill: GT.paper, stroke: color, strokeWidth: 1.2 }}
-              />
-              <T x={x + qs / 2} y={y - (qs / 4.4) * one} size={fs} weight={600} color={color}>
-                0
-              </T>
-              <g style={{ opacity: one }}>
-                <T x={x + qs / 2} y={y + qs / 4.4} size={fs} weight={600} color={color}>
-                  1
-                </T>
-              </g>
-            </g>
-          );
-        })}
-        <g style={{ opacity: one }}>
-          <T x={regText} y={y} anchor="start" size={fs} color={GT.inkSoft}>
-            {text}
-          </T>
-        </g>
-      </g>
-    );
+    // step 3: X holds every x; Y holds the four values; the contrast reads X first
+    const xOn = view === 2 ? ramp(tt, T3_X, 0.5) : 0;
+    const yOn = view === 2 ? ramp(tt, T3_Y, 0.5) : view === 3 ? 1 : 0;
+    const eqOn = view === 2 ? ramp(tt, T3_EQ, 0.4) : 0;
+    const chipOn = view === 2 ? ramp(tt, T3_CHIP, 0.4) : 0;
+    // step 4: Y reads 7, X collapses, another run is ghosted
+    const yRead = view === 3 ? ramp(tt, T4_READ, 0.5) : 0;
+    const comb = view === 3 ? ramp(tt, T_COMB, 0.5) : view === 4 ? 1 - ramp(tt, 0.05, 0.45) : 0;
+    const ghostOn = view === 3 ? ramp(tt, T4_GHOST, 0.4) : 0;
+    const xBars = Array.from({ length: Q }, (_, x) => {
+      if (view === 2) {
+        const base = xOn / Q;
+        return (1 - xf) * base + xf * (x === XFIRST ? 1 : 0);
+      }
+      if (view === 3) return (1 - comb) / Q + comb * (F[x] === OUT ? 1 / SURV.length : 0);
+      if (view === 4) return F[x] === OUT ? 1 / SURV.length : 0;
+      return 0;
+    });
+    const yBars = CYCLE.map((v) => {
+      const base = yOn / R;
+      if (view === 2) return (1 - xf) * base + xf * (v === YFIRST ? 1 : 0);
+      return (1 - yRead) * base + yRead * (v === OUT ? 1 : 0);
+    });
+    // step 5: the k chart fills in as the sweep passes; step 6 reads it
+    const fill = (k: number) =>
+      view === 5 || explored || kPicked !== null ? 1 : clamp((kRaw - k + 0.3) / 1.5, 0, 1);
+    const kBars = PK.map((p, k) => (view >= 4 ? p * fill(k) : 0));
+    // (only where the arrows mostly agree: a fan over a fan would just be noise)
+    const ghost5 =
+      view === 4
+        ? (kPicked !== null || explored ? 1 : ramp(tt, T5_GHOST, 0.5)) *
+          clamp(
+            (Math.hypot(sumAt(kd, SURV).re, sumAt(kd, SURV).im) / SURV.length - 0.4) * 2.5,
+            0,
+            1,
+          )
+        : 0;
+    const readOn = view === 5 ? ramp(tt, T6_READ) : 0;
+    const fracOn = view === 5 ? ramp(tt, T6_FRAC) : 0;
+    const rOn = view === 5 ? ramp(tt, T6_R) : 0;
+    const backOn = view === 5 ? ramp(tt, T6_BACK) : 0;
+
+    // the arrows of the current k: one per x from a common centre, and their average (blue),
+    // whose length is 1 when all eight line up and 0 when they fan out evenly
+    const { cx, cy, u: AL } = g.arrow;
+    const spokes = (xs: number[]) =>
+      xs.map((x) => {
+        const a = (2 * Math.PI * kd * x) / Q;
+        return { x: cx + AL * Math.cos(a), y: cy - AL * Math.sin(a), a };
+      });
+    const main = spokes(SURV);
+    const other = spokes(GHOST);
+    const avg = sumAt(kd, SURV);
+    const avgEnd = {
+      x: cx + (AL * avg.re) / SURV.length,
+      y: cy - (AL * avg.im) / SURV.length,
+    };
+    // arrows that coincide get a count at their tip ("×8" when all line up)
+    const stacks: { x: number; y: number; a: number; n: number }[] = [];
+    for (const p of main) {
+      const s = stacks.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 1.5);
+      if (s) s.n++;
+      else stacks.push({ ...p, n: 1 });
+    }
+    const chance = PK[kInt];
+    const chanceText = chance > 0.2 ? '1/4' : '0';
 
     // ring (step 1)
     const ringCy = (g.panelTop + g.H) / 2 + 2;
@@ -446,33 +594,38 @@ export default function Shor() {
     const panelTitle = [
       'the cycle: times 7 each step, mod 15',
       'if you know r',
-      'two registers of qubits',
-      'register A: chance of each x',
-      tt < T_PEAKS
-        ? `adding one wave per x: ${Math.max(1, Math.ceil(waves))} of ${SURV.length}`
-        : g.narrow
-          ? 'after the transform'
-          : 'after the Fourier transform',
+      'X: every x at once',
+      'X: only x that give 7 stay',
+      'chance of each reading k',
+      'read X, divide by 32',
     ][view];
     const status =
       view === 2
-        ? tt < T_B
+        ? tt < T3_Y
           ? ''
           : g.narrow
-            ? 'B in the cells, A below'
-            : 'register B in the cells, register A below'
+            ? 'Y in the cells, X below'
+            : 'Y in the cells, X below them'
         : view === 3
           ? tt < T_DIM
-            ? 'reading register B'
-            : `register B reads ${OUT}`
+            ? 'reading Y'
+            : `Y reads ${OUT}`
           : '';
+    const tri = (x: number, y: number, on: number) => (
+      <path
+        d={`M${x - 5} ${y} L${x + 5} ${y} L${x} ${y + 7} Z`}
+        style={{ fill: GT.ink, opacity: on }}
+      />
+    );
+    // the current k on the axis; the fixed ticks step aside when it comes close
+    const near = (k: number) => Math.abs(wrap(kd - k)) < (g.narrow ? 2.2 : 1.5);
 
     return (
       <svg
         viewBox={`0 0 ${g.W} ${g.H}`}
         className={cls}
         role="img"
-        aria-label={`7 to the power x mod 15 repeats 1, 7, 4, 13 with period r = 4. gcd(48, 15) = 3 and gcd(50, 15) = 5. A quantum computer holds every x from 0 to 31 at once in register A (5 qubits) and computes 7 to the x mod 15 into register B (4 qubits) for all of them in one run. Reading register B gives 7, leaving x = 1, 5, ..., 29; the Fourier transform turns that into peaks at 0, 8, 16, 24, and a reading of 8 gives r = 4.`}
+        aria-label={`7 to the power x mod 15 repeats 1, 7, 4, 13 with period r = 4, and gcd(48, 15) = 3, gcd(50, 15) = 5. A quantum computer has two registers linked by Y = 7 to the X mod 15: X holds every x from 0 to 31 at once, so Y holds 1, 7, 4 and 13. Reading Y gives 7 and leaves x = 1, 5, ..., 29 in X. For each reading k every surviving x adds an arrow turned k x / 32 of a turn; they line up only at k = 0, 8, 16 and 24, each with chance 1/4. Reading X gives 8, and 8/32 = 1/4 gives r = 4.`}
       >
         <defs>
           <marker
@@ -509,7 +662,7 @@ export default function Shor() {
           const c = cell(x);
           const s = shown(x);
           const one = v === 1;
-          const hit = v === OUT;
+          const hit = isHit(x);
           const fadeOut = hit ? 1 : 1 - 0.72 * dim;
           const isCur = x === current;
           return (
@@ -554,19 +707,10 @@ export default function Shor() {
                   {v}
                 </T>
               </g>
-              {/* a dot under each x whose wave is in the sum (step 4) */}
-              {hit && view === 4 && wsDot(SURV.indexOf(x)) > 0 && (
-                <circle
-                  cx={c.cx}
-                  cy={rowBottom(c.row) + 4}
-                  r={2}
-                  style={{ fill: GT.a, opacity: wsDot(SURV.indexOf(x)) }}
-                />
-              )}
             </g>
           );
         })}
-        {/* x labels under the strip: every 4th x, then every x (register A), then the survivors */}
+        {/* x labels under the strip: every 4th x, then every x (X), then the survivors */}
         {Array.from({ length: Q / R }, (_, i) => i * R).map((x) => {
           const c = cell(x);
           const on = view <= 1 ? shown(x) : view === 2 ? 1 - allX : 0;
@@ -580,9 +724,16 @@ export default function Shor() {
         })}
         {F.map((_, x) => {
           const c = cell(x);
+          const on = allX * (view === 2 && x !== XFIRST ? 1 - 0.72 * xf : 1);
           return (
-            <g key={`all${x}`} style={{ opacity: allX }}>
-              <T x={c.cx} y={rowBottom(c.row) + 12} size={fs - 1} color={GT.b}>
+            <g key={`all${x}`} style={{ opacity: on }}>
+              <T
+                x={c.cx}
+                y={rowBottom(c.row) + 12}
+                size={fs - 1}
+                color={GT.b}
+                weight={view === 2 && x === XFIRST && xf > 0.5 ? 700 : 400}
+              >
                 {x}
               </T>
             </g>
@@ -612,15 +763,6 @@ export default function Shor() {
         <T x={X0} y={g.panelTop} anchor="start" size={fs + 1} color={GT.ink} weight={600}>
           {panelTitle}
         </T>
-        <g style={fade(view === 4)}>
-          <T x={X1} y={g.panelTop} anchor="end" size={fs + 0.5} color={GT.a} weight={700}>
-            <tspan style={{ opacity: readOn }}>
-              {g.narrow
-                ? `reads ${READ}, so r = ${R}`
-                : `reads ${READ}: ${READ}/${Q} = 1/${R}, so r = ${R}`}
-            </tspan>
-          </T>
-        </g>
 
         {/* step 1: the cycle as a ring */}
         <g style={fade(view === 0)}>
@@ -728,100 +870,121 @@ export default function Shor() {
           </g>
         </g>
 
-        {/* step 3: the two registers */}
-        <g style={fade(view === 2)}>
-          {register(
-            'A',
-            5,
-            g.regY[0],
-            GT.b,
-            aOne,
-            g.narrow
-              ? '5 qubits: x = 0 to 31, all at once'
-              : '5 qubits: every x from 0 to 31, all at once',
-          )}
-          {register(
-            'B',
-            4,
-            g.regY[1],
-            GT.ink,
-            bOne,
-            <>
-              {'4 qubits: '}
-              <Sup base="7" exp="x" fs={fs} />
-              {g.narrow ? 'mod 15 for each x' : 'mod 15 for every x, in one run'}
-            </>,
-          )}
-          <g style={{ opacity: hintOn }}>
-            <T x={X0} y={g.regY[2]} anchor="start" size={fs} color={GT.muted}>
-              {g.narrow
-                ? 'reading one gives a single number, at random'
-                : 'reading a register gives one number, at random, and changes it'}
-            </T>
-          </g>
-        </g>
-
-        {/* steps 3 to 5: the odds of each reading */}
+        {/* ── steps 3 to 6: the main chart (x, then k) ── */}
         <g style={fade(view >= 2)}>
           <line
             x1={X0}
-            x2={X1}
+            x2={g.mainX1}
             y1={g.chartBase}
             y2={g.chartBase}
             style={{ stroke: GT.lineStrong }}
           />
-          {bars.map((p, k) => {
+          {/* step 5: the current k, a band behind its bar */}
+          {view === 4 && (
+            <rect
+              x={kx(kd > Q - 0.5 ? kd - Q : kd) - slot / 2}
+              y={g.chartTop - 4}
+              width={slot}
+              height={ph + 4}
+              style={{ fill: GT.aSoft }}
+            />
+          )}
+          {/* X: chances of each x (steps 3, 4; fading out at the start of 5) */}
+          {xBars.map((p, x) => {
             const h = barH(p);
             if (h < 0.05) return null;
             return (
               <rect
-                key={k}
+                key={`xb${x}`}
+                x={kx(x) - bw / 2}
+                y={g.chartBase - h}
+                width={bw}
+                height={h}
+                style={{ fill: GT.b, opacity: view === 4 ? comb : 1 }}
+              />
+            );
+          })}
+          {/* step 4: another run (Y = 13) leaves the same comb, shifted */}
+          {view === 3 &&
+            GHOST.map((x) => (
+              <rect
+                key={`gb${x}`}
+                x={kx(x) - bw / 2}
+                y={g.chartBase - barH(1 / SURV.length)}
+                width={bw}
+                height={barH(1 / SURV.length)}
+                style={{
+                  fill: 'none',
+                  stroke: GT.muted,
+                  strokeWidth: 1,
+                  strokeDasharray: '2 2',
+                  opacity: ghostOn,
+                }}
+              />
+            ))}
+          {/* k: chances of each reading after the transform (steps 5, 6) */}
+          {kBars.map((p, k) => {
+            const h = barH(p);
+            if (h < 0.05) return null;
+            return (
+              <rect
+                key={`kb${k}`}
                 x={kx(k) - bw / 2}
                 y={g.chartBase - h}
                 width={bw}
                 height={h}
                 style={{
-                  fill: view <= 3 ? GT.b : GT.a,
-                  opacity: view === 4 && readOn > 0 && k !== READ ? 1 - 0.45 * readOn : 1,
+                  fill: GT.a,
+                  opacity: view === 5 && k !== READ ? 1 - 0.5 * readOn : 1,
                 }}
               />
             );
           })}
-          {/* odds labels */}
+
+          {/* labels over the bars */}
           {view === 2 && (
-            <g style={{ opacity: aOne }}>
-              <T x={X1} y={g.chartBase - barH(1 / Q) - 9} anchor="end" size={fs - 1} color={GT.b}>
-                {`1/${Q} each`}
-              </T>
-            </g>
+            <>
+              <g style={{ opacity: xOn * (1 - xf) }}>
+                <T
+                  x={X0}
+                  y={g.chartBase - barH(1 / Q) - 9}
+                  anchor="start"
+                  size={fs - 1}
+                  color={GT.b}
+                >
+                  {`1/${Q} each`}
+                </T>
+              </g>
+              <g style={{ opacity: xf }}>
+                <T x={kx(XFIRST)} y={g.chartTop - 8} size={fs - 1} color={GT.b} weight={700}>
+                  1
+                </T>
+                {tri(kx(XFIRST), g.chartTop - 26, 1)}
+              </g>
+            </>
           )}
           {view === 3 &&
             SURV.map((x) => (
-              <g key={`c${x}`} style={{ opacity: combLab }}>
-                <T x={kx(x)} y={g.chartBase - barH(1 / 8) - 8} size={fs - 1} color={GT.b}>
+              <g key={`c${x}`} style={{ opacity: ramp(tt, T_COMB + 0.3) }}>
+                <T x={kx(x)} y={g.chartBase - barH(1 / SURV.length) - 8} size={fs - 1} color={GT.b}>
                   1/8
                 </T>
               </g>
             ))}
-          {view === 4 &&
+          {view >= 4 &&
             Array.from({ length: R }, (_, i) => i * SPACING).map((k) => (
-              <g key={`p${k}`} style={{ opacity: peaksOn }}>
+              <g key={`p${k}`} style={{ opacity: fill(k) }}>
                 <T x={kx(k)} y={g.chartTop - 8} size={fs - 1} color={GT.a}>
                   1/4
                 </T>
               </g>
             ))}
-          {/* the reading */}
-          {view === 4 && (
-            <path
-              d={`M${kx(READ) - 5} ${g.chartTop - 26} L${kx(READ) + 5} ${g.chartTop - 26} L${kx(READ)} ${g.chartTop - 19} Z`}
-              style={{ fill: GT.ink, opacity: readOn }}
-            />
-          )}
-          {/* readings along the axis */}
+          {view === 5 && tri(kx(READ), g.chartTop - 26, readOn)}
+
+          {/* the axis: x below in steps 3, 4; k below in steps 5, 6 */}
           {view === 2 &&
             Array.from({ length: Q / R }, (_, i) => i * R).map((x) => (
-              <g key={`r${x}`} style={{ opacity: aOne }}>
+              <g key={`r${x}`} style={{ opacity: xOn }}>
                 <T x={kx(x)} y={g.chartBase + 11} size={fs - 1} color={GT.b}>
                   {x}
                 </T>
@@ -829,37 +992,335 @@ export default function Shor() {
             ))}
           {view === 3 &&
             SURV.map((x) => (
-              <g key={`a${x}`} style={{ opacity: combLab }}>
+              <g key={`a${x}`} style={{ opacity: comb }}>
                 <T x={kx(x)} y={g.chartBase + 11} size={fs - 1} color={GT.b}>
                   {x}
                 </T>
               </g>
             ))}
-          {view === 4 &&
+          {view >= 4 &&
             Array.from({ length: R }, (_, i) => i * SPACING).map((k) => (
-              <g key={`k${k}`}>
+              <g key={`k${k}`} style={{ opacity: view === 4 && near(k) ? 0 : 1 }}>
                 <T
                   x={kx(k)}
                   y={g.chartBase + 11}
                   size={fs - 1}
-                  color={peaksOn > 0 ? GT.a : GT.muted}
-                  weight={k === READ && readOn > 0 ? 700 : 400}
+                  color={view === 5 || fill(k) > 0.5 ? GT.a : GT.muted}
+                  weight={view === 5 && k === READ && readOn > 0 ? 700 : 400}
                 >
                   {k}
                 </T>
               </g>
             ))}
           {view === 4 && (
-            <Bracket
-              x0={kx(0)}
-              x1={kx(SPACING)}
-              y={g.chartBase + 26}
-              color={GT.a}
-              fs={fs}
-              opacity={peaksOn}
-              label={`every ${Q} / r = ${SPACING}`}
-            />
+            <T x={kx(kInt)} y={g.chartBase + 11} size={fs - 1} color={GT.a} weight={700}>
+              {kInt}
+            </T>
           )}
+          {/* step 6: each peak over 32, and what it says about r */}
+          {view === 5 &&
+            Array.from({ length: R }, (_, i) => i * SPACING).map((k) => {
+              const f = k / Q;
+              const den = f === 0 ? 1 : Q / gcd(k, Q);
+              const ok = den === R;
+              return (
+                <g key={`f${k}`}>
+                  <g style={{ opacity: fracOn }}>
+                    <T x={kx(k)} y={g.chartBase + 24} size={fs - 1} color={GT.inkSoft}>
+                      {k === 0 ? '0' : `${k / gcd(k, Q)}/${den}`}
+                    </T>
+                  </g>
+                  <g style={{ opacity: rOn }}>
+                    <T
+                      x={k === 0 ? X0 : kx(k)}
+                      anchor={k === 0 ? 'start' : 'middle'}
+                      y={g.chartBase + 37}
+                      size={fs - 1}
+                      color={ok ? GT.eq : GT.muted}
+                      weight={ok ? 700 : 400}
+                    >
+                      {ok ? `r = ${den}` : 'again'}
+                    </T>
+                  </g>
+                </g>
+              );
+            })}
+
+          {/* hit areas: hover or tap a bar to pick its k (step 5) */}
+          {view === 4 &&
+            Array.from({ length: Q }, (_, k) => (
+              <rect
+                key={`hit${k}`}
+                x={kx(k) - slot / 2}
+                y={g.chartTop - 12}
+                width={slot}
+                height={ph + 28}
+                style={{ fill: 'transparent', cursor: 'pointer' }}
+                onPointerEnter={(e) => {
+                  if (e.pointerType !== 'touch') {
+                    setKHover(k);
+                    setExplored(true);
+                  }
+                }}
+                onPointerLeave={() => setKHover(null)}
+                onClick={() => {
+                  setKPin(k);
+                  setExplored(true);
+                }}
+              />
+            ))}
+        </g>
+
+        {/* step 3: the equation and the contrast, in the empty top of the X chart */}
+        <g style={fade(view === 2)}>
+          <g style={{ opacity: eqOn * (1 - xf) }}>
+            <T
+              x={g.mainX1}
+              y={g.chartTop + (g.narrow ? 22 : 30)}
+              anchor="end"
+              size={g.eqSize}
+              font="display"
+              color={GT.ink}
+            >
+              {'Y = 7'}
+              <tspan dy={-g.eqSize * 0.4} fontSize={g.eqSize * 0.72} style={{ fill: GT.b }}>
+                X
+              </tspan>
+              <tspan dy={g.eqSize * 0.4}>{` mod ${N}`}</tspan>
+            </T>
+          </g>
+          <g style={{ opacity: eqOn * xf }}>
+            <T
+              x={g.mainX1}
+              y={g.chartTop + (g.narrow ? 22 : 30)}
+              anchor="end"
+              size={g.eqSize}
+              font="display"
+              color={GT.ink}
+            >
+              {'Y = 7'}
+              <tspan dy={-g.eqSize * 0.4} fontSize={g.eqSize * 0.72} style={{ fill: GT.b }}>
+                {XFIRST}
+              </tspan>
+              <tspan dy={g.eqSize * 0.4}>{` mod ${N} = `}</tspan>
+              <tspan style={{ fill: GT.ink }}>{YFIRST}</tspan>
+            </T>
+          </g>
+          <g
+            style={{
+              opacity: chipOn,
+              cursor: 'pointer',
+              pointerEvents: chipOn > 0.5 && view === 2 ? undefined : 'none',
+            }}
+            onPointerEnter={(e) => {
+              if (e.pointerType !== 'touch') setXfHover(true);
+            }}
+            onPointerLeave={() => setXfHover(false)}
+            onClick={() => setXfPin((v) => !v)}
+          >
+            {(() => {
+              const label = 'what if you read X first?';
+              const w = label.length * (fs - 0.5) * 0.6 + 16;
+              const y = g.chartTop + (g.narrow ? 46 : 58);
+              return (
+                <>
+                  <rect
+                    x={g.mainX1 - w}
+                    y={y - 10}
+                    width={w}
+                    height={20}
+                    style={{
+                      fill: GT.bSoft,
+                      fillOpacity: xf,
+                      stroke: GT.b,
+                      strokeWidth: 1,
+                      strokeDasharray: xf > 0.5 ? undefined : '3 2',
+                    }}
+                  />
+                  <T x={g.mainX1 - w / 2} y={y + 0.5} size={fs - 0.5} color={GT.b} weight={600}>
+                    {label}
+                  </T>
+                  <g style={{ opacity: xf }}>
+                    <T x={g.mainX1} y={y + 22} anchor="end" size={fs - 1} color={GT.inkSoft}>
+                      {g.narrow ? 'the trick is lost' : 'one x, one Y: the trick is lost'}
+                    </T>
+                  </g>
+                </>
+              );
+            })()}
+          </g>
+        </g>
+
+        {/* step 4: the other run, in words */}
+        <g style={fade(view === 3)}>
+          <g style={{ opacity: ghostOn }}>
+            <T x={X0} y={g.chartTop + 4} anchor="start" size={fs - 1} color={GT.muted}>
+              {`dashed: a run where Y reads ${OTHER}`}
+            </T>
+            <T x={X0} y={g.chartTop + 18} anchor="start" size={fs - 1} color={GT.muted}>
+              same gaps, another start
+            </T>
+          </g>
+        </g>
+
+        {/* ── the side box ── */}
+        {/* steps 3, 4: Y, chance of each value */}
+        <g style={fade(view === 2 || view === 3)}>
+          <T x={g.sideX0} y={g.panelTop} anchor="start" size={fs + 1} color={GT.ink} weight={600}>
+            {view === 3 ? `Y reads ${OUT}` : 'Y: chance of each'}
+          </T>
+          <line
+            x1={g.sideX0}
+            x2={X1}
+            y1={g.chartBase}
+            y2={g.chartBase}
+            style={{ stroke: GT.lineStrong }}
+          />
+          {CYCLE.map((v, i) => {
+            const h = yH(yBars[i]);
+            const read = view === 3 ? (v === OUT ? yRead : 0) : v === YFIRST ? xf : 0;
+            const quarter = view === 2 ? yOn * (1 - xf) : 1 - yRead;
+            return (
+              <g key={`y${v}`}>
+                {h > 0.05 && (
+                  <rect
+                    x={yx(i) - ybw / 2}
+                    y={g.chartBase - h}
+                    width={ybw}
+                    height={h}
+                    style={{ fill: GT.ink }}
+                  />
+                )}
+                <g style={{ opacity: quarter }}>
+                  <T x={yx(i)} y={g.chartBase - yH(1 / R) - 8} size={fs - 1} color={GT.ink}>
+                    1/4
+                  </T>
+                </g>
+                <g style={{ opacity: read }}>
+                  <T x={yx(i)} y={g.chartTop - 8} size={fs - 1} color={GT.ink} weight={700}>
+                    1
+                  </T>
+                </g>
+                {tri(yx(i), g.chartTop - 26, view === 3 && v === OUT ? yRead : 0)}
+                <T
+                  x={yx(i)}
+                  y={g.chartBase + 11}
+                  size={fs}
+                  color={GT.ink}
+                  weight={read > 0.5 ? 700 : 400}
+                >
+                  {v}
+                </T>
+              </g>
+            );
+          })}
+        </g>
+
+        {/* step 5: the arrows of the current k */}
+        <g style={fade(view === 4)}>
+          <T x={g.sideX0} y={g.panelTop} anchor="start" size={fs + 2} color={GT.a} weight={700}>
+            {`k = ${kInt}`}
+          </T>
+          <T x={X1} y={g.panelTop} anchor="end" size={fs} color={GT.a} weight={600}>
+            <tspan style={{ opacity: clamp(1 - Math.abs(kd - Math.round(kd)) * 5, 0, 1) }}>
+              {`chance ${chanceText}`}
+            </tspan>
+          </T>
+          <g style={{ opacity: ghost5 }}>
+            {other.map((p, j) => (
+              <g key={`o${j}`}>
+                <line
+                  x1={cx}
+                  y1={cy}
+                  x2={p.x}
+                  y2={p.y}
+                  style={{ stroke: GT.muted, strokeWidth: 1, strokeDasharray: '3 2' }}
+                />
+                <circle cx={p.x} cy={p.y} r={1.8} style={{ fill: GT.muted }} />
+              </g>
+            ))}
+            <T x={sideMid} y={g.H - 8} size={fs - 1} color={GT.muted}>
+              {`dashed: Y reads ${OTHER}`}
+            </T>
+          </g>
+          <g style={{ opacity: 0.4 }}>
+            <Arrow
+              x1={cx}
+              y1={cy}
+              x2={avgEnd.x}
+              y2={avgEnd.y}
+              color={GT.a}
+              width={g.narrow ? 7 : 9}
+              head={g.narrow ? 14 : 17}
+            />
+          </g>
+          {main.map((p, j) => (
+            <Arrow
+              key={`m${j}`}
+              x1={cx}
+              y1={cy}
+              x2={p.x}
+              y2={p.y}
+              color={GT.b}
+              width={1.3}
+              head={g.narrow ? 6 : 7}
+            />
+          ))}
+          {stacks
+            .filter((q) => q.n > 1)
+            .map((q) => (
+              <T
+                key={`n${Math.round(q.a * 100)}`}
+                x={cx + (AL + 13) * Math.cos(q.a)}
+                y={cy - (AL + 11) * Math.sin(q.a)}
+                size={fs - 1}
+                color={GT.b}
+                weight={700}
+              >
+                {`×${q.n}`}
+              </T>
+            ))}
+          <circle cx={cx} cy={cy} r={2.2} style={{ fill: GT.ink }} />
+        </g>
+
+        {/* step 6: the reading, the fraction, r */}
+        <g style={fade(view === 5)}>
+          <g style={{ opacity: fracOn }}>
+            <T
+              x={sideMid}
+              y={g.chartTop + (g.narrow ? 4 : 2)}
+              size={g.narrow ? 18 : 24}
+              font="display"
+              color={GT.ink}
+            >
+              {`${READ}/${Q} = 1/${R}`}
+            </T>
+          </g>
+          <g style={{ opacity: rOn }}>
+            <T
+              x={sideMid}
+              y={g.chartTop + (g.narrow ? 46 : 52)}
+              size={g.narrow ? 28 : 34}
+              font="display"
+              color={GT.eq}
+            >
+              {`r = ${R}`}
+            </T>
+          </g>
+          <g style={{ opacity: backOn }}>
+            <T x={sideMid} y={g.chartTop + (g.narrow ? 82 : 94)} size={fs - 1} color={GT.muted}>
+              step 2 then gives
+            </T>
+            <T
+              x={sideMid}
+              y={g.chartTop + (g.narrow ? 101 : 116)}
+              size={g.narrow ? 17 : 22}
+              font="display"
+              color={GT.opt}
+            >
+              {`${N} = ${P1} × ${P2}`}
+            </T>
+          </g>
         </g>
       </svg>
     );
