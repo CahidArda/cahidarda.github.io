@@ -83,9 +83,10 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     label: '2 why r',
     caption: (
       <>
-        Why r helps: 7⁴ leaves 1, so 7⁴ − 1 is a multiple of 15. Split it as 48 × 50 and 15’s
-        factors are shared between the halves; a gcd pulls each out. But for a 617-digit number the
-        cycle is typically hundreds of digits long: no ordinary computer can walk it.
+        We know 15 (it is the number we want to split), just not its factors. r = 4 means 7⁴ leaves
+        remainder 1 when divided by 15, so 7⁴ − 1 = 2400 is a multiple of 15. Split it as 48 × 50:
+        15 goes into the product but into neither half, so its factors are shared between them, and
+        a gcd pulls each one out. The catch: for a 617-digit number, finding r is the hard part.
       </>
     ),
   },
