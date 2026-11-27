@@ -1,0 +1,69 @@
+---
+title: 'Fast, Slow, and Never'
+seoTitle: 'Big-O Notation and Time Complexity, Explained Visually'
+description: 'Time complexity and Big-O notation: race n, n², 2ⁿ and n! against the clock and see why a faster computer barely helps an exponential algorithm.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 1
+---
+
+import Race from '../../../components/interactives/cx/growth/Race.tsx';
+import Faster from '../../../components/interactives/cx/growth/Faster.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+You have 60 photos. A program that looks at each one once finishes in 60 billionths of a second.
+A program that tries every possible album you could make from them needs 36 and a half years.
+Same photos, same computer.
+
+The difference is **time complexity**: how the number of steps an algorithm takes grows with
+the size of its input, $n$. Below, each line is one way of growing, run on a machine that does
+a billion steps a second.
+
+<div class="fx-figure">
+  <Race client:visible />
+</div>
+
+The time axis is logarithmic: going up one gridline multiplies the time, it does not add to it. On it, $n$, $n^2$
+and $n^3$ stay near the floor. $2^n$ climbs a straight line, because every extra item doubles
+the work: one second at $n = 30$, 73 years at 61, and longer than the age of the universe
+(13.8 billion years, [Planck 2018](https://arxiv.org/pdf/1807.06209)) at 89. $n!$, the number of ways to put $n$ things in order, is
+worse: 27 items already take longer than the universe has existed.
+
+## Only the shape counts
+
+Computer scientists compare algorithms by that shape and ignore the details. Big-O notation
+says $f$ grows no faster than $g$ when, past some point, a constant multiple of $g$ stays on top
+(Sipser, _Introduction to the Theory of Computation_, 3rd ed., §7.1):
+
+$$
+f(n) = O(g(n)) \iff f(n) \le c \cdot g(n) \text{ for some } c \text{ and all } n \ge n_0
+$$
+
+A step twice as fast, or three extra steps per item, only changes $c$. And no polynomial keeps up
+with a doubling: for every fixed $k$, even $k = 100$, the ratio $n^k / 2^n$ eventually falls to zero.
+
+## Buy a faster computer
+
+Suppose you get a machine 1000 times faster and give each algorithm the same hour.
+
+<div class="fx-figure">
+  <Faster client:visible />
+</div>
+
+An $n^3$ algorithm can now take inputs 10 times larger, because $10^3 = 1000$. A $2^n$ algorithm
+gets 10 more items, because $2^{10} \approx 1000$. Faster hardware multiplies what a polynomial
+algorithm can handle and only adds a little to an exponential one. That split is the line the
+next page draws: [what a computer can just do](/articles/how-hard-is-hard/p).
+
+<Lesson>
+
+Polynomial time grows with the problem. Exponential time outgrows any computer you can build.
+
+</Lesson>
+
+## Sources
+
+1. Planck Collaboration, "Planck 2018 results. VI. Cosmological parameters", _Astronomy & Astrophysics_ 641,
+   A6 (2020), [PDF](https://arxiv.org/pdf/1807.06209) (age of the universe, 13.8 billion years).
+2. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), section 7.1 (Measuring Complexity: big-O notation).

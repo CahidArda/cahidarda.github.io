@@ -1,0 +1,85 @@
+---
+title: 'What a Computer Can Just Do'
+seoTitle: 'The Complexity Class P (Polynomial Time), Explained'
+description: 'The class P: problems with fast recipes, like shortest routes and sorting, and why "polynomial time" is where computer scientists draw the line.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 2
+---
+
+import ShortestRoute from '../../../components/interactives/cx/p/ShortestRoute.tsx';
+import SortRace from '../../../components/interactives/cx/p/SortRace.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+A maps app finds the fastest way across a city in a blink. It does not try every route: there
+are far too many. It follows a recipe whose work grows gently with the size of the map.
+
+Problems with a recipe like that, one whose number of steps grows like a polynomial ($n$,
+$n^2$, $n^3$, ...) in the size of the input, form the complexity class **P**, for polynomial time.
+
+## The shortest route
+
+<div class="fx-figure">
+  <ShortestRoute client:visible />
+</div>
+
+A town of 6 by 6 crossings already has 1,262,816 routes from corner to corner that never pass
+the same crossing twice. At 10 by 10 there are 41 quintillion: checking a billion a second
+would take 1,300 years. Edsger Dijkstra's method from 1959
+([_A Note on Two Problems in Connexion with Graphs_](https://ir.cwi.nl/pub/9256/9256D.pdf))
+never lists them. It settles crossings nearest first, and a settled crossing's distance is
+final, so each road is looked at only from its two ends.
+
+## Sorting
+
+<div class="fx-figure">
+  <SortRace client:visible />
+</div>
+
+Both sorts are in P: selection sort's $n(n-1)/2$ is a polynomial, merge sort's $n \log_2 n$ is
+smaller still. The hopeless way to sort is to try all $n!$ orderings until one is right, which
+for 60 items would take longer than [the age of the universe](/articles/how-hard-is-hard/growth).
+
+## Why polynomial is the line
+
+Sipser defines P as everything a Turing machine can decide in $O(n^k)$ steps for some fixed
+$k$ (_Introduction to the Theory of Computation_, 3rd ed., §7.2):
+
+$$
+\mathrm{P} = \bigcup_{k} \mathrm{TIME}(n^k)
+$$
+
+The line is not about any one machine. A polynomial-time recipe that calls another
+polynomial-time recipe a polynomial number of times is still polynomial, and every reasonable
+model of an ordinary computer can simulate every other one with at most a polynomial slowdown. So
+P is the same class on a phone, a supercomputer or a Turing machine.
+
+The class holds more than it seems. Pairing up as many people as possible from a list of who
+gets along with whom is in P, shown by Jack Edmonds in 1965
+([_Paths, Trees, and Flowers_](https://doi.org/10.4153/CJM-1965-045-4)), who also argued that
+"polynomial" is what makes an algorithm good. Testing whether a 300-digit number is prime is in
+P, but nobody knew until 2002
+([Agrawal, Kayal and Saxena, _PRIMES is in P_](https://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf)).
+An $n^{100}$ algorithm would count too, though in practice the exponents of known algorithms
+are small. The [next page](/articles/how-hard-is-hard/np) is about problems where nobody has
+found one at all.
+
+<Lesson>
+
+A problem is in P when doubling the input multiplies the work by at most a fixed amount instead of squaring it.
+
+</Lesson>
+
+## Sources
+
+1. Self-avoiding corner-to-corner routes on a grid of crossings: OEIS
+   [A007764](https://oeis.org/A007764) (1,262,816 for 6 by 6; 41,044,208,702,632,496,804 for 10 by 10).
+2. E. W. Dijkstra, "A note on two problems in connexion with graphs", _Numerische Mathematik_ 1, 1959,
+   pp. 269-271, [PDF](https://ir.cwi.nl/pub/9256/9256D.pdf) ([doi:10.1007/BF01386390](https://doi.org/10.1007/BF01386390)).
+3. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), section 7.2 (The Class P).
+4. Jack Edmonds, "Paths, trees, and flowers", _Canadian Journal of Mathematics_ 17, 1965, pp. 449-467,
+   [doi:10.4153/CJM-1965-045-4](https://doi.org/10.4153/CJM-1965-045-4).
+5. M. Agrawal, N. Kayal and N. Saxena, "PRIMES is in P", _Annals of Mathematics_ 160(2), 2004, pp. 781-793,
+   [PDF](https://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf)
+   ([doi:10.4007/annals.2004.160.781](https://doi.org/10.4007/annals.2004.160.781)).

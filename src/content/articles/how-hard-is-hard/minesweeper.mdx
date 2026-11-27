@@ -1,0 +1,75 @@
+---
+title: 'Minesweeper Is NP-Complete'
+seoTitle: 'Minesweeper Is NP-Complete: Richard Kaye’s Proof Explained'
+description: 'In 2000 Richard Kaye showed that deciding whether a Minesweeper board makes sense at all is NP-complete. Wires and logic gates built from mines show why.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 12
+---
+
+import Possible from '../../../components/interactives/cx/minesweeper/Possible.tsx';
+import Wire from '../../../components/interactives/cx/minesweeper/Wire.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Everyone who played the Minesweeper that came with Windows has stared at a corner of numbers and wondered
+whether it even makes sense. In 2000 Richard Kaye, a mathematician at the University of Birmingham, proved
+that this question is NP-complete: as hard as every problem in [NP](/articles/how-hard-is-hard/np)
+([Kaye, _The Mathematical Intelligencer_ 22(2), 2000](https://doi.org/10.1007/BF03025367)).
+
+## Is this board possible?
+
+Kaye's question is not "can you win" but consistency: given the numbers, "to determine if there is some pattern
+of mines in the blank squares that give rise to the numbers seen." Here is his own 6 by 6 example.
+
+<div class="fx-figure">
+  <Possible client:visible />
+</div>
+
+A proposed placement is checked in one pass over the numbers. Finding one blind is another matter: each grey
+square is a mine or not, so
+
+$$
+2^{20} = 1{,}048{,}576 \text{ placements} \qquad 2^{480} \approx 3 \times 10^{144} \text{ on an Expert board}
+$$
+
+The second tab is the lopsided part. A "yes" comes with proof you can check; a "no" does not. Kaye: "what might
+we guess to show inconsistency?"
+
+## Circuits made of mines
+
+To prove it hard, Kaye built logic out of numbers. In his wire the numbers allow exactly two fillings, mines on
+every $x$ or on every $x'$, so the wire carries TRUE or FALSE. A NOT gate shifts the pattern.
+
+<div class="fx-figure">
+  <Wire client:visible />
+</div>
+
+With wires, bends, splitters, NOT and an AND gate, any logic circuit becomes a board only polynomially larger.
+A fast consistency checker would then decide whether any circuit can output TRUE (the SAT problem), and by the
+[Cook-Levin theorem](/articles/how-hard-is-hard/np-complete) every problem in NP with it. That would settle
+[P vs NP](/articles/how-hard-is-hard/p-vs-np). The same spring the Clay Institute put
+[a million dollars](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf) on that question, and Ian
+Stewart's column became ["Million-Dollar Minesweeper"](https://www.scientificamerican.com/article/million-dollar-minesweeper/).
+Kaye's own ending was calmer: "there may still be an efficient algorithm for Minesweeper, and finding it could
+solve one of mathematics's most important open problems."
+
+<Lesson>
+
+Checking a Minesweeper board is easy. Deciding whether any board is possible is as hard as everything in NP,
+because mines can be wired into circuits.
+
+</Lesson>
+
+## Sources
+
+1. Richard Kaye, "Minesweeper is NP-complete", _The Mathematical Intelligencer_ 22(2), 2000, pp. 9-15,
+   [doi:10.1007/BF03025367](https://doi.org/10.1007/BF03025367). Figures 4 (the 6 by 6 board), 6 (the wire)
+   and 9 (the NOT gate) are redrawn above; both widgets were checked by brute force: Figure 4 has exactly one
+   solution, the changed board none, the wire and gate exactly two.
+2. Ian Stewart, "Million-Dollar Minesweeper", _Scientific American_ 283(4), October 2000,
+   [scientificamerican.com](https://www.scientificamerican.com/article/million-dollar-minesweeper/).
+3. Stephen Cook, [The P versus NP Problem](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf),
+   Clay Mathematics Institute official problem description.
+4. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (2012), section 7.4 (NP-completeness,
+   the Cook-Levin theorem).

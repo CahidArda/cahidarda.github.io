@@ -1,0 +1,109 @@
+---
+title: 'True but Unprovable'
+seoTitle: "Gödel's Incompleteness Theorems Explained Interactively"
+description: "Gödel's incompleteness theorems from a puzzle you can play: why some true statements cannot be proved inside a system, and how it ties to the halting problem."
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 10
+---
+
+import MiuPlayground from '../../../components/interactives/cx/unprovable/MiuPlayground.tsx';
+import OneDiagonal from '../../../components/interactives/cx/unprovable/OneDiagonal.tsx';
+import ProofSearch from '../../../components/interactives/cx/unprovable/ProofSearch.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+It is natural to think that a true statement just needs a clever enough proof. In 1931 Kurt
+Gödel showed otherwise. In any consistent set of rules strong enough to do arithmetic, some true
+statements cannot be proved with those rules. These are **Gödel's incompleteness theorems**.
+
+## A puzzle you can't finish
+
+Douglas Hofstadter opens _Gödel, Escher, Bach_ (1979) with a game. You start with the string MI
+and four rules for making new strings. Can you make MU?
+
+<div class="fx-figure">
+  <MiuPlayground client:visible />
+</div>
+
+You can't. Hofstadter's answer (chapter IX) is to stop playing and count: "we can show that the
+I-count can never be any multiple of 3". Rule II doubles the count and rule III takes away 3, so
+from 1 the count is never divisible by 3:
+
+$$
+\#I \bmod 3 \in \{1, 2\} \qquad \text{but MU has } \#I = 0
+$$
+
+"Hence, MU is not a theorem of the MIU-system." No amount of playing inside the rules shows this.
+You have to step outside and reason _about_ them.
+
+## A sentence about itself
+
+Gödel made arithmetic step outside on its own. He gave every formula and proof a code number,
+so "this formula has a proof" becomes a statement about numbers. Then he built a sentence $G$:
+"We are therefore confronted with a proposition which asserts its own unprovability"
+([Gödel 1931, Meltzer translation, pp. 40–41](https://monoskop.org/images/9/93/Kurt_G%C3%B6del_On_Formally_Undecidable_Propositions_of_Principia_Mathematica_and_Related_Systems_1992.pdf)):
+
+$$
+G \;\leftrightarrow\; \neg\,\mathrm{Prov}(\ulcorner G \urcorner)
+$$
+
+The trick that builds it is a diagonal, the same one Cantor used in 1891 and Turing in 1936 for
+the [halting problem](/articles/how-hard-is-hard/halting).
+
+<div class="fx-figure">
+  <OneDiagonal client:visible />
+</div>
+
+If the system is consistent it cannot prove $G$, which is exactly what $G$ says, so $G$ is true. Unprovable here always means unprovable _in that system_: add $G$ as a new axiom and the
+bigger system has a new $G$ of its own. (Gödel's proof needed a slightly stronger assumption,
+ω-consistency. J. B. Rosser got by with plain consistency in 1936.) The second theorem follows: if
+such a system is consistent, it cannot prove that it is.
+
+## Turing's shortcut
+
+Turing saw that a complete system would hand us a halting decider. A machine 𝒦 that writes out
+every proof in turn settles any formula 𝔄: "Sooner or later 𝒦 will reach either 𝔄 or −𝔄"
+([Turing 1936, §11, p. 259](https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf)).
+
+<div class="fx-figure">
+  <ProofSearch client:visible />
+</div>
+
+If every "P halts" or "P never halts" had a proof, this machine would solve the halting problem.
+It can't, so some program that never halts has no proof that it never halts. This needs one
+assumption: the system only proves true things about halting.
+
+Next, [harder than NP](/articles/how-hard-is-hard/beyond-np): problems that can be solved, but
+only with enormous time or memory.
+
+<Lesson>
+
+A consistent system strong enough for arithmetic has true statements it cannot prove, and it
+cannot prove its own consistency.
+
+</Lesson>
+
+## Sources
+
+1. K. Gödel, "Über formal unentscheidbare Sätze der _Principia Mathematica_ und verwandter
+   Systeme I", _Monatshefte für Mathematik und Physik_ 38 (1931) 173–198,
+   [German scan](https://www.w-k-essler.de/pdfs/goedel.pdf). English: B. Meltzer (trans.),
+   [_On Formally Undecidable Propositions_](https://monoskop.org/images/9/93/Kurt_G%C3%B6del_On_Formally_Undecidable_Propositions_of_Principia_Mathematica_and_Related_Systems_1992.pdf)
+   (1962, Dover reprint), pp. 40–41; also in J. van Heijenoort (ed.),
+   [_From Frege to Gödel_](https://archive.org/details/from-frege-to-godel-a-source-book-in-mathematical-logic-edited-by-jean-van-heijenoort)
+   (1967), pp. 596–616.
+2. J. B. Rosser, "Extensions of some theorems of Gödel and Church", _Journal of Symbolic Logic_
+   1(3) (1936) 87–91, [doi:10.2307/2269028](https://doi.org/10.2307/2269028).
+3. D. R. Hofstadter, _Gödel, Escher, Bach_ (Basic Books, 1979): ch. I "The MU-puzzle" (the rules),
+   ch. IX "Mumon and Gödel" (the solution).
+4. G. Cantor, "Über eine elementare Frage der Mannigfaltigkeitslehre", _Jahresbericht der DMV_ 1
+   (1891) 75–78, [EuDML](https://eudml.org/doc/144383);
+   [English translation](https://math.stonybrook.edu/~tony/archive/336f06/cantor/cantor.html).
+5. A. M. Turing, "On Computable Numbers, with an Application to the Entscheidungsproblem",
+   _Proc. London Math. Soc._ (2) 42 (1936) 230–265,
+   [PDF](https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf), §11.
+6. S. Aaronson, [_Quantum Computing Since Democritus_, lecture 3](https://www.scottaaronson.com/democritus/lec3.html)
+   (Gödel from Turing, and the soundness it needs).
+7. [Gödel's Incompleteness Theorems](https://plato.stanford.edu/entries/goedel-incompleteness/),
+   _Stanford Encyclopedia of Philosophy_.

@@ -116,7 +116,7 @@ export function useFrame(cb: (dt: number) => void, running: boolean) {
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
+      const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
       last = now;
       cbRef.current(dt);
       raf = requestAnimationFrame(tick);
@@ -141,7 +141,7 @@ export function useTween(target: number, reduced = false, speed = 10): number {
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
+      const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
       last = now;
       const d = tRef.current - vRef.current;
       if (Math.abs(d) < 1e-3) {

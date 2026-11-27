@@ -1,0 +1,88 @@
+---
+title: 'Harder Than NP'
+seoTitle: 'PSPACE, EXPTIME and the Complexity Classes Beyond NP'
+description: 'Why winning a game is harder than solving a puzzle: PSPACE, EXPTIME, coNP, quantum BQP, and where chess, Sudoku and factoring sit on the map.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 11
+---
+
+import GameTree from '../../../components/interactives/cx/beyond-np/GameTree.tsx';
+import HarderMap from '../../../components/interactives/cx/beyond-np/HarderMap.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Show someone a solved Sudoku and they can check it in a minute. Now try to convince them that
+White wins a chess position. A single game proves nothing, because Black might have played
+better. This is the gap between [NP](/articles/how-hard-is-hard/np) and the classes above it:
+**PSPACE**, **EXPTIME**, and their neighbours.
+
+## Why games are harder
+
+A small game shows the difference. Four stones, each player takes one or two, and whoever takes
+the last stone wins.
+
+<div class="fx-figure">
+  <GameTree client:visible />
+</div>
+
+A puzzle asks whether there _exists_ a good sequence of moves. A game asks whether there is a
+move for you such that _for every_ reply there is a move for you, and so on:
+
+$$
+\exists m_1 \; \forall m_2 \; \exists m_3 \; \forall m_4 \; \cdots \; \text{you win}
+$$
+
+As Scott Aaronson puts it, "there's no obvious NP witness for (say) White having a win in chess,
+since one would need to specify White's response to every possible line of play by Black"
+([_P =? NP_, p. 20](https://www.scottaaronson.com/papers/pnp.pdf)). If the game ends within a
+polynomial number of moves, you can still search the whole tree with little memory, one branch at
+a time. That puts it in PSPACE. Generalized geography, a word-chain game played on any graph, is
+one of PSPACE's hardest problems (Sipser, section 8.3).
+
+Without a move limit, chess on an $n \times n$ board can last exponentially long, and Fraenkel and
+Lichtenstein proved that playing it perfectly takes time exponential in $n$
+([_J. Combin. Theory A_, 1981](https://doi.org/10.1016/0097-3165%2881%2990016-9)).
+
+## The map
+
+<div class="fx-figure">
+  <HarderMap client:visible />
+</div>
+
+Every box sits inside the next one, and that much is proven:
+
+$$
+\mathsf{P} \subseteq \mathsf{NP} \subseteq \mathsf{PSPACE} \subseteq \mathsf{EXPTIME}, \qquad \mathsf{P} \neq \mathsf{EXPTIME}
+$$
+
+The second part is the time hierarchy theorem: more time lets you solve strictly more problems
+(Hartmanis and Stearns, 1965; Sipser, section 9.1). So at least one of the three steps in the
+chain is a real gap. Nobody knows which.
+
+Two boxes cut across the chain. coNP is NP's mirror image: a "no" answer has a short proof.
+BQP is what a quantum computer does fast. It contains
+[factoring](/articles/how-hard-is-hard/factoring)
+([Shor, 1994](https://arxiv.org/pdf/quant-ph/9508027)), and most researchers conjecture it does
+not contain the NP-complete problems (Aaronson, conjecture 34). Outside all of them is the
+[halting problem](/articles/how-hard-is-hard/halting), which no amount of time solves.
+
+<Lesson>
+
+Checking one answer is NP. Beating every reply is PSPACE. Some problems provably need exponential
+time, and some have no algorithm at all.
+
+</Lesson>
+
+## Sources
+
+1. Scott Aaronson, ["P =? NP"](https://www.scottaaronson.com/papers/pnp.pdf), in _Open Problems in
+   Mathematics_ (Springer, 2016): the chess quote (section 2.2.5, p. 20) and Conjecture 34 (NP ⊄ BQP).
+2. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), sections 8.3 (PSPACE-completeness, generalized geography) and 9.1 (Hierarchy Theorems).
+3. Aviezri S. Fraenkel and David Lichtenstein, "Computing a perfect strategy for n×n chess requires time
+   exponential in n", _Journal of Combinatorial Theory, Series A_ 31(2), 1981, pp. 199-214,
+   [doi:10.1016/0097-3165(81)90016-9](https://doi.org/10.1016/0097-3165%2881%2990016-9).
+4. J. Hartmanis and R. E. Stearns, "On the computational complexity of algorithms", _Transactions of the
+   AMS_ 117, 1965, pp. 285-306, [doi:10.1090/S0002-9947-1965-0170805-7](https://doi.org/10.1090/S0002-9947-1965-0170805-7).
+5. Peter W. Shor, "Polynomial-time algorithms for prime factorization and discrete logarithms on a quantum
+   computer", _SIAM Journal on Computing_ 26(5), 1997, pp. 1484-1509, [PDF](https://arxiv.org/pdf/quant-ph/9508027).

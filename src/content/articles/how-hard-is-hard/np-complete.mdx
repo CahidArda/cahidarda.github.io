@@ -1,0 +1,96 @@
+---
+title: 'One Puzzle to Rule Them All'
+seoTitle: 'NP-Complete Explained: Reductions and the Cook-Levin Theorem'
+description: 'NP-completeness and reductions: turn a map into a logic formula, and see why a fast solver for one hard puzzle would solve them all.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 5
+---
+
+import MapToSat from '../../../components/interactives/cx/np-complete/MapToSat.tsx';
+import ReductionWeb from '../../../components/interactives/cx/np-complete/ReductionWeb.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+Colouring a map, filling a Sudoku, planning a delivery route. They look like different puzzles,
+but each one can be rewritten as any of the others. Such a rewrite is called a **reduction**, and
+the hardest puzzles in [NP](/articles/how-hard-is-hard/np), the ones every other NP puzzle can be
+rewritten into, are called **NP-complete**.
+
+## A map becomes a formula
+
+Take a map with four countries and three colours. Give each country three switches, one per
+colour, and write down two kinds of rules (clauses). Every country gets a colour, and two
+neighbours are never both the same colour:
+
+<EqTip note="A_blue means 'A is blue'. The ∨ means 'or', ¬ means 'not'. There are 4 clauses of the first kind and 5 borders × 3 colours = 15 of the second.">
+
+$$
+(A_{\text{blue}} \lor A_{\text{amber}} \lor A_{\text{violet}}) \qquad (\lnot A_{\text{blue}} \lor \lnot B_{\text{blue}})
+$$
+
+</EqTip>
+
+Colour the map and watch the clauses.
+
+<div class="fx-figure">
+  <MapToSat client:visible />
+</div>
+
+A proper colouring makes all 19 clauses true, and any way of making all 19 true gives a proper
+colouring. So a fast solver for these formulas (the satisfiability problem, **SAT**) also colours
+maps fast. In symbols, if $A$ reduces to $B$ in polynomial time:
+
+$$
+A \le_p B \;\text{ and }\; B \in \mathrm{P} \implies A \in \mathrm{P}
+$$
+
+## The first hard puzzle
+
+In 1971 Stephen Cook showed that "any recognition problem solved by a polynomial time-bounded
+nondeterministic Turing machine can be "reduced" to the problem of determining whether a given
+propositional formula is a tautology" ([Cook 1971](https://www.cs.toronto.edu/~sacook/homepage/1971.pdf)).
+In plain words: every NP problem can be rewritten as a logic formula. Leonid Levin found the same
+result independently in the Soviet Union. Today it is the Cook-Levin theorem, and it makes SAT
+NP-complete.
+
+A year later Richard Karp reduced SAT to 21 classic problems, from clique to knapsack, and noted
+that P = NP exactly when SAT is in P
+([Karp 1972](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf)). Arrows below follow
+Karp's paper and Sipser's _Introduction to the Theory of Computation_ (3rd ed., §7.4 to 7.5).
+
+<div class="fx-figure">
+  <ReductionWeb client:visible />
+</div>
+
+Garey and Johnson's 1979 book _Computers and Intractability_ collected hundreds of these. Thousands
+are known now, including Sudoku (Yato and Seta, 2003) and
+[Minesweeper](/articles/how-hard-is-hard/minesweeper). A fast algorithm for any one of them would
+settle [P versus NP](/articles/how-hard-is-hard/p-vs-np). Nobody has found one, which is why a
+problem like the [travelling salesman](/articles/how-hard-is-hard/tsp) is called hard.
+
+<Lesson>
+
+Every NP-complete problem is the same problem in a different costume. Solve one fast and you have
+solved them all.
+
+</Lesson>
+
+## Sources
+
+1. Stephen A. Cook, "The complexity of theorem-proving procedures", _Proceedings of the 3rd ACM Symposium on
+   Theory of Computing_ (STOC 1971), pp. 151-158, [PDF](https://www.cs.toronto.edu/~sacook/homepage/1971.pdf)
+   ([doi:10.1145/800157.805047](https://doi.org/10.1145/800157.805047)).
+2. L. A. Levin, "Universal sequential search problems", _Problemy Peredachi Informatsii_ 9(3), 1973,
+   pp. 115-116, [Math-Net.Ru](https://www.mathnet.ru/eng/ppi914).
+3. Richard M. Karp, "Reducibility among combinatorial problems", in _Complexity of Computer Computations_
+   (Plenum, 1972), pp. 85-103, [PDF](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf)
+   ([doi:10.1007/978-1-4684-2001-2_9](https://doi.org/10.1007/978-1-4684-2001-2_9)).
+4. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), sections 7.4 (NP-completeness) and 7.5 (Additional NP-complete Problems).
+5. M. R. Garey and D. S. Johnson, _Computers and Intractability: A Guide to the Theory of
+   NP-Completeness_ (W. H. Freeman, 1979).
+6. Takayuki Yato and Takahiro Seta, "Complexity and completeness of finding another solution and its
+   application to puzzles", _IEICE Transactions on Fundamentals_ E86-A(5), 2003, pp. 1052-1060.
+7. Richard Kaye, "Minesweeper is NP-complete", _The Mathematical Intelligencer_ 22(2), 2000, pp. 9-15,
+   [doi:10.1007/BF03025367](https://doi.org/10.1007/BF03025367).

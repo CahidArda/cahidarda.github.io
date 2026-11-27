@@ -1,0 +1,42 @@
+---
+title: 'How Hard Is Hard?'
+seoTitle: 'P vs NP and Complexity Theory, Explained Interactively'
+description: 'A visual guide to computational complexity: P, NP, the million-dollar question, and the problems no computer can solve. Short pages, each built around a picture you can play with.'
+date: 2026-11-27
+tags: ['blog']
+seriesLanding: how-hard-is-hard
+---
+
+import Zoo from '../../components/interactives/cx/Zoo.tsx';
+import SeriesList from '../../components/SeriesList.astro';
+
+Sorting a million names takes a laptop less than a second. Finding the shortest trip through fifty cities could
+outlast the sun. Checking a finished Sudoku is easy; filling in a blank one is not. Complexity theory is the study
+of that difference: which problems get only a little harder as they grow, and which ones explode.
+
+Its most famous open question, **P versus NP**, asks whether every problem whose answer is easy to check is also
+easy to solve. Nobody knows, and there is a million-dollar prize for the answer.
+
+These pages build the ideas from pictures you can play with, in the spirit of the
+[game theory series](/articles/logic-of-crowds). The concepts follow Michael Sipser's _Introduction to the Theory
+of Computation_ (3rd ed., 2012), the standard first course on the subject.
+
+## The map
+
+Every problem below has a home. Hover one to see where it lives and why; click to open its page.
+
+<div class="fx-figure">
+  <Zoo client:visible />
+</div>
+
+## The pages
+
+<SeriesList series="how-hard-is-hard" />
+
+## Sources
+
+1. Michael Sipser, _Introduction to the Theory of Computation_, 3rd ed. (Cengage, 2012), chapters 3 to 9.
+2. Stephen Cook, "The P versus NP Problem", official problem description for the Clay Mathematics Institute
+   ([PDF](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf)).
+3. Scott Aaronson, "P =? NP" (2016) ([PDF](https://www.scottaaronson.com/papers/pnp.pdf)).
+4. Lance Fortnow, _The Golden Ticket: P, NP, and the Search for the Impossible_ (Princeton University Press, 2013).

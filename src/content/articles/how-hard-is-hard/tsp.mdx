@@ -1,0 +1,92 @@
+---
+title: 'Hard, Not Hopeless'
+seoTitle: 'Travelling Salesman Problem Explained: Heuristics, 2-opt and Christofides'
+description: 'The travelling salesman problem is NP-hard, yet delivery vans get good routes every morning. Brute force, greedy guesses and local fixes, side by side.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 6
+---
+
+import DrawTour from '../../../components/interactives/cx/tsp/DrawTour.tsx';
+import TourCount from '../../../components/interactives/cx/tsp/TourCount.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+import EqTip from '../../../components/EqTip.astro';
+
+A courier has a van and a list of addresses. In which order should they drive to finish soonest?
+This is the **travelling salesman problem** (TSP): visit every city once, come home, and keep the
+round trip as short as possible. It is
+[NP-hard](/articles/how-hard-is-hard/np-complete), and yet parcels arrive every day.
+
+## Too many tours to check
+
+Fix the starting city. The others can follow in $(n-1)!$ orders, and each loop is counted twice,
+once in each direction:
+
+<EqTip note="n cities: pick the next stop n-1 ways, then n-2, and so on. Halve it because a loop driven backwards is the same loop.">
+
+$$
+\text{tours}(n) = \frac{(n-1)!}{2}
+$$
+
+</EqTip>
+
+<div class="fx-figure">
+  <TourCount client:visible />
+</div>
+
+At a billion tours a second, 15 cities (43,589,145,600 tours) take 44 seconds. Twenty cities take
+1.9 years, 25 take 9.8 million years, and 28 cities would take 12 times the age of the universe.
+Checking every tour is out.
+
+## Good enough, fast
+
+Real solvers start with a quick guess and then repair it. Nearest neighbour drives to the closest
+unvisited city each time. Then 2-opt looks for two roads that cross, removes them and reconnects
+the four cities the other way, which always shortens the loop. Drag the cities around.
+
+<div class="fx-figure">
+  <DrawTour client:visible />
+</div>
+
+On this map the greedy tour is 24% too long and 2-opt brings it to 4%. Across 4,000 random 12-city
+maps I generated, 2-opt landed on the very best tour 70% of the time.
+
+Better methods come with guarantees. When going direct is never longer than a detour, Nicos
+Christofides showed in 1976 that his method always ends within 1.5 times the best tour
+([Christofides 1976](https://doi.org/10.1007/s43069-021-00101-z)). That
+bound stood until 2020, when Anna Karlin, Nathan Klein and Shayan Oveis Gharan lowered 1.5 by a sliver
+larger than $10^{-36}$ ([Karlin, Klein and Oveis Gharan](https://arxiv.org/pdf/2007.01409)). Exact solvers go
+further than brute force ever could: the Concorde code proved the best tour through an 85,900-city
+chip layout from Bell Labs, a computation run in 2005 and 2006
+([pla85900](https://www.math.uwaterloo.ca/tsp/pla85900/index.html)). UPS says its ORION route
+planner has saved it about 100 million miles a year
+([UPS, 2020](https://about.ups.com/us/en/newsroom/press-releases/innovation-driven/ups-to-enhance-orion-with-continuous-delivery-route-optimization.html)).
+
+NP-hard is a statement about the worst case: no known method is fast on every possible map. The
+maps people actually need to drive are usually far kinder.
+
+<Lesson>
+
+NP-hard means no shortcut works for every case. For the cases we meet, good answers come fast.
+
+</Lesson>
+
+## Sources
+
+1. Nicos Christofides, "Worst-case analysis of a new heuristic for the travelling salesman problem",
+   Report 388, Graduate School of Industrial Administration, Carnegie Mellon University, 1976; reprinted in
+   _Operations Research Forum_ 3, 20 (2022), [doi:10.1007/s43069-021-00101-z](https://doi.org/10.1007/s43069-021-00101-z).
+2. Anna R. Karlin, Nathan Klein and Shayan Oveis Gharan, "A (slightly) improved approximation algorithm for
+   metric TSP", _STOC 2021_, pp. 32-45, [PDF](https://arxiv.org/pdf/2007.01409)
+   ([doi:10.1145/3406325.3451009](https://doi.org/10.1145/3406325.3451009)). Theorem 1.1: a factor of
+   3/2 minus some ε larger than 10⁻³⁶.
+3. William Cook, [Optimal 85,900-point tour](https://www.math.uwaterloo.ca/tsp/pla85900/index.html) (pla85900,
+   solved with Concorde in 2005/06); details in Applegate, Bixby, Chvátal and Cook, _The Traveling Salesman
+   Problem: A Computational Study_ (Princeton University Press, 2006).
+4. UPS, "UPS to enhance ORION with continuous delivery route optimization", press release, 29 January 2020
+   ([UPS](https://about.ups.com/us/en/newsroom/press-releases/innovation-driven/ups-to-enhance-orion-with-continuous-delivery-route-optimization.html);
+   [copy on Nasdaq](https://www.nasdaq.com/press-release/ups-to-enhance-orion-with-continuous-delivery-route-optimization-2020-01-29)):
+   "Since ORION's initial deployment, it has saved UPS about 100 million miles and 10 million gallons of
+   fuel per year."
+5. Tour counts, timings and the 2-opt statistics on this page are computed by the widgets' own code.

@@ -1,0 +1,89 @@
+---
+title: 'Easy One Way'
+seoTitle: 'Why Is Factoring Hard? RSA and Prime Factorization Explained'
+description: 'Multiplying two primes takes microseconds. Getting them back can outlast the universe. The one-way street under RSA, and the quantum threat to it.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 8
+---
+
+import MultiplyFactor from '../../../components/interactives/cx/factoring/MultiplyFactor.tsx';
+import Padlock from '../../../components/interactives/cx/factoring/Padlock.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+Multiplying 4,729 by 8,831 on paper takes 16 single-digit products: 41,761,799. Now hand
+someone 41,761,799 and ask which two primes made it. Trying 2, 3, 5, 7 and every odd number after
+that, they need 2,365 tries before 4,729 divides it. Going back is integer factorization, and it is
+much harder than going forward.
+
+## Two directions
+
+For a number with $d$ digits, schoolbook multiplication grows like $d^2$. Trial division has to
+try numbers up to $\sqrt{N}$, about
+
+$$
+\sqrt{10^{d}} = 10^{d/2}
+$$
+
+candidates, so every two extra digits make it ten times slower.
+
+<div class="fx-figure">
+  <MultiplyFactor client:visible />
+</div>
+
+Trial division is the naive method. The best known one, the number field sieve, is far faster but
+still grows faster than any polynomial. With it, a team factored the 250-digit RSA-250 in 2020 in
+"roughly 2700 core-years"
+([announcement](https://caramba.loria.fr/rsa250.txt)). A common key size today, 2048 bits, has 617 digits.
+
+## A padlock anyone can close
+
+In 1977 Rivest, Shamir and Adleman turned this into a lock. You publish $n = p \cdot q$ and keep
+$p$ and $q$ secret: "the factors p and q will be effectively hidden from everyone else due to the
+enormous difficulty of factoring n"
+([RSA paper](https://people.csail.mit.edu/rivest/Rsapaper.pdf)). Anyone can lock a message with
+$n$. Opening it needs a number that is easy to work out from $p$ and $q$, and nobody knows how
+to get it from $n$ alone. Here is the paper's own small example.
+
+<div class="fx-figure">
+  <Padlock client:visible />
+</div>
+
+With 2773 you could find 47 by hand in 24 tries. With 617 digits, nobody knows how.
+
+## Where factoring sits
+
+Factoring is in [NP](/articles/how-hard-is-hard/np): a claimed factor is checked with one
+division. A "no" answer is just as easy to check, by showing the full prime factorization, so
+factoring is also in coNP, and that makes it unlikely to be
+[NP-complete](/articles/how-hard-is-hard/np-complete) (Scott Aaronson,
+[_P =? NP_](https://www.scottaaronson.com/papers/pnp.pdf), §2.2.4). Telling whether a number is
+prime is easy: it is in P ([Agrawal, Kayal and Saxena](https://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf), 2002).
+Knowing that 41,761,799 is not prime does not tell you its factors.
+
+In 1994 Peter Shor showed that a quantum computer could factor in polynomial time
+([paper](https://arxiv.org/pdf/quant-ph/9508027)). No quantum computer anywhere near large enough
+exists yet, but this is why cryptographers are moving to locks that do not rely on factoring.
+
+<Lesson>
+
+Some doors are easy to shut and hard to open, and the internet's padlocks are built on one of them.
+
+</Lesson>
+
+## Sources
+
+1. F. Boudot, P. Gaudry, A. Guillevic, N. Heninger, E. Thomé and P. Zimmermann, "Factorization of
+   RSA-250", announcement, 28 February 2020, [caramba.loria.fr/rsa250.txt](https://caramba.loria.fr/rsa250.txt).
+2. R. L. Rivest, A. Shamir and L. Adleman, "A method for obtaining digital signatures and public-key
+   cryptosystems", _Communications of the ACM_ 21(2), 1978, pp. 120-126,
+   [PDF](https://people.csail.mit.edu/rivest/Rsapaper.pdf) ([doi:10.1145/359340.359342](https://doi.org/10.1145/359340.359342)).
+   The small example (n = 2773 = 47 × 59) is the paper's own.
+3. Scott Aaronson, ["P =? NP"](https://www.scottaaronson.com/papers/pnp.pdf), in _Open Problems in
+   Mathematics_ (Springer, 2016), section 2.2.4 (Factoring and Graph Isomorphism).
+4. M. Agrawal, N. Kayal and N. Saxena, "PRIMES is in P", _Annals of Mathematics_ 160(2), 2004, pp. 781-793,
+   [PDF](https://www.cse.iitk.ac.in/users/manindra/algebra/primality_v6.pdf).
+5. Peter W. Shor, "Polynomial-time algorithms for prime factorization and discrete logarithms on a quantum
+   computer", _SIAM Journal on Computing_ 26(5), 1997, pp. 1484-1509, [PDF](https://arxiv.org/pdf/quant-ph/9508027)
+   ([doi:10.1137/S0097539795293172](https://doi.org/10.1137/S0097539795293172)); first presented at FOCS 1994.

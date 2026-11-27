@@ -1,0 +1,98 @@
+---
+title: 'Tiles That Never Repeat'
+seoTitle: 'Wang Tiles and the Undecidable Domino Problem'
+description: 'No algorithm can decide whether a set of tiles covers the plane. From Wang tiles and Berger’s proof to Penrose’s kites and darts and the 2023 hat.'
+date: 2026-11-27
+tags: ['blog']
+series: how-hard-is-hard
+seriesOrder: 14
+---
+
+import Searcher from '../../../components/interactives/cx/tiling/Searcher.tsx';
+import KiteDart from '../../../components/interactives/cx/tiling/KiteDart.tsx';
+import Hat from '../../../components/interactives/cx/tiling/Hat.tsx';
+import Lesson from '../../../components/interactives/gt/Lesson.astro';
+
+A bathroom floor repeats: find one block of tiles and copies of it cover the room. In 1961 the logician Hao
+Wang asked whether that is always so. Take a few square tiles with coloured edges (Wang called them
+"plates"), never turn them, and let tiles touch only where their edges match. Can they cover the whole
+plane? This is the **domino problem**, and it turned out to have no algorithm at all.
+
+## Wang's searcher
+
+Wang's plan: fill bigger and bigger squares. If some square can't be filled, the answer is no. If a block
+turns up whose edges wrap around onto themselves, its copies tile forever: yes. He conjectured (his 4.1.2)
+that one of the two always happens, and noted: "If 4.1.2 is true, we can decide effectively whether any
+given finite set of plates is solvable."
+
+<div class="fx-figure">
+  <Searcher client:visible />
+</div>
+
+In 1966 Robert Berger proved it false. His 20,426 tiles (104 in his 1964 thesis) cover the plane but never
+repeat, and tiles can copy the run of any program, so a tiling decider would solve the
+[halting problem](/articles/how-hard-is-hard/halting). None exists. Raphael Robinson got it down to six
+shapes in 1971; in 2015 Emmanuel Jeandel and Michaël Rao found the smallest Wang set, 11 tiles on 4
+colours, the third set above.
+
+## Penrose's two tiles
+
+Martin Gardner told the next step in 1977: "In 1973 Penrose found a set of six tiles that force
+nonperiodicity. Soon he found a way to reduce them to four, and in 1974 he lowered them to two."
+
+<div class="fx-figure">
+  <KiteDart client:visible />
+</div>
+
+In _The Emperor's New Mind_ (1989) Penrose listed tiling among his examples of "non-recursive
+mathematics" and added: "It is not known, for example, if there is an aperiodic set consisting of a single
+tile." In 2023 David Smith, Joseph Myers, Craig Kaplan and Chaim Goodman-Strauss found one.
+
+<div class="fx-figure">
+  <Hat />
+</div>
+
+## The finite version
+
+Ask for one $n \times n$ square with its border colours given and the question becomes finite. A searcher
+always finishes, though blind search can be slow: with Jeandel and Rao's tiles a 10 by 10 square has
+
+$$
+11^{100} \approx 1.4 \times 10^{104} \text{ ways to lay the tiles}
+$$
+
+This bounded tiling problem is [NP-complete](/articles/how-hard-is-hard/np-complete): hard, but it
+[sits on the map](/articles/how-hard-is-hard/beyond-np). The infinite one is off it, with the halting
+problem and Gödel's [unprovable truths](/articles/how-hard-is-hard/unprovable).
+
+<Lesson>
+
+A searcher can always prove that tiles fail. Proving they succeed needs a repeat, and some tiles never repeat,
+so no algorithm decides tiling.
+
+</Lesson>
+
+## Sources
+
+1. Hao Wang, "Proving theorems by pattern recognition II", _Bell System Technical Journal_ 40 (1961), pp. 1-41,
+   [archive.org scan](https://archive.org/details/bstj40-1-1), §4.1, pp. 23-24 (plates, Conjectures 4.1.2 and
+   4.1.3).
+2. Robert Berger, "The undecidability of the domino problem", _Memoirs of the AMS_ 66 (1966),
+   [doi:10.1090/memo/0066](https://doi.org/10.1090/memo/0066); Harvard PhD thesis, 1964.
+3. Raphael M. Robinson, "Undecidability and nonperiodicity for tilings of the plane", _Inventiones
+   Mathematicae_ 12 (1971), pp. 177-209, [doi:10.1007/BF01418780](https://doi.org/10.1007/BF01418780).
+4. Emmanuel Jeandel and Michaël Rao, "An aperiodic set of 11 Wang tiles", _Advances in Combinatorics_ 2021:1,
+   [arXiv:1506.06492](https://arxiv.org/pdf/1506.06492). CX-14.1 uses their set from Figure 2 (checked against
+   the authors' program in the arXiv source); the 40 by 40 patch was found with a SAT solver and checked edge
+   by edge, and a search finds no repeating block of up to 12 by 12.
+5. Martin Gardner, "Mathematical Games" column, _Scientific American_ 236(1), January 1977, pp. 110-121, [scan (PDF)](https://web.ma.utexas.edu/users/radin/gardner.pdf). Also the
+   source for the forbidden rhombus and Conway's study of the tiles.
+6. Roger Penrose, _Bull. Inst. Maths. & its Applns_ 10 (1974), pp. 266-271 (the first announcement), and
+   "Pentaplexity" (1979), [PDF](https://web.ma.utexas.edu/users/radin/Pentaplexity.pdf).
+7. Roger Penrose, _The Emperor's New Mind_ (Oxford University Press, 1989), ch. 4, "Some examples of
+   non-recursive mathematics", pp. 129-138 (tiling, pp. 134-136).
+8. David Smith, Joseph Samuel Myers, Craig S. Kaplan and Chaim Goodman-Strauss, "An aperiodic monotile",
+   _Combinatorial Theory_ 4(1) (2024), [arXiv:2303.10798](https://arxiv.org/pdf/2303.10798). CX-14.3 draws the
+   outline from the paper's validation code (`hat.py`).
+9. Martin Savelsbergh and Peter van Emde Boas, [CWI report on bounded tiling (PDF)](https://ir.cwi.nl/pub/1834/1834D.pdf):
+   "BOUNDED TILING is NP-complete", crediting Lewis and Papadimitriou (1981) and Levin (1973).
