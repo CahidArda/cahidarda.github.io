@@ -291,7 +291,7 @@ export default function Shor() {
     inView &&
     !reduced &&
     started.current &&
-    !previewing &&
+    !(previewing && view !== st.step) &&
     (st.t < DUR[st.step] || (auto.current && st.step < LAST));
   useFrame((dt) => {
     setSt((s) => {
