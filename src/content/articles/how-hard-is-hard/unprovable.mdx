@@ -1,5 +1,5 @@
 ---
-title: 'True but Unprovable (Gödel''s Incompleteness)'
+title: "True but Unprovable (Gödel's Incompleteness)"
 seoTitle: "Gödel's Incompleteness Theorems Explained Interactively"
 description: "Gödel's incompleteness theorems from a puzzle you can play: why some true statements cannot be proved inside a system, and how it ties to the halting problem."
 date: 2026-11-27
@@ -19,8 +19,18 @@ statements cannot be proved with those rules. These are **Gödel's incompletenes
 
 ## A puzzle you can't finish
 
-Douglas Hofstadter opens _Gödel, Escher, Bach_ (1979) with a game. You start with the string MI
-and four rules for making new strings. Can you make MU?
+Douglas Hofstadter opens _Gödel, Escher, Bach_ (1979) with a game. Strings are made of the
+letters M, I and U. You start with MI, and you may make a new string from one you already have
+using any of four rules:
+
+| Rule | In words                              | Example     |
+| ---- | ------------------------------------- | ----------- |
+| I    | if it ends in I, add a U at the end   | MI → MIU    |
+| II   | double everything after the M         | MIU → MIUIU |
+| III  | replace three I's in a row with one U | MIIII → MUI |
+| IV   | delete two U's in a row               | MUUI → MI   |
+
+The goal: make MU. Try it below.
 
 <div class="fx-figure">
   <MiuPlayground client:visible />

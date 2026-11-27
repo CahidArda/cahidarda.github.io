@@ -14,10 +14,10 @@ export const RULE_TEXT: Record<Rule, string> = {
 };
 
 export const RULE_SHORT: Record<Rule, string> = {
-  1: 'xI → xIU',
-  2: 'Mx → Mxx',
-  3: 'III → U',
-  4: 'UU → ∅',
+  1: 'ends in I: add U',
+  2: 'double after M',
+  3: 'III becomes U',
+  4: 'delete UU',
 };
 
 export const iCount = (s: string) => {
