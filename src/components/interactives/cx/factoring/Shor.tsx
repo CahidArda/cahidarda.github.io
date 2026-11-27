@@ -15,7 +15,7 @@ import {
 /**
  * CX-08.4 · how a quantum computer factors 15, in four steps (Shor 1994).
  *  1. the cycle: 7^x mod 15 for x = 0..31 is 1, 7, 4, 13, 1, ... so the period r = 4.
- *  2. why r helps: 7^(r/2) = 49, gcd(48, 15) = 3, gcd(50, 15) = 5.
+ *  2. why r helps: 7^4 - 1 = 48 x 50 is a multiple of 15, so gcd(48, 15) = 3, gcd(50, 15) = 5.
  *  3. all x at once: the register holds x = 0..31 together; reading the output (4) leaves
  *     only x = 2, 6, ..., 30 (r apart). Reading x now gives one of the eight, 1/8 each.
  *  4. interference: the Fourier transform adds one wave per surviving x. The bars are the
@@ -53,7 +53,7 @@ const SURV = F.map((v, x) => (v === OUT ? x : -1)).filter((x) => x >= 0); // 2, 
 const SPACING = Q / R; // 8
 
 /* the clock: how long each step animates, then how long auto-play lingers on it */
-const DUR = [3.7, 2.6, 2.6, 5.2];
+const DUR = [3.7, 4.2, 2.6, 5.2];
 const DWELL = [3.2, 4.6, 5.6, 0];
 const ramp = (t: number, t0: number, d = 0.35) => clamp((t - t0) / d, 0, 1);
 
@@ -83,8 +83,9 @@ const STEPS: { label: string; caption: ReactNode }[] = [
     label: '2 why r',
     caption: (
       <>
-        Knowing r, two gcds give the factors. But for a 617-digit number the cycle is typically
-        hundreds of digits long: no ordinary computer can walk it.
+        Why r helps: 7⁴ leaves 1, so 7⁴ − 1 is a multiple of 15. Split it as 48 × 50 and 15’s
+        factors are shared between the halves; a gcd pulls each out. But for a 617-digit number the
+        cycle is typically hundreds of digits long: no ordinary computer can walk it.
       </>
     ),
   },
@@ -331,7 +332,7 @@ export default function Shor() {
     const ringDone = view === 0 ? ramp(tt, cellAt(Q - 1) + 0.25) : 1;
 
     // gcd lines (step 2)
-    const L = g.narrow ? [196, 224, 252, 306] : [148, 176, 204, 258];
+    const L = g.narrow ? [186, 208, 230, 252, 274, 322] : [140, 164, 188, 212, 236, 284];
     const lineOn = (i: number) => (view === 1 ? ramp(tt, 0.25 + i * 0.6) : 0);
     const fsEq = g.narrow ? 11.5 : 13;
 
@@ -556,26 +557,43 @@ export default function Shor() {
         <g style={fade(view === 1)}>
           <g style={{ opacity: lineOn(0) }}>
             <T x={g.W / 2} y={L[0]} size={fsEq} color={GT.ink}>
-              <Sup base="7" exp="r/2" fs={fsEq} />
-              {'= '}
-              <Sup base="7" exp="2" fs={fsEq} />
-              {`= ${HALF}`}
+              {`r = ${R}, so `}
+              <Sup base="7" exp="4" fs={fsEq} />
+              {`mod ${N} = 1`}
             </T>
           </g>
           <g style={{ opacity: lineOn(1) }}>
             <T x={g.W / 2} y={L[1]} size={fsEq} color={GT.ink}>
-              {`gcd(${HALF} − 1, ${N}) = gcd(${HALF - 1}, ${N}) = `}
-              <tspan style={{ fill: GT.opt, fontWeight: 700 }}>{P1}</tspan>
+              {`so ${N} divides `}
+              <Sup base="7" exp="4" fs={fsEq} />
+              {`− 1 = ${A ** R - 1}`}
             </T>
           </g>
           <g style={{ opacity: lineOn(2) }}>
             <T x={g.W / 2} y={L[2]} size={fsEq} color={GT.ink}>
-              {`gcd(${HALF} + 1, ${N}) = gcd(${HALF + 1}, ${N}) = `}
-              <tspan style={{ fill: GT.opt, fontWeight: 700 }}>{P2}</tspan>
+              <Sup base="7" exp="4" fs={fsEq} />
+              {'− 1 = ('}
+              <Sup base="7" exp="2" fs={fsEq} />
+              {'− 1)('}
+              <Sup base="7" exp="2" fs={fsEq} />
+              {`+ 1) = ${HALF - 1} × ${HALF + 1}`}
             </T>
           </g>
           <g style={{ opacity: lineOn(3) }}>
-            <T x={g.W / 2} y={L[3]} size={g.narrow ? 30 : 34} font="display" color={GT.opt}>
+            <T x={g.W / 2} y={L[3]} size={fsEq} color={GT.inkSoft}>
+              {`${N} divides ${HALF - 1} × ${HALF + 1} but neither alone: it splits`}
+            </T>
+          </g>
+          <g style={{ opacity: lineOn(4) }}>
+            <T x={g.W / 2} y={L[4]} size={fsEq} color={GT.ink}>
+              {`gcd(${HALF - 1}, ${N}) = `}
+              <tspan style={{ fill: GT.opt, fontWeight: 700 }}>{P1}</tspan>
+              <tspan dx={fsEq * 2}>{`gcd(${HALF + 1}, ${N}) = `}</tspan>
+              <tspan style={{ fill: GT.opt, fontWeight: 700 }}>{P2}</tspan>
+            </T>
+          </g>
+          <g style={{ opacity: lineOn(5) }}>
+            <T x={g.W / 2} y={L[5]} size={g.narrow ? 30 : 34} font="display" color={GT.opt}>
               {`${N} = ${P1} × ${P2}`}
             </T>
           </g>
