@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Btn,
+  Chip,
   GT,
   Specimen,
   T,
@@ -16,9 +17,9 @@ import {
  * Two letters per block (blank = 00, A = 01, ..., Z = 26), so ITS ALL GREEK TO ME becomes
  * 0920 1900 0112 ... and locks to 0948 2342 1084 ..., exactly as printed in the paper.
  *
- * The blocks ride one belt at one constant speed: through the padlock (anyone can close it,
- * it only needs 2773 and 17) and through the key (only the holder of 157 opens it, and 157
- * comes from knowing 47 and 59).
+ * CX-08.3: the whole message, after CX-08.2 has walked through one block. The blocks ride one
+ * belt at one constant speed: through the padlock (locking needs only the public 2773 and 17)
+ * and through the key (unlocking needs the secret 157, which comes from knowing 47 and 59).
  */
 const P = 47;
 const Q = 59;
@@ -60,7 +61,7 @@ type Geo = { W: number; H: number; x0: number; lock: number; key: number; x1: nu
 const WIDE: Geo = { W: 640, H: 196, x0: 28, lock: 230, key: 420, x1: 612, y: 92 };
 const NARROW: Geo = { W: 360, H: 220, x0: 6, lock: 124, key: 240, x1: 354, y: 104 };
 
-function Lock({ x, y }: { x: number; y: number }) {
+export function Lock({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <path
@@ -73,7 +74,7 @@ function Lock({ x, y }: { x: number; y: number }) {
     </g>
   );
 }
-function Key({ x, y }: { x: number; y: number }) {
+export function Key({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <circle cx={-10} cy={0} r={8} style={{ fill: 'none', stroke: GT.opt, strokeWidth: 3.2 }} />
@@ -194,8 +195,8 @@ export default function Padlock() {
           </tspan>
           <tspan dy={5}>{` mod ${N}`}</tspan>
         </T>
-        <T x={g.lock} y={g.y + 42} size={fs}>
-          anyone can lock
+        <T x={g.lock} y={g.y + 42} size={fs} color={GT.eq}>
+          {narrow ? 'lock: 2773, 17' : 'lock with public 2773, 17'}
         </T>
         <T x={g.key} y={g.y + 28} size={fs + 1} color={GT.opt} weight={600}>
           c
@@ -204,8 +205,8 @@ export default function Padlock() {
           </tspan>
           <tspan dy={5}>{` mod ${N}`}</tspan>
         </T>
-        <T x={g.key} y={g.y + 42} size={fs}>
-          {`157 needs ${P} × ${Q}`}
+        <T x={g.key} y={g.y + 42} size={fs} color={GT.opt}>
+          {narrow ? 'unlock: 157' : 'unlock with secret 157'}
         </T>
 
         {/* sender and receiver */}
@@ -216,7 +217,7 @@ export default function Padlock() {
           receiver
         </T>
         <T x={(g.lock + g.key) / 2} y={14} size={fs} color={GT.eq}>
-          {narrow ? 'public: 2773' : 'on the wire: only 2773 and locked blocks'}
+          {narrow ? 'on the wire: c' : 'on the wire: only locked blocks c'}
         </T>
         <T x={g.x1} y={g.H - 14} anchor="end" size={13} color={GT.opt} weight={600}>
           {out || ' '}
@@ -231,8 +232,8 @@ export default function Padlock() {
   return (
     <Specimen
       rootRef={rootRef}
-      code="CX-08.2"
-      title="the padlock"
+      code="CX-08.3"
+      title="many blocks"
       kicker="n = 2773 = 47 × 59"
       hint={
         <span className="inline-flex flex-wrap items-center gap-2">
@@ -250,6 +251,10 @@ export default function Padlock() {
     >
       {draw(WIDE, 'hidden w-full sm:block')}
       {draw(NARROW, 'block w-full sm:hidden')}
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        <Chip color={GT.ink}>m: a block of the message as a number</Chip>
+        <Chip color={GT.eq}>c: the locked number</Chip>
+      </div>
     </Specimen>
   );
 }

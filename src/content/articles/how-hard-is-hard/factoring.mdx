@@ -10,6 +10,7 @@ seriesOrder: 8
 
 import MultiplyFactor from '../../../components/interactives/cx/factoring/MultiplyFactor.tsx';
 import Padlock from '../../../components/interactives/cx/factoring/Padlock.tsx';
+import RsaSteps from '../../../components/interactives/cx/factoring/RsaSteps.tsx';
 import Shor from '../../../components/interactives/cx/factoring/Shor.tsx';
 import Lesson from '../../../components/interactives/gt/Lesson.astro';
 
@@ -40,12 +41,21 @@ still grows faster than any polynomial. With it, a team factored the 250-digit R
 
 ## A padlock anyone can close
 
-In 1977 Rivest, Shamir and Adleman turned this into a lock. You publish $n = p \cdot q$ and keep
-$p$ and $q$ secret: "the factors p and q will be effectively hidden from everyone else due to the
-enormous difficulty of factoring n"
-([RSA paper](https://people.csail.mit.edu/rivest/Rsapaper.pdf)). Anyone can lock a message with
-$n$. Opening it needs a number that is easy to work out from $p$ and $q$, and nobody knows how
-to get it from $n$ alone. Here is the paper's own small example.
+In 1977 Rivest, Shamir and Adleman turned this into a lock. The receiver multiplies two secret
+primes $p$ and $q$ and publishes the product $n = p \cdot q$: "the factors p and q will be
+effectively hidden from everyone else due to the enormous difficulty of factoring n"
+([RSA paper](https://people.csail.mit.edu/rivest/Rsapaper.pdf)). Anyone can use the public
+numbers to lock a message, so anyone can close the padlock. Opening it needs a secret number that
+is easy to work out from $p$ and $q$, and nobody knows how to get it from $n$ alone. Here is the
+paper's own small example, one block at a time.
+
+<div class="fx-figure">
+  <RsaSteps client:visible />
+</div>
+
+In one line: the sender locks with $c = m^{e} \bmod n$ and the receiver unlocks with
+$m = c^{d} \bmod n$. A longer message is cut into blocks of two letters, and each block goes
+through the same lock and key.
 
 <div class="fx-figure">
   <Padlock client:visible />
@@ -64,9 +74,10 @@ prime is easy: it is in P ([Agrawal, Kayal and Saxena](https://www.cse.iitk.ac.i
 Knowing that 41,761,799 is not prime does not tell you its factors.
 
 In 1994 Peter Shor showed that a quantum computer could factor in polynomial time
-([paper](https://arxiv.org/pdf/quant-ph/9508027)). His trick turns factoring into finding a rhythm:
-$a^x \bmod N$ repeats every $r$ steps, a quantum computer finds $r$ by letting one wave per $x$
-interfere, and $\gcd(a^{r/2} \pm 1, N)$ then gives the factors.
+([paper](https://arxiv.org/pdf/quant-ph/9508027)). His trick turns factoring into finding a
+rhythm: the powers $a^x \bmod N$ repeat every $r$ steps, and once you know $r$,
+$\gcd(a^{r/2} \pm 1, N)$ gives the factors. Finding $r$ is the hard part, and it is the part a
+quantum computer does well. The figure walks through it for 15.
 
 <div class="fx-figure">
   <Shor client:visible />
