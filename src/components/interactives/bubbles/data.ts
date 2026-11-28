@@ -103,9 +103,8 @@ export const LOOPS: Record<LoopId, LoopCase> = {
     factB: { label: 'loans to Winstar', value: 'written off', sub: 'fully reserved, April 2001' },
     ends: 'bust',
     bustStamp: 'BANKRUPT 2001',
-    intro: 'Lucent sells network gear to new carriers that cannot pay for it yet.',
-    outro:
-      'Subscribers never paid enough. Winstar filed for bankruptcy in April 2001 and Lucent wrote off its loans.',
+    intro: 'Lucent sells network gear to new carriers and lends them the money to buy it.',
+    outro: 'Winstar filed for bankruptcy in April 2001, and Lucent wrote off its loans.',
     source: 'Lucent 10-Q and 8-K',
   },
   '2026': {
@@ -133,7 +132,7 @@ export const LOOPS: Record<LoopId, LoopCase> = {
     ends: 'open',
     bustStamp: '',
     intro: 'Nvidia sells chips to an AI lab that is also one of its investments.',
-    outro: 'Still turning. It holds as long as end users pay more than the chips cost.',
+    outro: 'As of November 2026 the loop is still turning.',
     source: 'Nvidia 10-Q; Reuters',
   },
 };

@@ -104,7 +104,7 @@ export default function AssetLife() {
     xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
   const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
   let status: string;
-  if (t < 0.5) status = 'The crash. Every boom leaves its hardware behind.';
+  if (t < 0.5) status = 'Year 0: the crash.';
   else if (dead.length === 0) status = `Year ${year}: everything built in the booms still works.`;
   else
     status = `Year ${year}: ${list(dead.map((a) => a.short))} ${'are'} written off. ${cap(list(alive.map((a) => a.short)))} still work.`;

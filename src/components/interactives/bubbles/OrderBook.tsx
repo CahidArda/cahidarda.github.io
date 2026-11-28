@@ -24,7 +24,7 @@ const AIR = BOOM.air.color;
 
 const W = 600;
 const H = 300;
-const L = 46;
+const L = 66;
 const R = 588;
 const TOP = 18;
 const BOT = 262;
@@ -83,6 +83,21 @@ export default function OrderBook() {
       hint="hover a year to read it"
       footer="Boeing annual results; Reuters"
     >
+      {/* legend: above the plot, not inside it */}
+      <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-[0.68rem] text-ink-soft">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5" style={{ background: AIR }} />
+          net new orders
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5" style={{ background: GT.b }} />
+          net orders below zero
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-[3px] w-3.5" style={{ background: GT.ink }} />
+          planes delivered
+        </span>
+      </div>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
@@ -164,36 +179,6 @@ export default function OrderBook() {
             </g>
           );
         })}
-        {/* direct labels */}
-        <g
-          style={{
-            stroke: GT.paperRaised,
-            strokeWidth: 5,
-            paintOrder: 'stroke',
-            strokeLinejoin: 'round',
-          }}
-        >
-          <T
-            x={L + slot * 0.5 - bw / 2}
-            y={y(BOEING[0].net) - 18}
-            anchor="start"
-            size={9.5 * k}
-            color={AIR}
-            weight={600}
-          >
-            net new orders
-          </T>
-          <T
-            x={L + slot * 3.5 + bw / 2 + 6}
-            y={y(BOEING[3].delivered) + 1}
-            anchor="start"
-            size={9.5 * k}
-            color={GT.ink}
-            weight={600}
-          >
-            delivered
-          </T>
-        </g>
       </svg>
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
