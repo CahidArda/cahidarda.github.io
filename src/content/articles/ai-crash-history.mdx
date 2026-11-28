@@ -1,0 +1,199 @@
+---
+title: 'The AI Sell-Off, Next to the Railway Mania and the Dot-Com Bust'
+seoTitle: 'The 2026 AI Stock Crash vs the Railway Mania, the Dot-Com Bust and the Airline Order Book'
+description: 'Nvidia lost more than a third of its value in seven weeks. Four interactive charts put the AI sell-off next to the British railway mania, the telecom bust and the airline order book.'
+date: 2026-11-28
+tags: ['blog']
+---
+
+import Manias from '../../components/interactives/bubbles/Manias.tsx';
+import OrderBook from '../../components/interactives/bubbles/OrderBook.tsx';
+import Loop from '../../components/interactives/bubbles/Loop.tsx';
+import AssetLife from '../../components/interactives/bubbles/AssetLife.tsx';
+import Lesson from '../../components/interactives/gt/Lesson.astro';
+
+<aside
+  class="text-sm text-muted"
+  style="border-left: 3px solid var(--color-line); padding: 0.4rem 0.8rem; margin-bottom: 1.5rem;"
+>
+  Prepared with Claude from the sources linked below. Figures are as of November 27, 2026, and this
+  is not investment advice.
+</aside>
+
+On October 6, 2026, Nvidia closed at a record \$239.24. Seven weeks later it closed at \$150.49, 37%
+lower, after a low of \$125.53 on November 20
+([Yahoo Finance price history](https://finance.yahoo.com/quote/NVDA/history/)). In between, its
+co-founder and CEO resigned and came back
+([8-K, November 11](https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000082/nvda-20261111.htm);
+[8-K, November 23](https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000090/nov23pressrelease.htm)),
+Anthropic's shares fell below their IPO price
+([CNBC](https://www.cnbc.com/2026/11/24/anthropic-stock-ipo-price.html)), and inflation came in
+hot ([CNBC](https://www.cnbc.com/2026/11/25/pce-inflation-report-october-2026.html)).
+
+The pattern has come up before: a new technology, a fast-rising stock, years of orders on the books,
+then a crash. The four figures below set the current sell-off next to earlier ones.
+
+## The same shape
+
+Each line below is one boom, drawn as a share of its own peak and lined up at that peak.
+
+<div class="fx-figure">
+  <Manias client:visible />
+</div>
+
+British railway shares, in Gareth Campbell and John Turner's index of every listed railway, doubled
+between January 1843 and August 9, 1845. Then they fell for almost five years, to a low on April 16,
+1850 that was 67% below the peak
+([Campbell & Turner, 2010](https://mpra.ub.uni-muenchen.de/21820/1/MPRA_paper_21820.pdf)). Seven
+weeks after the peak they were still within 3% of it: the index "stayed close to that level for two
+months", and the slide began in late October 1845.
+
+Cisco, the company that sold the routers of the internet boom, closed at \$80.06 (split-adjusted) on
+March 27, 2000, and at \$8.60 on October 8, 2002: 89% lower. It closed above its 2000 high again
+only on December 10, 2025, more than 25 years later
+([Yahoo Finance](https://finance.yahoo.com/quote/CSCO/history/)). Seven weeks after their peaks,
+Nvidia is at 63%, Cisco was at 78% and the railways at 98%. Nvidia's line ends at its latest close,
+on November 27, 2026.
+
+## Years of orders on the books
+
+In October 2025 Jensen Huang said Nvidia
+had \$500 billion of bookings for its Blackwell and Rubin chips through 2026
+([Reuters via Yahoo Finance](https://finance.yahoo.com/news/nvidia-build-ai-supercomputers-us-191932227.html)).
+Aircraft makers also sell years ahead. Boeing has orders for over 6,300 commercial airplanes worth
+\$612 billion ([Q3 2026 results](https://boeing.mediaroom.com/2026-10-27-Boeing-Reports-Third-Quarter-Results)),
+about ten years of work at its 2025 pace of 600 deliveries a year. Airbus ended 2025 with 8,754
+aircraft on order after delivering 793
+([Airbus](https://www.airbus.com/en/newsroom/press-releases/2026-01-airbus-reports-793-commercial-aircraft-deliveries-in-2025)).
+
+Orders can be canceled before delivery. Boeing's order book shrank after the 737 MAX was grounded in
+2019 and air travel collapsed in 2020.
+
+<div class="fx-figure">
+  <OrderBook client:visible />
+</div>
+
+In 2020 Boeing's net orders were minus 1,026 airplanes. Buyers canceled orders for some 641 737 MAX
+jets, and Boeing took another 523 off its books because it no longer expected them to be delivered
+([Reuters via Yahoo Finance](https://ca.finance.yahoo.com/news/boeing-limps-2021-more-737-160625240.html)).
+Shipyards went through the same thing in 2008. Their order books held over 10,000 ships, and by the
+middle of the year buyers had started to cancel
+([UN News, on UNCTAD's 2008 review](https://news.un.org/en/story/2008/11/280482)).
+
+## Money that goes round
+
+In both the telecom boom and the AI boom, suppliers have helped pay for their customers' purchases.
+In 1999 telephone equipment makers lent money to young carriers so that the carriers could buy their equipment.
+By the end of that year Lucent had agreed to lend about \$8.4 billion to customers, "including PCS
+and wireless operators"
+([Lucent 10-Q](https://www.sec.gov/Archives/edgar/data/0001006240/000095011600000226/0000950116-00-000226.txt)).
+
+<div class="fx-figure">
+  <Loop client:visible />
+</div>
+
+One of those borrowers, the wireless carrier Winstar, filed for bankruptcy in April 2001, and Lucent
+"fully reserved for its loans to Winstar"
+([Lucent 8-K, April 2001](https://www.sec.gov/Archives/edgar/data/0001006240/000095012301501063/y48236e8-k.txt)).
+That same quarter Cisco wrote off \$2.25 billion of inventory it had bought for orders that never came
+([Cisco 10-Q](https://www.sec.gov/Archives/edgar/data/0000858877/000089161801500994/f73006e10-q.txt)).
+
+The 2026 arrangements take other forms. In February, Reuters reported that Nvidia was close to a \$30 billion
+investment in OpenAI, in place of the up to \$100 billion it had announced in September
+([PYMNTS, citing Reuters](https://www.pymnts.com/artificial-intelligence-2/2026/nvidia-nears-30-billion-stake-in-record-breaking-openai-funding-round/)).
+Nvidia's own filing describes guarantees on OpenAI's data center leases "capped at \$105 billion in the
+aggregate" ([Nvidia 10-Q](https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000075/nvda-20260726.htm)).
+It has also committed to buy \$390 billion of supply, mostly memory, over the next three years
+([Tom's Hardware](https://www.tomshardware.com/pc-components/gpus/nvidias-revenue-hits-usd115-8-billion-as-vera-rubin-generates-usd20-billion-in-another-record-setting-quarter-commitments-increase-to-usd390-billion-fy28-forecast-raised)).
+Money lent or invested this way is recovered only if the customer earns enough from its own users,
+subscribers in 1999 and ChatGPT and API customers today, to cover the cost of the hardware.
+
+## What the crash leaves behind
+
+The figure compares how long the assets built in each boom stay in service or on the books.
+
+<div class="fx-figure">
+  <AssetLife client:visible />
+</div>
+
+The railway projects approved in 1844 to 1846 built about 6,220 miles of line. Britain's whole network
+today is around 11,000 miles, and big companies bought up the failed lines cheaply after the crash
+([Wikipedia](https://en.wikipedia.org/wiki/Railway_Mania)). In 2001 only about 5% of the new fiber in
+the ground was in use
+([Deseret News](https://www.deseret.com/2001/6/18/19591977/economy-s-slump-idles-95-of-fiber-optic-lines/)),
+but a cable maker expects it to last 25 to 40 years
+([Prysmian](https://ro.prysmian.com/sites/ro.prysmian.com/files/media/documents/Product%20lifetime.pdf)).
+Airlines depreciate a jet over 25 to 30 years
+([United 10-K](https://www.sec.gov/Archives/edgar/data/100517/000010051719000009/ual_201810k.htm)).
+The big cloud companies depreciate their servers over five to six years
+([Microsoft](https://www.sec.gov/Archives/edgar/data/789019/000156459022026876/msft-10k_20220630.htm),
+[Alphabet](https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/goog-20241231.htm),
+[Meta](https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm)),
+and Amazon shortened that from six years to five in 2025, citing the pace of AI
+([Amazon 10-K](https://www.sec.gov/Archives/edgar/data/1018724/000101872425000004/amzn-20241231.htm)).
+On those schedules, servers bought in 2025 are fully depreciated by around 2030.
+
+## Where the booms differ
+
+The railway companies of the 1840s and the carriers of 1999 were new firms running on borrowed money.
+Most AI chips are bought by Microsoft, Alphabet, Amazon and Meta, which make large profits. FactSet expects their 2026 free cash flow to be "close to zero or turn
+negative for all except Alphabet and Microsoft", and more of the spending is paid for with debt
+([FactSet](https://insight.factset.com/hyperscalers-tap-external-financing-as-ai-capex-outruns-cash-flow)).
+AI-related borrowers
+have issued nearly a quarter of non-financial US dollar bonds this year
+([PIMCO](https://www.pimco.com/us/en/insights/the-credit-market-lens-hyperscalers-are-repricing-not-displacing-so-far)).
+Nvidia's revenue also kept growing: it was \$115.8 billion last quarter, double a year
+earlier ([Nvidia](https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2027)).
+
+<Lesson label="In numbers">
+
+From their peaks, British railway shares fell 67% by 1850 and Cisco fell 89% by 2002. The railway
+lines and the fiber both stayed in use for decades.
+
+</Lesson>
+
+## Sources and data
+
+Every figure on this page is drawn from these sources:
+
+- **The same shape.** Nvidia and Cisco: daily, weekly and monthly closes from Yahoo Finance
+  ([NVDA](https://finance.yahoo.com/quote/NVDA/history/), [CSCO](https://finance.yahoo.com/quote/CSCO/history/)),
+  split-adjusted, not adjusted for dividends. Nvidia's line is weekly closes up to August 2026 and
+  daily closes after that. Cisco's 2000 peak and its December 2025 recovery are confirmed by
+  [CNBC](https://www.cnbc.com/2025/12/10/ciscos-stock-closes-at-record-for-first-time-since-dot-com-peak-2000.html).
+  British railways: the daily all-railways index of Campbell and Turner,
+  ["The Greatest Bubble in History": Stock Prices during the British Railway Mania](https://mpra.ub.uni-muenchen.de/21820/1/MPRA_paper_21820.pdf)
+  (MPRA Paper 21820, 2010). The paper prints the series only as a chart (its Figure 2), so the
+  line here is traced from the PDF's vector drawing and calibrated to the chart's axes. The traced line puts the
+  peak on August 9, 1845, as the paper does, and matches the year-end values in its Table 1 to within
+  about 1% (1848 to within 3%).
+- **The order book can shrink.** Boeing's yearly releases for
+  [2015](https://boeing.mediaroom.com/2016-01-07-Boeing-Achieves-Record-Commercial-Airplanes-Deliveries-in-2015),
+  [2017](https://boeing.mediaroom.com/2018-01-09-Boeing-Sets-Airplane-Delivery-Record-Finishes-2017-with-Larger-Order-Book),
+  [2018](https://boeing.mediaroom.com/2019-01-08-Boeing-Sets-New-Airplane-Delivery-Records-Expands-Order-Backlog),
+  [2022](https://investors.boeing.com/investors/news/press-release-details/2023/Boeing-Reports-Fourth-Quarter-Results/default.aspx),
+  [2023](https://investors.boeing.com/investors/news/press-release-details/2024/Boeing-Reports-Fourth-Quarter-Results/default.aspx),
+  [2024](https://investors.boeing.com/investors/news/press-release-details/2025/Boeing-Reports-Fourth-Quarter-Results/default.aspx) and
+  [2025](https://investors.boeing.com/investors/news/press-release-details/2026/Boeing-Reports-Fourth-Quarter-Results/default.aspx);
+  [Aviation Week](https://aviationweek.com/air-transport/boeing-achieves-strong-delivery-numbers-2016) for 2016;
+  [GeekWire](https://www.geekwire.com/2020/going-negative-boeing-records-cancellations-orders-commercial-airplanes-2019/) for 2019;
+  [Reuters via Yahoo Finance](https://ca.finance.yahoo.com/news/boeing-limps-2021-more-737-160625240.html) for 2020;
+  [Euronews](https://www.euronews.com/next/2022/01/11/boeing-deliveries) for 2021.
+  From 2018, net orders include Boeing's ASC 606 backlog adjustment, the basis of its year-end results
+  and of the negative totals for 2019 and 2020. Boeing's January delivery releases count orders
+  before that adjustment, so some years appear there with different totals.
+- **The money goes round.** Lucent's
+  [10-Q for December 1999](https://www.sec.gov/Archives/edgar/data/0001006240/000095011600000226/0000950116-00-000226.txt)
+  and [8-K of April 24, 2001](https://www.sec.gov/Archives/edgar/data/0001006240/000095012301501063/y48236e8-k.txt);
+  Nvidia's [10-Q for July 2026](https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000075/nvda-20260726.htm);
+  [PYMNTS, citing Reuters](https://www.pymnts.com/artificial-intelligence-2/2026/nvidia-nears-30-billion-stake-in-record-breaking-openai-funding-round/).
+  The coin's laps show how the loop works. They don't stand for amounts.
+- **What the crash leaves behind.** Railway mileage from
+  [Wikipedia](https://en.wikipedia.org/wiki/Railway_Mania); fiber life from
+  [Prysmian](https://ro.prysmian.com/sites/ro.prysmian.com/files/media/documents/Product%20lifetime.pdf);
+  aircraft lives from [United's 10-K](https://www.sec.gov/Archives/edgar/data/100517/000010051719000009/ual_201810k.htm);
+  server lives from the 10-Ks of [Microsoft](https://www.sec.gov/Archives/edgar/data/789019/000156459022026876/msft-10k_20220630.htm),
+  [Alphabet](https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/goog-20241231.htm),
+  [Meta](https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm) and
+  [Amazon](https://www.sec.gov/Archives/edgar/data/1018724/000101872425000004/amzn-20241231.htm).
+  Bar lengths are accounting lives or rated lives, not measurements of when things actually stopped working.
