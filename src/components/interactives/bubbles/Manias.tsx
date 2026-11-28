@@ -115,7 +115,7 @@ export default function Manias() {
   };
   let caption: string;
   if (Math.abs(cur - TODAY_M) < 0.05)
-    caption = `Today, seven weeks after its peak, Nvidia is at ${pct('ai')}% of it. At the same point after their peaks, Cisco was at ${pct('fiber')}% and the railways at ${pct('rail')}%.`;
+    caption = `Today, seven weeks after its peak, Nvidia is at ${pct('ai')}% of it. At the same point, Cisco was at ${pct('fiber')}% and the railways at ${pct('rail')}%. Their falls came later.`;
   else if (curM === 0 && Math.abs(cur) < 0.05) caption = 'At the peak, every line is at 100%.';
   else
     caption = `${Math.abs(curM)} month${Math.abs(curM) === 1 ? '' : 's'} ${cur < 0 ? 'before' : 'after'} the peak.`;
