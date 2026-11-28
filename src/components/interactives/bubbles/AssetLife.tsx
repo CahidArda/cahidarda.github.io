@@ -27,7 +27,7 @@ const L = 16;
 const R = 572;
 const MAX = 30; // years shown
 const TOP = 34;
-const ROW = 58;
+const ROW = 74;
 const BAR = 14;
 const H = TOP + ASSETS.length * ROW + 34;
 const px = (y: number) => L + (clamp(y, 0, MAX) / MAX) * (R - L);
@@ -39,7 +39,10 @@ const SNAPS = ASSETS.map((a) => a.life).filter((v) => v < MAX);
 export default function AssetLife() {
   const reduced = useReducedMotion();
   const [rootRef, inView] = useInView();
-  const [svgRef, k] = useBoost(W);
+  const [svgRef, k0] = useBoost(W);
+  // on phones the boost would make rows collide: cap it and drop the right-hand notes
+  const k = Math.min(k0, 1.45);
+  const narrow = k0 > 1.2;
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(false);
   const clock = useRef(0);
@@ -95,16 +98,16 @@ export default function AssetLife() {
   };
 
   const year = Math.round(t);
-  const alive = ASSETS.filter((a) => t < a.life);
-  const dead = ASSETS.filter((a) => t >= a.life);
+  const alive = ASSETS.filter((a) => t <= a.life);
+  const dead = ASSETS.filter((a) => t > a.life);
+  const list = (xs: string[]) =>
+    xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`;
+  const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
   let status: string;
   if (t < 0.5) status = 'The crash. Every boom leaves its hardware behind.';
-  else if (dead.length === 0)
-    status = `Year ${year}: everything built in the booms still works.`;
+  else if (dead.length === 0) status = `Year ${year}: everything built in the booms still works.`;
   else
-    status = `Year ${year}: ${dead.map((a) => a.short).join(' and ')} ${
-      dead.length > 1 ? 'are' : 'is'
-    } written off. ${alive.map((a) => a.short).join(', ')} still work${alive.length === 1 ? 's' : ''}.`;
+    status = `Year ${year}: ${list(dead.map((a) => a.short))} ${'are'} written off. ${cap(list(alive.map((a) => a.short)))} still work.`;
 
   const cx = r2(px(t));
 
@@ -115,7 +118,7 @@ export default function AssetLife() {
       title="what the crash leaves behind"
       kicker="useful life after the boom"
       hint="drag across the chart to move through the years"
-      footer="sources below the figure"
+      footer="sources at the end of the post"
     >
       <svg
         ref={svgRef}
@@ -144,7 +147,12 @@ export default function AssetLife() {
               y2={H - 26}
               style={{ stroke: GT.line, strokeDasharray: y === 0 ? undefined : '2 4' }}
             />
-            <T x={px(y)} y={H - 14} size={9 * k} anchor={y === 0 ? 'start' : y === 30 ? 'end' : 'middle'}>
+            <T
+              x={px(y)}
+              y={H - 14}
+              size={9 * k}
+              anchor={y === 0 ? 'start' : y === 30 ? 'end' : 'middle'}
+            >
               {y === 0 ? 'crash' : `${y} yr`}
             </T>
           </g>
@@ -153,7 +161,7 @@ export default function AssetLife() {
         {ASSETS.map((a, i) => {
           const y0 = TOP + i * ROW;
           const by = y0 + 24;
-          const isDead = t >= a.life;
+          const isDead = t > a.life;
           const end = px(a.life);
           const forever = a.life > MAX;
           const col = isDead ? GT.muted : a.color;
@@ -162,9 +170,11 @@ export default function AssetLife() {
               <T x={L} y={y0 + 8} anchor="start" size={11 * k} color={GT.ink} weight={600}>
                 {a.label}
               </T>
-              <T x={R} y={y0 + 8} anchor="end" size={9 * k} color={GT.muted}>
-                {a.built}
-              </T>
+              {!narrow && (
+                <T x={R} y={y0 + 8} anchor="end" size={9 * k} color={GT.muted}>
+                  {a.built}
+                </T>
+              )}
               {/* the bar: full life, outlined */}
               <rect
                 x={L}
@@ -194,7 +204,7 @@ export default function AssetLife() {
               )}
               <T
                 x={L}
-                y={by + BAR + 11 * k}
+                y={by + BAR + 13 * k}
                 anchor="start"
                 size={9.5 * k}
                 color={isDead ? GT.b : GT.inkSoft}
